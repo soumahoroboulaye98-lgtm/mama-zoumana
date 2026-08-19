@@ -374,7 +374,7 @@ async function afficherDetails(dem) {
   // ✅ CORRIGÉ : URL SANS /api/
   const docsHTML = dem.documents 
     ? dem.documents.split('|').map(d => `
-        <a href="http://localhost:5000/${d}" target="_blank" class="document-link">
+        <a href="https://mama-zoumana-api.onrender.com/api/${d}" target="_blank" class="document-link">
           <i class="bi bi-file-earmark-text me-2"></i> ${d.split('/').pop()}
         </a>`).join('')
     : `<div class="empty-box py-2">${t('aucunDoc')}</div>`;
@@ -383,7 +383,7 @@ async function afficherDetails(dem) {
   const afficherClasse = dem.classe || (dem.id_classe ? `Classe #${dem.id_classe}` : '-');
 
   // ✅ CORRIGÉ : URL PHOTO SANS /api/
-  const photoUrl = dem.photo_identite ? `http://localhost:5000/${dem.photo_identite}` : null;
+  const photoUrl = dem.photo_identite ? `https://mama-zoumana-api.onrender.com/api/${dem.photo_identite}` : null;
 
 
   zone.innerHTML = `

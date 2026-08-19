@@ -301,7 +301,7 @@ async function chargerBulletin() {
 
   try {
     // ✅ APPEL DE LA BONNE ROUTE : /voir/:id_eleve
-    const url = `http://localhost:5000/api/bulletins/voir/${id_eleve}?id_classe=${encodeURIComponent(id_classe)}&trimestre=${encodeURIComponent(trimestre)}&annee_scolaire=${encodeURIComponent(anneeScolaire)}`;
+    const url = `https://mama-zoumana-api.onrender.com/api${id_eleve}?id_classe=${encodeURIComponent(id_classe)}&trimestre=${encodeURIComponent(trimestre)}&annee_scolaire=${encodeURIComponent(anneeScolaire)}`;
     
     const reponse = await fetch(url, {
       method: 'GET',
@@ -331,7 +331,7 @@ async function chargerBulletin() {
 
     // ✅ PHOTO : photo_profil + chemin corrigé
     const photoUrl = e.photo_profil 
-      ? `http://localhost:5000/uploads/${e.photo_profil}` 
+      ? `https://mama-zoumana-api.onrender.com/api${e.photo_profil}` 
       : 'https://via.placeholder.com/120x150?text=Photo';
 
     // 📋 TABLEAU DES NOTES
@@ -379,7 +379,7 @@ async function chargerBulletin() {
       <div class="row align-items-start mb-4">
         <div class="col-md-3 text-center">
           <img src="${photoUrl}" alt="Photo élève" class="photo-eleve" onerror="this.src='https://via.placeholder.com/120x150?text=Photo'">
-          ${e.qr_code ? `<img src="http://localhost:5000/uploads/${e.qr_code}" alt="QR Code" style="width:100px;margin-top:10px;">` : ''}
+          ${e.qr_code ? `<img src="https://mama-zoumana-api.onrender.com/api/${e.qr_code}" alt="QR Code" style="width:100px;margin-top:10px;">` : ''}
         </div>
         <div class="col-md-9">
           <div class="row ligne-info">

@@ -452,7 +452,7 @@ function afficherListeEleves() {
     const prenomEleve = el.prenoms || el.prenom || '';
     const matricule = el.matricule || '---';
 
-    let photoUrl = el.photo_profil ? `http://localhost:5000/uploads/${el.photo_profil}` : null;
+    let photoUrl = el.photo_profil ? `https://mama-zoumana-api.onrender.com/api/${el.photo_profil}` : null;
     if (!photoUrl) {
       const nomPrenom = encodeURIComponent(`${nomEleve} ${prenomEleve}`);
       photoUrl = `https://ui-avatars.com/api/?name=${nomPrenom}&background=0f172a&color=f59e0b&size=80`;

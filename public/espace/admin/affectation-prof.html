@@ -172,7 +172,7 @@ window.onload = async function() {
 // 👨‍🏫 CHARGER LA LISTE DES PROFESSEURS — UTILISE TA ROUTE EXISTANTE
 async function chargerProfesseurs(){
   try {
-    const r = await fetch('http://localhost:5000/api/utilisateurs?role=prof', {
+    const r = await fetch('https://mama-zoumana-api.onrender.com/api', {
       headers:{'Authorization':`Bearer ${token}`}
     });
     const res = await r.json();
@@ -194,7 +194,7 @@ async function chargerProfesseurs(){
 // 🏫 CHARGER LA LISTE DES CLASSES — ROUTE SIMPLE SANS AFFECTATION
 async function chargerClasses(){
   try {
-    const r = await fetch('http://localhost:5000/api/classes', {
+    const r = await fetch('https://mama-zoumana-api.onrender.com/api', {
       headers:{'Authorization':`Bearer ${token}`}
     });
     const res = await r.json();
@@ -216,7 +216,7 @@ async function chargerClasses(){
 // 📚 CHARGER LA LISTE DES MATIÈRES — ROUTE SIMPLE SANS AFFECTATION
 async function chargerMatieres(){
   try {
-    const r = await fetch('http://localhost:5000/api/matieres', {
+    const r = await fetch('https://mama-zoumana-api.onrender.com/api', {
       headers:{'Authorization':`Bearer ${token}`}
     });
     const res = await r.json();
@@ -236,7 +236,7 @@ async function chargerMatieres(){
 }// 👨‍🏫 CHARGER LA LISTE DES PROFESSEURS — UTILISE TA ROUTE EXISTANTE
 async function chargerProfesseurs(){
   try {
-    const r = await fetch('http://localhost:5000/api/utilisateurs?role=prof', {
+    const r = await fetch('https://mama-zoumana-api.onrender.com/api', {
       headers:{'Authorization':`Bearer ${token}`}
     });
     const res = await r.json();
@@ -258,7 +258,7 @@ async function chargerProfesseurs(){
 // 🏫 CHARGER LA LISTE DES CLASSES — ROUTE SIMPLE SANS AFFECTATION
 async function chargerClasses(){
   try {
-    const r = await fetch('http://localhost:5000/api/classes', {
+    const r = await fetch('https://mama-zoumana-api.onrender.com/api', {
       headers:{'Authorization':`Bearer ${token}`}
     });
     const res = await r.json();
@@ -280,7 +280,7 @@ async function chargerClasses(){
 // 📚 CHARGER LA LISTE DES MATIÈRES — 100% ADAPTÉ À TA TABLE
 async function chargerMatieres(){
   try {
-    const r = await fetch('http://localhost:5000/api/matieres', {
+    const r = await fetch('https://mama-zoumana-api.onrender.com/api', {
       headers:{'Authorization':`Bearer ${token}`}
     });
     const res = await r.json();

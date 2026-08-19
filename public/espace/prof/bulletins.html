@@ -505,7 +505,7 @@ function afficherBulletin(data) {
   const libelleClasse = eleve.libelle_classe || '---';
 
   // ✅ Photo de profil ou avatar généré
-  let photoUrl = eleve.photo_profil ? `http://localhost:5000/uploads/${eleve.photo_profil}` : null;
+  let photoUrl = eleve.photo_profil ? `https://mama-zoumana-api.onrender.com/api/${eleve.photo_profil}` : null;
   if (!photoUrl) {
     photoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(nomComplet)}&background=0f172a&color=f59e0b&size=180`;
   }

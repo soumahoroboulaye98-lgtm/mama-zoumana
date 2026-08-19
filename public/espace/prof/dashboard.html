@@ -592,7 +592,7 @@ document.querySelectorAll('.btn-langue').forEach(btn => {
 async function chargerStatistiques(){
   try {
     console.log("📡 Chargement statistiques...");
-    const res = await fetch('http://localhost:5000/api/notes/mes-classes-matieres', {
+    const res = await fetch('https://mama-zoumana-api.onrender.com/api/notes/mes-classes-matieres', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const data = await res.json();

@@ -401,7 +401,7 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
   }
 
   try {
-    const res = await fetch('http://localhost:5000/api/auth/connexion', {
+    const res = await fetch('https://mama-zoumana-api.onrender.com/api', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(donnees)

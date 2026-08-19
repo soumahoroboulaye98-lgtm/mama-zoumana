@@ -425,7 +425,7 @@ function genererLignes(){
     const id = e.id_utilisateur || e.id_eleve;
     
     // ✅ Photo ou Avatar par défaut
-    let photoUrl = e.photo_eleve ? `http://localhost:5000/uploads/${e.photo_eleve}` : null;
+    let photoUrl = e.photo_eleve ? `https://mama-zoumana-api.onrender.com/api/${e.photo_eleve}` : null;
     if (!photoUrl) {
       const nomPrenom = encodeURIComponent(`${e.nom} ${e.prenoms || ''}`);
       photoUrl = `https://ui-avatars.com/api/?name=${nomPrenom}&background=0c4a6e&color=fff&size=80`;

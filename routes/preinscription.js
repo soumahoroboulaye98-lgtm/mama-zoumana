@@ -125,7 +125,7 @@ router.post('/', upload.fields([
     // ══════════════════════════════════════════════════
     // ✅ TRAITEMENT DES FICHIERS
     // ══════════════════════════════════════════════════
-    const photoUrl = x.photo_identite ? `http://localhost:5000/${x.photo_identite}` : null;
+    const photoUrl = x.photo_identite ? `https://mama-zoumana-api.onrender.com/api/${x.photo_identite}` : null;
     const extrait_naissance = req.files?.extrait_naissance ? 'uploads/' + req.files.extrait_naissance[0].filename : null;
     const bulletin = req.files?.bulletin ? 'uploads/' + req.files.bulletin[0].filename : null;
     const cv = req.files?.cv ? 'uploads/' + req.files.cv[0].filename : null;
