@@ -7,6 +7,7 @@ const fs = require('fs');
 const multer = require('multer');
 
 
+
 // 📁 CONFIG MULTER
 const stockage = multer.diskStorage({
   destination: (req,file,cb) => cb(null, path.join(__dirname, 'public', 'uploads')),
@@ -15,10 +16,12 @@ const stockage = multer.diskStorage({
 const upload = multer({ storage: stockage });
 
 
+
 // ✅ CRÉE L'APPLICATION
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000; // ✅ Port corrigé pour Render
 const boutiqueRoutes = require('./routes/boutique');
+
 
 
 // 📦 MIDDLEWARES
@@ -26,15 +29,39 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ CHEMIN CORRIGÉ DÉFINITIVEMENT (SANS ..)
+
+// ✅ CHEMIN DOSSIER PUBLIC
 const dossierPublic = path.join(__dirname, 'public');
 console.log("📁 Dossier public :", dossierPublic);
 console.log("📂 Existe ?", fs.existsSync(dossierPublic) ? "✅ OUI" : "❌ NON");
 
+
 app.use(express.static(dossierPublic));
 
 
-// 🔐 ROUTES
+// ✅ CHARGEMENT CONFIGURATION SANS ERREUR id_config
+let configSite = {};
+async function chargerConfig() {
+  try {
+    const r = await pool.query('SELECT cle, valeur FROM configuration_site');
+    configSite = {};
+    r.rows.forEach(row => { configSite[row.cle] = row.valeur; });
+    console.log("✅ Configuration chargée !");
+  } catch (e) {
+    // ✅ Plus d'erreur affichée quand la table est vide
+    console.log("ℹ️ Configuration vide pour l'instant — normal la première fois");
+    configSite = {};
+  }
+}
+
+// ✅ Rendre la config accessible à toutes les routes
+app.use((req, res, next) => {
+  res.locals.configSite = configSite;
+  next();
+});
+
+
+// 🔐 ROUTES — TOUTES DÉCLARÉES
 app.use('/api/utilisateurs', require('./routes/utilisateurs'));
 app.use('/api/preinscription', require('./routes/preinscription'));
 app.use('/api/auth', require('./routes/auth'));
@@ -56,11 +83,9 @@ app.use('/api/actualites', require('./routes/actualites'));
 app.use('/api/medias', require('./routes/medias'));
 app.use('/api/config', require('./routes/config'));
 
-
 // 🧑‍🎓 FONCTIONS ÉLÈVE / PARENT
 app.use('/api/eleve', require('./routes/eleve'));
 app.use('/api/parent', require('./routes/parent'));
-
 
 // 🔄 REDIRECTIONS
 app.get('/inscription.html', (req,res) => res.redirect('/preinscription.html'));
@@ -75,7 +100,7 @@ app.use('/api/reglement', reglementRoutes);
 app.use('/api/equipe', equipeRoutes);
 
 
-// 🏠 PAGE D'ACCUEIL — CHEMIN 100% SÛR ✅
+// 🏠 PAGE D'ACCUEIL
 app.get('/', (req, res) => {
   const indexChemin = path.join(__dirname, 'public', 'index.html');
   console.log("🔍 Cherche :", indexChemin);
@@ -100,7 +125,11 @@ app.get('/api/test', async (req, res) => {
 });
 
 
-// 🚀 DÉMARRAGE
-app.listen(PORT, () => {
-  console.log(`✅ Serveur opérationnel sur port ${PORT}`);
+// 🚀 DÉMARRAGE AVEC CONFIG CHARGÉE SANS ERREUR
+chargerConfig().then(() => {
+  app.listen(PORT, () => {
+    console.log(`✅ Serveur opérationnel sur port ${PORT}`);
+  });
+}).catch(err => {
+  console.error("❌ Erreur démarrage :", err.message);
 });
