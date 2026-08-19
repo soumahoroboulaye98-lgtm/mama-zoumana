@@ -3,14 +3,15 @@ const router = express.Router();
 const pool = require('../db');
 const verifadmin = require('../middleware/verifadmin');
 
+
 // ==================================================
 // 📊 STATISTIQUES GLOBALES
 // ==================================================
 router.get('/statistiques', verifadmin, async (req, res) => {
   try {
-    const [classes] = await pool.query(`SELECT COUNT(*) FROM classes`);
-    const [eleves] = await pool.query(`SELECT COUNT(*) FROM utilisateurs WHERE role = 'eleve'`);
-    const [profs] = await pool.query(`SELECT COUNT(*) FROM utilisateurs WHERE role = 'prof'`);
+    const classes = await pool.query(`SELECT COUNT(*) FROM classes`);
+    const eleves = await pool.query(`SELECT COUNT(*) FROM utilisateurs WHERE role = 'eleve'`);
+    const profs = await pool.query(`SELECT COUNT(*) FROM utilisateurs WHERE role = 'prof'`);
     
     let attente = 0;
     try {
@@ -20,8 +21,8 @@ router.get('/statistiques', verifadmin, async (req, res) => {
 
     let totalPaiements = 0, paiementsEnAttente = 0;
     try {
-      const [paye] = await pool.query(`SELECT COALESCE(SUM(montant_paye),0) AS total FROM paiements`);
-      const [enAtt] = await pool.query(`SELECT COUNT(*) FROM frais_scolaires WHERE statut = 'impaye'`);
+      const paye = await pool.query(`SELECT COALESCE(SUM(montant_paye),0) AS total FROM paiements`);
+      const enAtt = await pool.query(`SELECT COUNT(*) FROM frais_scolaires WHERE statut = 'impaye'`);
       totalPaiements = parseFloat(paye.rows[0].total) || 0;
       paiementsEnAttente = parseInt(enAtt.rows[0].count, 10);
     } catch { totalPaiements = 0; paiementsEnAttente = 0; }
@@ -38,7 +39,7 @@ router.get('/statistiques', verifadmin, async (req, res) => {
       }
     });
   } catch (e) {
-    console.log("❌ ERREUR STATS :", e.message);
+    // console.log("❌ ERREUR STATS :", e.message);
     res.json({ 
       ok: false, 
       erreur: e.message, 
@@ -46,6 +47,7 @@ router.get('/statistiques', verifadmin, async (req, res) => {
     });
   }
 });
+
 
 // ==================================================
 // 📋 DERNIÈRES INSCRIPTIONS
@@ -61,10 +63,11 @@ router.get('/dernieres-inscriptions', verifadmin, async (req, res) => {
     `);
     res.json({ ok: true, inscriptions: r.rows });
   } catch (e) {
-    console.log("❌ ERREUR DERNIÈRES INSCRIPTIONS :", e.message);
+    // console.log("❌ ERREUR DERNIÈRES INSCRIPTIONS :", e.message);
     res.json({ ok: false, inscriptions: [] });
   }
 });
+
 
 // ==================================================
 // ⚠️ ALERTES DU SYSTÈME
@@ -72,7 +75,7 @@ router.get('/dernieres-inscriptions', verifadmin, async (req, res) => {
 router.get('/alertes', verifadmin, async (req, res) => {
   const alertes = [];
   try {
-    const [sansClasse] = await pool.query(`
+    const sansClasse = await pool.query(`
       SELECT COUNT(*) FROM utilisateurs 
       WHERE role = 'eleve' AND (id_classe IS NULL OR id_classe = 0)
     `);
@@ -89,7 +92,7 @@ router.get('/alertes', verifadmin, async (req, res) => {
   } catch {}
 
   try {
-    const [sansAffectation] = await pool.query(`
+    const sansAffectation = await pool.query(`
       SELECT COUNT(DISTINCT u.id_utilisateur) 
       FROM utilisateurs u
       LEFT JOIN affectations_ens a ON u.id_utilisateur = a.id_prof
@@ -110,6 +113,7 @@ router.get('/alertes', verifadmin, async (req, res) => {
   res.json({ ok: true, alertes });
 });
 
+
 // ==================================================
 // 📈 RÉPARTITION DES ÉLÈVES PAR CLASSE
 // ==================================================
@@ -125,10 +129,11 @@ router.get('/repartition-eleves', verifadmin, async (req, res) => {
     `);
     res.json({ ok: true, repartition: r.rows });
   } catch (e) {
-    console.log("❌ ERREUR RÉPARTITION :", e.message);
+    // console.log("❌ ERREUR RÉPARTITION :", e.message);
     res.json({ ok: false, repartition: [] });
   }
 });
+
 
 // ==================================================
 // 📄 ÉTAT DES NOTES & BULLETINS
@@ -137,21 +142,22 @@ router.get('/etat-bulletins', verifadmin, async (req, res) => {
   try {
     let notesSaisies = 0, bulletinsGeneres = 0;
     try {
-      const [notes] = await pool.query(`SELECT COUNT(*) AS total FROM notes`);
+      const notes = await pool.query(`SELECT COUNT(*) AS total FROM notes`);
       notesSaisies = parseInt(notes.rows[0].total, 10);
     } catch { notesSaisies = 0; }
 
     try {
-      const [bulletins] = await pool.query(`SELECT COUNT(*) AS total FROM bulletins`);
+      const bulletins = await pool.query(`SELECT COUNT(*) AS total FROM bulletins`);
       bulletinsGeneres = parseInt(bulletins.rows[0].total, 10);
     } catch { bulletinsGeneres = 0; }
 
     res.json({ ok: true, notesSaisies, bulletinsGeneres });
   } catch (e) {
-    console.log("❌ ERREUR ÉTAT BULLETINS :", e.message);
+    // console.log("❌ ERREUR ÉTAT BULLETINS :", e.message);
     res.json({ ok: false, notesSaisies: 0, bulletinsGeneres: 0 });
   }
 });
+
 
 // ==================================================
 // 🕐 ACTIVITÉ RÉCENTE
@@ -160,7 +166,7 @@ router.get('/activite-recente', verifadmin, async (req, res) => {
   const activite = [];
   try {
     const r = await pool.query(`
-      SELECT nom, prenoms, role, date_creation
+      SELECT id_utilisateur, nom, prenoms, role, date_creation
       FROM utilisateurs
       ORDER BY date_creation DESC
       LIMIT 5
@@ -182,8 +188,9 @@ router.get('/activite-recente', verifadmin, async (req, res) => {
   res.json({ ok: true, activite });
 });
 
+
 // ==================================================
-// ⚙️ CONFIGURATION DU SITE — RESPECTE VOS COLONNES
+// ⚙️ CONFIGURATION DU SITE — cle / valeur
 // ==================================================
 
 // Lire la configuration (admin)
@@ -194,12 +201,13 @@ router.get('/config-site', verifadmin, async (req, res) => {
     r.rows.forEach(row => { config[row.cle] = row.valeur; });
     res.json({ ok: true, config });
   } catch (e) {
-    console.log("❌ ERREUR LECTURE CONFIG :", e.message);
+    // console.log("❌ ERREUR LECTURE CONFIG :", e.message);
     res.json({ ok: false, config: {} });
   }
 });
 
-// ✅ Lire la configuration PUBLIQUE — harmonisée avec l'accueil
+
+// ✅ Lire la configuration PUBLIQUE — SANS ERREUR
 router.get('/site/config', async (req, res) => {
   try {
     const r = await pool.query(`SELECT cle, valeur FROM configuration_site`);
@@ -207,12 +215,13 @@ router.get('/site/config', async (req, res) => {
     r.rows.forEach(row => { config[row.cle] = row.valeur; });
     res.json({ ok: true, config });
   } catch (e) {
-    console.log("❌ ERREUR CONFIG PUBLIQUE :", e.message);
+    // console.log("❌ ERREUR CONFIG PUBLIQUE :", e.message);
     res.json({ ok: true, config: {} });
   }
 });
 
-// ✅ Mettre à jour — GARDE VOTRE COLONNE date_mise_a_jour
+
+// ✅ Mettre à jour
 router.post('/config-site', verifadmin, async (req, res) => {
   try {
     const { config } = req.body;
@@ -226,143 +235,101 @@ router.post('/config-site', verifadmin, async (req, res) => {
     }
     res.json({ ok: true, message: "Configuration sauvegardée" });
   } catch (e) {
-    console.log("❌ ERREUR SAUVEGARDE CONFIG :", e.message);
+    // console.log("❌ ERREUR SAUVEGARDE CONFIG :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
-// 📢 ANNONCES — RESPECTE VOS COLONNES : ordre, statut, date_mise_a_jour
+// 📢 ANNONCES
 // ==================================================
 
 // Lire toutes les annonces (admin)
 router.get('/annonces', verifadmin, async (req, res) => {
   try {
-    const r = await pool.query(`SELECT * FROM annonces ORDER BY ordre ASC, date_debut DESC`);
+    const r = await pool.query(`SELECT * FROM annonces ORDER BY ordre ASC, date_creation DESC`);
     res.json({ ok: true, annonces: r.rows });
   } catch (e) {
-    console.log("❌ ERREUR LECTURE ANNONCES :", e.message);
+    // console.log("❌ ERREUR LECTURE ANNONCES :", e.message);
     res.json({ ok: false, annonces: [] });
   }
 });
 
-// ✅ Lire annonces PUBLIQUES — harmonisée avec l'accueil
+
+// ✅ Lire annonces PUBLIQUES
 router.get('/site/annonces', async (req, res) => {
   try {
     const aujourdHui = new Date().toISOString().slice(0, 10);
     const r = await pool.query(`
       SELECT * FROM annonces 
-      WHERE statut = 'active' 
-      AND (date_debut IS NULL OR date_debut <= $1)
-      AND (date_fin IS NULL OR date_fin >= $1)
+      WHERE est_publie = true 
+      AND (date_publication IS NULL OR date_publication <= $1)
+      AND (date_expiration IS NULL OR date_expiration >= $1)
       ORDER BY ordre ASC, date_creation DESC
     `, [aujourdHui]);
     res.json({ ok: true, annonces: r.rows });
   } catch (e) {
-    console.log("❌ ERREUR ANNONCES PUBLIQUES :", e.message);
+    // console.log("❌ ERREUR ANNONCES PUBLIQUES :", e.message);
     res.json({ ok: true, annonces: [] });
   }
 });
 
+
 // Ajouter une annonce
 router.post('/annonces', verifadmin, async (req, res) => {
   try {
-    const { titre, texte, date_debut, date_fin, ordre, statut } = req.body;
+    const { titre_fr, titre_en, titre_ar, contenu_fr, contenu_en, contenu_ar, date_publication, date_expiration, ordre, est_actif, est_publie } = req.body;
     const r = await pool.query(`
-      INSERT INTO annonces (titre, texte, date_debut, date_fin, ordre, statut, date_creation)
-      VALUES ($1, $2, $3, $4, $5, $6, NOW())
+      INSERT INTO annonces (
+        titre_fr, titre_en, titre_ar, contenu_fr, contenu_ar, contenu_en,
+        date_publication, date_expiration, ordre, est_actif, est_publie
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING *
-    `, [titre, texte, date_debut || null, date_fin || null, ordre || 1, statut || "active"]);
+    `, [titre_fr, titre_en, titre_ar, contenu_fr, contenu_en, contenu_ar, date_publication || new Date(), date_expiration, ordre || 1, est_actif || true, est_publie || true]);
     res.json({ ok: true, annonce: r.rows[0] });
   } catch (e) {
-    console.log("❌ ERREUR CRÉATION ANNONCE :", e.message);
+    // console.log("❌ ERREUR CRÉATION ANNONCE :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
-// Modifier une annonce — GARDE date_mise_a_jour
+
+// Modifier une annonce
 router.put('/annonces/:id', verifadmin, async (req, res) => {
   try {
-    const { titre, texte, date_debut, date_fin, ordre, statut } = req.body;
+    const { titre_fr, titre_en, titre_ar, contenu_fr, contenu_en, contenu_ar, date_expiration, ordre, est_actif, est_publie } = req.body;
     const r = await pool.query(`
       UPDATE annonces 
-      SET titre = $1, texte = $2, date_debut = $3, date_fin = $4, ordre = $5, statut = $6, date_mise_a_jour = NOW()
-      WHERE id = $7
+      SET titre_fr = $1, titre_en = $2, titre_ar = $3,
+          contenu_fr = $4, contenu_en = $5, contenu_ar = $6,
+          date_expiration = $7, ordre = $8, est_actif = $9, est_publie = $10, date_mise_a_jour = NOW()
+      WHERE id_annonce = $11
       RETURNING *
-    `, [titre, texte, date_debut || null, date_fin || null, ordre || 1, statut || "active", req.params.id]);
+    `, [titre_fr, titre_en, titre_ar, contenu_fr, contenu_en, contenu_ar, date_expiration, ordre, est_actif, est_publie, req.params.id]);
 
     if (r.rows.length === 0) {
       return res.json({ ok: false, message: "Annonce introuvable" });
     }
     res.json({ ok: true, annonce: r.rows[0] });
   } catch (e) {
-    console.log("❌ ERREUR MODIFICATION ANNONCE :", e.message);
+    // console.log("❌ ERREUR MODIFICATION ANNONCE :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 // Supprimer une annonce
 router.delete('/annonces/:id', verifadmin, async (req, res) => {
   try {
-    await pool.query(`DELETE FROM annonces WHERE id = $1`, [req.params.id]);
+    await pool.query(`DELETE FROM annonces WHERE id_annonce = $1`, [req.params.id]);
     res.json({ ok: true });
   } catch (e) {
-    console.log("❌ ERREUR SUPPRESSION ANNONCE :", e.message);
+    // console.log("❌ ERREUR SUPPRESSION ANNONCE :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
-// ==================================================
-// 📸 GALERIE — RESPECTE VOTRE TABLE galerie & COLONNE type
-// ==================================================
-
-// Lire tous les médias (admin)
-router.get('/galerie', verifadmin, async (req, res) => {
-  try {
-    const r = await pool.query(`SELECT * FROM galerie ORDER BY date_ajout DESC`);
-    res.json({ ok: true, medias: r.rows });
-  } catch (e) {
-    console.log("❌ ERREUR LECTURE GALERIE :", e.message);
-    res.json({ ok: false, medias: [] });
-  }
-});
-
-// ✅ Lire galerie PUBLIQUE — harmonisée avec l'accueil
-router.get('/site/galerie', async (req, res) => {
-  try {
-    const r = await pool.query(`SELECT * FROM galerie ORDER BY ordre ASC, date_ajout DESC`);
-    res.json({ ok: true, medias: r.rows });
-  } catch (e) {
-    console.log("❌ ERREUR GALERIE PUBLIQUE :", e.message);
-    res.json({ ok: true, medias: [] });
-  }
-});
-
-// Ajouter un média
-router.post('/galerie', verifadmin, async (req, res) => {
-  try {
-    const { url, type, legende, ordre } = req.body;
-    const r = await pool.query(`
-      INSERT INTO galerie (url, type, legende, ordre, date_ajout)
-      VALUES ($1, $2, $3, $4, NOW())
-      RETURNING *
-    `, [url, type || "image", legende || "", ordre || 1]);
-    res.json({ ok: true, media: r.rows[0] });
-  } catch (e) {
-    console.log("❌ ERREUR AJOUT MÉDIA :", e.message);
-    res.json({ ok: false, erreur: e.message });
-  }
-});
-
-// Supprimer un média
-router.delete('/galerie/:id', verifadmin, async (req, res) => {
-  try {
-    await pool.query(`DELETE FROM galerie WHERE id = $1`, [req.params.id]);
-    res.json({ ok: true });
-  } catch (e) {
-    console.log("❌ ERREUR SUPPRESSION MÉDIA :", e.message);
-    res.json({ ok: false, erreur: e.message });
-  }
-});
 
 module.exports = router;

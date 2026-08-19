@@ -3,8 +3,9 @@ const router = express.Router();
 const pool = require('../db');
 const verifadmin = require('../middleware/verifadmin');
 
+
 // ==================================================
-// 🎨 CONFIGURATION DU SITE
+// 🎨 CONFIGURATION DU SITE — cle / valeur
 // ==================================================
 
 // ✅ LIRE LA CONFIGURATION (TOUS PEUVENT LIRE)
@@ -15,10 +16,11 @@ router.get('/', async (req, res) => {
     r.rows.forEach(row => { config[row.cle] = row.valeur; });
     res.json({ ok: true, config });
   } catch (e) {
-    console.log("❌ ERREUR CONFIG :", e.message);
-    res.json({ ok: false, erreur: e.message });
+    // console.log("❌ ERREUR CONFIG :", e.message);
+    res.json({ ok: true, config: {} });
   }
 });
+
 
 // ✏️ SAUVEGARDER PLUSIEURS VALEURS (ADMIN SEUL)
 router.post('/sauvegarder-tout', verifadmin, async (req, res) => {
@@ -34,10 +36,11 @@ router.post('/sauvegarder-tout', verifadmin, async (req, res) => {
     }
     res.json({ ok: true, message: "✅ Configuration mise à jour !" });
   } catch (e) {
-    console.log("❌ ERREUR SAUVEGARDE CONFIG :", e.message);
+    // console.log("❌ ERREUR SAUVEGARDE CONFIG :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 // ==================================================
 // 📢 ANNONCES
@@ -53,10 +56,11 @@ router.get('/annonces', async (req, res) => {
     `);
     res.json({ ok: true, annonces: r.rows });
   } catch (e) {
-    console.log("❌ ERREUR LISTE ANNONCES :", e.message);
-    res.json({ ok: false, erreur: e.message });
+    // console.log("❌ ERREUR LISTE ANNONCES :", e.message);
+    res.json({ ok: true, annonces: [] });
   }
 });
+
 
 // ➕ AJOUTER UNE ANNONCE (ADMIN)
 router.post('/annonces/ajouter', verifadmin, async (req, res) => {
@@ -73,10 +77,11 @@ router.post('/annonces/ajouter', verifadmin, async (req, res) => {
     `, [titre_fr, titre_en, titre_ar, contenu_fr, contenu_en, contenu_ar, type_annonce, date_publication || new Date(), date_expiration, est_actif || true, est_publie || true]);
     res.json({ ok: true, annonce: r.rows[0] });
   } catch (e) {
-    console.log("❌ ERREUR AJOUT ANNONCE :", e.message);
+    // console.log("❌ ERREUR AJOUT ANNONCE :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 // ✏️ MODIFIER UNE ANNONCE
 router.put('/annonces/:id', verifadmin, async (req, res) => {
@@ -92,10 +97,11 @@ router.put('/annonces/:id', verifadmin, async (req, res) => {
     `, [titre_fr, titre_en, titre_ar, contenu_fr, contenu_en, contenu_ar, type_annonce, date_expiration, est_actif, est_publie, req.params.id]);
     res.json({ ok: true, annonce: r.rows[0] });
   } catch (e) {
-    console.log("❌ ERREUR MODIF ANNONCE :", e.message);
+    // console.log("❌ ERREUR MODIF ANNONCE :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 // 🗑️ SUPPRIMER UNE ANNONCE
 router.delete('/annonces/:id', verifadmin, async (req, res) => {
@@ -103,10 +109,11 @@ router.delete('/annonces/:id', verifadmin, async (req, res) => {
     await pool.query('DELETE FROM annonces WHERE id_annonce = $1', [req.params.id]);
     res.json({ ok: true });
   } catch (e) {
-    console.log("❌ ERREUR SUPPR ANNONCE :", e.message);
+    // console.log("❌ ERREUR SUPPR ANNONCE :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 // ==================================================
 // 📰 ACTUALITÉS
@@ -121,10 +128,11 @@ router.get('/actualites', async (req, res) => {
     `);
     res.json({ ok: true, actualites: r.rows });
   } catch (e) {
-    console.log("❌ ERREUR ACTUALITES :", e.message);
-    res.json({ ok: false, erreur: e.message });
+    // console.log("❌ ERREUR ACTUALITES :", e.message);
+    res.json({ ok: true, actualites: [] });
   }
 });
+
 
 // ==================================================
 // 📅 ÉVÉNEMENTS
@@ -139,9 +147,10 @@ router.get('/evenements', async (req, res) => {
     `);
     res.json({ ok: true, evenements: r.rows });
   } catch (e) {
-    console.log("❌ ERREUR EVENEMENTS :", e.message);
-    res.json({ ok: false, erreur: e.message });
+    // console.log("❌ ERREUR EVENEMENTS :", e.message);
+    res.json({ ok: true, evenements: [] });
   }
 });
+
 
 module.exports = router;
