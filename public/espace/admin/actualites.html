@@ -318,7 +318,7 @@
   const nomUtilisateur = localStorage.getItem('nom') || 'Utilisateur';
   const prenomUtilisateur = localStorage.getItem('prenoms') || '';
   const nomComplet = (nomUtilisateur + ' ' + prenomUtilisateur).trim();
-  const API_URL = '/api/actualites';
+  const API_URL = "https://mama-zoumana-api.onrender.com/api"
 
   if (!token || !['admin','super_admin'].includes(role)) {
     alert("⛔ Accès réservé à l'Administrateur");
