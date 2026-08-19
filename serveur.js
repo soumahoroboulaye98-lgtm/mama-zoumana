@@ -5,6 +5,7 @@ require('dotenv').config();
 const path = require('path');
 const multer = require('multer');
 
+
 // 📁 CONFIG MULTER
 const stockage = multer.diskStorage({
   destination: (req,file,cb)=>cb(null,'./public/uploads/'),
@@ -12,16 +13,20 @@ const stockage = multer.diskStorage({
 });
 const upload = multer({storage:stockage});
 
+
 // ✅ CRÉE L'APPLICATION
 const app = express();
 const PORT = process.env.PORT || 5000;
 const boutiqueRoutes = require('./routes/boutique');
 
+
 // 📦 MIDDLEWARES
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '../public')));
+// ✅ CHEMIN CORRIGÉ : ENLÈVE LE ../
+app.use(express.static(path.join(__dirname, 'public')));
+
 
 // 🔐 ROUTES
 app.use('/api/utilisateurs', require('./routes/utilisateurs'));
@@ -39,34 +44,35 @@ app.use('/api/devoirs', require('./routes/devoirs'));
 app.use('/api/paiements', require('./routes/paiements'));
 app.use('/api/comptabilite', require('./routes/comptabilite'));
 app.use('/api/boutique', boutiqueRoutes);
-// 📡 CONTENU DU SITE
 app.use('/api/annonces', require('./routes/annonces'));
 app.use('/api/evenements', require('./routes/evenements'));
 app.use('/api/actualites', require('./routes/actualites'));
 app.use('/api/medias', require('./routes/medias'));
-// ❌ SUPPRIMÉ : ententes
-// ❌ SUPPRIMÉ : corps-page (fichier manquant)
 app.use('/api/config', require('./routes/config'));
+
 
 // 🧑‍🎓 FONCTIONS ÉLÈVE / PARENT
 app.use('/api/eleve', require('./routes/eleve'));
 app.use('/api/parent', require('./routes/parent'));
 
+
 // 🔄 REDIRECTIONS
 app.get('/inscription.html', (req,res) => res.redirect('/preinscription.html'));
 app.use('/api/inscription', (req,res) => res.json({ok:false, message:'Utilisez la préinscription'}));
-// ─── NOUVELLES ROUTES API ───
 const calendrierRoutes = require('./routes/calendrier');
 const reglementRoutes = require('./routes/reglement');
 const equipeRoutes = require('./routes/equipe');
 
+
 app.use('/api/calendrier', calendrierRoutes);
 app.use('/api/reglement', reglementRoutes);
 app.use('/api/equipe', equipeRoutes);
-// 🏠 PAGE ACCUEIL
+
+// 🏠 PAGE ACCUEIL — ✅ CHEMIN CORRIGÉ
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
 
 // 🧪 TEST CONNEXION BASE
 app.get('/api/test', async (req, res) => {
@@ -77,6 +83,7 @@ app.get('/api/test', async (req, res) => {
     res.json({ok:false, erreur: e.message});
   }
 });
+
 
 // 🚀 DÉMARRAGE
 app.listen(PORT, () => {
