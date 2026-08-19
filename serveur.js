@@ -8,6 +8,7 @@ const multer = require('multer');
 
 
 
+
 // 📁 CONFIG MULTER
 const stockage = multer.diskStorage({
   destination: (req,file,cb) => cb(null, path.join(__dirname, 'public', 'uploads')),
@@ -17,10 +18,12 @@ const upload = multer({ storage: stockage });
 
 
 
+
 // ✅ CRÉE L'APPLICATION
 const app = express();
-const PORT = process.env.PORT || 10000; // ✅ Port corrigé pour Render
+const PORT = process.env.PORT || 10000;
 const boutiqueRoutes = require('./routes/boutique');
+
 
 
 
@@ -30,13 +33,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
+
 // ✅ CHEMIN DOSSIER PUBLIC
 const dossierPublic = path.join(__dirname, 'public');
 console.log("📁 Dossier public :", dossierPublic);
 console.log("📂 Existe ?", fs.existsSync(dossierPublic) ? "✅ OUI" : "❌ NON");
 
 
+
 app.use(express.static(dossierPublic));
+
 
 
 // ✅ CHARGEMENT CONFIGURATION SANS ERREUR id_config
@@ -48,11 +54,11 @@ async function chargerConfig() {
     r.rows.forEach(row => { configSite[row.cle] = row.valeur; });
     console.log("✅ Configuration chargée !");
   } catch (e) {
-    // ✅ Plus d'erreur affichée quand la table est vide
     console.log("ℹ️ Configuration vide pour l'instant — normal la première fois");
     configSite = {};
   }
 }
+
 
 // ✅ Rendre la config accessible à toutes les routes
 app.use((req, res, next) => {
@@ -61,7 +67,9 @@ app.use((req, res, next) => {
 });
 
 
+
 // 🔐 ROUTES — TOUTES DÉCLARÉES
+app.use('/api/admin', require('./routes/admin')); // ✅ LIGNE AJOUTÉE
 app.use('/api/utilisateurs', require('./routes/utilisateurs'));
 app.use('/api/preinscription', require('./routes/preinscription'));
 app.use('/api/auth', require('./routes/auth'));
@@ -83,21 +91,26 @@ app.use('/api/actualites', require('./routes/actualites'));
 app.use('/api/medias', require('./routes/medias'));
 app.use('/api/config', require('./routes/config'));
 
+
 // 🧑‍🎓 FONCTIONS ÉLÈVE / PARENT
 app.use('/api/eleve', require('./routes/eleve'));
 app.use('/api/parent', require('./routes/parent'));
+
 
 // 🔄 REDIRECTIONS
 app.get('/inscription.html', (req,res) => res.redirect('/preinscription.html'));
 app.use('/api/inscription', (req,res) => res.json({ok:false, message:'Utilisez la préinscription'}));
 
+
 const calendrierRoutes = require('./routes/calendrier');
 const reglementRoutes = require('./routes/reglement');
 const equipeRoutes = require('./routes/equipe');
 
+
 app.use('/api/calendrier', calendrierRoutes);
 app.use('/api/reglement', reglementRoutes);
 app.use('/api/equipe', equipeRoutes);
+
 
 
 // 🏠 PAGE D'ACCUEIL
@@ -114,6 +127,7 @@ app.get('/', (req, res) => {
 });
 
 
+
 // 🧪 TEST CONNEXION BASE
 app.get('/api/test', async (req, res) => {
   try {
@@ -123,6 +137,7 @@ app.get('/api/test', async (req, res) => {
     res.json({ok:false, erreur: e.message});
   }
 });
+
 
 
 // 🚀 DÉMARRAGE AVEC CONFIG CHARGÉE SANS ERREUR
