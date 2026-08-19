@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="lang-fr">Affectation Enseignants — Administration</span>
+    <span class="lang-en">Teacher Assignment — Administration</span>
+    <span class="lang-ar">تكليف المدرسين — الإدارة</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b;
+      --vert: #10b981;
+      --rouge: #ef4444;
+      --bleu: #3b82f6;
+      --texte: #f8fafc;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;transition:all 0.2s ease}
+    body{background:var(--sombre);color:var(--texte);min-height:100vh;font-family:'Segoe UI',sans-serif;}
+    .entete-page{background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.2rem 0}
+    .carte{background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);padding:1.5rem;margin-bottom:1.5rem}
+    .form-control,.form-select{background:#0f172a;border:1px solid #334155;color:white;border-radius:8px}
+    .form-control:focus,.form-select:focus{background:#0f172a;border-color:var(--bord-orange);color:white;box-shadow:0 0 0 0.25rem rgba(245,158,11,0.25)}
+    .btn-valide{background:var(--vert);color:white;border-radius:8px;border:none;padding:0.5rem 1rem;}
+    .btn-valide:hover{box-shadow:0 0 15px rgba(16,185,129,0.4);transform:translateY(-1px)}
+    .btn-suppr{background:var(--rouge);color:white;border-radius:8px;border:none;}
+    .btn-suppr:hover{background:#dc2626;}
+    .ligne-affectation{border-bottom:1px solid #334155;padding:1rem 0;transition:background 0.2s}
+    .ligne-affectation:hover{background:rgba(245,158,11,0.05);border-radius:8px;}
+    .btn-langue.active{background:var(--bord-orange);color:#000;border-color:var(--bord-orange);font-weight:bold;}
+
+    /* ✅ GESTION DES LANGUES */
+    .lang-en, .lang-ar { display: none; }
+    body.lang-fr .lang-fr { display: inline; }
+
+    body.lang-en { direction: ltr; }
+    body.lang-en .lang-fr, body.lang-en .lang-ar { display: none; }
+    body.lang-en .lang-en { display: inline; }
+
+    body.lang-ar { direction: rtl; }
+    body.lang-ar .lang-fr, body.lang-ar .lang-en { display: none; }
+    body.lang-ar .lang-ar { display: inline; }
+  </style>
+</head>
+<body class="lang-fr">
+
+<!-- 🔐 SÉCURITÉ -->
+<script>
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+
+if(!token || role !== 'admin'){
+  alert("⛔ Accès réservé à l'Administrateur");
+  localStorage.clear();
+  location.href = 'connexion.html';
+}
+</script>
+
+<!-- 📌 EN-TÊTE -->
+<div class="entete-page">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div>
+      <h3 class="mb-1">
+        <i class="bi bi-people-fill me-2" style="color:var(--bord-orange)"></i>
+        <span class="lang-fr">Affectation des Enseignants</span>
+        <span class="lang-en">Teacher Assignments</span>
+        <span class="lang-ar">تكليف المدرسين</span>
+      </h3>
+      <p class="mb-0 opacity-75 small">
+        <span class="lang-fr">Associer un professeur à une Classe et une Matière</span>
+        <span class="lang-en">Assign a teacher to a Class and a Subject</span>
+        <span class="lang-ar">ربط المدرس بالقسم والمادة</span>
+      </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-sm btn-outline-light btn-langue active" onclick="changerLangue('fr')" id="btn-fr">FR</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('en')" id="btn-en">EN</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('ar')" id="btn-ar">AR</button>
+      <a href="dashboard.html" class="btn btn-outline-light btn-sm ms-2">
+        <i class="bi bi-arrow-left"></i>
+        <span class="lang-fr"> Retour</span>
+        <span class="lang-en"> Back</span>
+        <span class="lang-ar"> عودة</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container py-4">
+
+  <!-- ➕ FORMULAIRE D'AJOUT -->
+  <div class="carte">
+    <h5 class="mb-3 fw-bold" style="color:var(--bord-orange)">
+      <span class="lang-fr">➕ Nouvelle Affectation</span>
+      <span class="lang-en">➕ New Assignment</span>
+      <span class="lang-ar">➕ تكليف جديد</span>
+    </h5>
+    <div class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label fw-bold">
+          <span class="lang-fr">👨‍🏫 Professeur</span>
+          <span class="lang-en">👨‍🏫 Teacher</span>
+          <span class="lang-ar">👨‍🏫 المدرس</span>
+        </label>
+        <select id="professeur" class="form-select">
+          <option value="">--- Chargement ---</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-bold">
+          <span class="lang-fr">🏫 Classe</span>
+          <span class="lang-en">🏫 Class</span>
+          <span class="lang-ar">🏫 الفصل</span>
+        </label>
+        <select id="classe" class="form-select">
+          <option value="">--- Chargement ---</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-bold">
+          <span class="lang-fr">📚 Matière</span>
+          <span class="lang-en">📚 Subject</span>
+          <span class="lang-ar">📚 المادة</span>
+        </label>
+        <select id="matiere" class="form-select">
+          <option value="">--- Chargement ---</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-valide w-100" onclick="enregistrerAffectation()">
+          <i class="bi bi-check-lg"></i>
+          <span class="lang-fr"> Ajouter</span>
+          <span class="lang-en"> Add</span>
+          <span class="lang-ar"> إضافة</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📋 LISTE DES AFFECTATIONS -->
+  <div class="carte">
+    <h5 class="mb-3 fw-bold" style="color:var(--bord-orange)">
+      <span class="lang-fr">📋 Liste des Affectations</span>
+      <span class="lang-en">📋 Assignment List</span>
+      <span class="lang-ar">📋 قائمة التكليفات</span>
+    </h5>
+    <div id="listeAffectations">
+      <div class="text-center py-4 text-muted">
+        <span class="lang-fr">Chargement...</span>
+        <span class="lang-en">Loading...</span>
+        <span class="lang-ar">جار التحميل...</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>// 🚀 AU CHARGEMENT
+window.onload = async function() {
+  await chargerProfesseurs();
+  await chargerClasses();
+  await chargerMatieres();
+  await chargerListeAffectations();
+};
+
+// 👨‍🏫 CHARGER LA LISTE DES PROFESSEURS — UTILISE TA ROUTE EXISTANTE
+async function chargerProfesseurs(){
+  try {
+    const r = await fetch('http://localhost:5000/api/utilisateurs?role=prof', {
+      headers:{'Authorization':`Bearer ${token}`}
+    });
+    const res = await r.json();
+    const sel = document.getElementById('professeur');
+    sel.innerHTML = '<option value="">--- Sélectionner ---</option>';
+    if(res.ok && res.lignes){
+      res.lignes.forEach(u => {
+        sel.innerHTML += `<option value="${u.id_utilisateur}">${u.nom} ${u.prenoms}</option>`;
+      });
+    } else {
+      sel.innerHTML += '<option value="" disabled>⚠️ Aucun professeur trouvé</option>';
+    }
+  } catch(e) {
+    console.log("❌ Erreur professeurs :", e);
+    document.getElementById('professeur').innerHTML = '<option value="">⚠️ Erreur chargement</option>';
+  }
+}
+
+// 🏫 CHARGER LA LISTE DES CLASSES — ROUTE SIMPLE SANS AFFECTATION
+async function chargerClasses(){
+  try {
+    const r = await fetch('http://localhost:5000/api/classes', {
+      headers:{'Authorization':`Bearer ${token}`}
+    });
+    const res = await r.json();
+    const sel = document.getElementById('classe');
+    sel.innerHTML = '<option value="">--- Sélectionner ---</option>';
+    if(res.ok && res.lignes){
+      res.lignes.forEach(c => {
+        sel.innerHTML += `<option value="${c.id_classe}">${c.libelle_classe}</option>`;
+      });
+    } else {
+      sel.innerHTML += '<option value="" disabled>⚠️ Aucune classe trouvée</option>';
+    }
+  } catch(e) {
+    console.log("❌ Erreur classes :", e);
+    document.getElementById('classe').innerHTML = '<option value="">⚠️ Erreur chargement</option>';
+  }
+}
+
+// 📚 CHARGER LA LISTE DES MATIÈRES — ROUTE SIMPLE SANS AFFECTATION
+async function chargerMatieres(){
+  try {
+    const r = await fetch('http://localhost:5000/api/matieres', {
+      headers:{'Authorization':`Bearer ${token}`}
+    });
+    const res = await r.json();
+    const sel = document.getElementById('matiere');
+    sel.innerHTML = '<option value="">--- Sélectionner ---</option>';
+    if(res.ok && res.lignes){
+      res.lignes.forEach(m => {
+        sel.innerHTML += `<option value="${m.id_matiere}">${m.libelle_matiere}</option>`;
+      });
+    } else {
+      sel.innerHTML += '<option value="" disabled>⚠️ Aucune matière trouvée</option>';
+    }
+  } catch(e) {
+    console.log("❌ Erreur matières :", e);
+    document.getElementById('matiere').innerHTML = '<option value="">⚠️ Erreur chargement</option>';
+  }
+}// 👨‍🏫 CHARGER LA LISTE DES PROFESSEURS — UTILISE TA ROUTE EXISTANTE
+async function chargerProfesseurs(){
+  try {
+    const r = await fetch('http://localhost:5000/api/utilisateurs?role=prof', {
+      headers:{'Authorization':`Bearer ${token}`}
+    });
+    const res = await r.json();
+    const sel = document.getElementById('professeur');
+    sel.innerHTML = '<option value="">--- Sélectionner ---</option>';
+    if(res.ok && res.lignes){
+      res.lignes.forEach(u => {
+        sel.innerHTML += `<option value="${u.id_utilisateur}">${u.nom} ${u.prenoms}</option>`;
+      });
+    } else {
+      sel.innerHTML += '<option value="" disabled>⚠️ Aucun professeur trouvé</option>';
+    }
+  } catch(e) {
+    console.log("❌ Erreur professeurs :", e);
+    document.getElementById('professeur').innerHTML = '<option value="">⚠️ Erreur chargement</option>';
+  }
+}
+
+// 🏫 CHARGER LA LISTE DES CLASSES — ROUTE SIMPLE SANS AFFECTATION
+async function chargerClasses(){
+  try {
+    const r = await fetch('http://localhost:5000/api/classes', {
+      headers:{'Authorization':`Bearer ${token}`}
+    });
+    const res = await r.json();
+    const sel = document.getElementById('classe');
+    sel.innerHTML = '<option value="">--- Sélectionner ---</option>';
+    if(res.ok && res.lignes){
+      res.lignes.forEach(c => {
+        sel.innerHTML += `<option value="${c.id_classe}">${c.libelle_classe}</option>`;
+      });
+    } else {
+      sel.innerHTML += '<option value="" disabled>⚠️ Aucune classe trouvée</option>';
+    }
+  } catch(e) {
+    console.log("❌ Erreur classes :", e);
+    document.getElementById('classe').innerHTML = '<option value="">⚠️ Erreur chargement</option>';
+  }
+}
+
+// 📚 CHARGER LA LISTE DES MATIÈRES — 100% ADAPTÉ À TA TABLE
+async function chargerMatieres(){
+  try {
+    const r = await fetch('http://localhost:5000/api/matieres', {
+      headers:{'Authorization':`Bearer ${token}`}
+    });
+    const res = await r.json();
+    console.log("📦 Matières reçues :", res);
+
+    const sel = document.getElementById('matiere');
+    sel.innerHTML = '<option value="">--- Sélectionner ---</option>';
+
+    if(res.ok && res.lignes){
+      res.lignes.forEach(m => {
+        // ✅ TES COLONNES : id_matiere + libelle_matiere
+        sel.innerHTML += `<option value="${m.id_matiere}">${m.libelle_matiere}</option>`;
+      });
+    } else {
+      sel.innerHTML += '<option value="" disabled>⚠️ Aucune matière trouvée</option>';
+    }
+  } catch(e) {
+    console.log("❌ Erreur matières :", e);
+    document.getElementById('matiere').innerHTML = '<option value="">⚠️ Erreur chargement</option>';
+  }
+}
+
+// 💾 ENREGISTRER UNE NOUVELLE AFFECTATION
+async function enregistrerAffectation(){
+  const id_prof = document.getElementById('professeur').value;
+  const id_classe = document.getElementById('classe').value;
+  const id_matiere = document.getElementById('matiere').value;
+
+  if(!id_prof || !id_classe || !id_matiere){
+    alert("⚠️ Sélectionne Professeur, Classe et Matière !");
+    return;
+  }
+
+  try {
+    const r = await fetch(`${API_URL}/ajouter`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ id_prof, id_classe, id_matiere })
+    });
+
+    const res = await r.json();
+    if(res.ok){
+      alert("✅ Affectation enregistrée !");
+      document.getElementById('professeur').value = '';
+      document.getElementById('classe').value = '';
+      document.getElementById('matiere').value = '';
+      await chargerListeAffectations();
+    } else {
+      alert("❌ " + (res.erreur || "Erreur lors de l'enregistrement"));
+    }
+  } catch(e) {
+    alert("❌ Erreur Réseau : " + e.message);
+  }
+}
+
+// 📋 CHARGER LA LISTE DES AFFECTATIONS
+async function chargerListeAffectations(){
+  try {
+    const r = await fetch(`${API_URL}/liste`, {
+      headers:{'Authorization':`Bearer ${token}`}
+    });
+    const res = await r.json();
+    const zone = document.getElementById('listeAffectations');
+
+    if(res.ok && res.lignes && res.lignes.length > 0){
+      zone.innerHTML = res.lignes.map(a => `
+        <div class="ligne-affectation row align-items-center" data-id="${a.id_affectation}">
+          <div class="col-md-4">
+            <div class="fw-bold">👨‍🏫 ${a.nom_prof} ${a.prenoms_prof}</div>
+          </div>
+          <div class="col-md-3 text-center">
+            <div>🏫 ${a.classe}</div>
+          </div>
+          <div class="col-md-3 text-center">
+            <div>📚 ${a.matiere}</div>
+          </div>
+          <div class="col-md-2 text-center">
+            <button class="btn btn-suppr btn-sm" onclick="supprimerAffectation(${a.id_affectation})">
+              <i class="bi bi-trash3"></i>
+              <span class="lang-fr"> Supprimer</span>
+              <span class="lang-en"> Delete</span>
+              <span class="lang-ar"> حذف</span>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      zone.innerHTML = `
+        <div class="text-center py-4 text-muted">
+          <span class="lang-fr">Aucune affectation enregistrée</span>
+          <span class="lang-en">No assignment registered</span>
+          <span class="lang-ar">لا يوجد تكليفات مسجلة</span>
+        </div>`;
+    }
+  } catch(e) {
+    console.log("❌ Erreur liste :", e);
+  }
+}
+
+// 🗑️ SUPPRIMER UNE AFFECTATION
+async function supprimerAffectation(id){
+  if(!confirm("⚠️ Confirmer la suppression ?")) return;
+
+  try {
+    const r = await fetch(`${API_URL}/supprimer/${id}`, {
+      method: 'DELETE',
+      headers:{'Authorization':`Bearer ${token}`}
+    });
+    const res = await r.json();
+    if(res.ok){
+      alert("✅ Supprimé !");
+      await chargerListeAffectations();
+    } else {
+      alert("❌ " + (res.erreur || "Erreur"));
+    }
+  } catch(e) {
+    alert("❌ Erreur : " + e.message);
+  }
+}
+
+// 🗣️ CHANGEMENT DE LANGUE
+function changerLangue(langue) {
+  document.body.className = 'lang-' + langue;
+  localStorage.setItem('langue', langue);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + langue).classList.add('active');
+}
+
+// ✅ Restaurer langue sauvegardée
+let langue = localStorage.getItem('langue') || 'fr';
+document.body.className = 'lang-' + langue;
+document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+document.getElementById('btn-' + langue).classList.add('active');  
+
+</script>

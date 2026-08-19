@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Emploi du Temps — Administration</span>
+    <span class="txt-en">Timetable — Administration</span>
+    <span class="txt-ar">الجدول الزمني — الإدارة</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b;
+      --orange-clair: #fbbf24;
+      --valide: #10b981;
+      --action: #3b82f6;
+      --suppr: #ef4444;
+      --texte: #f8fafc;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;transition:all 0.25s ease}
+    body{background:var(--sombre);color:var(--texte);min-height:100vh}
+    @keyframes bordTourne {
+      0%{transform:rotate(0deg)}
+      100%{transform:rotate(360deg)}
+    }
+    .btn-anim-orange{
+      position:relative;
+      background:var(--sombre-clair);
+      color:var(--texte);
+      border:none;
+      border-radius:10px;
+      overflow:hidden;
+      z-index:1;
+    }
+    .btn-anim-orange::before{
+      content:'';
+      position:absolute;
+      top:-50%;left:-50%;
+      width:200%;height:200%;
+      background:conic-gradient(transparent,var(--bord-orange),transparent 30%);
+      animation:bordTourne 2.5s linear infinite;
+      z-index:-2;
+    }
+    .btn-anim-orange::after{
+      content:'';
+      position:absolute;
+      inset:2px;
+      background:var(--sombre-clair);
+      border-radius:8px;
+      z-index:-1;
+    }
+    .btn-anim-orange:hover{
+      color:var(--orange-clair);
+      box-shadow:0 0 15px rgba(245,158,11,0.4);
+    }
+    .btn-valide-lumineux{
+      background:var(--valide);color:white;border-radius:8px;box-shadow:0 0 12px rgba(16,185,129,0.35);border:none;
+    }
+    .btn-valide-lumineux:hover{box-shadow:0 0 20px rgba(16,185,129,0.6)}
+    .btn-suppr-lumineux{
+      background:var(--suppr);color:white;border-radius:8px;box-shadow:0 0 12px rgba(239,68,68,0.35);border:none;
+    }
+    .entete-page{background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.5rem 0}
+    .carte-gestion{background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);padding:1.25rem;margin-bottom:1.5rem}
+    .form-control,.form-select{background:#0f172a;border:1px solid #334155;color:white;border-radius:8px}
+    .form-control:focus,.form-select:focus{background:#0f172a;border-color:var(--bord-orange);color:white}
+    .barre-langue{display:flex;gap:0.75rem;justify-content:center;margin-bottom:2rem}
+
+    /* ✅ GESTION DES LANGUES */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+
+    body.lang-en { direction: ltr; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+
+    body.lang-ar { direction: rtl; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+  </style>
+</head>
+<body class="lang-fr">
+
+<script>
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+
+// 🔒 SÉCURITÉ
+if(!token || role !== 'admin'){
+  alert("⛔ Accès réservé à l'Administrateur");
+  localStorage.clear();
+  location.href='dashboard.html';
+}
+</script>
+
+<div class="entete-page">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div>
+      <h3 class="mb-1">
+        <i class="bi bi-calendar3 me-2" style="color:var(--bord-orange)"></i>
+        <span class="txt-fr">📅 Emploi du Temps</span>
+        <span class="txt-en">📅 Timetable</span>
+        <span class="txt-ar">📅 الجدول الزمني</span>
+      </h3>
+      <p class="mb-0 opacity-80" id="sous-titre">
+        <span class="txt-fr">Gestion complète — Modifiable par Admin seul</span>
+        <span class="txt-en">Full Management — Admin only</span>
+        <span class="txt-ar">إدارة كاملة — من قبل المدير فقط</span>
+      </p>
+    </div>
+    <a href="dashboard.html" class="btn btn-anim-orange px-4 py-2">
+      <i class="bi bi-arrow-left"></i>
+      <span class="txt-fr"> Retour</span>
+      <span class="txt-en"> Back</span>
+      <span class="txt-ar"> عودة</span>
+    </a>
+  </div>
+</div>
+
+<div class="container py-4">
+  <!-- 🌐 LANGUES -->
+  <div class="barre-langue">
+    <button class="btn btn-anim-orange px-4 py-2 active" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
+    <button class="btn btn-anim-orange px-4 py-2" onclick="changerLangue('ar')" id="btn-ar">🇸🇦 AR</button>
+    <button class="btn btn-anim-orange px-4 py-2" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
+  </div>
+
+  <div class="row g-4">
+    <!-- ➕ FORMULAIRE AJOUT SÉANCE -->
+    <div class="col-md-4">
+      <div class="carte-gestion">
+        <h5 class="mb-3" id="titre-form">
+          <span class="txt-fr">➕ Ajouter une séance</span>
+          <span class="txt-en">➕ Add Session</span>
+          <span class="txt-ar">➕ إضافة حصة</span>
+        </h5>
+        <form id="formEdt">
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Classe *</span>
+              <span class="txt-en">Class *</span>
+              <span class="txt-ar">المستوى *</span>
+            </label>
+            <select name="id_classe" id="sel-cl" class="form-select" required>
+              <option value="">--- Chargement...</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Matière *</span>
+              <span class="txt-en">Subject *</span>
+              <span class="txt-ar">المادة *</span>
+            </label>
+            <select name="id_matiere" id="sel-mat" class="form-select" required>
+              <option value="">--- Chargement...</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Professeur *</span>
+              <span class="txt-en">Teacher *</span>
+              <span class="txt-ar">المعلم *</span>
+            </label>
+            <select name="id_prof" id="sel-pr" class="form-select" required>
+              <option value="">--- Chargement...</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Jour *</span>
+              <span class="txt-en">Day *</span>
+              <span class="txt-ar">اليوم *</span>
+            </label>
+            <select name="jour" class="form-select" required>
+              <option value="Lundi">Lundi / الاثنين</option>
+              <option value="Mardi">Mardi / الثلاثاء</option>
+              <option value="Mercredi">Mercredi / الأربعاء</option>
+              <option value="Jeudi">Jeudi / الخميس</option>
+              <option value="Vendredi">Vendredi / الجمعة</option>
+              <option value="Samedi">Samedi / السبت</option>
+            </select>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col">
+              <label class="form-label fw-bold">
+                <span class="txt-fr">Début</span>
+                <span class="txt-en">Start</span>
+                <span class="txt-ar">بداية</span>
+              </label>
+              <input type="time" name="heure_debut" class="form-control" required>
+            </div>
+            <div class="col">
+              <label class="form-label fw-bold">
+                <span class="txt-fr">Fin</span>
+                <span class="txt-en">End</span>
+                <span class="txt-ar">نهاية</span>
+              </label>
+              <input type="time" name="heure_fin" class="form-control" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Salle</span>
+              <span class="txt-en">Room</span>
+              <span class="txt-ar">القاعة</span>
+            </label>
+            <input type="text" name="salle" class="form-control" placeholder="Ex: Salle 5">
+          </div>
+          <button type="submit" class="btn btn-valide-lumineux w-100 py-2">
+            <i class="bi bi-floppy2-fill me-1"></i>
+            <span class="txt-fr">Enregistrer</span>
+            <span class="txt-en"> Save</span>
+            <span class="txt-ar"> حفظ</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 📋 LISTE EMPLOI DU TEMPS -->
+    <div class="col-md-8">
+      <div class="carte-gestion">
+        <h5 class="mb-3" id="titre-liste">
+          <span class="txt-fr">📋 Emploi du Temps Global</span>
+          <span class="txt-en">📋 Global Timetable</span>
+          <span class="txt-ar">📋 الجدول الزمني العام</span>
+        </h5>
+        <div id="liste-edt" class="mt-2">
+          <div class="text-center py-4 text-muted">
+            <span class="txt-fr">Chargement...</span>
+            <span class="txt-en">Loading...</span>
+            <span class="txt-ar">جار التحميل...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let langueActuelle = localStorage.getItem('langue') || 'fr';
+
+// 🗣️ CHANGEMENT DE LANGUE
+function changerLangue(lang){
+  langueActuelle = lang;
+  document.body.className = 'lang-' + lang;
+  localStorage.setItem('langue', lang);
+  document.querySelectorAll('.barre-langue button').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-'+lang).classList.add('active');
+}
+document.body.className = 'lang-' + langueActuelle;
+
+// ✅ CHARGER CLASSES, MATIÈRES, PROFESSEURS — BONNES COLONNES
+async function chargerListes(){
+  try {
+    const [clRes, mtRes, prRes] = await Promise.all([
+      fetch('/api/classes/', {headers:{'Authorization':`Bearer ${token}`}}).then(r => r.json()),
+      fetch('/api/matieres/', {headers:{'Authorization':`Bearer ${token}`}}).then(r => r.json()),
+      fetch('/api/utilisateurs/professeurs', {headers:{'Authorization':`Bearer ${token}`}}).then(r => r.json())
+    ]);
+
+    // ✅ CLASSES : id_classe + libelle_classe
+    if(clRes.ok && clRes.lignes){
+      document.getElementById('sel-cl').innerHTML = 
+        '<option value="">--- Sélectionner ---</option>' +
+        clRes.lignes.map(x => `<option value="${x.id_classe}">${x.libelle_classe}</option>`).join('');
+    }
+
+    // ✅ MATIÈRES : id_matiere + libelle_matiere
+    if(mtRes.ok && mtRes.lignes){
+      document.getElementById('sel-mat').innerHTML = 
+        '<option value="">--- Sélectionner ---</option>' +
+        mtRes.lignes.map(x => `<option value="${x.id_matiere}">${x.libelle_matiere}</option>`).join('');
+    }
+
+    // ✅ PROFESSEURS : id_utilisateur + nom + prenoms
+    if(prRes.ok && prRes.utilisateurs){
+      document.getElementById('sel-pr').innerHTML = 
+        '<option value="">--- Sélectionner ---</option>' +
+        prRes.utilisateurs.map(x => `<option value="${x.id_utilisateur}">${x.nom} ${x.prenoms}</option>`).join('');
+    }
+  } catch(e) {
+    console.error("❌ Erreur chargement listes :", e);
+  }
+}
+
+// ✅ CHARGER EMPLOI DU TEMPS — ROUTE CORRIGÉE
+async function chargerEdt(){
+  try {
+    const r = await fetch('/api/emploi/tout', {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+
+    if(res.ok && res.lignes && res.lignes.length>0){
+      document.getElementById('liste-edt').innerHTML = res.lignes.map(x => `
+        <div class="d-flex justify-content-between align-items-center p-3 mb-2 rounded" style="background:var(--sombre)">
+          <div>
+            <span class="badge bg-info text-dark me-2">${x.jour}</span>
+            <strong>${x.heure_debut?.slice(0,5)} — ${x.heure_fin?.slice(0,5)}</strong>
+            <span class="mx-2">|</span>
+            <span class="text-warning">${x.classe || '—'}</span>
+            <span class="mx-1">•</span>
+            <span>${x.matiere || '—'}</span>
+            <span class="mx-1">—</span>
+            <em class="text-success">${x.prof || 'Non affecté'}</em>
+            ${x.salle ? `<span class="badge bg-secondary ms-2">${x.salle}</span>` : ''}
+          </div>
+          <button class="btn btn-suppr-lumineux btn-sm" onclick="supprimer(${x.id_emploi})">
+            <i class="bi bi-trash"></i>
+            <span class="txt-fr"> Supprimer</span>
+            <span class="txt-en"> Delete</span>
+            <span class="txt-ar"> حذف</span>
+          </button>
+        </div>`).join('');
+    } else {
+      document.getElementById('liste-edt').innerHTML = `<div class="text-center py-4 text-muted">
+        <span class="txt-fr">Aucune séance programmée</span>
+        <span class="txt-en">No session scheduled</span>
+        <span class="txt-ar">لا توجد حصص مجدولة</span>
+      </div>`;
+    }
+  } catch(e) {
+    document.getElementById('liste-edt').innerHTML = `<div class="text-center py-4 text-danger">
+      ❌ Erreur chargement
+    </div>`;
+  }
+}
+
+// 💾 ENREGISTRER UNE SÉANCE
+document.getElementById('formEdt').addEventListener('submit', async e => {
+  e.preventDefault();
+  const d = Object.fromEntries(new FormData(e.target));
+
+  try {
+    const r = await fetch('/api/emploi/ajouter', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body: JSON.stringify(d)
+    });
+    const res = await r.json();
+
+    if(res.ok){
+      alert(langueActuelle==='ar'?"✅ تم الحفظ":langueActuelle==='en'?"✅ Saved":"✅ Séance enregistrée !");
+      e.target.reset();
+      chargerEdt();
+    } else {
+      alert("❌ " + (res.erreur || "Erreur"));
+    }
+  } catch {
+    alert(langueActuelle==='ar'?"❌ خطأ في الاتصال":langueActuelle==='en'?"❌ Network Error":"❌ Erreur Réseau");
+  }
+});
+
+// ❌ SUPPRIMER UNE SÉANCE
+async function supprimer(id){
+  const confirmer = langueActuelle==='ar'?"حذف هذه الحصة ؟":
+                    langueActuelle==='en'?"Delete this session ?":
+                    "Supprimer cette séance ?";
+  if(!confirm(confirmer)) return;
+
+  try {
+    await fetch(`/api/emploi/${id}`, {
+      method: 'DELETE',
+      headers: {'Authorization':`Bearer ${token}`}
+    });
+    chargerEdt();
+  } catch {
+    alert("❌ Erreur suppression");
+  }
+}
+
+// 🚀 AU CHARGEMENT
+chargerListes();
+chargerEdt();
+</script>
+
+</body>
+</html>

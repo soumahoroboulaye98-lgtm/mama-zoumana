@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Paiements & Reçus — Administration</span>
+    <span class="txt-en">Payments & Receipts — Administration</span>
+    <span class="txt-ar">المدفوعات والإيصالات — الإدارة</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --succes: #10b981;
+      --info: #3b82f6;
+      --alerte: #f59e0b;
+      --danger: #ef4444;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --texte-clair: #f8fafc;
+      --texte-dore: #fbbf24;
+    }
+
+    .txt-en,.txt-ar{display:none}
+    body.lang-fr .txt-fr{display:inline}
+    body.lang-fr .txt-en,body.lang-fr .txt-ar{display:none}
+    body.lang-en .txt-en{display:inline}
+    body.lang-en .txt-fr,body.lang-en .txt-ar{display:none}
+    body.lang-ar .txt-ar{display:inline}
+    body.lang-ar .txt-fr,body.lang-ar .txt-en{display:none}
+    body.lang-ar .titre-section,body.lang-ar .text-end-ar{text-align:right}
+
+    body {
+      background: linear-gradient(135deg, var(--sombre), var(--sombre-clair));
+      color: var(--texte-clair);
+      min-height: 100vh;
+    }
+
+    .carte {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      transition: all 0.3s ease;
+    }
+    .carte:hover {
+      border-color: var(--alerte);
+      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.15);
+    }
+
+    .btn-primaire { background: linear-gradient(135deg, var(--primaire), #0369a1); border:none; color:white; }
+    .btn-primaire:hover { background: linear-gradient(135deg, #0369a1, var(--primaire)); color:white; }
+    .btn-accent { background: linear-gradient(135deg, var(--alerte), #d97706); border:none; color:#000; font-weight:500; }
+    .btn-succes { background: linear-gradient(135deg, var(--succes), #059669); border:none; color:white; }
+
+    .titre-section { color: var(--texte-dore); font-weight:600; }
+
+    .form-control,.form-select {
+      background: rgba(15,23,42,0.6);
+      border:1px solid rgba(245,158,11,0.25);
+      color:var(--texte-clair);
+      border-radius:10px;
+    }
+    .form-control:focus,.form-select:focus {
+      background:rgba(15,23,42,0.8); border-color:var(--alerte); color:var(--texte-clair);
+      box-shadow:0 0 0 .25rem rgba(245,158,11,.15);
+    }
+
+    .badge-attente { background:#6b7280; }
+    .badge-partiel { background:#f59e0b; color:#000; }
+    .badge-paye { background:#10b981; }
+    .badge-annule { background:#ef4444; }
+
+    .progress { height:8px; border-radius:4px; background:rgba(255,255,255,.1); }
+    .progress-bar-paye { background:#10b981; }
+    .progress-bar-partiel { background:#f59e0b; }
+
+    .modal-content { background:var(--sombre-clair); border:1px solid rgba(245,158,11,.25); border-radius:16px; color:var(--texte-clair); }
+    .modal-header { border-bottom-color:rgba(245,158,11,.15); }
+    .btn-close-white { filter:invert(1); }
+
+    .recus-content { font-family:'Segoe UI',sans-serif; }
+    .recus-border { border:2px dashed #cbd5e1; border-radius:8px; }
+    @media print {
+      body { background:#fff; color:#000; }
+      .no-print { display:none !important; }
+      .recus-border { border-color:#000; }
+    }
+
+    .btn-lang { width:38px; height:38px; padding:0; font-size:14px; border-radius:50%; border:2px solid; display:flex; align-items:center; justify-content:center; }
+    .btn-lang.active { background:var(--alerte); color:#000; border-color:var(--alerte); }
+
+    .montant { font-family:monospace; font-weight:600; font-size:1.05rem; }
+    .text-cfa::after { content:" F CFA"; font-size:.85rem; opacity:.8; margin-left:2px; }
+  </style>
+</head>
+<body>
+
+<div class="container py-4">
+  <!-- 🌐 LANGUE -->
+  <div class="d-flex justify-content-end gap-2 mb-3 no-print">
+    <button class="btn btn-lang active" data-lang="fr" title="Français">FR</button>
+    <button class="btn btn-lang" data-lang="en" title="English">EN</button>
+    <button class="btn btn-lang" data-lang="ar" title="العربية">ع</button>
+  </div>
+
+  <!-- 📌 EN-TÊTE avec BOUTON RETOUR -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  <div class="d-flex align-items-center gap-3">
+    <!-- ✅ BOUTON RETOUR VERS LE DASHBOARD -->
+    <a href="dashboard.html" class="btn btn-outline-light btn-sm no-print">
+      <i class="bi bi-arrow-left-circle me-1"></a>
+      <span class="txt-fr"> Retour</span>
+      <span class="txt-en"> Back</span>
+      <span class="txt-ar"> عودة</span>
+    </a>
+    <div>
+      <h3 class="titre-section mb-1">
+        <i class="bi bi-wallet2 me-2"></i>
+        <span class="txt-fr">Paiements & Reçus</span>
+        <span class="txt-en">Payments & Receipts</span>
+        <span class="txt-ar">المدفوعات والإيصالات</span>
+      </h3>
+      <p class="text-muted small mb-0">
+        <span class="txt-fr">Suivi des paiements, encaissements et envoi de reçus</span>
+        <span class="txt-en">Track payments, collections and receipt sending</span>
+        <span class="txt-ar">متابعة المدفوعات والتحصيلات وإرسال الإيصالات</span>
+      </p>
+    </div>
+  </div>
+  <button class="btn btn-accent mt-2 no-print" data-bs-toggle="modal" data-bs-target="#modalPaiement">
+    <i class="bi bi-plus-lg"></i>
+    <span class="txt-fr"> Enregistrer un paiement</span>
+    <span class="txt-en"> Record Payment</span>
+    <span class="txt-ar"> تسجيل دفعة</span>
+  </button>
+</div>
+
+  <!-- 📊 RÉSUMÉ -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+      <div class="carte p-3 text-center">
+        <h6 class="text-muted small">
+          <span class="txt-fr">Total Dû</span><span class="txt-en">Total Due</span><span class="txt-ar">المجموع المستحق</span>
+        </h6>
+        <h4 class="montant text-danger" id="resumeTotalDu">—</h4>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="carte p-3 text-center">
+        <h6 class="text-muted small">
+          <span class="txt-fr">Perçu</span><span class="txt-en">Received</span><span class="txt-ar">المحصل</span>
+        </h6>
+        <h4 class="montant text-success" id="resumePercu">—</h4>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="carte p-3 text-center">
+        <h6 class="text-muted small">
+          <span class="txt-fr">Restant</span><span class="txt-en">Remaining</span><span class="txt-ar">المتبقي</span>
+        </h6>
+        <h4 class="montant text-warning" id="resumeRestant">—</h4>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="carte p-3 text-center">
+        <h6 class="text-muted small">
+          <span class="txt-fr">Taux</span><span class="txt-en">Rate</span><span class="txt-ar">النسبة</span>
+        </h6>
+        <h4 class="text-info" id="resumeTaux">— %</h4>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔽 FILTRES -->
+  <div class="carte p-3 mb-4 no-print">
+    <div class="row g-2">
+      <div class="col-md-3">
+        <label class="form-label small">
+          <span class="txt-fr">Statut</span><span class="txt-en">Status</span><span class="txt-ar">الحالة</span>
+        </label>
+        <select id="filtreStatut" class="form-select">
+          <option value="">Tous</option>
+          <option value="en_attente">⚪ En attente</option>
+          <option value="partiel">🟠 Partiel</option>
+          <option value="paye">🟢 Payé</option>
+          <option value="annule">🔴 Annulé</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small">
+          <span class="txt-fr">Moyen</span><span class="txt-en">Method</span><span class="txt-ar">الوسيلة</span>
+        </label>
+        <select id="filtreMoyen" class="form-select">
+          <option value="">Tous</option>
+          <option value="orange_money">🟠 Orange Money</option>
+          <option value="mtn_money">🟡 MTN Money</option>
+          <option value="moov_money">🔵 Moov Money</option>
+          <option value="cheque">📋 Chèque</option>
+          <option value="virement_banque">🏦 Virement</option>
+          <option value="espece">💵 Espèces</option>
+          <option value="don">❤️ Don</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Mois</label>
+        <select id="filtreMois" class="form-select"><option value="">Tous</option></select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Année</label>
+        <select id="filtreAnnee" class="form-select"><option value="">Toutes</option></select>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button id="btnReinitialiser" class="btn btn-primaire w-100">
+          <i class="bi bi-x-circle"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📋 LISTE DES PAIEMENTS -->
+  <div id="listePaiements" class="row g-3">
+    <div class="col-12 text-center py-5 text-muted">
+      <div class="spinner-border text-warning mb-3"></div>
+      <p>Chargement...</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ➕ MODALE ENREGISTRER PAIEMENT -->
+<div class="modal fade" id="modalPaiement" tabindex="-1" aria-labelledby="modalPaiementTitre" aria-hidden="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title titre-section" id="modalPaiementTitre">
+          <span class="txt-fr">Enregistrer un paiement</span>
+          <span class="txt-en">Record Payment</span>
+          <span class="txt-ar">تسجيل دفعة</span>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formPaiement" class="modal-body">
+        <input type="hidden" id="idPaiement">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">
+              <span class="txt-fr">Libellé / Désignation *</span>
+              <span class="txt-en">Label / Description *</span>
+              <span class="txt-ar">البيان / الوصف *</span>
+            </label>
+            <input type="text" id="libelle" class="form-control" required placeholder="Ex: Frais scolaires — 2025-2026">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">
+              <span class="txt-fr">Catégorie</span>
+              <span class="txt-en">Category</span>
+              <span class="txt-ar">الفئة</span>
+            </label>
+            <select id="categorie" class="form-select">
+              <option value="frais_scolaires">📚 Frais scolaires</option>
+              <option value="cantine">🍽️ Cantine</option>
+              <option value="uniforme">👕 Uniforme</option>
+              <option value="don">❤️ Don</option>
+              <option value="autre">💳 Autre</option>
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Montant Total Dû *</label>
+            <input type="number" id="montant_total" class="form-control" required min="0" step="100" placeholder="0">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Montant Déjà Versé</label>
+            <input type="number" id="montant_paye" class="form-control" value="0" min="0" step="100" placeholder="0">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Restant</label>
+            <input type="text" id="montant_restant" class="form-control" readonly value="0">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">
+              <span class="txt-fr">Moyen de Paiement *</span>
+              <span class="txt-en">Payment Method *</span>
+              <span class="txt-ar">وسيلة الدفع *</span>
+            </label>
+            <select id="moyen_paiement" class="form-select" required>
+              <option value="orange_money">🟠 Orange Money</option>
+              <option value="mtn_money">🟡 MTN Mobile Money</option>
+              <option value="moov_money">🔵 Moov Money</option>
+              <option value="cheque">📋 Chèque Bancaire</option>
+              <option value="virement_banque">🏦 Virement Bancaire</option>
+              <option value="espece">💵 Espèces</option>
+              <option value="don">❤️ Don / Versement Libre</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Date</label>
+            <input type="date" id="date_paiement" class="form-control">
+          </div>
+
+          <div class="col-md-6" id="groupeTransaction">
+            <label class="form-label">N° Transaction / Référence</label>
+            <input type="text" id="numero_transaction" class="form-control" placeholder="Numéro de transaction">
+          </div>
+          <div class="col-md-3" id="groupeBanque">
+            <label class="form-label">Banque</label>
+            <input type="text" id="banque_emetteur" class="form-control" placeholder="Nom de la banque">
+          </div>
+          <div class="col-md-3" id="groupeCheque">
+            <label class="form-label">N° Chèque</label>
+            <input type="text" id="numero_cheque" class="form-control" placeholder="N° du chèque">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Élève / Parent</label>
+            <input type="text" id="reference_externe" class="form-control" placeholder="Nom, code...">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Date Échéance</label>
+            <input type="date" id="date_echeance" class="form-control">
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Observations</label>
+            <textarea id="commentaire" class="form-control" rows="2" placeholder="Infos complémentaires..."></textarea>
+          </div>
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <span class="txt-fr">Annuler</span><span class="txt-en">Cancel</span><span class="txt-ar">إلغاء</span>
+        </button>
+        <button type="submit" form="formPaiement" class="btn btn-accent">
+          <span class="txt-fr">Enregistrer</span><span class="txt-en">Save</span><span class="txt-ar">حفظ</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 🧾 MODALE REÇU -->
+<div class="modal fade" id="modalRecu" tabindex="-1" aria-labelledby="modalRecuTitre" aria-hidden="false">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      <div class="modal-header no-print">
+        <h5 class="modal-title titre-section" id="modalRecuTitre">
+          🧾 <span class="txt-fr">Reçu de Paiement</span>
+          <span class="txt-en">Payment Receipt</span>
+          <span class="txt-ar">إيصال الدفع</span>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body recus-content" id="contenuRecu">
+        <!-- Rempli dynamiquement -->
+      </div>
+      <div class="modal-footer no-print">
+        <button class="btn btn-primaire" onclick="imprimerRecu()">
+          <i class="bi bi-printer"></i>
+          <span class="txt-fr"> Imprimer / PDF</span>
+          <span class="txt-en"> Print / PDF</span>
+        </button>
+        <button class="btn btn-succes" onclick="envoyerRecu()">
+          <i class="bi bi-envelope-arrow-up"></i>
+          <span class="txt-fr"> Envoyer au Parent</span>
+          <span class="txt-en"> Send to Parent</span>
+        </button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">
+          <span class="txt-fr">Fermer</span>
+          <span class="txt-en">Close</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+const token = localStorage.getItem('token');
+let langueActuelle = 'fr';
+let paiementCourant = null;
+
+// 🌐 LANGUE
+document.querySelectorAll('.btn-lang').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.btn-lang').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    langueActuelle = btn.dataset.lang;
+    document.documentElement.className = `lang-${langueActuelle}`;
+    document.body.className = `lang-${langueActuelle}`;
+  });
+});
+
+// 🔧 CALCUL AUTO — Montant restant
+const mt = document.getElementById('montant_total');
+const mp = document.getElementById('montant_paye');
+const mr = document.getElementById('montant_restant');
+function majRestant(){
+  const total = parseFloat(mt.value)||0;
+  const paye = parseFloat(mp.value)||0;
+  mr.value = (total - paye).toFixed(0);
+}
+mt.addEventListener('input', majRestant);
+mp.addEventListener('input', majRestant);
+
+// 🔧 Affiche/Masque champs selon Moyen de paiement
+const moyenSelect = document.getElementById('moyen_paiement');
+function adaptChampsMoyen(){
+  const val = moyenSelect.value;
+  document.getElementById('groupeBanque').style.display = (val==='cheque'||val==='virement_banque')?'block':'none';
+  document.getElementById('groupeCheque').style.display = val==='cheque'?'block':'none';
+}
+moyenSelect.addEventListener('change', adaptChampsMoyen);
+
+// 📦 CHARGER LA LISTE
+async function chargerPaiements(){
+  const cont = document.getElementById('listePaiements');
+  if(!token){
+    cont.innerHTML=`<div class="col-12 text-center text-danger py-5"><i class="bi bi-lock fs-1"></i><p class="mt-2">Authentification requise</p></div>`;
+    return;
+  }
+  try{
+    const statut = document.getElementById('filtreStatut').value;
+    const moyen = document.getElementById('filtreMoyen').value;
+    const mois = document.getElementById('filtreMois').value;
+    const annee = document.getElementById('filtreAnnee').value;
+
+    let url = `${API_URL}/liste?`;
+    if(statut) url+=`statut=${encodeURIComponent(statut)}&`;
+    if(moyen) url+=`moyen=${encodeURIComponent(moyen)}&`;
+    if(mois) url+=`mois=${mois}&`;
+    if(annee) url+=`annee=${annee}&`;
+
+    const r = await fetch(url, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+
+    // 📊 Mise à jour résumé
+    const rs = res.resume || {};
+    document.getElementById('resumeTotalDu').textContent = formatMontant(rs.somme_totale||0);
+    document.getElementById('resumePercu').textContent = formatMontant(rs.somme_recue||0);
+    document.getElementById('resumeRestant').textContent = formatMontant(rs.somme_restante||0);
+    const taux = rs.somme_totale>0 ? ((rs.somme_recue/rs.somme_totale)*100).toFixed(1) : 0;
+    document.getElementById('resumeTaux').textContent = taux+' %';
+
+    afficherCartes(res.paiements||[]);
+  }catch(e){
+    cont.innerHTML=`<div class="col-12 text-center text-danger py-5"><i class="bi bi-exclamation-triangle fs-1"></i><p class="mt-2">${e.message}</p><button class="btn btn-primaire mt-3" onclick="chargerPaiements()">Réessayer</button></div>`;
+  }
+}
+
+// 🎨 AFFICHAGE
+function afficherCartes(liste){
+  const cont = document.getElementById('listePaiements');
+  if(!liste.length){
+    cont.innerHTML=`<div class="col-12 text-center py-5 text-muted"><p>Aucun paiement enregistré</p></div>`;
+    return;
+  }
+  cont.innerHTML = liste.map(p => {
+    const statutClass = p.statut==='paye'?'badge-paye':p.statut==='partiel'?'badge-partiel':p.statut==='annule'?'badge-annule':'badge-attente';
+    const statutText = p.statut==='paye'?'Payé':p.statut==='partiel'?'Partiel':p.statut==='annule'?'Annulé':'En attente';
+    const iconeMoyen = {orange_money:'🟠',mtn_money:'🟡',moov_money:'🔵',cheque:'📋',virement_banque:'🏦',espece:'💵',don:'❤️'}[p.moyen_paiement]||'💳';
+    const moyenText = {orange_money:'Orange Money',mtn_money:'MTN Money',moov_money:'Moov Money',cheque:'Chèque',virement_banque:'Virement',espece:'Espèces',don:'Don'}[p.moyen_paiement]||p.moyen_paiement;
+    const prc = parseFloat(p.pourcentage_paiement||0);
+    const barClass = prc>=100?'progress-bar-paye':'progress-bar-partiel';
+    return `
+    <div class="col-md-6 col-lg-4">
+      <div class="carte p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="badge ${statutClass}">${statutText}</span>
+          <span class="small">${iconeMoyen} ${moyenText}</span>
+        </div>
+        <h5 class="mb-1">${p.libelle}</h5>
+        <p class="text-muted small mb-2">${new Date(p.date_paiement).toLocaleDateString('fr-CA')} — ${p.reference_externe||'Sans référence'}</p>
+
+        <div class="progress mb-2"><div class="progress-bar ${barClass}" style="width:${prc}%">${prc}%</div></div>
+
+        <div class="d-flex justify-content-between small">
+          <span>Dû: <strong class="text-danger">${formatMontant(p.montant_total)}</strong></span>
+          <span>Payé: <strong class="text-success">${formatMontant(p.montant_paye)}</strong></span>
+        </div>
+        <div class="text-end small mt-1">
+          <span>Restant: <strong class="text-warning">${formatMontant(p.montant_restant)}</strong></span>
+        </div>
+
+        <div class="d-flex gap-2 mt-3 no-print">
+          <button class="btn btn-sm btn-succes flex-grow-1" onclick="voirRecu(${p.id_paiement})"><i class="bi bi-receipt"></i> Reçu</button>
+          <button class="btn btn-sm btn-primaire" onclick="ajouterVersement(${p.id_paiement})" title="Ajouter un versement"><i class="bi bi-plus-circle"></i></button>
+          <button class="btn btn-sm btn-danger" onclick="supprimerPaiement(${p.id_paiement})"><i class="bi bi-trash"></i></button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// 💰 FORMATAGE MONTA
+function formatMontant(montant){
+  return new Intl.NumberFormat('fr-FR').format(parseFloat(montant)||0)+' F CFA';
+}
+
+// 💽 ENREGISTRER
+document.getElementById('formPaiement').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = document.getElementById('idPaiement').value;
+  const data = {
+    libelle: document.getElementById('libelle').value.trim(),
+    reference_externe: document.getElementById('reference_externe').value.trim(),
+    montant_total: parseFloat(document.getElementById('montant_total').value),
+    montant_paye: parseFloat(document.getElementById('montant_paye').value)||0,
+    moyen_paiement: document.getElementById('moyen_paiement').value,
+    date_paiement: document.getElementById('date_paiement').value,
+    date_echeance: document.getElementById('date_echeance').value,
+    numero_transaction: document.getElementById('numero_transaction').value.trim(),
+    banque_emetteur: document.getElementById('banque_emetteur').value.trim(),
+    numero_cheque: document.getElementById('numero_cheque').value.trim(),
+    commentaire: document.getElementById('commentaire').value.trim(),
+    categorie: document.getElementById('categorie').value
+  };
+  try{
+    const r = await fetch(`${API_URL}/enregistrer`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify(data)
+    });
+    const res = await r.json();
+    if(res.ok){
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('modalPaiement')).hide();
+      document.getElementById('formPaiement').reset();
+      document.getElementById('idPaiement').value='';
+      document.getElementById('date_paiement').valueAsDate = new Date();
+      chargerPaiements();
+    }else alert("❌ "+res.erreur);
+  }catch{alert("Erreur réseau");}
+});
+
+// 🧾 VOIR REÇU
+window.voirRecu = async function(id){
+  try{
+    const r = await fetch(`${API_URL}/liste`, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    const p = res.paiements?.find(x=>x.id_paiement===id);
+    if(!p) return alert("Introuvable");
+    paiementCourant = p;
+
+    const iconeMoyen = {orange_money:'🟠',mtn_money:'🟡',moov_money:'🔵',cheque:'📋',virement_banque:'🏦',espece:'💵',don:'❤️'}[p.moyen_paiement]||'💳';
+    const moyenText = {orange_money:'Orange Money',mtn_money:'MTN Mobile Money',moov_money:'Moov Money',cheque:'Chèque Bancaire',virement_banque:'Virement Bancaire',espece:'Espèces',don:'Don / Versement Libre'}[p.moyen_paiement]||p.moyen_paiement;
+
+    document.getElementById('contenuRecu').innerHTML = `
+    <div class="recus-border p-4 mb-3">
+      <div class="text-center mb-4">
+        <h4 class="mb-1">REÇU DE PAIEMENT</h4>
+        <p class="text-muted small">N°${p.id_paiement} — ${new Date(p.date_paiement).toLocaleDateString('fr-CA')}</p>
+      </div>
+      <div class="row mb-2"><div class="col-5 fw-bold">Désignation :</div><div class="col-7">${p.libelle}</div></div>
+      <div class="row mb-2"><div class="col-5 fw-bold">Payé par :</div><div class="col-7">${p.reference_externe||'Non spécifié'}</div></div>
+      <div class="row mb-2"><div class="col-5 fw-bold">Mode de paiement :</div><div class="col-7">${iconeMoyen} ${moyenText}</div></div>
+      ${p.numero_transaction?`<div class="row mb-2"><div class="col-5 fw-bold">N° Transaction :</div><div class="col-7">${p.numero_transaction}</div></div>`:''}
+      <hr>
+      <div class="row mb-1"><div class="col-6 fw-bold">Montant Total Dû :</div><div class="col-6 text-end">${formatMontant(p.montant_total)}</div></div>
+      <div class="row mb-1"><div class="col-6 fw-bold">Montant Versé :</div><div class="col-6 text-end text-success">${formatMontant(p.montant_paye)}</div></div>
+      <div class="row mb-1"><div class="col-6 fw-bold">Reste à payer :</div><div class="col-6 text-end text-danger">${formatMontant(p.montant_restant)}</div></div>
+      <hr>
+      <div class="row mb-3"><div class="col-6 fw-bold">Taux réglé :</div><div class="col-6 text-end">${parseFloat(p.pourcentage_paiement||0).toFixed(1)} %</div></div>
+      ${p.commentaire?`<p class="small text-muted fst-italic">Obs: ${p.commentaire}</p>`:''}
+      <div class="text-center mt-4 pt-3 border-top">
+        <p class="small">Signature / Cachet</p>
+        <br><br>
+        <p class="fw-bold">ÉTABLISSEMENT SCOLAIRE</p>
+      </div>
+    </div>`;
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalRecu')).show();
+  }catch{alert("Chargement impossible");}
+};
+
+// 🖨️ IMPRIMER REÇU
+window.imprimerRecu = function(){
+  window.print();
+};
+
+// 📤 ENVOYER REÇU AU PARENT
+window.envoyerRecu = async function(){
+  if(!paiementCourant) return;
+  alert("✅ Le reçu a été envoyé au Parent par email et notification !\n\n(En production : envoi PDF par email + notification dans l'espace Parent et Élève)");
+  // Ici tu ajoutes l'appel API :
+  // await fetch(`${API_URL}/${paiementCourant.id_paiement}/envoyer-recu`, {method:'POST', headers:{...}});
+};
+
+// ➕ AJOUTER VERSEMENT
+window.ajouterVersement = async function(id){
+  const montantAjoute = prompt("Montant à ajouter comme versement :");
+  if(!montantAjoute || isNaN(montantAjoute)) return;
+  try{
+    const r = await fetch(`${API_URL}/ajouter-versement/${id}`, {
+      method:'PUT',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({montant_paye:montantAjoute})
+    });
+    const res = await r.json();
+    if(res.ok) chargerPaiements();
+    else alert("❌ "+res.erreur);
+  }catch{alert("Erreur réseau");}
+};
+
+// ❌ SUPPRIMER
+window.supprimerPaiement = async function(id){
+  if(!confirm("Supprimer ce paiement ?")) return;
+  try{
+    const r = await fetch(`${API_URL}/${id}`, {method:'DELETE', headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(res.ok) chargerPaiements();
+    else alert("❌ "+res.erreur);
+  }catch{alert("Erreur réseau");}
+};
+
+// 🔄 FILTRES
+document.getElementById('filtreStatut').addEventListener('change',chargerPaiements);
+document.getElementById('filtreMoyen').addEventListener('change',chargerPaiements);
+document.getElementById('filtreMois').addEventListener('change',chargerPaiements);
+document.getElementById('filtreAnnee').addEventListener('change',chargerPaiements);
+document.getElementById('btnReinitialiser').addEventListener('click',()=>{
+  document.getElementById('filtreStatut').value='';
+  document.getElementById('filtreMoyen').value='';
+  document.getElementById('filtreMois').value='';
+  document.getElementById('filtreAnnee').value='';
+  chargerPaiements();
+});
+
+// 🚀 INIT
+document.getElementById('date_paiement').valueAsDate = new Date();
+chargerPaiements();
+</script>
+</body>
+</html>

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Générer Bulletins</span>
+    <span class="txt-en">Generate Report Cards</span>
+    <span class="txt-ar">إنشاء الشهادات المدرسية</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root { 
+      --sidebar-fond: #0f172a; 
+      --bord-orange: #f59e0b; 
+      --blanc: #fff; 
+      --fond-page: #f8fafc; 
+    }
+    * { border-radius: 12px !important; }
+    body { 
+      background: var(--fond-page); 
+      font-family: system-ui, -apple-system, sans-serif; 
+      margin: 0;
+    }
+
+    /* 🗣️ GESTION DES LANGUES */
+    .txt-fr, .txt-en, .txt-ar { display: none !important; }
+    body.lang-fr .txt-fr { display: inline !important; }
+    body.lang-en .txt-en { display: inline !important; }
+    body.lang-ar .txt-ar { display: inline !important; direction: rtl; text-align: right; }
+
+    /* SIDEBAR */
+    .sidebar {
+      background: var(--sidebar-fond);
+      min-height: 100vh;
+      width: 260px;
+      position: fixed;
+      left: 0;
+      top: 0;
+      padding: 1.5rem 0;
+      z-index: 10;
+    }
+    body.lang-ar .sidebar { left: auto; right: 0; }
+    .contenu { 
+      margin-left: 260px; 
+      padding: 2rem; 
+      min-height: 100vh;
+    }
+    body.lang-ar .contenu { margin-left: 0; margin-right: 260px; }
+
+    .logo {
+      color: var(--bord-orange);
+      font-weight: 800;
+      font-size: 1.4rem;
+      padding: 0 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.85rem 1.5rem;
+      color: #cbd5e1;
+      text-decoration: none;
+      transition: 0.25s;
+      margin: 0.25rem 1rem;
+    }
+    .menu-item:hover {
+      background: rgba(245,158,11,0.15);
+      color: var(--bord-orange);
+      transform: translateX(4px);
+    }
+    body.lang-ar .menu-item:hover { transform: translateX(-4px); }
+    .menu-item.actif {
+      background: rgba(245,158,11,0.1);
+      color: var(--bord-orange);
+      border-left: 3px solid var(--bord-orange);
+    }
+    body.lang-ar .menu-item.actif { border-left: none; border-right: 3px solid var(--bord-orange); }
+
+    /* CARTES & BOUTONS */
+    .carte {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin-bottom: 1.5rem;
+    }
+    .btn-orange {
+      background: var(--bord-orange);
+      border: none;
+      color: #000;
+      font-weight: 500;
+    }
+    .btn-orange:hover {
+      background: #d97706;
+      color: #fff;
+    }
+
+    /* MENTIONS */
+    .mention {
+      padding: 0.25rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      display: inline-block;
+    }
+    .mention-excellent   { background: #ffd700; color: #000; }
+    .mention-tresbien    { background: #10b981; color: #fff; }
+    .mention-bien        { background: #3b82f6; color: #fff; }
+    .mention-aszbien     { background: #f59e0b; color: #000; }
+    .mention-passable    { background: #f97316; color: #fff; }
+    .mention-insuffisant { background: #ef4444; color: #fff; }
+
+    /* TABLEAU */
+    .table th { border-top: none; }
+    .table td { vertical-align: middle; }
+  </style>
+</head>
+<body class="lang-fr">
+
+<!-- 🔐 SÉCURITÉ -- Vérifie connexion -->
+<script>
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+if (!token || !['admin','directeur'].includes(role)) {
+  alert("⛔ Accès réservé à l'administration !");
+  location.href = '../connexion.html';
+}
+const anneeScolaire = "2026-2027";
+const API_BASE = "http://localhost:5000/api";
+</script>
+
+<!-- 📌 BARRE LATÉRALE -->
+<div class="sidebar">
+  <div class="logo"><i class="bi bi-building"></i> MAMA-ZOUMANA</div>
+  
+  <a href="dashboard.html" class="menu-item">
+    <i class="bi bi-speedometer2"></i>
+    <span class="txt-fr">Tableau de bord</span>
+    <span class="txt-en">Dashboard</span>
+    <span class="txt-ar">لوحة التحكم</span>
+  </a>
+  <a href="notes-bulletins.html" class="menu-item">
+    <i class="bi bi-pencil-square"></i>
+    <span class="txt-fr">Notes & Bulletins</span>
+    <span class="txt-en">Grades & Reports</span>
+    <span class="txt-ar">الدرجات والشهادات</span>
+  </a>
+  <a href="fiche-bulletin.html" class="menu-item">
+    <i class="bi bi-file-earmark-text"></i>
+    <span class="txt-fr">Fiche Bulletin</span>
+    <span class="txt-en">Report Card</span>
+    <span class="txt-ar">كشف النقاط الفردي</span>
+  </a>
+  <a href="generer-bulletin.html" class="menu-item actif">
+    <i class="bi bi-file-earmark-pdf"></i>
+    <span class="txt-fr">Générer Bulletins</span>
+    <span class="txt-en">Generate Reports</span>
+    <span class="txt-ar">إنشاء الشهادات</span>
+  </a>
+</div>
+
+<!-- 📝 CONTENU PRINCIPAL -->
+<div class="contenu">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>
+      <span class="txt-fr">📊 Génération des Bulletins</span>
+      <span class="txt-en">📊 Generate Report Cards</span>
+      <span class="txt-ar">📊 إنشاء الشهادات المدرسية</span>
+    </h3>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-langue btn-primary active" data-lang="fr">FR</button>
+      <button class="btn btn-sm btn-outline-secondary btn-langue" data-lang="en">EN</button>
+      <button class="btn btn-sm btn-outline-secondary btn-langue" data-lang="ar">AR</button>
+    </div>
+  </div>
+
+  <!-- 🔽 CHOIX CLASSE & TRIMESTRE -->
+  <div class="carte">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">🏫 Classe</span>
+          <span class="txt-en">🏫 Class</span>
+          <span class="txt-ar">🏫 القسم</span>
+        </label>
+        <select id="id_classe" class="form-select">
+          <option value="">
+            <span class="txt-fr">-- Chargement... --</span>
+            <span class="txt-en">-- Loading... --</span>
+            <span class="txt-ar">-- جار التحميل... --</span>
+          </option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">📅 Trimestre</span>
+          <span class="txt-en">📅 Term</span>
+          <span class="txt-ar">📅 الفصل الدراسي</span>
+        </label>
+        <select id="trimestre" class="form-select">
+          <option value="1">
+            <span class="txt-fr">1er Trimestre</span>
+            <span class="txt-en">1st Term</span>
+            <span class="txt-ar">الفصل الأول</span>
+          </option>
+          <option value="2">
+            <span class="txt-fr">2ème Trimestre</span>
+            <span class="txt-en">2nd Term</span>
+            <span class="txt-ar">الفصل الثاني</span>
+          </option>
+          <option value="3">
+            <span class="txt-fr">3ème Trimestre</span>
+            <span class="txt-en">3rd Term</span>
+            <span class="txt-ar">الفصل الثالث</span>
+          </option>
+        </select>
+      </div>
+      <div class="col-md-4 d-flex align-items-end">
+        <button class="btn btn-orange w-100" onclick="genererBulletins()">
+          <i class="bi bi-calculator me-2"></i>
+          <span class="txt-fr">Générer tout</span>
+          <span class="txt-en">Generate All</span>
+          <span class="txt-ar">إنشاء الكل</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📋 RÉSULTATS -->
+  <div class="carte">
+    <h5 class="mb-3">
+      <span class="txt-fr">📋 Bulletins générés — Classement</span>
+      <span class="txt-en">📋 Generated Reports — Ranking</span>
+      <span class="txt-ar">📋 الشهادات المنشأة — الترتيب</span>
+    </h5>
+    <div class="table-responsive">
+      <table class="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th class="text-center"><span class="txt-fr">Rang</span><span class="txt-en">Rank</span><span class="txt-ar">الترتيب</span></th>
+            <th><span class="txt-fr">Élève</span><span class="txt-en">Student</span><span class="txt-ar">التلميذ</span></th>
+            <th><span class="txt-fr">Matricule</span><span class="txt-en">Reg. Number</span><span class="txt-ar">الرقم</span></th>
+            <th class="text-center"><span class="txt-fr">Moyenne</span><span class="txt-en">Average</span><span class="txt-ar">المعدل</span></th>
+            <th class="text-center"><span class="txt-fr">Mention</span><span class="txt-en">Grade</span><span class="txt-ar">التقدير</span></th>
+            <th class="text-center"><span class="txt-fr">Action</span><span class="txt-en">Action</span><span class="txt-ar">إجراء</span></th>
+          </tr>
+        </thead>
+        <tbody id="corps-tableau">
+          <tr>
+            <td colspan="6" class="text-center text-muted py-4">
+              <span class="txt-fr">Choisis une classe et un trimestre puis clique sur "Générer tout"</span>
+              <span class="txt-en">Choose a class and term then click "Generate All"</span>
+              <span class="txt-ar">اختر القسم والفصل ثم انقر "إنشاء الكل"</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// 🗣️ CHANGEMENT DE LANGUE
+document.querySelectorAll('.btn-langue').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const lang = btn.dataset.lang;
+    document.body.classList.remove('lang-fr','lang-en','lang-ar');
+    document.body.classList.add('lang-'+lang);
+    document.documentElement.lang = lang;
+    localStorage.setItem('langue', lang);
+    document.querySelectorAll('.btn-langue').forEach(b => {
+      b.classList.remove('btn-primary','active');
+      b.classList.add('btn-outline-secondary');
+    });
+    btn.classList.remove('btn-outline-secondary');
+    btn.classList.add('btn-primary','active');
+  });
+});
+
+// ✅ Restaurer langue sauvegardée
+const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+document.body.classList.add('lang-'+langueSauvegardee);
+document.querySelector(`[data-lang="${langueSauvegardee}"]`)?.classList.add('active');
+
+// 📥 CHARGER LA LISTE DES CLASSES — Route CORRIGÉE
+async function chargerClasses() {
+  const select = document.getElementById('id_classe');
+  try {
+    const reponse = await fetch(`${API_BASE}/classes`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const res = await reponse.json();
+    
+    if (res.ok && res.lignes?.length > 0) {
+      select.innerHTML = '<option value="">-- Sélectionner --</option>' +
+        res.lignes.map(c => `<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('');
+    } else {
+      select.innerHTML = '<option value="">-- Aucune classe trouvée --</option>';
+      console.log("Réponse classes :", res);
+    }
+  } catch (err) {
+    console.error("❌ Erreur chargement classes :", err);
+    select.innerHTML = '<option value="">-- Erreur serveur --</option>';
+  }
+}
+
+// 📊 GÉNÉRER LES BULLETINS — Route CORRIGÉE
+async function genererBulletins() {
+  const id_classe = document.getElementById('id_classe').value;
+  const trimestre = document.getElementById('trimestre').value;
+  const langue = localStorage.getItem('langue') || 'fr';
+
+  const messages = {
+    fr: { erreur: "⚠️ Sélectionne Classe et Trimestre d'abord !", erreurServ: "❌ Erreur : ", vide: "Aucune note trouvée pour cette classe et ce trimestre" },
+    en: { erreur: "⚠️ Choose Class and Term first!", erreurServ: "❌ Error: ", vide: "No grades found for this class and term" },
+    ar: { erreur: "⚠️ اختر القسم والفصل أولاً!", erreurServ: "❌ خطأ: ", vide: "لا توجد درجات لهذا القسم وهذا الفصل" }
+  };
+
+  if (!id_classe || !trimestre) {
+    alert(messages[langue].erreur);
+    return;
+  }
+
+  try {
+    const reponse = await fetch(`${API_BASE}/bulletins/calculer`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ 
+        id_classe, 
+        trimestre, 
+        annee_scolaire: anneeScolaire 
+      })
+    });
+
+    const res = await reponse.json();
+
+    if (!res.ok) {
+      alert(messages[langue].erreurServ + (res.erreur || "Erreur inconnue"));
+      return;
+    }
+
+    if (!res.classement || res.classement.length === 0) {
+      document.getElementById('corps-tableau').innerHTML = `
+        <tr><td colspan="6" class="text-center text-warning py-4">⚠️ ${messages[langue].vide}</td></tr>`;
+      return;
+    }
+
+    // 📄 Traduction bouton
+    const voirTexte = {
+      fr: "📄 Voir la fiche",
+      en: "📄 View Report",
+      ar: "📄 عرض الكشف"
+    };
+
+    // 📄 Affichage du tableau — Champs CORRIGÉS
+    document.getElementById('corps-tableau').innerHTML = res.classement.map(eleve => {
+      // 🏷️ Couleur mention
+      let classeMention = 'mention-insuffisant';
+      const moy = parseFloat(eleve.moyenne_generale);
+      if (!isNaN(moy)) {
+        if (moy >= 18) classeMention = 'mention-excellent';
+        else if (moy >= 16) classeMention = 'mention-tresbien';
+        else if (moy >= 14) classeMention = 'mention-bien';
+        else if (moy >= 12) classeMention = 'mention-aszbien';
+        else if (moy >= 10) classeMention = 'mention-passable';
+      }
+
+      return `
+        <tr>
+          <td class="fw-bold text-center">${eleve.rang || '-'}</td>
+          <td>${eleve.nom || ''} ${eleve.prenoms || ''}</td>
+          <td>${eleve.matricule || '---'}</td>
+          <td class="text-center fw-bold">${isNaN(moy) ? '-' : moy.toFixed(2)}</td>
+          <td class="text-center">
+            <span class="mention ${classeMention}">${eleve.mention || '-'}</span>
+          </td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-primary" 
+              onclick="ouvrirFiche(${eleve.id_eleve}, ${id_classe}, ${trimestre})">
+              ${voirTexte[langue]}
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+  } catch (err) {
+    console.error("❌ Erreur génération bulletins :", err);
+    alert("❌ Erreur de connexion au serveur — Vérifiez qu'il est démarré sur le port 5000");
+  }
+}
+
+// 📄 OUVRIR LA FICHE BULLETIN INDIVIDUELLE — Lien CORRIGÉ
+function ouvrirFiche(id_eleve, id_classe, trimestre) {
+  window.location.href = `fiche-bulletin.html?eleve=${id_eleve}&classe=${id_classe}&periode=${trimestre}&annee=${anneeScolaire}`;
+}
+
+// 🚀 AU CHARGEMENT
+chargerClasses();
+</script>
+</body>
+</html>

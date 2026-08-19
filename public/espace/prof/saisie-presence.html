@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Gestion Présences — Enseignant</span>
+    <span class="txt-en">Attendance Management — Teacher</span>
+    <span class="txt-ar">إدارة الحضور — المعلم</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b;
+      --vert: #10b981;
+      --rouge: #ef4444;
+      --bleu: #3b82f6;
+      --texte: #f8fafc;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.25s ease; }
+    body {
+      background: var(--sombre);
+      color: var(--texte);
+      min-height: 100vh;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    .entete-page {
+      background: var(--sombre-clair);
+      border-bottom: 3px solid var(--bord-orange);
+      padding: 1.2rem 0;
+      margin-bottom: 2rem;
+    }
+    .carte {
+      background: var(--sombre-clair);
+      border-radius: 14px;
+      border-left: 4px solid var(--bord-orange);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .form-control, .form-select {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: white;
+      border-radius: 10px;
+    }
+    .form-control:focus, .form-select:focus {
+      background: #0f172a;
+      border-color: var(--bord-orange);
+      color: white;
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.25);
+    }
+    .btn-valide {
+      background: var(--vert);
+      color: white;
+      border-radius: 10px;
+      border: none;
+      font-weight: 600;
+    }
+    .btn-valide:hover {
+      background: #059669;
+      box-shadow: 0 0 15px rgba(16,185,129,0.4);
+      color: white;
+    }
+    .btn-present { background: var(--vert); color: white; border-radius: 8px; border: none; }
+    .btn-absent { background: var(--rouge); color: white; border-radius: 8px; border: none; }
+    .btn-retard { background: var(--bleu); color: white; border-radius: 8px; border: none; }
+    .ligne-eleve {
+      border-bottom: 1px solid #334155;
+      padding: 1rem 0.8rem;
+      border-radius: 8px;
+      margin-bottom: 0.3rem;
+    }
+    .ligne-eleve:hover { background: rgba(245,158,11,0.08); }
+    .photo-eleve {
+      width: 55px; height: 55px; border-radius: 50%;
+      object-fit: cover; border: 2px solid var(--bord-orange);
+      background: #334155;
+    }
+    .infos-eleve { display: flex; align-items: center; gap: 12px; }
+    .infos-supp { font-size: 0.8rem; opacity: 0.75; }
+    .btn-langue { border-radius: 8px; }
+    .btn-langue.active {
+      background: var(--bord-orange); color: #000;
+      border-color: var(--bord-orange); font-weight: 700;
+    }
+
+    /* ✅ GESTION DES LANGUES — CONFORME AU STANDARD */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en { direction: ltr; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-ar { direction: rtl; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+  </style>
+</head>
+<body class="lang-fr">
+
+<!-- 🔐 SÉCURITÉ & CONFIGURATION -->
+<script>
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+
+if (!token || role !== 'prof') {
+  alert("⛔ Accès réservé aux Enseignants — Reconnecte-toi !");
+  localStorage.clear();
+  location.href = 'connexion.html';
+}
+const aujourdhui = new Date().toISOString().split('T')[0];
+</script>
+
+<!-- 📌 EN-TÊTE -->
+<div class="entete-page">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div>
+      <h3 class="mb-1 fw-bold">
+        <i class="bi bi-calendar-check me-2" style="color:var(--bord-orange)"></i>
+        <span class="txt-fr">📋 Gestion Présences</span>
+        <span class="txt-en">📋 Attendance Management</span>
+        <span class="txt-ar">📋 إدارة الحضور</span>
+      </h3>
+      <p class="mb-0 opacity-75">
+        <span class="txt-fr">Présences · Absences · Retards</span>
+        <span class="txt-en">Present · Absent · Late</span>
+        <span class="txt-ar">حضور · غياب · تأخر</span>
+      </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('ar')" id="btn-ar">🇸🇦 AR</button>
+      <a href="dashboard-prof.html" class="btn btn-outline-light ms-2">
+        <i class="bi bi-arrow-left-circle"></i>
+        <span class="txt-fr"> Retour</span>
+        <span class="txt-en"> Back</span>
+        <span class="txt-ar"> عودة</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container py-2">
+  <!-- ⚠️ ZONE MESSAGES -->
+  <div id="zone-message"></div>
+
+  <!-- 🔍 SÉLECTION CLASSE & DATE -->
+  <div class="carte mb-4">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">🏫 Classe</span>
+          <span class="txt-en">🏫 Class</span>
+          <span class="txt-ar">🏫 الفصل</span>
+        </label>
+        <select id="id_classe" class="form-select" onchange="chargerEleves()">
+          <option value="">
+            <span class="txt-fr">-- Chargement... --</span>
+            <span class="txt-en">-- Loading... --</span>
+            <span class="txt-ar">-- جار التحميل... --</span>
+          </option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">📅 Date du jour</span>
+          <span class="txt-en">📅 Date</span>
+          <span class="txt-ar">📅 التاريخ</span>
+        </label>
+        <input type="date" id="date_jour" class="form-control" onchange="chargerPresences()">
+      </div>
+      <div class="col-md-4">
+        <button class="btn btn-valide w-100" onclick="enregistrerTout()">
+          <i class="bi bi-check-circle me-1"></i>
+          <span class="txt-fr">💾 Enregistrer tout</span>
+          <span class="txt-en">💾 Save All</span>
+          <span class="txt-ar">💾 حفظ الكل</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📋 LISTE DES ÉLÈVES -->
+  <div id="zoneListe" class="d-none">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0 fw-bold">
+        <i class="bi bi-people me-2"></i>
+        <span class="txt-fr">📋 Liste des Élèves</span>
+        <span class="txt-en">📋 Student List</span>
+        <span class="txt-ar">📋 قائمة التلاميذ</span>
+      </h5>
+      <div>
+        <button class="btn btn-present btn-sm me-1" onclick="marquerTout('present')">
+          ✅ <span class="txt-fr">Présents</span><span class="txt-en">Present</span><span class="txt-ar">حاضر</span>
+        </button>
+        <button class="btn btn-retard btn-sm me-1" onclick="marquerTout('retard')">
+          ⏰ <span class="txt-fr">Retards</span><span class="txt-en">Late</span><span class="txt-ar">متأخر</span>
+        </button>
+        <button class="btn btn-absent btn-sm" onclick="marquerTout('absent')">
+          ❌ <span class="txt-fr">Absents</span><span class="txt-en">Absent</span><span class="txt-ar">غائب</span>
+        </button>
+      </div>
+    </div>
+    <div class="carte">
+      <div class="row fw-bold opacity-75 mb-2 px-2 align-items-center">
+        <div class="col-md-5">
+          <span class="txt-fr">Élève / Informations</span>
+          <span class="txt-en">Student / Info</span>
+          <span class="txt-ar">التلميذ / معلومات</span>
+        </div>
+        <div class="col-md-3 text-center">
+          <span class="txt-fr">Statut</span>
+          <span class="txt-en">Status</span>
+          <span class="txt-ar">الحالة</span>
+        </div>
+        <div class="col-md-4 text-center">
+          <span class="txt-fr">Justification</span>
+          <span class="txt-en">Justification</span>
+          <span class="txt-ar">التبرير</span>
+        </div>
+      </div>
+      <div id="listeEleves">
+        <div class="text-center py-4 text-muted">
+          <div class="spinner-border spinner-border-sm me-2"></div>
+          <span class="txt-fr">Chargement des élèves...</span>
+          <span class="txt-en">Loading students...</span>
+          <span class="txt-ar">جار تحميل التلاميذ...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 🗣️ GESTION DE LA LANGUE
+function changerLangue(langue) {
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + langue);
+  localStorage.setItem('langue', langue);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + langue).classList.add('active');
+}
+const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+changerLangue(langueSauvegardee);
+
+// 💬 AFFICHAGE DES MESSAGES
+function afficherMessage(texte, type = 'info') {
+  const zone = document.getElementById('zone-message');
+  const style = type === 'succes' ? 'border-success bg-success bg-opacity-10 text-success' :
+                type === 'erreur' ? 'border-danger bg-danger bg-opacity-10 text-danger' :
+                'border-info bg-info bg-opacity-10 text-info';
+  zone.innerHTML = `<div class="alert ${style} border-2">${texte}</div>`;
+  setTimeout(() => zone.innerHTML = '', 8000);
+}
+
+let eleves = [];
+
+// 📥 CHARGER MES CLASSES DU PROF
+async function chargerClasses() {
+  try {
+    console.log("🔄 Chargement classes...");
+    const r = await fetch(`${API_URL}/presences/mes-classes`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const res = await r.json();
+    console.log("📦 CLASSES :", res);
+
+    const sel = document.getElementById('id_classe');
+    let listeClasses = [];
+    if (res.classes && Array.isArray(res.classes)) listeClasses = res.classes;
+    else if (res.lignes && Array.isArray(res.lignes)) listeClasses = res.lignes;
+
+    if (listeClasses.length > 0) {
+      sel.innerHTML = '<option value="">-- Sélectionner une Classe --</option>' +
+        listeClasses.map(c => `<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('');
+    } else {
+      sel.innerHTML = '<option value="">-- Aucune Classe --</option>';
+      afficherMessage("⚠️ Aucune classe affectée. Contacter l'administrateur.", 'info');
+    }
+  } catch (e) {
+    console.error("❌ Erreur classes :", e);
+    afficherMessage("❌ Erreur chargement classes", 'erreur');
+  }
+}
+
+// 📋 CHARGER LES ÉLÈVES D'UNE CLASSE
+async function chargerEleves() {
+  const id_classe = document.getElementById('id_classe').value;
+  const zone = document.getElementById('zoneListe');
+  
+  if (!id_classe) {
+    zone.classList.add('d-none');
+    return;
+  }
+
+  zone.classList.remove('d-none');
+  document.getElementById('listeEleves').innerHTML = `<div class="text-center py-4 text-muted">
+    <div class="spinner-border spinner-border-sm me-2"></div>
+    <span class="txt-fr">Chargement des élèves...</span>
+    <span class="txt-en">Loading students...</span>
+    <span class="txt-ar">جار تحميل التلاميذ...</span>
+  </div>`;
+
+  try {
+    const r = await fetch(`${API_URL}/presences/eleves-classe/${id_classe}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const res = await r.json();
+    console.log("📦 ÉLÈVES :", res);
+
+    eleves = res.eleves || res.lignes || [];
+    genererLignes();
+    chargerPresences();
+  } catch (e) {
+    console.error("❌ Erreur élèves :", e);
+    document.getElementById('listeEleves').innerHTML = `<div class="text-center py-4 text-danger">
+      ❌ Erreur chargement élèves
+    </div>`;
+  }
+}
+
+// 📊 GÉNÉRER LIGNES ÉLÈVES
+function genererLignes() {
+  document.getElementById('listeEleves').innerHTML = eleves.map(e => {
+    const id = e.id_utilisateur || e.id_eleve;
+    const photo = e.photo_identite ? `/uploads/${e.photo_identite}` 
+      : 'https://via.placeholder.com/55/0f172a/f59e0b?text=👤';
+    const nomComplet = `${e.nom} ${e.prenoms || e.prenom}`;
+    const matricule = e.matricule || '---';
+    const classe = e.libelle_classe || '---';
+
+    return `
+    <div class="ligne-eleve row" data-id="${id}">
+      <div class="col-md-5 infos-eleve">
+        <img src="${photo}" alt="${nomComplet}" class="photo-eleve" loading="lazy">
+        <div>
+          <div class="fw-bold">${nomComplet}</div>
+          <div class="infos-supp">
+            📇 ${matricule} ｜ 🏫 ${classe}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 text-center">
+        <select class="form-select statut-select" data-id="${id}">
+          <option value="present">✅ <span class="txt-fr">Présent</span><span class="txt-en">Present</span><span class="txt-ar">حاضر</span></option>
+          <option value="retard">⏰ <span class="txt-fr">Retard</span><span class="txt-en">Late</span><span class="txt-ar">متأخر</span></option>
+          <option value="absent">❌ <span class="txt-fr">Absent</span><span class="txt-en">Absent</span><span class="txt-ar">غائب</span></option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control justification-input" data-id="${id}" 
+               placeholder="Justification...">
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// 📥 CHARGER LES PRÉSENCES EXISTANTES
+async function chargerPresences() {
+  const id_classe = document.getElementById('id_classe').value;
+  const date_jour = document.getElementById('date_jour').value;
+  if (!id_classe || !date_jour) return;
+
+  try {
+    const r = await fetch(`${API_URL}/presences/liste?id_classe=${id_classe}&date_jour=${date_jour}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const res = await r.json();
+    console.log("📦 PRÉSENCES :", res);
+
+    let listePresences = [];
+    if (res.lignes && Array.isArray(res.lignes)) listePresences = res.lignes;
+    else if (res.presences && Array.isArray(res.presences)) listePresences = res.presences;
+
+    listePresences.forEach(p => {
+      const select = document.querySelector(`.statut-select[data-id="${p.id_eleve}"]`);
+      const justif = document.querySelector(`.justification-input[data-id="${p.id_eleve}"]`);
+      if (select) select.value = p.statut;
+      if (justif) justif.value = p.justification || '';
+    });
+  } catch (e) {
+    console.log("ℹ️ Aucune présence enregistrée pour ce jour");
+  }
+}
+
+// ✅ MARQUER TOUS LES ÉLÈVES D'UN STATUT
+function marquerTout(statut) {
+  document.querySelectorAll('.statut-select').forEach(s => s.value = statut);
+}
+
+// 💾 ENREGISTRER TOUTES LES PRÉSENCES
+async function enregistrerTout() {
+  const id_classe = document.getElementById('id_classe').value;
+  const date_jour = document.getElementById('date_jour').value;
+
+  if (!id_classe || !date_jour) {
+    afficherMessage("⚠️ Sélectionne une Classe et une Date d'abord !", 'erreur');
+    return;
+  }
+
+  const presences = eleves.map(e => {
+    const id = e.id_utilisateur || e.id_eleve;
+    return {
+      id_eleve: id,
+      statut: document.querySelector(`.statut-select[data-id="${id}"]`).value,
+      justification: document.querySelector(`.justification-input[data-id="${id}"]`).value.trim()
+    };
+  });
+
+  try {
+    const r = await fetch(`${API_URL}/presences/marquer`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ id_classe, date_jour, presences })
+    });
+    const res = await r.json();
+    console.log("📦 RÉPONSE ENREGISTREMENT :", res);
+
+    if (res.ok) {
+      afficherMessage("✅ Présences enregistrées avec succès !", 'succes');
+    } else {
+      afficherMessage("❌ " + (res.erreur || "Erreur lors de l'enregistrement"), 'erreur');
+    }
+  } catch (e) {
+    console.error("❌ Erreur Réseau :", e);
+    afficherMessage("❌ Erreur Réseau : " + e.message, 'erreur');
+  }
+}
+
+// 🚀 AU CHARGEMENT
+document.getElementById('date_jour').value = aujourdhui;
+chargerClasses();
+</script>
+
+</body>
+</html>

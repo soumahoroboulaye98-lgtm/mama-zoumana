@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Personnaliser le Site — Administration</span>
+    <span class="txt-en">Customize Site — Administration</span>
+    <span class="txt-ar">تخصيص الموقع — الإدارة</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --secondaire: #0369a1;
+      --accent: #f59e0b;
+      --succes: #10b981;
+      --alerte: #ef4444;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --texte: #f8fafc;
+      --texte-gris: #94a3b8;
+      --fond-page: #f1f5f9;
+      --blanc: #ffffff;
+      --bord-radius: 16px;
+      --ombre: 0 4px 20px rgba(0,0,0,0.07);
+      --ombre-hover: 0 12px 40px rgba(0,0,0,0.12);
+    }
+
+    /* ✅ TRILINGUE */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar { direction: rtl; }
+    body.lang-ar .titre-section,
+    body.lang-ar .form-label,
+    body.lang-ar .nav-link,
+    body.lang-ar h5,
+    body.lang-ar .btn-primaire { text-align: right; }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--fond-page); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+    /* 📋 MENU LATÉRAL */
+    .sidebar {
+      background: linear-gradient(180deg, var(--sombre), var(--sombre-clair));
+      min-height: 100vh;
+      width: 270px;
+      position: fixed; left: 0; top: 0;
+      padding: 1.5rem 0; display: flex; flex-direction: column; z-index: 100;
+      box-shadow: 4px 0 25px rgba(0,0,0,0.08);
+    }
+    body.lang-ar .sidebar { left: auto; right: 0; }
+
+    .sidebar-logo { padding: 0 1.5rem; margin-bottom: 2rem; }
+    .logo {
+      color: var(--accent); font-weight: 800; font-size: 1.45rem;
+      display: flex; align-items: center; gap: 10px; text-decoration: none;
+    }
+    .logo i { font-size: 1.8rem; }
+
+    .menu-titre {
+      color: var(--texte-gris); font-size: 0.75rem; text-transform: uppercase;
+      letter-spacing: 1px; padding: 0 1.5rem; margin: 1.8rem 0 0.6rem; font-weight: 600;
+    }
+
+    .menu-item {
+      display: flex; align-items: center; gap: 0.85rem;
+      padding: 0.95rem 1.5rem; margin: 0.2rem 1rem;
+      color: #cbd5e1; text-decoration: none; border-radius: 12px;
+      transition: all 0.3s; position: relative; overflow: hidden;
+    }
+    .menu-item::before {
+      content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 3px; background: transparent; transition: all 0.3s;
+    }
+    body.lang-ar .menu-item::before { left: auto; right: 0; }
+    .menu-item.actif { background: linear-gradient(90deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05)); color: var(--accent); }
+    .menu-item.actif::before { background: var(--accent); }
+    .menu-item:hover { background: rgba(245,158,11,0.12); color: var(--accent); transform: translateX(5px); }
+    body.lang-ar .menu-item:hover { transform: translateX(-5px); }
+    .menu-item i { font-size: 1.15rem; width: 20px; text-align: center; flex-shrink: 0; }
+
+    .contenu { margin-left: 270px; padding: 2rem; min-height: 100vh; }
+    body.lang-ar .contenu { margin-left: 0; margin-right: 270px; }
+
+    .entete-superieur { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    .btn-accueil-page, .btn-deconnexion-page {
+      padding: 0.6rem 1.2rem; border-radius: 12px; display: flex; align-items: center; gap: 0.5rem;
+      font-weight: 600; text-decoration: none; transition: all 0.3s; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .btn-accueil-page { background: linear-gradient(135deg, var(--primaire), var(--secondaire)); color: white; }
+    .btn-accueil-page:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(12,74,110,0.35); color: white; }
+    .btn-deconnexion-page { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; }
+    .btn-deconnexion-page:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,38,38,0.35); color: white; }
+
+    .btn-langue { border-radius: 50px !important; border: 2px solid transparent; margin: 0 2px; padding: 0.35rem 0.9rem; font-weight: 600; transition: all 0.25s; background: white; color: #475569; }
+    .btn-langue.actif { background: var(--accent); color: var(--sombre); border-color: var(--accent); box-shadow: 0 0 12px rgba(245,158,11,0.4); }
+
+    .zone-utilisateur { display: flex; align-items: center; gap: 1rem; background: white; padding: 0.5rem 1rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .nom-utilisateur-affiche { font-weight: 600; color: var(--primaire); }
+
+    .titre-page { font-size: 1.8rem; font-weight: 800; color: var(--primaire); margin-bottom: 1.5rem; }
+
+    /* 🎨 CARTES & FORMULAIRES */
+    .carte { background: var(--blanc); border-radius: var(--bord-radius); box-shadow: var(--ombre); transition: all 0.3s; border: none; margin-bottom: 1.5rem; }
+    .carte:hover { box-shadow: var(--ombre-hover); }
+    .carte-body { padding: 1.5rem; }
+
+    .form-label { font-weight: 600; color: #334155; }
+    .form-control, .form-select {
+      border-radius: 10px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem;
+      background: white; color: #1e293b;
+    }
+    .form-control:focus, .form-select:focus {
+      box-shadow: 0 0 0 3px rgba(12,74,110,0.15); border-color: var(--primaire);
+      background: white; color: #1e293b;
+    }
+
+    .btn-primaire {
+      background: linear-gradient(135deg, var(--primaire), var(--secondaire));
+      border: none; border-radius: 10px; font-weight: 600; padding: 0.75rem 2rem; color: white;
+      transition: all 0.3s;
+    }
+    .btn-primaire:hover {
+      background: linear-gradient(135deg, #0369a1, #075985);
+      transform: translateY(-2px); color: white;
+    }
+
+    .btn-valide { background: var(--succes); color: white; border-radius: 10px; font-weight: 600; border: none; padding: 0.5rem 1.25rem; transition: all 0.3s; }
+    .btn-valide:hover { background: #059669; color: white; transform: translateY(-1px); }
+
+    .color-input { width: 60px; height: 42px; cursor: pointer; border: none; border-radius: 8px; padding: 2px; }
+
+    .nav-tabs .nav-link { color: var(--texte-gris); border: none; padding: 0.75rem 1.25rem; border-radius: 10px 10px 0 0; font-weight: 500; }
+    .nav-tabs .nav-link.active { background: var(--accent); color: var(--sombre); font-weight: 700; }
+    .nav-tabs { border-bottom: 2px solid #e2e8f0; margin-bottom: 1.5rem; }
+
+    .onglet-contenu { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+
+    .alerte-succes { display: none; }
+    .alerte-succes.montre { display: block; animation: fadeIn 0.3s ease; }
+
+    /* 📤 PRÉVISUALISATION */
+    .preview-img {
+      max-width: 150px; max-height: 100px; object-fit: cover;
+      border-radius: 8px; margin-top: 10px; border: 2px solid #e2e8f0;
+    }
+    .fichier-nom { font-size: 0.9rem; color: #475569; margin-top: 6px; }
+
+    @media (max-width: 991px) {
+      .sidebar { position: relative; width: 100%; min-height: auto; }
+      .contenu { margin: 0 !important; padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  // 🔐 SÉCURITÉ & AUTHENTIFICATION
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  const nomUtilisateur = localStorage.getItem('nom') || 'Administrateur';
+  const prenomUtilisateur = localStorage.getItem('prenoms') || '';
+  const nomComplet = (nomUtilisateur + ' ' + prenomUtilisateur).trim();
+  const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+
+  if (!token || !['admin','super_admin'].includes(role)) {
+    alert("⛔ Accès réservé à l'Administrateur !");
+    location.href = '../connexion.html';
+  }
+
+  // 🌍 GESTION DE LA LANGUE
+  let langue = localStorage.getItem('langue') || 'fr';
+  document.body.classList.add('lang-' + langue);
+
+  const T = {
+    fr: { confirmer: "Êtes-vous sûr ?", supprime: "Supprimé ✅", sauvegarde: "✅ Personnalisation sauvegardée !" },
+    en: { confirmer: "Are you sure?", supprime: "Deleted ✅", sauvegarde: "✅ Customization saved!" },
+    ar: { confirmer: "هل أنت متأكد؟", supprime: "✅ تم الحذف", sauvegarde: "✅ تم حفظ التخصيص!" }
+  };
+  function t(key) { return T[langue]?.[key] || key; }
+
+  window.appliquerLangue = function(lang) {
+    localStorage.setItem('langue', lang);
+    document.body.classList.remove('lang-fr','lang-en','lang-ar');
+    document.body.classList.add('lang-' + lang);
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('actif'));
+    event.currentTarget.classList.add('actif');
+    langue = lang;
+  };
+
+  window.deconnecter = function() {
+    const msg = { ar: 'هل تريد تسجيل الخروج ؟', en: 'Are you sure you want to log out?', fr: 'Êtes-vous sûr de vouloir vous déconnecter ?' }[langue];
+    if (confirm(msg)) { localStorage.clear(); location.href = '../connexion.html'; }
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('actif', b.dataset.lang === langue));
+    document.getElementById('nom-affiche').textContent = nomComplet;
+    chargerConfig();
+  });
+</script>
+
+<!-- 📋 MENU LATÉRAL -->
+<div class="sidebar">
+  <div class="sidebar-logo"><a href="dashboard.html" class="logo"><i class="bi bi-building"></i> MAMA-ZOUMANA</a></div>
+  <a href="dashboard.html" class="menu-item">
+    <i class="bi bi-speedometer2"></i>
+    <span class="txt-fr">Tableau de bord</span><span class="txt-en">Dashboard</span><span class="txt-ar">لوحة التحكم</span>
+  </a>
+  <div class="menu-titre"><span class="txt-fr">Configuration</span><span class="txt-en">Settings</span><span class="txt-ar">الإعدادات</span></div>
+  <a href="config-site.html" class="menu-item">
+    <i class="bi bi-gear"></i>
+    <span class="txt-fr">Paramètres du Site</span><span class="txt-en">Site Settings</span><span class="txt-ar">إعدادات الموقع</span>
+  </a>
+  <a href="personnaliser-site.html" class="menu-item actif">
+    <i class="bi bi-palette"></i>
+    <span class="txt-fr">Personnalisation</span><span class="txt-en">Customization</span><span class="txt-ar">تخصيص الموقع</span>
+  </a>
+  <a href="annonces.html" class="menu-item">
+    <i class="bi bi-megaphone"></i>
+    <span class="txt-fr">Annonces & Actualités</span><span class="txt-en">Announcements</span><span class="txt-ar">الإعلانات والأخبار</span>
+  </a>
+  <a href="../changer-mot-de-passe.html" class="menu-item">
+    <i class="bi bi-key"></i>
+    <span class="txt-fr">Changer mot de passe</span><span class="txt-en">Change Password</span><span class="txt-ar">تغيير كلمة المرور</span>
+  </a>
+</div>
+
+<!-- 📄 CONTENU PRINCIPAL -->
+<div class="contenu">
+  <div class="entete-superieur">
+    <div class="d-flex gap-2">
+      <a href="dashboard.html" class="btn-accueil-page">
+        <i class="bi bi-arrow-left"></i>
+        <span class="txt-fr">Retour</span><span class="txt-en">Back</span><span class="txt-ar">رجوع</span>
+      </a>
+      <a href="#" onclick="deconnecter(); return false;" class="btn-deconnexion-page">
+        <i class="bi bi-box-arrow-right"></i>
+        <span class="txt-fr">Déconnexion</span><span class="txt-en">Log out</span><span class="txt-ar">تسجيل الخروج</span>
+      </a>
+    </div>
+    <div class="zone-utilisateur">
+      <div>
+        <button data-lang="fr" class="btn btn-langue btn-sm" onclick="appliquerLangue('fr')">FR</button>
+        <button data-lang="en" class="btn btn-langue btn-sm" onclick="appliquerLangue('en')">EN</button>
+        <button data-lang="ar" class="btn btn-langue btn-sm" onclick="appliquerLangue('ar')">AR</button>
+      </div>
+      <span class="nom-utilisateur-affiche"><i class="bi bi-person-circle"></i> <span id="nom-affiche">Chargement...</span></span>
+    </div>
+  </div>
+
+  <h2 class="titre-page">🎨 <span class="txt-fr">Personnalisation du Site</span><span class="txt-en">Site Customization</span><span class="txt-ar">تخصيص الموقع</span></h2>
+
+  <div id="msg-succes" class="alert alert-success alerte-succes mb-4 rounded-3">
+    <i class="bi bi-check-circle me-2"></i>
+    <span class="txt-fr">✅ Personnalisation sauvegardée ! La page d'accueil se met à jour automatiquement.</span>
+    <span class="txt-en">✅ Customization saved! Homepage updates automatically.</span>
+    <span class="txt-ar">✅ تم حفظ التخصيص! يتم تحديث الصفحة الرئيسية تلقائياً.</span>
+  </div>
+
+  <!-- 📁 ONGLETS -->
+  <ul class="nav nav-tabs" id="onglets">
+    <li class="nav-item"><button class="nav-link active" onclick="afficherOnglet('apparence')">🎨 <span class="txt-fr">Apparence</span><span class="txt-en">Appearance</span><span class="txt-ar">المظهر</span></button></li>
+    <li class="nav-item"><button class="nav-link" onclick="afficherOnglet('contenu')">✍️ <span class="txt-fr">En-tête & Pied</span><span class="txt-en">Header & Footer</span><span class="txt-ar">الرأس والقدم</span></button></li>
+    <li class="nav-item"><button class="nav-link" onclick="afficherOnglet('galerie')">🖼️ <span class="txt-fr">Galerie</span><span class="txt-en">Gallery</span><span class="txt-ar">المعرض</span></button></li>
+    <li class="nav-item"><button class="nav-link" onclick="afficherOnglet('annonces')">📢 <span class="txt-fr">Annonces</span><span class="txt-en">Announcements</span><span class="txt-ar">الإعلانات</span></button></li>
+  </ul>
+
+  <!-- 🎨 ONGLET 1 : APPARENCE -->
+  <div id="onglet-apparence" class="onglet-contenu">
+    <div class="carte">
+      <div class="carte-body">
+        <h5 class="mb-4 fw-bold">🎨 <span class="txt-fr">Couleurs du Site</span><span class="txt-en">Site Colors</span><span class="txt-ar">ألوان الموقع</span></h5>
+        <div class="row g-4">
+          <div class="col-md-4">
+            <label class="form-label fw-bold"><span class="txt-fr">Couleur Primaire</span><span class="txt-en">Primary Color</span><span class="txt-ar">اللون الرئيسي</span></label>
+            <div class="d-flex gap-2 align-items-center">
+              <input type="color" id="couleur_primaire" class="color-input" value="#0c4a6e">
+              <input type="text" id="couleur_primaire_txt" class="form-control" value="#0c4a6e" oninput="document.getElementById('couleur_primaire').value=this.value">
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold"><span class="txt-fr">Couleur Secondaire</span><span class="txt-en">Secondary Color</span><span class="txt-ar">اللون الثانوي</span></label>
+            <div class="d-flex gap-2 align-items-center">
+              <input type="color" id="couleur_secondaire" class="color-input" value="#f59e0b">
+              <input type="text" id="couleur_secondaire_txt" class="form-control" value="#f59e0b" oninput="document.getElementById('couleur_secondaire').value=this.value">
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold"><span class="txt-fr">Couleur de Fond</span><span class="txt-en">Background Color</span><span class="txt-ar">لون الخلفية</span></label>
+            <div class="d-flex gap-2 align-items-center">
+              <input type="color" id="couleur_fond" class="color-input" value="#f1f5f9">
+              <input type="text" id="couleur_fond_txt" class="form-control" value="#f1f5f9" oninput="document.getElementById('couleur_fond').value=this.value">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="carte">
+      <div class="carte-body">
+        <h5 class="mb-4 fw-bold">🖼️ <span class="txt-fr">Image / Vidéo de Fond</span><span class="txt-en">Background Media</span><span class="txt-ar">خلفية الصفحة</span></h5>
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label class="form-label fw-bold"><span class="txt-fr">Type de Fond</span><span class="txt-en">Background Type</span><span class="txt-ar">نوع الخلفية</span></label>
+            <select id="type_fond" class="form-select">
+              <option value="image"><span class="txt-fr">🖼️ Image</span><span class="txt-en">🖼️ Image</span><span class="txt-ar">🖼️ صورة</span></option>
+              <option value="video"><span class="txt-fr">🎬 Vidéo</span><span class="txt-en">🎬 Video</span><span class="txt-ar">🎬 فيديو</span></option>
+            </select>
+          </div>
+          <div class="col-md-8">
+            <label class="form-label fw-bold"><span class="txt-fr">Choisir un fichier</span><span class="txt-en">Select File</span><span class="txt-ar">اختر ملفاً</span></label>
+            <input type="file" id="fichier_fond" class="form-control" accept="image/*,video/*" onchange="previsualiserFond(this)">
+            <div id="preview-fond-container"></div>
+            <input type="hidden" id="url_fond">
+          </div>
+        </div>
+        <p class="text-muted small mb-0">
+          <span class="txt-fr">👉 Chemin enregistré : /uploads/nom-du-fichier.jpg</span>
+          <span class="txt-en">👉 Saved path: /uploads/filename.jpg</span>
+          <span class="txt-ar">👉 المسار المحفوظ: /uploads/filename.jpg</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="carte">
+      <div class="carte-body">
+        <h5 class="mb-4 fw-bold">✍️ <span class="txt-fr">Polices & Animation</span><span class="txt-en">Fonts & Animation</span><span class="txt-ar">الخطوط والحركة</span></h5>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-bold"><span class="txt-fr">Police des Titres</span><span class="txt-en">Headings Font</span><span class="txt-ar">خط العناوين</span></label>
+            <select id="police_titres" class="form-select">
+              <option value="'Segoe UI', sans-serif" selected>Segoe UI</option>
+              <option value="Arial, sans-serif">Arial</option>
+              <option value="'Georgia', serif">Georgia</option>
+              <option value="'Courier New', monospace">Courier New</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold"><span class="txt-fr">Animations</span><span class="txt-en">Animations</span><span class="txt-ar">الحركة</span></label>
+            <select id="animation_active" class="form-select">
+              <option value="true"><span class="txt-fr">✅ Activées</span><span class="txt-en">✅ Enabled</span><span class="txt-ar">✅ مفعلة</span></option>
+              <option value="false"><span class="txt-fr">❌ Désactivées</span><span class="txt-en">❌ Disabled</span><span class="txt-ar">❌ معطلة</span></option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold"><span class="txt-fr">Vitesse (ms)</span><span class="txt-en">Speed (ms)</span><span class="txt-ar">السرعة</span></label>
+            <input type="number" id="vitesse_animation" class="form-control" value="3000" min="500" step="100">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✍️ ONGLET 2 : EN-TÊTE & PIED -->
+  <div id="onglet-contenu" class="onglet-contenu d-none">
+    <div class="carte">
+      <div class="carte-body">
+        <h5 class="mb-4 fw-bold">✍️ <span class="txt-fr">Texte En-tête & Pied de page</span><span class="txt-en">Header & Footer Text</span><span class="txt-ar">نص الرأس والقدم</span></h5>
+        <div class="mb-4">
+          <label class="form-label fw-bold"><span class="txt-fr">Texte En-tête</span><span class="txt-en">Header Text</span><span class="txt-ar">نص الرأس</span></label>
+          <textarea id="texte_entete" class="form-control" rows="3" placeholder=""></textarea>
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-bold"><span class="txt-fr">Texte Pied de page</span><span class="txt-en">Footer Text</span><span class="txt-ar">نص القدم</span></label>
+          <textarea id="texte_pied" class="form-control" rows="3" placeholder=""></textarea>
+        </div>
+        <hr class="my-4">
+        <h6 class="fw-bold mb-3">🔗 <span class="txt-fr">Réseaux Sociaux & Contacts</span><span class="txt-en">Social Links & Contacts</span><span class="txt-ar">روابط التواصل</span></h6>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label small">Facebook</label>
+            <input type="url" id="lien_facebook" class="form-control" placeholder="https://facebook.com/...">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small">WhatsApp</label>
+            <input type="text" id="lien_whatsapp" class="form-control" placeholder="+225 XX XX XX XX">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small">Email</label>
+            <input type="email" id="lien_email" class="form-control" placeholder="ecole@exemple.ci">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🖼️ ONGLET 3 : GALERIE -->
+  <div id="onglet-galerie" class="onglet-contenu d-none">
+    <div class="carte">
+      <div class="carte-body">
+        <h5 class="mb-4 fw-bold">🖼️ <span class="txt-fr">Ajouter des Médias (plusieurs autorisés)</span><span class="txt-en">Add Media (multiple allowed)</span><span class="txt-ar">إضافة ملفات (مسموح بعدة ملفات)</span></h5>
+        
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label class="form-label"><span class="txt-fr">Titre</span><span class="txt-en">Title</span><span class="txt-ar">العنوان</span></label>
+            <input type="text" id="galerie_titre" class="form-control" placeholder="">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label"><span class="txt-fr">Type</span><span class="txt-en">Type</span><span class="txt-ar">النوع</span></label>
+            <select id="galerie_type" class="form-select">
+              <option value="image"><span class="txt-fr">🖼️ Image</span><span class="txt-en">🖼️ Image</span><span class="txt-ar">🖼️ صورة</span></option>
+              <option value="video"><span class="txt-fr">🎬 Vidéo</span><span class="txt-en">🎬 Video</span><span class="txt-ar">🎬 فيديو</span></option>
+            </select>
+          </div>
+          <div class="col-md-5">
+            <label class="form-label"><span class="txt-fr">Choisir fichier(s)</span><span class="txt-en">Select File(s)</span><span class="txt-ar">اختر ملفات</span></label>
+            <input type="file" id="galerie_fichiers" class="form-control" accept="image/*,video/*" multiple onchange="previsualiserGalerie(this)">
+          </div>
+        </div>
+        
+        <div id="preview-galerie-container" class="d-flex flex-wrap gap-2 mb-3"></div>
+        
+        <button class="btn-valide" onclick="ajouterMedia()">
+          <i class="bi bi-plus-circle me-1"></i>
+          <span class="txt-fr">Ajouter à la galerie</span><span class="txt-en">Add to Gallery</span><span class="txt-ar">إضافة إلى المعرض</span>
+        </button>
+      </div>
+    </div>
+    <div class="carte">
+      <div class="carte-body">
+        <h5 class="mb-3 fw-bold">📸 <span class="txt-fr">Médias existants</span><span class="txt-en">Existing Media</span><span class="txt-ar">الملفات الموجودة</span></h5>
+        <div id="liste-galerie">
+          <p class="text-muted text-center py-3"><span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جار التحميل...</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📢 ONGLET 4 : ANNONCES -->
+  <div id="onglet-annonces" class="onglet-contenu d-none">
+    <div class="carte">
+      <div class="carte-body">
+        <h5 class="mb-4 fw-bold">📢 <span class="txt-fr">Nouvelle Annonce</span><span class="txt-en">New Announcement</span><span class="txt-ar">إعلان جديد</span></h5>
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label"><span class="txt-fr">Titre</span><span class="txt-en">Title</span><span class="txt-ar">العنوان</span></label>
+            <input type="text" id="annonce_titre" class="form-control" placeholder="">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label"><span class="txt-fr">Type</span><span class="txt-en">Type</span><span class="txt-ar">النوع</span></label>
+            <select id="annonce_type" class="form-select">
+              <option value="info">ℹ️ Info</option>
+              <option value="succes">✅ Succès</option>
+              <option value="avertissement">⚠️ Avertissement</option>
+              <option value="danger">❌ Important</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label"><span class="txt-fr">Ordre</span><span class="txt-en">Order</span><span class="txt-ar">الترتيب</span></label>
+            <input type="number" id="annonce_ordre" class="form-control" value="1" min="1">
+          </div>
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label"><span class="txt-fr">Date de début</span><span class="txt-en">Start Date</span><span class="txt-ar">تاريخ البدء</span></label>
+            <input type="date" id="annonce_debut" class="form-control">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label"><span class="txt-fr">Date de fin (optionnel)</span><span class="txt-en">End Date (optional)</span><span class="txt-ar">تاريخ الانتهاء</span></label>
+            <input type="date" id="annonce_fin" class="form-control">
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="form-label"><span class="txt-fr">Contenu de l'annonce</span><span class="txt-en">Announcement Content</span><span class="txt-ar">محتوى الإعلان</span></label>
+          <textarea id="annonce_contenu" class="form-control" rows="4" placeholder=""></textarea>
+        </div>
+        <button class="btn-valide" onclick="ajouterAnnonce()">
+          <i class="bi bi-megaphone me-1"></i>
+          <span class="txt-fr">Publier l'Annonce</span><span class="txt-en">Publish Announcement</span><span class="txt-ar">نشر الإعلان</span>
+        </button>
+      </div>
+    </div>
+    <div class="carte">
+      <div class="carte-body">
+        <h5 class="mb-3 fw-bold">📋 <span class="txt-fr">Annonces en cours</span><span class="txt-en">Active Announcements</span><span class="txt-ar">الإعلانات النشطة</span></h5>
+        <div id="liste-annonces">
+          <p class="text-muted text-center py-3"><span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جار التحميل...</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 💾 BOUTON SAUVEGARDER -->
+  <div class="text-center mt-5 mb-4">
+    <button class="btn-primaire px-5 py-2" onclick="sauvegarderConfig()">
+      <i class="bi bi-save2 me-2"></i>
+      <span class="txt-fr">💾 SAUVEGARDER TOUTES LES MODIFICATIONS</span>
+      <span class="txt-en">💾 SAVE ALL CHANGES</span>
+      <span class="txt-ar">💾 حفظ جميع التغييرات</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  let configActuelle = {};
+  let fichiersGalerieSelectionnes = [];
+
+  // 📂 CHANGER D'ONGLET
+  function afficherOnglet(nom) {
+    document.querySelectorAll('.onglet-contenu').forEach(o => o.classList.add('d-none'));
+    document.getElementById('onglet-' + nom).classList.remove('d-none');
+    document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+    event.target.closest('.nav-link').classList.add('active');
+    if(nom === 'galerie') chargerGalerie();
+    if(nom === 'annonces') chargerAnnonces();
+  }
+
+  // 🖼️ PRÉVISUALISER FICHIER DE FOND
+  function previsualiserFond(input) {
+    const cont = document.getElementById('preview-fond-container');
+    cont.innerHTML = '';
+    if (input.files && input.files[0]) {
+      const fichier = input.files[0];
+      const chemin = '/uploads/' + Date.now() + '-' + fichier.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      document.getElementById('url_fond').value = chemin;
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        cont.innerHTML = `
+          <p class="fichier-nom"><i class="bi bi-file-earmark-check text-success"></i> ${fichier.name}</p>
+          ${fichier.type.startsWith('image/') 
+            ? `<img src="${e.target.result}" class="preview-img" alt="Prévisualisation">` 
+            : `<video src="${e.target.result}" class="preview-img" style="height:100px" controls></video>`}
+        `;
+      };
+      reader.readAsDataURL(fichier);
+    }
+  }
+
+  // 🖼️ PRÉVISUALISER FICHIERS GALERIE (MULTIPLE)
+  function previsualiserGalerie(input) {
+    fichiersGalerieSelectionnes = Array.from(input.files);
+    const cont = document.getElementById('preview-galerie-container');
+    cont.innerHTML = '';
+    
+    fichiersGalerieSelectionnes.forEach((f, i) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const apercu = f.type.startsWith('image/') 
+          ? `<img src="${e.target.result}" class="preview-img" alt="Aperçu ${i+1}">`
+          : `<video src="${e.target.result}" class="preview-img" style="height:100px" controls></video>`;
+        cont.innerHTML += `<div class="text-center">${apercu}<p class="fichier-nom small">${f.name}</p></div>`;
+      };
+      reader.readAsDataURL(f);
+    });
+  }
+
+  // 📥 CHARGER LA CONFIGURATION
+  async function chargerConfig() {
+    const cfg = JSON.parse(localStorage.getItem('config_site') || '{}');
+    configActuelle = cfg;
+
+    document.getElementById('couleur_primaire').value = cfg.couleur_primaire || '#0c4a6e';
+    document.getElementById('couleur_primaire_txt').value = cfg.couleur_primaire || '#0c4a6e';
+    document.getElementById('couleur_secondaire').value = cfg.couleur_secondaire || '#f59e0b';
+    document.getElementById('couleur_secondaire_txt').value = cfg.couleur_secondaire || '#f59e0b';
+    document.getElementById('couleur_fond').value = cfg.couleur_fond || '#f1f5f9';
+    document.getElementById('couleur_fond_txt').value = cfg.couleur_fond || '#f1f5f9';
+    document.getElementById('type_fond').value = cfg.type_fond || 'image';
+    document.getElementById('url_fond').value = cfg.url_fond || cfg.image_fond || cfg.video_fond || '';
+    document.getElementById('police_titres').value = cfg.police_titres || "'Segoe UI', sans-serif";
+    document.getElementById('animation_active').value = cfg.animation_active ? 'true' : 'false';
+    document.getElementById('vitesse_animation').value = cfg.vitesse_animation || 3000;
+    document.getElementById('texte_entete').value = cfg.texte_entete || '';
+    document.getElementById('texte_pied').value = cfg.texte_pied || '';
+    document.getElementById('lien_facebook').value = cfg.lien_facebook || '';
+    document.getElementById('lien_whatsapp').value = cfg.lien_whatsapp || '';
+    document.getElementById('lien_email').value = cfg.lien_email || '';
+  }
+
+  // 💾 SAUVEGARDER → LA PAGE D'ACCUEIL LIRA DIRECTEMENT
+  async function sauvegarderConfig() {
+    const typeFond = document.getElementById('type_fond').value;
+    const donnees = {
+      couleur_primaire: document.getElementById('couleur_primaire').value,
+      couleur_secondaire: document.getElementById('couleur_secondaire').value,
+      couleur_fond: document.getElementById('couleur_fond').value,
+      couleur_texte: '#f8fafc',
+      image_fond: typeFond === 'image' ? document.getElementById('url_fond').value : null,
+      video_fond: typeFond === 'video' ? document.getElementById('url_fond').value : null,
+      type_fond: typeFond,
+      police_titres: document.getElementById('police_titres').value,
+      police_texte: "'Segoe UI', sans-serif",
+      animation_active: document.getElementById('animation_active').value === 'true',
+      vitesse_animation: parseInt(document.getElementById('vitesse_animation').value),
+      texte_entete: document.getElementById('texte_entete').value,
+      texte_pied: document.getElementById('texte_pied').value,
+      lien_facebook: document.getElementById('lien_facebook').value,
+      lien_whatsapp: document.getElementById('lien_whatsapp').value,
+      lien_email: document.getElementById('lien_email').value,
+      date_mise_a_jour: new Date().toISOString()
+    };
+
+    // ✅ SAUVEGARDE → L'INDEX LIRE ICI DONC S'AFFICHE DIRECTEMENT
+    localStorage.setItem('config_site', JSON.stringify(donnees));
+    
+    // ✅ MESSAGE DE SUCCÈS
+    document.getElementById('msg-succes').classList.add('montre');
+    setTimeout(() => document.getElementById('msg-succes').classList.remove('montre'), 6000);
+
+    // Envoyer au serveur si API prête
+    try {
+      await fetch(API_URL + '/config/modifier', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(donnees)
+      });
+    } catch(e) { /* API non prête → localStorage suffit */ }
+  }
+
+  // 🖼️ GALERIE
+  async function chargerGalerie() {
+    const medias = JSON.parse(localStorage.getItem('galerie_medias') || '[]');
+    const zone = document.getElementById('liste-galerie');
+    if (medias.length > 0) {
+      zone.innerHTML = medias.map((m,i) => `
+        <div class="d-flex justify-content-between align-items-center p-3 border rounded-3 mb-2 bg-light">
+          <span><strong>${m.type_media === 'image' ? '🖼️' : '🎬'}</strong> ${m.titre || 'Sans titre'} 
+          <small class="text-muted d-block">${m.url_fichier}</small></span>
+          <button class="btn btn-sm btn-outline-danger" onclick="supprimerMedia(${i})">🗑️</button>
+        </div>`).join('');
+    } else {
+      zone.innerHTML = '<p class="text-muted text-center py-3"><span class="txt-fr">Aucun média dans la galerie</span><span class="txt-en">No media in gallery</span><span class="txt-ar">لا يوجد ملفات في المعرض</span></p>';
+    }
+  }
+
+  async function ajouterMedia() {
+    const titre = document.getElementById('galerie_titre').value;
+    const typeMedia = document.getElementById('galerie_type').value;
+    const medias = JSON.parse(localStorage.getItem('galerie_medias') || '[]');
+
+    if (fichiersGalerieSelectionnes.length === 0) {
+      alert(langue==='ar'?'اختر ملفاً أولاً':langue==='en'?'Select a file first':'Choisissez au moins un fichier');
+      return;
+    }
+
+    fichiersGalerieSelectionnes.forEach(f => {
+      const chemin = '/uploads/' + Date.now() + '-' + f.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      medias.push({
+        titre: titre || f.name,
+        type_media: typeMedia,
+        url_fichier: chemin,
+        nom_fichier_original: f.name,
+        date_ajout: new Date().toISOString()
+      });
+    });
+
+    localStorage.setItem('galerie_medias', JSON.stringify(medias));
+    document.getElementById('galerie_titre').value = '';
+    document.getElementById('galerie_fichiers').value = '';
+    document.getElementById('preview-galerie-container').innerHTML = '';
+    fichiersGalerieSelectionnes = [];
+    chargerGalerie();
+    alert(langue==='ar'?'✅ تمت الإضافة!':langue==='en'?'✅ Added!':'✅ Ajouté !');
+  }
+
+  window.supprimerMedia = function(index) {
+    if (!confirm(t('confirmer'))) return;
+    const medias = JSON.parse(localStorage.getItem('galerie_medias') || '[]');
+    medias.splice(index, 1);
+    localStorage.setItem('galerie_medias', JSON.stringify(medias));
+    chargerGalerie();
+  };
+
+  // 📢 ANNONCES
+  async function chargerAnnonces() {
+    const annonces = JSON.parse(localStorage.getItem('annonces') || '[]');
+    const zone = document.getElementById('liste-annonces');
+    if (annonces.length > 0) {
+      zone.innerHTML = annonces.map((a,i) => `
+        <div class="p-3 border rounded-3 mb-2 bg-light">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0 fw-bold">${a.titre}</h6>
+            <span class="badge bg-secondary">#${i+1}</span>
+          </div>
+          <p class="mb-1 text-dark">${a.contenu.substring(0, 80)}${a.contenu.length > 80 ? '...' : ''}</p>
+          <div class="d-flex justify-content-between align-items-center small text-muted mt-2">
+            <span>${a.date_debut || ''}${a.date_fin ? ' → ' + a.date_fin : ''}</span>
+            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="supprimerAnnonce(${i})">🗑️</button>
+          </div>
+        </div>`).join('');
+    } else {
+      zone.innerHTML = '<p class="text-muted text-center py-3"><span class="txt-fr">Aucune annonce</span><span class="txt-en">No announcements</span><span class="txt-ar">لا توجد إعلانات</span></p>';
+    }
+  }
+
+  async function ajouterAnnonce() {
+    const annonces = JSON.parse(localStorage.getItem('annonces') || '[]');
+    annonces.push({
+            titre: document.getElementById('annonce_titre').value,
+      contenu: document.getElementById('annonce_contenu').value,
+      type: document.getElementById('annonce_type').value,
+      ordre: parseInt(document.getElementById('annonce_ordre').value) || 1,
+      date_debut: document.getElementById('annonce_debut').value,
+      date_fin: document.getElementById('annonce_fin').value || null,
+      date_creation: new Date().toISOString()
+    });
+
+    localStorage.setItem('annonces', JSON.stringify(annonces));
+
+    // Réinitialisation du formulaire
+    document.getElementById('annonce_titre').value = '';
+    document.getElementById('annonce_contenu').value = '';
+    document.getElementById('annonce_type').value = 'info';
+    document.getElementById('annonce_ordre').value = '1';
+    document.getElementById('annonce_debut').value = '';
+    document.getElementById('annonce_fin').value = '';
+
+    chargerAnnonces();
+    alert(langue==='ar'?'✅ تم نشر الإعلان!':langue==='en'?'✅ Announcement published!':'✅ Annonce publiée !');
+  }
+
+  window.supprimerAnnonce = function(index) {
+    if (!confirm(t('confirmer'))) return;
+    const annonces = JSON.parse(localStorage.getItem('annonces') || '[]');
+    annonces.splice(index, 1);
+    localStorage.setItem('annonces', JSON.stringify(annonces));
+    chargerAnnonces();
+  }
+
+  // Synchronisation des champs couleur texte ↔ sélectionneur
+  document.getElementById('couleur_primaire').addEventListener('input', e => {
+    document.getElementById('couleur_primaire_txt').value = e.target.value;
+  });
+  document.getElementById('couleur_secondaire').addEventListener('input', e => {
+    document.getElementById('couleur_secondaire_txt').value = e.target.value;
+  });
+  document.getElementById('couleur_fond').addEventListener('input', e => {
+    document.getElementById('couleur_fond_txt').value = e.target.value;
+  });
+
+</script>
+
+</body>
+</html>

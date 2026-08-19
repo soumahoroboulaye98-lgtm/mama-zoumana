@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Paramètres du Site — Administration</span>
+    <span class="txt-en">Site Settings — Administration</span>
+    <span class="txt-ar">إعدادات الموقع — الإدارة</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e; --secondaire: #0369a1; --accent: #f59e0b;
+      --succes: #10b981; --alerte: #ef4444; --info: #0dcaf0;
+      --sombre: #0f172a; --sombre-clair: #1e293b;
+      --texte-gris: #94a3b8; --fond-page: #f1f5f9; --blanc: #ffffff;
+      --bord-radius: 16px; --ombre: 0 4px 20px rgba(0,0,0,0.07);
+    }
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .titre-section { text-align: right; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--fond-page); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+    .sidebar {
+      background: linear-gradient(180deg, var(--sombre), var(--sombre-clair));
+      min-height: 100vh; width: 270px; position: fixed; left: 0; top: 0;
+      padding: 1.5rem 0; display: flex; flex-direction: column; z-index: 100;
+      box-shadow: 4px 0 25px rgba(0,0,0,0.08);
+    }
+    body.lang-ar .sidebar { left: auto; right: 0; }
+    .sidebar-logo { padding: 0 1.5rem; margin-bottom: 2rem; }
+    .logo { color: var(--accent); font-weight: 800; font-size: 1.45rem; display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo i { font-size: 1.8rem; }
+    .menu-titre { color: var(--texte-gris); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; padding: 0 1.5rem; margin: 1.8rem 0 0.6rem; font-weight: 600; }
+    .menu-item { display: flex; align-items: center; gap: 0.85rem; padding: 0.95rem 1.5rem; margin: 0.2rem 1rem; color: #cbd5e1; text-decoration: none; border-radius: 12px; transition: all 0.3s; position: relative; }
+    .menu-item::before { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 3px; background: transparent; transition: all 0.3s; }
+    body.lang-ar .menu-item::before { left: auto; right: 0; }
+    .menu-item.actif { background: linear-gradient(90deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05)); color: var(--accent); }
+    .menu-item.actif::before { background: var(--accent); }
+    .menu-item:hover { background: rgba(245,158,11,0.12); color: var(--accent); transform: translateX(5px); }
+    body.lang-ar .menu-item:hover { transform: translateX(-5px); }
+    .menu-item i { font-size: 1.15rem; width: 20px; text-align: center; flex-shrink: 0; }
+
+    .contenu { margin-left: 270px; padding: 2rem; min-height: 100vh; }
+    body.lang-ar .contenu { margin-left: 0; margin-right: 270px; }
+    .entete-superieur { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    .btn-accueil-page, .btn-deconnexion-page { padding: 0.6rem 1.2rem; border-radius: 12px; display: flex; align-items: center; gap: 0.5rem; font-weight: 600; text-decoration: none; transition: all 0.3s; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .btn-accueil-page { background: linear-gradient(135deg, var(--primaire), var(--secondaire)); color: white; }
+    .btn-accueil-page:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(12,74,110,0.35); color: white; }
+    .btn-deconnexion-page { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; }
+    .btn-deconnexion-page:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,38,38,0.35); color: white; }
+    .btn-langue { border-radius: 50px !important; border: 2px solid transparent; margin: 0 2px; padding: 0.35rem 0.9rem; font-weight: 600; transition: all 0.25s; background: white; color: #475569; }
+    .btn-langue.actif { background: var(--accent); color: var(--sombre); border-color: var(--accent); box-shadow: 0 0 12px rgba(245,158,11,0.4); }
+    .zone-utilisateur { display: flex; align-items: center; gap: 1rem; background: white; padding: 0.5rem 1rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .nom-utilisateur-affiche { font-weight: 600; color: var(--primaire); }
+    .titre-page { font-size: 1.8rem; font-weight: 800; color: var(--primaire); margin-bottom: 1.5rem; }
+    .carte { background: white; border-radius: var(--bord-radius); box-shadow: var(--ombre); transition: all 0.3s; border: none; }
+    .carte:hover { box-shadow: var(--ombre-hover); }
+    .btn-primaire { background: linear-gradient(135deg, var(--primaire), var(--secondaire)); border: none; border-radius: 10px; }
+    .btn-primaire:hover { background: linear-gradient(135deg, #0369a1, #075985); transform: translateY(-1px); }
+    .form-control, .form-select { border-radius: 10px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem; }
+    .form-control:focus, .form-select:focus { box-shadow: 0 0 0 3px rgba(12,74,110,0.15); border-color: var(--primaire); }
+    .form-label { font-weight: 600; color: #334155; }
+    .config-item { padding: 1.25rem; border-bottom: 1px solid #e2e8f0; }
+    .config-item:last-child { border-bottom: none; }
+    .form-switch .form-check-input { width: 48px; height: 24px; border-radius: 12px; }
+    .alerte-succes { display: none; }
+    .alerte-succes.montre { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+    @media (max-width: 991px) {
+      .sidebar { position: relative; width: 100%; min-height: auto; }
+      .contenu { margin: 0 !important; padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  const nomUtilisateur = localStorage.getItem('nom') || 'Utilisateur';
+  const prenomUtilisateur = localStorage.getItem('prenoms') || '';
+  const nomComplet = (nomUtilisateur + ' ' + prenomUtilisateur).trim();
+  const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+
+  if (!token || !['admin','super_admin'].includes(role)) {
+    alert("⛔ Accès réservé à l'Administrateur");
+    location.href = '../connexion.html';
+  }
+
+  let langue = localStorage.getItem('langue') || 'fr';
+  document.body.classList.add('lang-' + langue);
+
+  window.appliquerLangue = function(lang) {
+    localStorage.setItem('langue', lang);
+    document.body.classList.remove('lang-fr','lang-en','lang-ar');
+    document.body.classList.add('lang-' + lang);
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('actif'));
+    event.currentTarget.classList.add('actif');
+    langue = lang;
+  };
+
+  window.deconnecter = function() {
+    const msg = { ar: 'هل تريد تسجيل الخروج ؟', en: 'Are you sure you want to log out?', fr: 'Êtes-vous sûr de vouloir vous déconnecter ?' }[langue];
+    if (confirm(msg)) { localStorage.clear(); location.href = '../connexion.html'; }
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('actif', b.dataset.lang === langue));
+    document.getElementById('nom-affiche').textContent = nomComplet;
+    chargerParametres();
+  });
+</script>
+
+<div class="sidebar">
+  <div class="sidebar-logo"><a href="dashboard.html" class="logo"><i class="bi bi-building"></i> MAMA-ZOUMANA</a></div>
+  <a href="dashboard.html" class="menu-item">
+    <i class="bi bi-speedometer2"></i>
+    <span class="txt-fr">Tableau de bord</span><span class="txt-en">Dashboard</span><span class="txt-ar">لوحة التحكم</span>
+  </a>
+  <div class="menu-titre"><span class="txt-fr">Configuration</span><span class="txt-en">Settings</span><span class="txt-ar">الإعدادات</span></div>
+  <a href="config-site.html" class="menu-item actif">
+    <i class="bi bi-gear"></i>
+    <span class="txt-fr">Paramètres du Site</span><span class="txt-en">Site Settings</span><span class="txt-ar">إعدادات الموقع</span>
+  </a>
+  <a href="annonces.html" class="menu-item">
+    <i class="bi bi-megaphone"></i>
+    <span class="txt-fr">Annonces & Actualités</span><span class="txt-en">Announcements</span><span class="txt-ar">الإعلانات والأخبار</span>
+  </a>
+  <a href="../changer-mot-de-passe.html" class="menu-item">
+    <i class="bi bi-key"></i>
+    <span class="txt-fr">Changer mot de passe</span><span class="txt-en">Change Password</span><span class="txt-ar">تغيير كلمة المرور</span>
+  </a>
+</div>
+
+<div class="contenu">
+  <div class="entete-superieur">
+    <div class="d-flex gap-2">
+      <a href="dashboard.html" class="btn-accueil-page">
+        <i class="bi bi-arrow-left"></i>
+        <span class="txt-fr">Retour</span><span class="txt-en">Back</span><span class="txt-ar">رجوع</span>
+      </a>
+      <a href="#" onclick="deconnecter(); return false;" class="btn-deconnexion-page">
+        <i class="bi bi-box-arrow-right"></i>
+        <span class="txt-fr">Déconnexion</span><span class="txt-en">Log out</span><span class="txt-ar">تسجيل الخروج</span>
+      </a>
+    </div>
+    <div class="zone-utilisateur">
+      <div>
+        <button data-lang="fr" class="btn btn-langue btn-sm" onclick="appliquerLangue('fr')">FR</button>
+        <button data-lang="en" class="btn btn-langue btn-sm" onclick="appliquerLangue('en')">EN</button>
+        <button data-lang="ar" class="btn btn-langue btn-sm" onclick="appliquerLangue('ar')">AR</button>
+      </div>
+      <span class="nom-utilisateur-affiche"><i class="bi bi-person-circle"></i> <span id="nom-affiche">Chargement...</span></span>
+    </div>
+  </div>
+
+  <h2 class="titre-page">⚙️ <span class="txt-fr">Paramètres Généraux du Site</span><span class="txt-en">General Site Settings</span><span class="txt-ar">الإعدادات العامة للموقع</span></h2>
+
+  <div id="msg-succes" class="alert alert-success alerte-succes mb-4 rounded-3">
+    <i class="bi bi-check-circle me-2"></i>
+    <span class="txt-fr">✅ Paramètres sauvegardés avec succès !</span>
+    <span class="txt-en">✅ Settings saved successfully!</span>
+    <span class="txt-ar">✅ تم حفظ الإعدادات بنجاح !</span>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="carte">
+        <div class="config-item">
+          <label class="form-label"><span class="txt-fr">Nom de l'Établissement</span><span class="txt-en">School Name</span><span class="txt-ar">اسم المؤسسة</span></label>
+          <input type="text" id="nom-etab" class="form-control" value="Groupe Scolaire MAMA-ZOUMANA">
+        </div>
+        <div class="config-item">
+          <label class="form-label"><span class="txt-fr">Année Scolaire en cours</span><span class="txt-en">Current School Year</span><span class="txt-ar">السنة الدراسية الحالية</span></label>
+          <input type="text" id="annee-scolaire" class="form-control" value="2026-2027">
+        </div>
+        <div class="config-item">
+          <label class="form-label"><span class="txt-fr">Devise</span><span class="txt-en">Currency</span><span class="txt-ar">العملة</span></label>
+          <select id="devise" class="form-select">
+            <option value="F CFA" selected>Franc CFA (F CFA)</option>
+            <option value="XOF">XOF</option>
+            <option value="EUR">Euro (€)</option>
+          </select>
+        </div>
+        <div class="config-item">
+          <label class="form-label"><span class="txt-fr">Langue par Défaut</span><span class="txt-en">Default Language</span><span class="txt-ar">اللغة الافتراضية</span></label>
+          <select id="langue-defaut" class="form-select">
+            <option value="fr" selected>🇫🇷 Français</option>
+            <option value="en">🇬🇧 English</option>
+            <option value="ar">🇸🇦 العربية</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="carte">
+        <div class="config-item d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-1"><span class="txt-fr">Inscriptions en Ligne</span><span class="txt-en">Online Registrations</span><span class="txt-ar">التسجيل عبر الإنترنت</span></h6>
+            <p class="text-muted small mb-0"><span class="txt-fr">Autoriser les nouvelles inscriptions</span><span class="txt-en">Allow new registrations</span><span class="txt-ar">السماح بالتسجيلات الجديدة</span></p>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="inscriptions-actives" checked>
+          </div>
+        </div>
+        <div class="config-item d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-1"><span class="txt-fr">Accès Parents</span><span class="txt-en">Parent Portal Access</span><span class="txt-ar">وصول أولياء التلاميذ</span></h6>
+            <p class="text-muted small mb-0"><span class="txt-fr">Activer l'espace parents</span><span class="txt-en">Enable parent area</span><span class="txt-ar">تفعيل فضاء أولياء التلاميذ</span></p>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="acces-parents" checked>
+          </div>
+        </div>
+        <div class="config-item d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-1"><span class="txt-fr">Notes & Bulletins Visibles</span><span class="txt-en">Grades & Reports Visible</span><span class="txt-ar">إظهار الدرجات والشهادات</span></h6>
+            <p class="text-muted small mb-0"><span class="txt-fr">Rendre les notes accessibles</span><span class="txt-en">Make grades accessible</span><span class="txt-ar">جعل الدرجات متاحة</span></p>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="notes-visibles" checked>
+          </div>
+        </div>
+        <div class="config-item d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-1"><span class="txt-fr">Mode Maintenance</span><span class="txt-en">Maintenance Mode</span><span class="txt-ar">وضع الصيانة</span></h6>
+            <p class="text-muted small mb-0"><span class="txt-fr">Fermer l'accès au public</span><span class="txt-en">Close public access</span><span class="txt-ar">إغلاق الوصول العام</span></p>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="mode-maintenance">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-center mt-5">
+    <button onclick="sauvegarderParametres()" class="btn btn-primaire text-white px-5 py-2">
+      <i class="bi bi-save2 me-2"></i>
+      <span class="txt-fr">Sauvegarder les Paramètres</span>
+      <span class="txt-en">Save Settings</span>
+      <span class="txt-ar">حفظ الإعدادات</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  // Charger paramètres depuis localStorage (en attendant la route)
+  function chargerParametres() {
+    const params = JSON.parse(localStorage.getItem('parametres_site') || '{}');
+    if (params.nomEtablissement) document.getElementById('nom-etab').value = params.nomEtablissement;
+    if (params.anneeScolaire) document.getElementById('annee-scolaire').value = params.anneeScolaire;
+    if (params.devise) document.getElementById('devise').value = params.devise;
+    if (params.langueDefaut) document.getElementById('langue-defaut').value = params.langueDefaut;
+    if (typeof params.inscriptionsActives === 'boolean') document.getElementById('inscriptions-actives').checked = params.inscriptionsActives;
+    if (typeof params.accesParents === 'boolean') document.getElementById('acces-parents').checked = params.accesParents;
+    if (typeof params.notesVisibles === 'boolean') document.getElementById('notes-visibles').checked = params.notesVisibles;
+    if (typeof params.modeMaintenance === 'boolean') document.getElementById('mode-maintenance').checked = params.modeMaintenance;
+  }
+
+  function sauvegarderParametres() {
+    const parametres = {
+      nomEtablissement: document.getElementById('nom-etab').value,
+      anneeScolaire: document.getElementById('annee-scolaire').value,
+      devise: document.getElementById('devise').value,
+      langueDefaut: document.getElementById('langue-defaut').value,
+      inscriptionsActives: document.getElementById('inscriptions-actives').checked,
+      accesParents: document.getElementById('acces-parents').checked,
+      notesVisibles: document.getElementById('notes-visibles').checked,
+      modeMaintenance: document.getElementById('mode-maintenance').checked
+    };
+
+    localStorage.setItem('parametres_site', JSON.stringify(parametres));
+    
+    // Afficher message de succès
+    const msg = document.getElementById('msg-succes');
+    msg.classList.add('montre');
+    setTimeout(() => msg.classList.remove('montre'), 4000);
+
+    // Envoyer au serveur si besoin
+    /* fetch(API_URL + '/admin/parametres', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(parametres)
+    }); */
+  }
+</script>
+</body>
+</html>

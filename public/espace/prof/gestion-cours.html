@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Gestion Cours — Enseignant</span>
+    <span class="txt-en">Course Management — Teacher</span>
+    <span class="txt-ar">إدارة الدروس — المعلم</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --accent: #f59e0b;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b;
+      --vert: #10b981;
+      --rouge: #ef4444;
+      --bleu: #3b82f6;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #f1f5f9; font-family: 'Segoe UI', 'Roboto', sans-serif; min-height: 100vh; }
+
+    .menu-gauche { background: linear-gradient(180deg, var(--sombre), var(--primaire)); min-height: 100vh; width: 260px; position: fixed; padding: 0; overflow-y: auto; }
+    .entete-menu { padding: 25px 20px; border-bottom: 1px solid rgba(245,158,11,0.15); }
+    .logo-menu { color: var(--accent); font-weight: 800; font-size: 1.3rem; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+    .logo-menu i { font-size: 1.6rem; }
+    .nav-menu { padding: 20px 12px; }
+    .lien-nav { display: flex; align-items: center; gap: 12px; padding: 12px 15px; margin-bottom: 6px; color: #cbd5e1; text-decoration: none; border-radius: 10px; transition: all 0.25s ease; }
+    .lien-nav:hover, .lien-nav.actif { background: rgba(245,158,11,0.08); color: var(--accent); }
+
+    .contenu-principal { margin-left: 260px; padding: 25px 30px; min-height: 100vh; }
+    .barre-haut { background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+    .btn-langue { background: rgba(12,74,110,0.08); border: 1px solid var(--primaire); border-radius: 20px; padding: 5px 12px; font-size: 0.85rem; cursor: pointer; margin: 0 2px; color: var(--primaire); font-weight: 600; }
+    .btn-langue.active { background: var(--accent); color: #000; border-color: var(--accent); }
+    .btn-deco { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 6px 12px; border-radius: 8px; transition: all 0.2s; }
+    .btn-deco:hover { background: var(--accent); color: #000; }
+
+    .carte { background: white; border-radius: 14px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 4px solid var(--accent); margin-bottom: 1.5rem; }
+    .form-control, .form-select { background: #f8fafc; border: 1px solid #cbd5e1; color: #1e293b; border-radius: 8px; }
+    .form-control:focus, .form-select:focus { border-color: var(--bord-orange); box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15); }
+
+    /* ✅ MODÈLE DE LANGUE UNIFORME */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar .titre-section { text-align: right; }
+    body.lang-ar { direction: rtl; }
+  </style>
+</head>
+<body>
+
+<div class="d-flex">
+  <!-- ✅ MENU LATÉRAL IDENTIQUE AUX AUTRES PAGES -->
+  <aside class="menu-gauche">
+    <div class="entete-menu">
+      <a href="dashboard-prof.html" class="logo-menu">
+        <i class="bi bi-building"></i> MAMA-ZOUMANA
+      </a>
+    </div>
+    <nav class="nav-menu">
+      <a href="dashboard-prof.html" class="lien-nav">
+        <i class="bi bi-speedometer2"></i>
+        <span class="txt-fr">Tableau de bord</span>
+        <span class="txt-en">Dashboard</span>
+        <span class="txt-ar">لوحة التحكم</span>
+      </a>
+      <a href="mes-classes.html" class="lien-nav">
+        <i class="bi bi-grid"></i>
+        <span class="txt-fr">Mes Classes</span>
+        <span class="txt-en">My Classes</span>
+        <span class="txt-ar">فصولي</span>
+      </a>
+      <a href="presences.html" class="lien-nav">
+        <i class="bi bi-check2-square"></i>
+        <span class="txt-fr">Présences & Retards</span>
+        <span class="txt-en">Attendance & Lateness</span>
+        <span class="txt-ar">الحضور والتأخير</span>
+      </a>
+      <a href="saisie-notes.html" class="lien-nav">
+        <i class="bi bi-pencil-square"></i>
+        <span class="txt-fr">Saisie des Notes</span>
+        <span class="txt-en">Enter Grades</span>
+        <span class="txt-ar">إدخال الدرجات</span>
+      </a>
+      <a href="#" class="lien-nav actif">
+        <i class="bi bi-journal-text"></i>
+        <span class="txt-fr">Gestion Cours</span>
+        <span class="txt-en">Course Management</span>
+        <span class="txt-ar">إدارة الدروس</span>
+      </a>
+      <a href="devoirs.html" class="lien-nav">
+        <i class="bi bi-book"></i>
+        <span class="txt-fr">Devoirs & Examens</span>
+        <span class="txt-en">Homework & Exams</span>
+        <span class="txt-ar">الواجبات والامتحانات</span>
+      </a>
+      <a href="messages.html" class="lien-nav">
+        <i class="bi bi-chat-dots"></i>
+        <span class="txt-fr">Messages</span>
+        <span class="txt-en">Messages</span>
+        <span class="txt-ar">الرسائل</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- ✅ CONTENU PRINCIPAL -->
+  <main class="contenu-principal">
+    <div class="barre-haut">
+      <div class="titre-section">
+        <h4 class="mb-0 text-uppercase fw-bold text-primary">
+          <span class="txt-fr">Gestion des Cours</span>
+          <span class="txt-en">Course Management</span>
+          <span class="txt-ar">إدارة الدروس</span>
+        </h4>
+        <small class="text-muted">
+          <span class="txt-fr">Séance · Présences · Notes — Enregistrement quotidien</span>
+          <span class="txt-en">Session · Attendance · Grades — Daily Record</span>
+          <span class="txt-ar">الحصة · الحضور · الدرجات — تسجيل يومي</span>
+        </small>
+      </div>
+      <div class="utilisateur d-flex align-items-center gap-2">
+        <button class="btn-langue" data-lang="fr">FR</button>
+        <button class="btn-langue" data-lang="en">EN</button>
+        <button class="btn-langue" data-lang="ar">AR</button>
+        <i class="bi bi-person-circle fs-4 ms-2"></i>
+        <span id="nom-prof"></span>
+        <button class="btn btn-deco ms-2" onclick="deconnexion()">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="txt-fr">Déconnexion</span>
+          <span class="txt-en">Logout</span>
+          <span class="txt-ar">تسجيل الخروج</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ✅ LIEN RETOUR -->
+    <a href="dashboard-prof.html" class="btn btn-outline-secondary mb-4">
+      <i class="bi bi-arrow-left"></i>
+      <span class="txt-fr">Retour au Tableau de Bord</span>
+      <span class="txt-en">Back to Dashboard</span>
+      <span class="txt-ar">الرجوع إلى لوحة التحكم</span>
+    </a>
+
+    <div class="row g-4">
+      <!-- ✅ SÉLECTION CLASSE / MATIÈRE / DATE -->
+      <div class="col-md-5">
+        <div class="carte">
+          <h5 class="mb-3 fw-bold text-primary">
+            <i class="bi bi-calendar-event me-2" style="color:var(--accent)"></i>
+            <span class="txt-fr">📋 Sélectionner la séance</span>
+            <span class="txt-en">📋 Select Session</span>
+            <span class="txt-ar">📋 اختيار الحصة</span>
+          </h5>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">🏫 Classe</span>
+              <span class="txt-en">🏫 Class</span>
+              <span class="txt-ar">🏫 القسم</span>
+            </label>
+            <select id="sel-cl" class="form-select" required>
+              <option value="">
+                <span class="txt-fr">Chargement...</span>
+                <span class="txt-en">Loading...</span>
+                <span class="txt-ar">جار التحميل...</span>
+              </option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">📖 Matière</span>
+              <span class="txt-en">📖 Subject</span>
+              <span class="txt-ar">📖 المادة</span>
+            </label>
+            <select id="sel-mat" class="form-select" required>
+              <option value="">
+                <span class="txt-fr">Chargement...</span>
+                <span class="txt-en">Loading...</span>
+                <span class="txt-ar">جار التحميل...</span>
+              </option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">📅 Date séance</span>
+              <span class="txt-en">📅 Session Date</span>
+              <span class="txt-ar">📅 تاريخ الحصة</span>
+            </label>
+            <input type="date" id="date-sel" class="form-control" required>
+          </div>
+          <button class="btn btn-warning w-100 fw-bold" onclick="chargerListeEleves()">
+            <i class="bi bi-search me-2"></i>
+            <span class="txt-fr">Charger la liste</span>
+            <span class="txt-en">Load List</span>
+            <span class="txt-ar">تحميل القائمة</span>
+          </button>
+        </div>
+
+        <!-- ✅ SAISIE NOTE -->
+        <div class="carte mt-4">
+          <h5 class="mb-3 fw-bold text-primary">
+            <i class="bi bi-pencil-square me-2" style="color:var(--vert)"></i>
+            <span class="txt-fr">📊 Saisir une note</span>
+            <span class="txt-en">📊 Enter Grade</span>
+            <span class="txt-ar">📊 إدخال الدرجة</span>
+          </h5>
+          <form id="formNote">
+            <div class="mb-3">
+              <label class="form-label">
+                <span class="txt-fr">Élève</span>
+                <span class="txt-en">Student</span>
+                <span class="txt-ar">التلميذ</span>
+              </label>
+              <select name="id_eleve" id="sel-eleve" class="form-select" required>
+                <option value="">---</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">
+                <span class="txt-fr">Note /20</span>
+                <span class="txt-en">Grade /20</span>
+                <span class="txt-ar">الدرجة /20</span>
+              </label>
+              <input type="number" name="note" min="0" max="20" step="0.25" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">
+                <span class="txt-fr">Trimestre</span>
+                <span class="txt-en">Term</span>
+                <span class="txt-ar">الثلاثي</span>
+              </label>
+              <select name="trimestre" class="form-select" required>
+                <option value="Trimestre 1">
+                  <span class="txt-fr">Trimestre 1</span>
+                  <span class="txt-en">Term 1</span>
+                  <span class="txt-ar">الثلاثي الأول</span>
+                </option>
+                <option value="Trimestre 2">
+                  <span class="txt-fr">Trimestre 2</span>
+                  <span class="txt-en">Term 2</span>
+                  <span class="txt-ar">الثلاثي الثاني</span>
+                </option>
+                <option value="Trimestre 3">
+                  <span class="txt-fr">Trimestre 3</span>
+                  <span class="txt-en">Term 3</span>
+                  <span class="txt-ar">الثلاثي الثالث</span>
+                </option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-success w-100 fw-bold">
+              <i class="bi bi-check-circle-fill me-2"></i>
+              <span class="txt-fr">Enregistrer note</span>
+              <span class="txt-en">Save Grade</span>
+              <span class="txt-ar">حفظ الدرجة</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ✅ LISTE PRÉSENCES -->
+      <div class="col-md-7">
+        <div class="carte">
+          <h5 class="mb-3 fw-bold text-primary">
+            <i class="bi bi-people me-2" style="color:var(--bleu)"></i>
+            <span class="txt-fr">✅ Présences du jour</span>
+            <span class="txt-en">✅ Today's Attendance</span>
+            <span class="txt-ar">✅ الحضور لليوم</span>
+          </h5>
+          <div id="liste-presences" class="mt-3">
+            <div class="text-center py-4 text-muted">
+              <span class="txt-fr">Sélectionnez une classe et une date puis cliquez sur "Charger la liste"</span>
+              <span class="txt-en">Select a class and date then click "Load List"</span>
+              <span class="txt-ar">اختر القسم والتاريخ ثم انقر "تحميل القائمة"</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ==================================================
+// ✅ SÉCURITÉ
+// ==================================================
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+const API_NOTES = 'http://localhost:5000/api/notes';
+
+console.log("🔑 Token :", token ? "PRÉSENT" : "MANQUANT");
+console.log("👤 Rôle :", role);
+
+if(!token || role !== 'prof'){
+  alert("⛔ Accès réservé aux Enseignants — Reconnecte-toi");
+  localStorage.clear();
+  location.href = '/connexion.html';
+}
+
+// ✅ Afficher nom de l'enseignant
+document.getElementById('nom-prof').textContent = 
+  (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || '');
+
+// ✅ Date du jour par défaut
+document.getElementById('date-sel').value = new Date().toISOString().split('T')[0];
+
+// ==================================================
+// 🗣️ GESTION DE LA LANGUE — INSTANTANÉE
+// ==================================================
+function appliquerLangue(lang) {
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-'+lang);
+  localStorage.setItem('langue', lang);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-lang="${lang}"]`)?.classList.add('active');
+}
+
+const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+appliquerLangue(langueSauvegardee);
+document.querySelectorAll('.btn-langue').forEach(btn => {
+  btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
+});
+
+// ==================================================
+// 📥 CHARGER MES CLASSES & MATIÈRES
+// ==================================================
+async function chargerListes(){
+  try {
+    console.log("📡 Chargement classes & matières...");
+    const res = await fetch(`${API_NOTES}/mes-classes-matieres`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    console.log("📊 Données reçues :", data);
+
+    const selCl = document.getElementById('sel-cl');
+    const selMat = document.getElementById('sel-mat');
+
+    if(!data.ok) throw new Error("Erreur chargement");
+
+    // ✅ Remplir Classes
+    selCl.innerHTML = '<option value="">---</option>' + 
+      (data.classes || []).map(c => `<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('');
+
+    // ✅ Remplir Matières
+    selMat.innerHTML = '<option value="">---</option>' + 
+      (data.matieres || []).map(m => `<option value="${m.id_matiere}">${m.libelle_matiere}</option>`).join('');
+
+  } catch (e) {
+    console.error("❌ Erreur chargement listes :", e);
+    document.getElementById('sel-cl').innerHTML = '<option value="">⚠️ Erreur</option>';
+    document.getElementById('sel-mat').innerHTML = '<option value="">⚠️ Erreur</option>';
+  }
+}
+
+// ==================================================
+// 📋 CHARGER ÉLÈVES DE LA CLASSE
+// ==================================================
+async function chargerListeEleves(){
+  const id_classe = document.getElementById('sel-cl').value;
+  const date = document.getElementById('date-sel').value;
+
+  if(!id_classe || !date) {
+    alert("⚠️ Sélectionnez une classe et une date");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_NOTES}/eleves-classe/${id_classe}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    const conteneur = document.getElementById('liste-presences');
+
+    if(!data.ok || !data.eleves || data.eleves.length === 0){
+      conteneur.innerHTML = `<div class="text-center opacity-75 py-4">
+        <span class="txt-fr">Aucun élève dans cette classe</span>
+        <span class="txt-en">No students in this class</span>
+        <span class="txt-ar">لا يوجد تلاميذ في هذا القسم</span>
+      </div>`;
+      return;
+    }
+
+    // ✅ Remplit liste déroulante pour note
+    document.getElementById('sel-eleve').innerHTML = 
+      '<option value="">---</option>' +
+      data.eleves.map(e => `<option value="${e.id_utilisateur}">${e.nom} ${e.prenoms}</option>`).join('');
+
+    // ✅ Affiche la liste complète avec présence
+    conteneur.innerHTML = data.eleves.map(e => `
+      <div class="d-flex justify-content-between align-items-center p-3 mb-2 rounded bg-light border">
+        <div>
+          <strong>${e.nom} ${e.prenoms}</strong>
+          ${e.matricule ? `<span class="badge bg-secondary ms-2">${e.matricule}</span>` : ''}
+        </div>
+        <select class="form-select form-select-sm w-auto" onchange="enregPresence(${e.id_utilisateur}, this.value)">
+          <option value="">---</option>
+          <option value="present">✅ Présent</option>
+          <option value="retard">⏱ Retard</option>
+          <option value="absent_justifie">📄 Absent justifié</option>
+          <option value="absent_non_justifie">❌ Absent non justifié</option>
+        </select>
+      </div>
+    `).join('');
+
+  } catch (e) {
+    console.error("❌ Erreur chargement élèves :", e);
+    document.getElementById('liste-presences').innerHTML = `<div class="alert alert-danger">
+      <span class="txt-fr">Erreur de chargement des élèves</span>
+      <span class="txt-en">Error loading students</span>
+      <span class="txt-ar">خطأ في تحميل التلاميذ</span>
+    </div>`;
+  }
+}
+
+// ==================================================
+// ✅ ENREGISTRER NOTE — CONFORME À TA ROUTE
+// ==================================================
+document.getElementById('formNote').addEventListener('submit', async e => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  
+  const noteData = {
+    id_eleve: formData.get('id_eleve'),
+    id_matiere: document.getElementById('sel-mat').value,
+    id_classe: document.getElementById('sel-cl').value,
+    note1: formData.get('note'),
+    note2: null,
+    note3: null,
+    trimestre: formData.get('trimestre'),
+    annee_scolaire: '2026-2027'
+  };
+
+  if(!noteData.id_eleve || !noteData.id_matiere || !noteData.trimestre) {
+    alert("⚠️ Remplissez tous les champs obligatoires");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_NOTES}/saisir`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json', 
+        'Authorization': `Bearer ${token}` 
+      },
+      body: JSON.stringify(noteData)
+    });
+    const r = await res.json();
+
+    if(r.ok) {
+      alert("✅ Note enregistrée ! Moyenne : " + (r.moyenne || '--'));
+      e.target.reset();
+      document.getElementById('sel-eleve').innerHTML = '<option value="">---</option>';
+    } else {
+      alert("❌ Erreur : " + (r.erreur || "Inconnu"));
+    }
+  } catch (err) {
+    alert("❌ Erreur réseau");
+  }
+});
+
+// ==================================================
+// ⚠️ ENREGISTRER PRÉSENCE — À CONNECTER PLUS TARD
+// ==================================================
+async function enregPresence(id_eleve, statut){
+  if(!statut) return;
+  alert("✅ Présence enregistrée : " + statut + "\n(La route sera connectée prochainement)");
+}
+
+// ==================================================
+// ✅ DÉCONNEXION
+// ==================================================
+function deconnexion(){
+  localStorage.clear();
+  location.href = '/connexion.html';
+}
+
+// ✅ LANCER AU CHARGEMENT
+chargerListes();
+</script>
+
+</body>
+</html>

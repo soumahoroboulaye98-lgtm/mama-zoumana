@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Fiche Bulletin</span>
+    <span class="txt-en">Report Card</span>
+    <span class="txt-ar">كشف النقاط الفردي</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root { 
+      --sidebar-fond: #0f172a; 
+      --bord-orange: #f59e0b; 
+      --blanc: #fff; 
+      --fond-page: #f8fafc;
+      --primaire: #0c4a6e;
+    }
+    * { border-radius: 12px !important; }
+    body { 
+      background: var(--fond-page); 
+      font-family: system-ui, -apple-system, sans-serif; 
+      margin: 0;
+    }
+
+    /* 🗣️ GESTION DES LANGUES */
+    .txt-fr, .txt-en, .txt-ar { display: none !important; }
+    body.lang-fr .txt-fr { display: inline !important; }
+    body.lang-en .txt-en { display: inline !important; }
+    body.lang-ar .txt-ar { display: inline !important; direction: rtl; text-align: right; }
+
+    /* SIDEBAR */
+    .sidebar {
+      background: var(--sidebar-fond);
+      min-height: 100vh;
+      width: 260px;
+      position: fixed;
+      left: 0;
+      top: 0;
+      padding: 1.5rem 0;
+      z-index: 10;
+    }
+    body.lang-ar .sidebar { left: auto; right: 0; }
+    .contenu { 
+      margin-left: 260px; 
+      padding: 2rem; 
+      min-height: 100vh;
+    }
+    body.lang-ar .contenu { margin-left: 0; margin-right: 260px; }
+
+    .logo {
+      color: var(--bord-orange);
+      font-weight: 800;
+      font-size: 1.4rem;
+      padding: 0 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.85rem 1.5rem;
+      color: #cbd5e1;
+      text-decoration: none;
+      transition: 0.25s;
+      margin: 0.25rem 1rem;
+    }
+    .menu-item:hover {
+      background: rgba(245,158,11,0.15);
+      color: var(--bord-orange);
+      transform: translateX(4px);
+    }
+    body.lang-ar .menu-item:hover { transform: translateX(-4px); }
+    .menu-item.actif {
+      background: rgba(245,158,11,0.1);
+      color: var(--bord-orange);
+      border-left: 3px solid var(--bord-orange);
+    }
+    body.lang-ar .menu-item.actif { border-left: none; border-right: 3px solid var(--bord-orange); }
+
+    /* CARTE BULLETIN */
+    .carte-bulletin {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .photo-eleve {
+      width: 120px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px !important;
+      border: 4px solid var(--bord-orange);
+    }
+    .entete-etab {
+      text-align: center;
+      border-bottom: 2px solid var(--bord-orange);
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .ligne-info {
+      border-bottom: 1px dashed #ddd;
+      padding: 0.4rem 0;
+    }
+    .mention {
+      padding: 0.4rem 1.2rem;
+      border-radius: 50px !important;
+      font-size: 1.1rem;
+      font-weight: bold;
+      display: inline-block;
+    }
+    .mention-excellent    { background: #ffd700; color: #000; }
+    .mention-tresbien     { background: #10b981; color: #fff; }
+    .mention-bien         { background: #3b82f6; color: #fff; }
+    .mention-aszbien      { background: #f59e0b; color: #000; }
+    .mention-passable     { background: #f97316; color: #fff; }
+    .mention-insuffisant  { background: #ef4444; color: #fff; }
+    .table-notes th { background: var(--primaire); color: white; border: none; }
+    .moyenne-generale {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--primaire);
+    }
+    .signature {
+      margin-top: 3rem;
+      display: flex;
+      justify-content: space-between;
+    }
+    .btn-orange {
+      background: var(--bord-orange);
+      border: none;
+      color: #000;
+      font-weight: 600;
+    }
+    .btn-orange:hover {
+      background: #d97706;
+      color: #fff;
+    }
+    .chargement {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #666;
+    }
+    .erreur {
+      padding: 2rem;
+      text-align: center;
+    }
+    .table-notes { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    .table-notes th, .table-notes td { padding: 0.6rem; text-align: center; border: 1px solid #eee; }
+  </style>
+</head>
+<body class="lang-fr">
+
+<script>
+// 🔐 SÉCURITÉ
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+if (!token || !['admin','prof','directeur'].includes(role)) {
+  alert("⛔ Accès réservé !");
+  location.href = '../connexion.html';
+}
+
+// 📋 PARAMÈTRES DE L'URL
+const params = new URLSearchParams(window.location.search);
+const id_eleve = params.get('eleve');
+const id_classe = params.get('classe');
+const trimestre = params.get('periode');
+const anneeScolaire = params.get('annee') || "2026-2027";
+</script>
+
+<!-- 📌 BARRE LATÉRALE -->
+<div class="sidebar">
+  <div class="logo"><i class="bi bi-building"></i> MAMA-ZOUMANA</div>
+  
+  <a href="dashboard.html" class="menu-item">
+    <i class="bi bi-speedometer2"></i>
+    <span class="txt-fr">Tableau de bord</span>
+    <span class="txt-en">Dashboard</span>
+    <span class="txt-ar">لوحة التحكم</span>
+  </a>
+  <a href="notes-bulletins.html" class="menu-item">
+    <i class="bi bi-pencil-square"></i>
+    <span class="txt-fr">Notes & Bulletins</span>
+    <span class="txt-en">Grades & Reports</span>
+    <span class="txt-ar">الدرجات والشهادات</span>
+  </a>
+  <a href="fiche-bulletin.html" class="menu-item actif">
+    <i class="bi bi-file-earmark-text"></i>
+    <span class="txt-fr">Fiche Bulletin</span>
+    <span class="txt-en">Report Card</span>
+    <span class="txt-ar">كشف النقاط الفردي</span>
+  </a>
+  <a href="generer-bulletin.html" class="menu-item">
+    <i class="bi bi-file-earmark-pdf"></i>
+    <span class="txt-fr">Générer Bulletins</span>
+    <span class="txt-en">Generate Reports</span>
+    <span class="txt-ar">إنشاء الشهادات</span>
+  </a>
+</div>
+
+<!-- 📝 CONTENU PRINCIPAL -->
+<div class="contenu">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>
+      <span class="txt-fr">📄 Fiche Bulletin Individuelle</span>
+      <span class="txt-en">📄 Individual Report Card</span>
+      <span class="txt-ar">📄 كشف النقاط الفردي</span>
+    </h3>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-langue active btn-primary" data-lang="fr">FR</button>
+      <button class="btn btn-sm btn-outline-secondary btn-langue" data-lang="en">EN</button>
+      <button class="btn btn-sm btn-outline-secondary btn-langue" data-lang="ar">AR</button>
+    </div>
+  </div>
+
+  <!-- 🔙 BOUTON RETOUR -->
+  <div class="mb-3">
+    <a href="generer-bulletin.html" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i>
+      <span class="txt-fr"> Retour à la liste</span>
+      <span class="txt-en"> Back to list</span>
+      <span class="txt-ar"> العودة للقائمة</span>
+    </a>
+  </div>
+
+  <!-- ⏳ ZONE DE CHARGEMENT -->
+  <div id="zone-bulletin" class="chargement">
+    <div class="spinner-border text-warning mb-3" role="status"></div>
+    <p>
+      <span class="txt-fr">Chargement du bulletin...</span>
+      <span class="txt-en">Loading report card...</span>
+      <span class="txt-ar">جار تحميل الكشف...</span>
+    </p>
+  </div>
+
+</div>
+
+<script>
+// 🗣️ CHANGEMENT DE LANGUE
+document.querySelectorAll('.btn-langue').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const lang = btn.dataset.lang;
+    document.body.classList.remove('lang-fr','lang-en','lang-ar');
+    document.body.classList.add('lang-'+lang);
+    document.documentElement.lang = lang;
+    localStorage.setItem('langue', lang);
+    document.querySelectorAll('.btn-langue').forEach(b => {
+      b.classList.remove('btn-primary','active');
+      b.classList.add('btn-outline-secondary');
+    });
+    btn.classList.remove('btn-outline-secondary');
+    btn.classList.add('btn-primary','active');
+  });
+});
+
+// ✅ Restaurer langue sauvegardée
+const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+document.body.classList.add('lang-'+langueSauvegardee);
+document.querySelector(`[data-lang="${langueSauvegardee}"]`)?.classList.add('active');
+
+// 📋 TRADUCTIONS
+const txt = {
+  fr: { etab: "Établissement MAMA-ZOUMANA", bulletin: "BULLETIN DE NOTES", annee: "Année Scolaire", trim: "Trimestre", classe: "Classe", eleve: "Élève", matricule: "Matricule", rang: "Rang", nom: "Nom & Prénoms", moy: "Moyenne Générale", mention: "Mention", obs: "Observations", tableau: "🏆 Tableau d'Honneur", signProf: "Signature Enseignant", signDir: "Signature Directeur", date: "Fait le", naiss: "Né(e) le", naissLieu: "à", parent: "Parent", telParent: "Tél. Parent", email: "Email" },
+  en: { etab: "MAMA-ZOUMANA School", bulletin: "REPORT CARD", annee: "School Year", trim: "Term", classe: "Class", eleve: "Student", matricule: "Reg. Number", rang: "Rank", nom: "Full Name", moy: "General Average", mention: "Grade", obs: "Comments", tableau: "🏆 Honor Roll", signProf: "Teacher Signature", signDir: "Principal Signature", date: "Issued on", naiss: "Born on", naissLieu: "at", parent: "Parent", telParent: "Parent Phone", email: "Email" },
+  ar: { etab: "مؤسسة ماما زومانا", bulletin: "كشف النقاط", annee: "السنة الدراسية", trim: "الفصل", classe: "القسم", eleve: "التلميذ", matricule: "الرقم", rang: "الترتيب", nom: "الاسم الكامل", moy: "المعدل العام", mention: "التقدير", obs: "ملاحظات", tableau: "🏆 لوحة الشرف", signProf: "توقيع الأستاذ", signDir: "توقيع المدير", date: "في تاريخ", naiss: "تاريخ الميلاد", naissLieu: "بـ", parent: "ولي الأمر", telParent: "هاتف ولي الأمر", email: "البريد الإلكتروني" }
+};
+
+// 📊 CHARGER LE BULLETIN
+async function chargerBulletin() {
+  const langue = localStorage.getItem('langue') || 'fr';
+  const t = txt[langue];
+  const zone = document.getElementById('zone-bulletin');
+
+  // ⚠️ Vérifier paramètres
+  if (!id_eleve || !id_classe || !trimestre) {
+    zone.innerHTML = `
+      <div class="alert alert-danger erreur">
+        <i class="bi bi-exclamation-triangle fs-1"></i>
+        <h4 class="mt-3">
+          <span class="txt-fr">Paramètres manquants</span>
+          <span class="txt-en">Missing parameters</span>
+          <span class="txt-ar">معطيات مفقودة</span>
+        </h4>
+        <p>
+          <span class="txt-fr">Veuillez sélectionner un élève depuis la liste des bulletins.</span>
+          <span class="txt-en">Please select a student from the reports list.</span>
+          <span class="txt-ar">يرجى اختيار تلميذ من قائمة الشهادات.</span>
+        </p>
+        <a href="generer-bulletin.html" class="btn btn-orange mt-2">
+          <span class="txt-fr">Aller à la liste</span>
+          <span class="txt-en">Go to list</span>
+          <span class="txt-ar">الذهاب للقائمة</span>
+        </a>
+      </div>`;
+    return;
+  }
+
+  try {
+    // ✅ APPEL DE LA BONNE ROUTE : /voir/:id_eleve
+    const url = `http://localhost:5000/api/bulletins/voir/${id_eleve}?id_classe=${encodeURIComponent(id_classe)}&trimestre=${encodeURIComponent(trimestre)}&annee_scolaire=${encodeURIComponent(anneeScolaire)}`;
+    
+    const reponse = await fetch(url, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    const res = await reponse.json();
+
+    if (!res.ok) {
+      zone.innerHTML = `<div class="alert alert-danger erreur">❌ ${res.erreur || "Erreur chargement"}</div>`;
+      return;
+    }
+
+    const e = res.eleve;
+    const notes = res.notes || [];
+    const bulletin = res.bulletin || {};
+    const moy = parseFloat(bulletin.moyenne_generale || 0);
+
+    // 🏷️ Déterminer mention
+    let mentionTexte, classeMention;
+    if (moy >= 18) { mentionTexte={fr:'🏆 Excellent',en:'🏆 Excellent',ar:'🏆 ممتاز'}; classeMention='mention-excellent'; }
+    else if (moy >= 16) { mentionTexte={fr:'⭐ Très Bien',en:'⭐ Very Good',ar:'⭐ جيد جداً'}; classeMention='mention-tresbien'; }
+    else if (moy >= 14) { mentionTexte={fr:'✅ Bien',en:'✅ Good',ar:'✅ جيد'}; classeMention='mention-bien'; }
+    else if (moy >= 12) { mentionTexte={fr:'🟡 Assez Bien',en:'🟡 Satisfactory',ar:'🟡 مقبول'}; classeMention='mention-aszbien'; }
+    else if (moy >= 10) { mentionTexte={fr:'⚠️ Passable',en:'⚠️ Passable',ar:'⚠️ مقبول'}; classeMention='mention-passable'; }
+    else { mentionTexte={fr:'❌ Insuffisant',en:'❌ Insufficient',ar:'❌ ضعيف'}; classeMention='mention-insuffisant'; }
+
+    // ✅ PHOTO : photo_profil + chemin corrigé
+    const photoUrl = e.photo_profil 
+      ? `http://localhost:5000/uploads/${e.photo_profil}` 
+      : 'https://via.placeholder.com/120x150?text=Photo';
+
+    // 📋 TABLEAU DES NOTES
+    let tableauNotes = '';
+    if (notes.length > 0) {
+      tableauNotes = `
+      <table class="table-notes">
+        <thead>
+          <tr>
+            <th>Matière</th>
+            <th>Coef</th>
+            <th>Devoir</th>
+            <th>Interro</th>
+            <th>Comp.</th>
+            <th>Moyenne</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${notes.map(n => `
+            <tr>
+              <td>${n.libelle_matiere || ''}</td>
+              <td>${n.coefficient || 1}</td>
+              <td>${n.note1 ?? '-'}</td>
+              <td>${n.note2 ?? '-'}</td>
+              <td>${n.note3 ?? '-'}</td>
+              <td><strong>${n.moyenne_matiere ?? '-'}</strong></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+    } else {
+      tableauNotes = `<div class="alert alert-light text-center mt-3">📋 Aucune note saisie pour ce trimestre</div>`;
+    }
+
+    // 🖨️ BULLETIN FINAL
+    zone.innerHTML = `
+    <div class="carte-bulletin" id="bloc-a-imprimer">
+      <!-- EN-TÊTE ÉTABLISSEMENT -->
+      <div class="entete-etab">
+        <h4 class="fw-bold text-uppercase">${t.etab}</h4>
+        <h5 class="text-uppercase text-primary mt-2">${t.bulletin}</h5>
+        <p class="mb-0">${t.annee} : <strong>${anneeScolaire}</strong> — ${t.trim} : <strong>${trimestre}</strong></p>
+      </div>
+
+      <!-- INFOS ÉLÈVE + PHOTO -->
+      <div class="row align-items-start mb-4">
+        <div class="col-md-3 text-center">
+          <img src="${photoUrl}" alt="Photo élève" class="photo-eleve" onerror="this.src='https://via.placeholder.com/120x150?text=Photo'">
+          ${e.qr_code ? `<img src="http://localhost:5000/uploads/${e.qr_code}" alt="QR Code" style="width:100px;margin-top:10px;">` : ''}
+        </div>
+        <div class="col-md-9">
+          <div class="row ligne-info">
+            <div class="col-md-3 fw-bold">${t.nom} :</div>
+            <div class="col-md-9">${e.nom || ''} ${e.prenoms || ''}</div>
+          </div>
+          <div class="row ligne-info">
+            <div class="col-md-3 fw-bold">${t.matricule} :</div>
+            <div class="col-md-9">${e.matricule || '---'}</div>
+          </div>
+          <div class="row ligne-info">
+            <div class="col-md-3 fw-bold">${t.classe} :</div>
+            <div class="col-md-9">${e.libelle_classe || '---'}</div>
+          </div>
+          <div class="row ligne-info">
+            <div class="col-md-3 fw-bold">${t.naiss} :</div>
+            <div class="col-md-9">${e.date_naissance || ''} ${t.naissLieu} ${e.lieu_naissance || ''}</div>
+          </div>
+          <div class="row ligne-info">
+            <div class="col-md-3 fw-bold">${t.parent} :</div>
+            <div class="col-md-9">${e.nom_parent || ''} — ${t.telParent} : ${e.telephone_parent || ''}</div>
+          </div>
+          ${bulletin.rang ? `<div class="row ligne-info">
+            <div class="col-md-3 fw-bold">${t.rang} :</div>
+            <div class="col-md-9">${bulletin.rang}</div>
+          </div>` : ''}
+        </div>
+      </div>
+
+      <!-- 📊 NOTES -->
+      ${tableauNotes}
+
+      <!-- MOYENNE & MENTION -->
+      <div class="row align-items-center text-center p-4 bg-light rounded-3 mt-4">
+        <div class="col-md-4">
+          <div class="text-muted">${t.moy}</div>
+          <div class="moyenne-generale">${moy > 0 ? moy.toFixed(2) : '0.00'}/20</div>
+        </div>
+        <div class="col-md-4">
+          <div class="text-muted">${t.mention}</div>
+          <div class="mention ${classeMention} mt-1">${mentionTexte[langue]}</div>
+        </div>
+        <div class="col-md-4">
+          <div class="text-muted">${t.obs}</div>
+          <div class="fw-bold mt-1">
+            ${bulletin.tableau_honneur ? '🏆 '+t.tableau : (bulletin.appreciation || '')}
+          </div>
+        </div>
+      </div>
+
+      <!-- SIGNATURES -->
+      <div class="signature row text-center mt-5">
+        <div class="col-md-4">
+          <hr>
+          <p>${t.signProf}</p>
+        </div>
+        <div class="col-md-4">
+          <p class="fw-bold">${t.date} : ${new Date().toLocaleDateString('fr-FR')}</p>
+        </div>
+        <div class="col-md-4">
+          <hr>
+          <p>${t.signDir}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🖨️ BOUTONS -->
+    <div class="text-center mt-4">
+      <button class="btn btn-orange" onclick="window.print()">
+        <i class="bi bi-printer"></i>
+        <span class="txt-fr"> Imprimer</span>
+        <span class="txt-en"> Print</span>
+        <span class="txt-ar"> طباعة</span>
+      </button>
+    </div>`;
+
+  } catch (err) {
+    console.error("❌ Erreur bulletin :", err);
+    zone.innerHTML = `
+      <div class="alert alert-danger erreur">
+        <h4>⛔ Erreur de connexion</h4>
+        <p>Vérifiez que le serveur est démarré sur le port 5000</p>
+        <code>${err.message}</code>
+      </div>`;
+  }
+}
+
+// 🚀 CHARGEMENT AU DÉMARRAGE
+chargerBulletin();
+</script>
+</body>
+</html>

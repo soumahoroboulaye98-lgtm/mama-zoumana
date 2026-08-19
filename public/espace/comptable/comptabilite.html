@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Espace Comptable — Grand Livre, Bilan & Résultat</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0891b2; --succes: #10b981; --alerte: #f59e0b;
+      --danger: #ef4444; --info: #6366f1; --sombre: #0f172a;
+      --sombre-clair: #1e293b; --texte-clair: #f8fafc; --dore: #fbbf24;
+    }
+    body { background: linear-gradient(135deg, var(--sombre), var(--sombre-clair)); color: var(--texte-clair); min-height:100vh; }
+    .carte { background: rgba(30,41,59,.85); border:1px solid rgba(8,145,178,.25); border-radius:16px; backdrop-filter:blur(10px); box-shadow:0 4px 20px rgba(0,0,0,.15); transition:all .3s ease; }
+    .carte:hover { border-color:var(--primaire); box-shadow:0 8px 25px rgba(8,145,178,.15); }
+    .titre-section { color:var(--dore); font-weight:600; }
+    .btn-primaire { background:linear-gradient(135deg,var(--primaire),#06b6d4); border:none; color:white; }
+    .btn-succes { background:linear-gradient(135deg,var(--succes),#059669); border:none; color:white; }
+    .btn-danger { background:linear-gradient(135deg,var(--danger),#dc2626); border:none; color:white; }
+    .btn-info { background:linear-gradient(135deg,var(--info),#4f46e5); border:none; color:white; }
+    .btn-alerte { background:linear-gradient(135deg,var(--alerte),#d97706); border:none; color:#000; }
+    .form-control,.form-select { background:rgba(15,23,42,.6); border:1px solid rgba(8,145,178,.3); color:var(--texte-clair); border-radius:10px; }
+    .form-control:focus,.form-select:focus { background:rgba(15,23,42,.8); border-color:var(--primaire); color:var(--texte-clair); box-shadow:0 0 0 .25rem rgba(8,145,178,.15); }
+    .modal-content { background:var(--sombre-clair); border:1px solid rgba(8,145,178,.3); border-radius:16px; color:var(--texte-clair); }
+    .btn-close-white { filter:invert(1); }
+    .nav-tabs .nav-link { color:#94a3b8; border:none; padding:.5rem .6rem; border-radius:10px 10px 0 0; font-size:.92rem; }
+    .nav-tabs .nav-link.active { background:rgba(8,145,178,.2); color:var(--dore); border-bottom:2px solid var(--dore); }
+    .badge-brouillon { background:#f59e0b; color:#000; }
+    .badge-valide { background:#10b981; }
+    .badge-cloture { background:#6366f1; }
+    .ligne-equilibre { font-weight:600; padding:.5rem; border-radius:8px; }
+    .equilibre-ok { background:rgba(16,185,129,.15); border:1px solid rgba(16,185,129,.4); color:#10b981; }
+    .equilibre-ko { background:rgba(239,68,68,.15); border:1px solid rgba(239,68,68,.4); color:#ef4444; }
+    .table-dark { --bs-table-bg:transparent; }
+    .table-dark th { color:var(--dore); border-color:rgba(8,145,178,.2); }
+    .table-dark td { border-color:rgba(8,145,178,.1); }
+    .montant { font-family:'Segoe UI Mono',monospace; }
+    .debit { color:#f87171; }
+    .credit { color:#60a5fa; }
+    .solde-d { color:#f87171; }
+    .solde-c { color:#60a5fa; }
+    .compte-groupe { background:rgba(8,145,178,.1); border-left:3px solid var(--primaire); }
+  
+    @media print { .no-print { display:none!important; } body { background:#fff; color:#000; } .carte { border:1px solid #ccc; } }
+  </style>
+</head>
+<body>
+
+<div class="container py-4">
+
+  <!-- 📌 EN-TÊTE -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 no-print">
+    <div class="d-flex align-items-center gap-3">
+      <a href="dashboard.html" class="btn btn-outline-light btn-sm">
+        <i class="bi bi-arrow-left-circle me-1"></i> Retour
+      </a>
+      <div>
+        <h3 class="titre-section mb-1"><i class="bi bi-journal-bookmark-fill me-2"></i>Espace Comptable</h3>
+        <p class="text-muted small mb-0">Écritures · Grand Livre · Balance · Bilan · Résultat · Exercices</p>
+      </div>
+    </div>
+    <div class="d-flex gap-2 mt-2">
+      <button class="btn btn-primaire" data-bs-toggle="modal" data-bs-target="#modalEcriture">
+        <i class="bi bi-plus-lg"></i> Nouvelle Écriture
+      </button>
+      <button class="btn btn-alerte" onclick="window.print()">
+        <i class="bi bi-printer"></i> PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- 📂 ONGLETS -->
+  <ul class="nav nav-tabs mb-4 no-print" id="onglets">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#ecritures">📝 Écritures</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#grandlivre">📖 Grand Livre</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#balance">📊 Balance</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#bilan">⚖️ Bilan</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#resultat">📈 Résultat</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#plan">📖 Plan</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#exercices">📅 Exercices</button></li>
+  </ul>
+
+  <div class="tab-content">
+
+    <!-- 📝 ONGLET ÉCRITURES -->
+    <div class="tab-pane fade show active" id="ecritures">
+      <div class="carte p-3 mb-4 no-print">
+        <div class="row g-2">
+          <div class="col-md-3">
+            <label class="form-label small">Exercice (Année)</label>
+            <select id="filtreAnneeEc" class="form-select">
+              <option value="">Toutes années</option>
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
+              <option value="2024">2024</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small">Mois</label>
+            <select id="filtreMoisEc" class="form-select">
+              <option value="">Tous</option>
+              <option value="1">Jan</option><option value="2">Fév</option><option value="3">Mar</option><option value="4">Avr</option>
+              <option value="5">Mai</option><option value="6">Juin</option><option value="7">Juil</option><option value="8">Aoû</option>
+              <option value="9">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Déc</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small">Journal</label>
+            <select id="filtreJournal" class="form-select">
+              <option value="">Tous</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small">Statut</label>
+            <select id="filtreStatut" class="form-select">
+              <option value="">Tous</option>
+              <option value="brouillon">Brouillon</option>
+              <option value="valide">Validé</option>
+            </select>
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <button class="btn btn-primaire w-100" onclick="chargerEcritures()">
+              <i class="bi bi-search"></i> Filtrer
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="carte p-3">
+        <div class="table-responsive">
+          <table class="table table-dark table-hover">
+            <thead>
+              <tr>
+                <th>N° Écriture</th>
+                <th>Date</th>
+                <th>Journal</th>
+                <th>Libellé</th>
+                <th>Statut</th>
+                <th>Total Débit</th>
+                <th>Total Crédit</th>
+                <th class="no-print">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="corpsEcritures">
+              <tr><td colspan="8" class="text-center py-4 text-muted">Chargement...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📖 GRAND LIVRE -->
+    <div class="tab-pane fade" id="grandlivre">
+      <div class="carte p-3 mb-4 no-print">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label small">Année</label>
+            <select id="selAnneeGL" class="form-select">
+              <option value="">Toutes</option>
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small">Compte</label>
+            <select id="selCompteGL" class="form-select">
+              <option value="">Tous les comptes</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <button class="btn btn-primaire w-100" onclick="chargerGrandLivre()">
+              <i class="bi bi-book"></i> Générer
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="carte p-3">
+        <div id="corpsGL" class="space-y-4">
+          <p class="text-center text-muted py-4">Sélectionnez des critères puis cliquez sur « Générer »</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📊 BALANCE COMPTABLE -->
+    <div class="tab-pane fade" id="balance">
+      <div class="carte p-3 mb-4 no-print">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-4">
+            <label class="form-label small">Année</label>
+            <select id="selAnneeBalance" class="form-select">
+              <option value="">Toutes écritures validées</option>
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <button class="btn btn-primaire w-100" onclick="chargerBalance()">
+              <i class="bi bi-bar-chart"></i> Générer la Balance
+            </button>
+          </div>
+          <div class="col-md-4">
+            <button class="btn btn-info w-100" onclick="exporterBalance()">
+              <i class="bi bi-download"></i> Exporter CSV
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="carte p-3">
+        <div class="table-responsive">
+          <table class="table table-dark table-hover">
+            <thead>
+              <tr>
+                <th>N° Compte</th>
+                <th>Libellé du Compte</th>
+                <th>Total Débit</th>
+                <th>Total Crédit</th>
+                <th>Solde Débit</th>
+                <th>Solde Crédit</th>
+              </tr>
+            </thead>
+            <tbody id="corpsBalance">
+              <tr><td colspan="6" class="text-center py-4 text-muted">Cliquez sur « Générer »</td></tr>
+            </tbody>
+            <tfoot id="piedBalance" class="fw-bold border-top-2 border-info d-none">
+              <tr>
+                <td colspan="2">TOTAUX</td>
+                <td id="totDebit">—</td>
+                <td id="totCredit">—</td>
+                <td id="totSoldeD">—</td>
+                <td id="totSoldeC">—</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⚖️ BILAN -->
+    <div class="tab-pane fade" id="bilan">
+      <div class="carte p-3 mb-4 no-print">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-4">
+            <label class="form-label small">Exercice (Année)</label>
+            <select id="selAnneeBilan" class="form-select">
+              <option value="">Toutes</option>
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <button class="btn btn-primaire w-100" onclick="chargerBilan()">
+              <i class="bi bi-balance"></i> Générer le Bilan
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="carte p-3 h-100">
+            <h5 class="titre-section border-bottom border-info pb-2 mb-3">🔵 ACTIF</h5>
+            <div class="table-responsive">
+              <table class="table table-dark table-sm">
+                <thead>
+                  <tr><th>Compte</th><th>Libellé</th><th>Montant</th></tr>
+                </thead>
+                <tbody id="bilanActif">
+                  <tr><td colspan="3" class="text-center text-muted">—</td></tr>
+                </tbody>
+                <tfoot>
+                  <tr class="fw-bold border-top border-info">
+                    <td colspan="2">TOTAL ACTIF</td>
+                    <td id="totActif">—</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="carte p-3 h-100">
+            <h5 class="titre-section border-bottom border-success pb-2 mb-3">🟢 PASSIF</h5>
+            <div class="table-responsive">
+              <table class="table table-dark table-sm">
+                <thead>
+                  <tr><th>Compte</th><th>Libellé</th><th>Montant</th></tr>
+                </thead>
+                <tbody id="bilanPassif">
+                  <tr><td colspan="3" class="text-center text-muted">—</td></tr>
+                </tbody>
+                <tfoot>
+                  <tr class="fw-bold border-top border-success">
+                    <td colspan="2">TOTAL PASSIF</td>
+                    <td id="totPassif">—</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="ecartBilan" class="alert alert-info mt-3 text-center d-none"></div>
+    </div>
+
+    <!-- 📈 COMPTE DE RÉSULTAT -->
+    <div class="tab-pane fade" id="resultat">
+      <div class="carte p-3 mb-4 no-print">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-4">
+            <label class="form-label small">Exercice (Année)</label>
+            <select id="selAnneeResultat" class="form-select">
+              <option value="">Toutes</option>
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <button class="btn btn-primaire w-100" onclick="chargerResultat()">
+              <i class="bi bi-graph-up"></i> Générer le Résultat
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="carte p-3 h-100">
+            <h5 class="titre-section border-bottom border-danger pb-2 mb-3">🔴 CHARGES</h5>
+            <div class="table-responsive">
+              <table class="table table-dark table-sm">
+                <thead>
+                  <tr><th>Compte</th><th>Libellé</th><th>Montant</th></tr>
+                </thead>
+                <tbody id="tabCharges">
+                  <tr><td colspan="3" class="text-center text-muted">—</td></tr>
+                </tbody>
+                <tfoot>
+                  <tr class="fw-bold border-top border-danger">
+                    <td colspan="2">TOTAL CHARGES</td>
+                    <td id="totCharges">—</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="carte p-3 h-100">
+            <h5 class="titre-section border-bottom border-success pb-2 mb-3">🟢 PRODUITS</h5>
+            <div class="table-responsive">
+              <table class="table table-dark table-sm">
+                <thead>
+                  <tr><th>Compte</th><th>Libellé</th><th>Montant</th></tr>
+                </thead>
+                <tbody id="tabProduits">
+                  <tr><td colspan="3" class="text-center text-muted">—</td></tr>
+                </tbody>
+                <tfoot>
+                  <tr class="fw-bold border-top border-success">
+                    <td colspan="2">TOTAL PRODUITS</td>
+                    <td id="totProduits">—</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="blocResultat" class="alert mt-3 text-center d-none fs-5 fw-bold"></div>
+    </div>
+
+    <!-- 📖 PLAN COMPTABLE -->
+    <div class="tab-pane fade" id="plan">
+      <div class="carte p-3">
+        <div class="table-responsive">
+          <table class="table table-dark table-hover">
+            <thead>
+              <tr>
+                <th>N° Compte</th>
+                <th>Libellé</th>
+                <th>Classe</th>
+                <th>Type</th>
+                <th>Sens</th>
+              </tr>
+            </thead>
+            <tbody id="corpsPlan">
+              <tr><td colspan="5" class="text-center py-4 text-muted">Chargement...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📅 EXERCICES COMPTABLES -->
+    <div class="tab-pane fade" id="exercices">
+      <div class="d-flex justify-content-end mb-3 no-print">
+        <button class="btn btn-primaire" data-bs-toggle="modal" data-bs-target="#modalExercice">
+          <i class="bi bi-plus-lg"></i> Créer un Exercice
+        </button>
+      </div>
+      <div class="carte p-3">
+        <div class="table-responsive">
+          <table class="table table-dark table-hover">
+            <thead>
+              <tr>
+                <th>Exercice</th>
+                <th>Période</th>
+                <th>Statut</th>
+                <th>Date Clôture</th>
+                <th class="no-print">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="corpsExercices">
+              <tr><td colspan="5" class="text-center py-4 text-muted">Chargement...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ➕ MODALE NOUVELLE ÉCRITURE -->
+<div class="modal fade" id="modalEcriture" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title titre-section">📝 Nouvelle Écriture Comptable</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formEcriture" class="modal-body">
+        <div class="row g-3 mb-3">
+          <div class="col-md-3">
+            <label class="form-label">Date d'Écriture *</label>
+            <input type="date" name="date_ecriture" class="form-control" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Journal *</label>
+            <select name="id_journal" id="selJournal" class="form-select" required></select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Référence</label>
+            <input type="text" name="reference" class="form-control" placeholder="N° pièce, facture...">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Exercice</label>
+            <input type="text" class="form-control" id="affAnnee" readonly>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Libellé de l'Écriture *</label>
+            <input type="text" name="libelle" class="form-control" required placeholder="Ex: Paiement salaire janvier">
+          </div>
+        </div>
+
+        <h6 class="titre-section small mt-4">🔀 Lignes d'Écriture</h6>
+        <div id="blocLignes">
+          <div class="ligne-ecriture row g-2 align-items-center mb-2 border rounded p-2 bg-dark bg-opacity-25">
+            <div class="col-md-2">
+              <select name="numero_compte" class="form-select sel-compte" required>
+                <option value="">Compte</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <input type="text" name="libelle_ligne" class="form-control" placeholder="Libellé ligne">
+            </div>
+            <div class="col-md-3">
+              <input type="number" name="montant_debit" class="form-control in-debit" placeholder="Débit" min="0" step="100" oninput="equilibrer()">
+            </div>
+            <div class="col-md-3">
+              <input type="number" name="montant_credit" class="form-control in-credit" placeholder="Crédit" min="0" step="100" oninput="equilibrer()">
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-outline-light btn-sm mt-2" onclick="ajouterLigne()">
+          <i class="bi bi-plus-circle"></i> Ajouter une ligne
+        </button>
+
+        <div id="blocEquilibre" class="ligne-equilibre mt-3 text-center">
+          Débit : <span id="sumDebit">0</span> F CFA &nbsp;|&nbsp;
+          Crédit : <span id="sumCredit">0</span> F CFA &nbsp;|&nbsp;
+          Écart : <span id="ecart">0</span> F CFA
+        </div>
+
+        <div class="modal-footer mt-3">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-primaire">Enregistrer en Brouillon</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 📅 MODALE CRÉER EXERCICE -->
+<div class="modal fade" id="modalExercice" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title titre-section">📅 Créer un Exercice Comptable</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formExercice" class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-12">
+            <label class="form-label">Année de l'Exercice *</label>
+            <input type="number" name="annee" class="form-control" required min="2020" max="2035" placeholder="Ex: 2026">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Date de Début *</label>
+            <input type="date" name="date_debut" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Date de Fin *</label>
+            <input type="date" name="date_fin" class="form-control" required>
+          </div>
+        </div>
+        <div class="modal-footer mt-3">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-primaire">Créer l'Exercice</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+const token = localStorage.getItem('token');
+let planComptable = [];
+let journauxDispo = [];
+
+function formatMontant(m){ return new Intl.NumberFormat('fr-FR').format(parseFloat(m)||0)+' F CFA'; }
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if(!token) { alert("🔒 Authentification requise"); return; }
+  document.querySelector('#formEcriture [name=date_ecriture]').valueAsDate = new Date();
+  document.getElementById('affAnnee').value = new Date().getFullYear();
+
+  await chargerPlanComptable();
+  await chargerJournaux();
+  await chargerEcritures();
+  await chargerExercices();
+});
+
+async function chargerPlanComptable(){
+  try{
+    const r = await fetch(`${API_URL}/plan`, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+    planComptable = res.comptes;
+
+    document.getElementById('corpsPlan').innerHTML = planComptable.map(c=>`
+      <tr>
+        <td><strong>${c.numero_compte}</strong></td>
+        <td>${c.libelle}</td>
+        <td>${c.classe||'—'}</td>
+        <td>${c.type_compte}</td>
+        <td>${c.sens}</td>
+      </tr>`).join('');
+
+    const opts = planComptable.map(c=>`<option value="${c.numero_compte}">${c.numero_compte} — ${c.libelle}</option>`).join('');
+    document.querySelectorAll('.sel-compte').forEach(s=>{ s.innerHTML = '<option value="">Choisir un compte</option>' + opts; });
+    document.getElementById('selCompteGL').innerHTML = '<option value="">Tous les comptes</option>' + opts;
+  }catch(e){ console.error(e); }
+}
+
+async function chargerJournaux(){
+  try{
+    const r = await fetch(`${API_URL}/journaux`, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    journauxDispo = res.journaux;
+    const opts = journauxDispo.map(j=>`<option value="${j.id_journal}">${j.code_journal} — ${j.libelle}</option>`).join('');
+    const optsF = journauxDispo.map(j=>`<option value="${j.code_journal}">${j.code_journal}</option>`).join('');
+    document.getElementById('selJournal').innerHTML = '<option value="">Choisir</option>' + opts;
+    document.getElementById('filtreJournal').innerHTML = '<option value="">Tous</option>' + optsF;
+  }catch(e){ console.error(e); }
+}
+
+async function chargerEcritures(){
+  try{
+    let url = `${API_URL}/ecritures?`;
+    const annee = document.getElementById('filtreAnneeEc').value;
+    const mois = document.getElementById('filtreMoisEc').value;
+    const statut = document.getElementById('filtreStatut').value;
+    const code_journal = document.getElementById('filtreJournal').value;
+    if(annee) url += `annee=${annee}&`;
+    if(mois) url += `mois=${mois}&`;
+    if(statut) url += `statut=${statut}&`;
+    if(code_journal) url += `code_journal=${code_journal}&`;
+
+    const r = await fetch(url, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+
+    const lignesParEc = {};
+    res.lignes.forEach(l=>{
+      if(!lignesParEc[l.id_ecriture]) lignesParEc[l.id_ecriture] = {d:0,c:0};
+      lignesParEc[l.id_ecriture].d += parseFloat(l.montant_debit||0);
+      lignesParEc[l.id_ecriture].c += parseFloat(l.montant_credit||0);
+    });
+
+    document.getElementById('corpsEcritures').innerHTML = res.ecritures.map(ec=>{
+      const totD = lignesParEc[ec.id_ecriture]?.d||0;
+      const totC = lignesParEc[ec.id_ecriture]?.c||0;
+      const badgeClasse = ec.statut==='valide'?'badge-valide':'badge-brouillon';
+      const statutTxt = ec.statut==='valide'?'✅ Validé':'📝 Brouillon';
+      return `
+      <tr>
+        <td><strong>${ec.numero_ecriture}</strong></td>
+        <td>${new Date(ec.date_ecriture).toLocaleDateString('fr-CA')}</td>
+        <td>${ec.code_journal||'—'}</td>
+        <td>${ec.libelle}</td>
+        <td><span class="badge ${badgeClasse}">${statutTxt}</span></td>
+        <td class="montant debit">${formatMontant(totD)}</td>
+        <td class="montant credit">${formatMontant(totC)}</td>
+        <td class="no-print">
+          ${ec.statut==='brouillon'?`<button class="btn btn-sm btn-succes" onclick="validerEc(${ec.id_ecriture})" title="Valider">✅</button>`:'<span class="text-muted">—</span>'}
+        </td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="8" class="text-center text-muted py-3">Aucune écriture trouvée</td></tr>';
+  }catch(e){
+    document.getElementById('corpsEcritures').innerHTML = `<tr><td colspan="8" class="text-center text-danger py-3">${e.message}</td></tr>`;
+  }
+}
+
+async function chargerGrandLivre(){
+  try{
+    let url = `${API_URL}/grand-livre?`;
+    const annee = document.getElementById('selAnneeGL').value;
+    const compte = document.getElementById('selCompteGL').value;
+    if(annee) url += `annee=${annee}&`;
+    if(compte) url += `numero_compte=${compte}&`;
+
+    const r = await fetch(url, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+
+    if(!res.grand_livre.length) {
+      document.getElementById('corpsGL').innerHTML = '<p class="text-center text-muted py-4">Aucune écriture validée pour cette période</p>';
+      return;
+    }
+
+    document.getElementById('corpsGL').innerHTML = res.grand_livre.map(cpt=>`
+      <div class="compte-groupe p-3 mb-3 rounded">
+        <h6 class="titre-section">${cpt.numero_compte} — ${cpt.libelle_compte}</h6>
+        <p class="small mb-2">
+          Débit: <strong>${formatMontant(cpt.cumul_debit)}</strong> · 
+          Crédit: <strong>${formatMontant(cpt.cumul_credit)}</strong> · 
+          Solde: <strong class="${cpt.solde_progressif>=0?'text-danger':'text-primary'}">${formatMontant(Math.abs(cpt.solde_progressif))} ${cpt.solde_progressif>=0?'(D)':'(C)'}</strong>
+        </p>
+        <div class="table-responsive">
+          <table class="table table-dark table-sm mb-0">
+            <thead>
+              <tr>
+                <th>Date</th><th>N° Écriture</th><th>Libellé</th><th>Journal</th>
+                <th>Débit</th><th>Crédit</th><th>Solde</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${cpt.mouvements.map(m=>`
+                <tr>
+                  <td>${new Date(m.date_ecriture).toLocaleDateString('fr-CA')}</td>
+                  <td>${m.numero_ecriture}</td>
+                  <td>${m.libelle_ecriture}</td>
+                  <td>${m.code_journal||'—'}</td>
+                  <td class="debit">${parseFloat(m.montant_debit)>0?formatMontant(m.montant_debit):'—'}</td>
+                  <td class="credit">${parseFloat(m.montant_credit)>0?formatMontant(m.montant_credit):'—'}</td>
+                  <td class="${m.solde_apres>=0?'solde-d':'solde-c'}">${formatMontant(Math.abs(m.solde_apres))}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>`).join('');
+  }catch(e){
+    document.getElementById('corpsGL').innerHTML = `<p class="text-center text-danger py-4">${e.message}</p>`;
+  }
+}
+
+async function chargerBalance(){
+  try{
+    const annee = document.getElementById('selAnneeBalance').value;
+    let url = `${API_URL}/balance`;
+    if(annee) url += `?annee=${annee}`;
+
+    const r = await fetch(url, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+
+    let tD=0, tC=0, sD=0, sC=0;
+    document.getElementById('corpsBalance').innerHTML = res.balance.map(b=>{
+      tD += parseFloat(b.total_debit); tC += parseFloat(b.total_credit);
+      sD += parseFloat(b.solde_debit); sC += parseFloat(b.solde_credit);
+      return `
+      <tr>
+        <td><strong>${b.numero_compte}</strong></td>
+        <td>${b.libelle}</td>
+        <td class="montant debit">${formatMontant(b.total_debit)}</td>
+        <td class="montant credit">${formatMontant(b.total_credit)}</td>
+        <td class="montant solde-d">${b.solde_debit>0?formatMontant(b.solde_debit):'—'}</td>
+        <td class="montant solde-c">${b.solde_credit>0?formatMontant(b.solde_credit):'—'}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="6" class="text-center text-muted py-3">Aucune écriture validée</td></tr>';
+
+    document.getElementById('piedBalance').classList.remove('d-none');
+    document.getElementById('totDebit').textContent = formatMontant(tD);
+    document.getElementById('totCredit').textContent = formatMontant(tC);
+    document.getElementById('totSoldeD').textContent = formatMontant(sD);
+    document.getElementById('totSoldeC').textContent = formatMontant(sC);
+  }catch(e){
+    document.getElementById('corpsBalance').innerHTML = `<tr><td colspan="6" class="text-center text-danger py-3">${e.message}</td></tr>`;
+  }
+}
+
+function exporterBalance(){
+  const rows = document.querySelectorAll('#corpsBalance tr');
+  let csv = "Compte;Libellé;Débit;Crédit;Solde D;Solde C\n";
+  rows.forEach(tr=>{
+    const tds = tr.querySelectorAll('td');
+    if(tds.length===6) csv += `${tds[0].textContent};${tds[1].textContent};${tds[2].textContent};${tds[3].textContent};${tds[4].textContent};${tds[5].textContent}\n`;
+  });
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `balance_${new Date().toLocaleDateString('fr-CA')}.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function chargerBilan(){
+  try{
+    const annee = document.getElementById('selAnneeBilan').value;
+    let url = `${API_URL}/bilan`;
+    if(annee) url += `?annee=${annee}`;
+
+    const r = await fetch(url, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+
+    document.getElementById('bilanActif').innerHTML = res.actif.map(c=>`
+      <tr><td>${c.numero_compte}</td><td>${c.libelle}</td><td class="montant">${formatMontant(c.solde)}</td></tr>
+    `).join('') || '<tr><td colspan="3" class="text-center text-muted">Aucun compte</td></tr>';
+    document.getElementById('totActif').textContent = formatMontant(res.totActif);
+
+    document.getElementById('bilanPassif').innerHTML = res.passif.map(c=>`
+      <tr><td>${c.numero_compte}</td><td>${c.libelle}</td><td class="montant">${formatMontant(c.solde)}</td></tr>
+    `).join('') || '<tr><td colspan="3" class="text-center text-muted">Aucun compte</td></tr>';
+    document.getElementById('totPassif').textContent = formatMontant(res.totPassif);
+
+    const ecart = document.getElementById('ecartBilan');
+    ecart.classList.remove('d-none', 'alert-success', 'alert-danger');
+    if(Math.abs(res.ecart) < 0.01){
+      ecart.classList.add('alert-success');
+      ecart.textContent = `✅ BILAN ÉQUILIBRÉ — Actif = Passif = ${formatMontant(res.totActif)}`;
+    }else{
+      ecart.classList.add('alert-danger');
+      ecart.textContent = `⚠️ DÉSÉQUILIBRÉ — Écart : ${formatMontant(Math.abs(res.ecart))}`;
+    }
+  }catch(e){ alert(e.message); }
+}
+
+async function chargerResultat(){
+  try{
+    const annee = document.getElementById('selAnneeResultat').value;
+    let url = `${API_URL}/resultat`;
+    if(annee) url += `?annee=${annee}`;
+
+    const r = await fetch(url, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+
+    document.getElementById('tabCharges').innerHTML = res.charges.map(c=>`
+      <tr><td>${c.numero_compte}</td><td>${c.libelle}</td><td class="montant">${formatMontant(c.solde)}</td></tr>
+    `).join('') || '<tr><td colspan="3" class="text-center text-muted">Aucune charge</td></tr>';
+    document.getElementById('totCharges').textContent = formatMontant(res.totCharges);
+
+    document.getElementById('tabProduits').innerHTML = res.produits.map(c=>`
+      <tr><td>${c.numero_compte}</td><td>${c.libelle}</td><td class="montant">${formatMontant(c.solde)}</td></tr>
+    `).join('') || '<tr><td colspan="3" class="text-center text-muted">Aucun produit</td></tr>';
+    document.getElementById('totProduits').textContent = formatMontant(res.totProduits);
+
+    const bloc = document.getElementById('blocResultat');
+    bloc.classList.remove('d-none', 'alert-success', 'alert-danger');
+    if(res.resultat > 0){
+      bloc.classList.add('alert-success');
+      bloc.innerHTML = `✅ BÉNÉFICE — Produits - Charges = ${formatMontant(res.resultat)}`;
+    }else if(res.resultat < 0){
+      bloc.classList.add('alert-danger');
+      bloc.innerHTML = `🔴 PERTE — Charges - Produits = ${formatMontant(Math.abs(res.resultat))}`;
+    }else{
+      bloc.classList.add('alert-info');
+      bloc.textContent = `ÉQUILIBRE — Produits = Charges = ${formatMontant(res.totProduits)}`;
+    }
+  }catch(e){ alert(e.message); }
+}
+
+document.getElementById('formEcriture').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const form = e.target;
+  const lignes = [];
+  const dateEc = form['date_ecriture'].value;
+  const anneeEc = new Date(dateEc).getFullYear();
+  document.getElementById('affAnnee').value = anneeEc;
+
+  form.querySelectorAll('.ligne-ecriture').forEach(ligne=>{
+    const c = ligne.querySelector('.sel-compte').value;
+    const lib = ligne.querySelector('[name=libelle_ligne]').value;
+    const d = parseFloat(ligne.querySelector('.in-debit').value)||0;
+    const cdt = parseFloat(ligne.querySelector('.in-credit').value)||0;
+    if(c && (d>0 || cdt>0)) lignes.push({ numero_compte:c, libelle_ligne:lib, montant_debit:d, montant_credit:cdt });
+  });
+
+  if(lignes.length < 2) return alert("⚠️ Saisis au moins 2 lignes comptables");
+
+  const totD = lignes.reduce((s,l)=>s+parseFloat(l.montant_debit),0);
+  const totC = lignes.reduce((s,l)=>s+parseFloat(l.montant_credit),0);
+  if(Math.abs(totD-totC) > 0.01) return alert("❌ Écriture non équilibrée ! Débit ≠ Crédit");
+
+  try{
+    const r = await fetch(`${API_URL}/ecritures/enregistrer`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({
+        date_ecriture: dateEc,
+        id_journal: form['id_journal'].value,
+        libelle: form['libelle'].value,
+        reference: form['reference'].value,
+        lignes
+      })
+    });
+    const res = await r.json();
+    if(res.ok){
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEcriture')).hide();
+      form.reset();
+      document.querySelector('#formEcriture [name=date_ecriture]').valueAsDate = new Date();
+      document.getElementById('blocLignes').innerHTML = '';
+      ajouterLigne();
+      chargerEcritures();
+      alert("✅ Écriture enregistrée : "+res.numero_ecriture);
+    }else alert("❌ "+res.erreur);
+  }catch(err){ alert("Erreur réseau : "+err.message); }
+});
+
+window.validerEc = async function(id){
+  if(!confirm("Confirmer la validation définitive de cette écriture ?")) return;
+  try{
+    const r = await fetch(`${API_URL}/ecritures/valider/${id}`, {
+      method:'POST', headers:{'Authorization':`Bearer ${token}`}
+    });
+    const res = await r.json();
+    if(res.ok){ alert("✅ Écriture validée !"); chargerEcritures(); }
+    else alert("❌ "+res.erreur);
+  }catch{ alert("Erreur réseau"); }
+};
+
+function equilibrer(){
+  let totD = 0, totC = 0;
+  document.querySelectorAll('.in-debit').forEach(i=> totD += parseFloat(i.value)||0);
+  document.querySelectorAll('.in-credit').forEach(i=> totC += parseFloat(i.value)||0);
+  const ecart = totD - totC;
+  document.getElementById('sumDebit').textContent = formatMontant(totD);
+  document.getElementById('sumCredit').textContent = formatMontant(totC);
+  document.getElementById('ecart').textContent = formatMontant(Math.abs(ecart));
+
+  const bloc = document.getElementById('blocEquilibre');
+  if(Math.abs(ecart) < 0.01){
+    bloc.classList.remove('equilibre-ko'); bloc.classList.add('equilibre-ok');
+    bloc.innerHTML = `✅ ÉQUILIBRÉ — Débit : ${formatMontant(totD)} | Crédit : ${formatMontant(totC)}`;
+  }else{
+    bloc.classList.remove('equilibre-ok'); bloc.classList.add('equilibre-ko');
+    bloc.innerHTML = `⚠️ DÉSÉQUILIBRÉ — Débit : ${formatMontant(totD)} | Crédit : ${formatMontant(totC)} | Écart : ${formatMontant(Math.abs(ecart))}`;
+  }
+}
+
+function ajouterLigne(){
+  const bloc = document.getElementById('blocLignes');
+  const ligne = document.createElement('div');
+  ligne.className = 'ligne-ecriture row g-2 align-items-center mb-2 border rounded p-2 bg-dark bg-opacity-25';
+  ligne.innerHTML = `
+    <div class="col-md-2">
+      <select name="numero_compte" class="form-select sel-compte" required>
+        <option value="">Compte</option>
+        ${planComptable.map(c=>`<option value="${c.numero_compte}">${c.numero_compte} — ${c.libelle}</option>`).join('')}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <input type="text" name="libelle_ligne" class="form-control" placeholder="Libellé ligne">
+    </div>
+    <div class="col-md-3">
+      <input type="number" name="montant_debit" class="form-control in-debit" placeholder="Débit" min="0" step="100" oninput="equilibrer()">
+    </div>
+    <div class="col-md-2">
+      <input type="number" name="montant_credit" class="form-control in-credit" placeholder="Crédit" min="0" step="100" oninput="equilibrer()">
+    </div>
+    <div class="col-md-1">
+      <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.ligne-ecriture').remove(); equilibrer()">
+        <i class="bi bi-trash"></i>
+      </button>
+    </div>
+  `;
+  bloc.appendChild(ligne);
+}
+
+// ==================================================
+// 📅 GESTION DES EXERCICES COMPTABLES
+// ==================================================
+async function chargerExercices(){
+  try{
+    const r = await fetch(`${API_URL}/exercices`, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+
+    document.getElementById('corpsExercices').innerHTML = res.exercices.map(ex=>{
+      const statutBadge = ex.statut==='ouvert'?'bg-success':'bg-secondary';
+      const statutTxt = ex.statut==='ouvert'?'✅ Ouvert':'🔒 Clôturé';
+      return `
+      <tr>
+        <td><strong>${ex.annee}</strong></td>
+        <td>${new Date(ex.date_debut).toLocaleDateString('fr-CA')} → ${new Date(ex.date_fin).toLocaleDateString('fr-CA')}</td>
+        <td><span class="badge ${statutBadge}">${statutTxt}</span></td>
+        <td>${ex.date_cloture ? new Date(ex.date_cloture).toLocaleDateString('fr-CA') : '—'}</td>
+        <td class="no-print">
+          ${ex.statut==='ouvert'?`<button class="btn btn-sm btn-danger" onclick="cloturerExercice(${ex.id_exercice})">Clôturer</button>`:'<span class="text-muted">—</span>'}
+        </td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="5" class="text-center text-muted py-3">Aucun exercice créé</td></tr>';
+  }catch(e){
+    document.getElementById('corpsExercices').innerHTML = `<tr><td colspan="5" class="text-center text-danger py-3">${e.message}</td></tr>`;
+  }
+}
+
+document.getElementById('formExercice').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const form = e.target;
+  const donnees = {
+    annee: form['annee'].value,
+    date_debut: form['date_debut'].value,
+    date_fin: form['date_fin'].value
+  };
+
+  try{
+    const r = await fetch(`${API_URL}/exercices/creer`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify(donnees)
+    });
+    const res = await r.json();
+    if(res.ok){
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('modalExercice')).hide();
+      form.reset();
+      chargerExercices();
+      alert("✅ Exercice créé avec succès !");
+    }else alert("❌ "+res.erreur);
+  }catch(err){ alert("Erreur réseau : "+err.message); }
+});
+
+window.cloturerExercice = async function(id){
+  if(!confirm("⚠️ Êtes-vous sûr de vouloir clôturer cet exercice ? Cette action est définitive et empêchera toute nouvelle écriture.")) return;
+  try{
+    const r = await fetch(`${API_URL}/exercices/cloturer/${id}`, {
+      method:'POST', headers:{'Authorization':`Bearer ${token}`}
+    });
+    const res = await r.json();
+    if(res.ok){ alert("✅ Exercice clôturé !"); chargerExercices(); }
+    else alert("❌ "+res.erreur);
+  }catch{ alert("Erreur réseau"); }
+};
+</script>
+
+</body>
+</html>

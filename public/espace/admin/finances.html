@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Gestion Financière — Administration</span>
+    <span class="txt-en">Financial Management — Administration</span>
+    <span class="txt-ar">الإدارة المالية — الإدارة</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --primaire: #0c4a6e; --succes: #10b981; --alerte: #f59e0b;
+      --danger: #ef4444; --info: #3b82f6; --sombre: #0f172a;
+      --sombre-clair: #1e293b; --texte-clair: #f8fafc; --texte-dore: #fbbf24;
+      --verrouille: #6366f1;
+    }
+    .txt-en,.txt-ar{display:none}
+    body.lang-fr .txt-fr{display:inline}
+    body.lang-en .txt-en{display:inline}
+    body.lang-ar .txt-ar{display:inline}
+    body.lang-en .txt-fr,body.lang-en .txt-ar{display:none}
+    body.lang-fr .txt-en,body.lang-fr .txt-ar{display:none}
+    body.lang-ar .txt-fr,body.lang-ar .txt-en{display:none}
+    body.lang-ar { direction: rtl; }
+    body.lang-ar .titre-section, body.lang-ar .text-end-ar { text-align: right; }
+
+    body { 
+      background: linear-gradient(135deg, var(--sombre), var(--sombre-clair)); 
+      color: var(--texte-clair); 
+      min-height: 100vh; 
+      padding-bottom: 80px;
+    }
+    .carte { 
+      background: rgba(30,41,59,.85); 
+      border:1px solid rgba(245,158,11,.2); 
+      border-radius:16px; 
+      backdrop-filter:blur(10px); 
+      box-shadow:0 4px 20px rgba(0,0,0,.15); 
+      transition:all .3s ease; 
+    }
+    .carte:hover { border-color:var(--alerte); box-shadow:0 8px 25px rgba(245,158,11,.15); }
+    .carte-verrouille { border-color:var(--verrouille); box-shadow:0 0 15px rgba(99,102,241,.2); }
+
+    .btn-primaire { background:linear-gradient(135deg,var(--primaire),#0369a1); border:none; color:white; font-weight:500; }
+    .btn-succes { background:linear-gradient(135deg,var(--succes),#059669); border:none; color:white; font-weight:500; }
+    .btn-danger { background:linear-gradient(135deg,var(--danger),#dc3545); border:none; color:white; font-weight:500; }
+    .btn-accent { background:linear-gradient(135deg,var(--alerte),#d97706); border:none; color:#000; font-weight:600; }
+    .btn-info { background:linear-gradient(135deg,var(--info),#2563eb); border:none; color:white; font-weight:500; }
+    .btn-verrouille { background:linear-gradient(135deg,var(--verrouille),#4f46e5); border:none; color:white; font-weight:500; }
+    .btn-admin { background:linear-gradient(135deg,#7e22ce,#6b21a8); border:none; color:white; font-weight:500; }
+
+    .titre-section { color:var(--texte-dore); font-weight:600; }
+    .montant { font-family:'Segoe UI Mono',monospace; font-weight:600; }
+    .recette { color:#10b981; }
+    .depense { color:#ef4444; }
+    .benefice { color:#3b82f6; }
+    .hausse { color:#10b981; }
+    .baisse { color:#ef4444; }
+    .form-control,.form-select { 
+      background:rgba(15,23,42,.6); 
+      border:1px solid rgba(245,158,11,.25); 
+      color:var(--texte-clair); 
+      border-radius:10px; 
+    }
+    .form-control:focus,.form-select:focus { 
+      background:rgba(15,23,42,.8); 
+      border-color:var(--alerte); 
+      color:var(--texte-clair); 
+      box-shadow:0 0 0 .25rem rgba(245,158,11,.15); 
+    }
+    .modal-content { 
+      background:var(--sombre-clair); 
+      border:1px solid rgba(245,158,11,.25); 
+      border-radius:16px; 
+      color:var(--texte-clair); 
+    }
+    .btn-close-white { filter:invert(1); }
+    .badge-recette { background:#10b981; }
+    .badge-depense { background:#ef4444; }
+    .badge-verrouille { background:#6366f1; }
+    .progress { height:10px; border-radius:5px; background:rgba(255,255,255,.1); }
+    .bar-recette { background:#10b981; }
+    .bar-depense { background:#ef4444; }
+    .graphique { max-height:260px; margin:auto; }
+    .lang-btn { width:38px; height:38px; border-radius:50%; border:2px solid; padding:0; font-size:14px; display:flex; align-items:center; justify-content:center; }
+    .lang-btn.active { background:var(--alerte); border-color:var(--alerte); color:#000; }
+    .alerte { border-left:4px solid var(--alerte); background:rgba(245,158,11,.1); padding:.75rem 1rem; border-radius:0 10px 10px 0; }
+    .alerte-verrouille { border-left-color:var(--verrouille); background:rgba(99,102,241,.1); }
+    .no-print { display: initial; }
+
+    .barre-statut {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15,23,42,.95);
+      border-top: 1px solid rgba(245,158,11,.25);
+      padding: 10px 20px;
+      z-index: 1030;
+      backdrop-filter: blur(10px);
+    }
+    .en-cours { color: #f59e0b; }
+    .ferme { color: #10b981; }
+
+    .btn-group-header { gap: 8px; flex-wrap: wrap; }
+    .btn-group-header .btn { white-space: nowrap; }
+
+    /* ✅ BOUTONS MODIFIER/SUPPRIMER — Visibles SEULEMENT si Admin */
+    .btn-admin-action { display: none; }
+    .is-admin .btn-admin-action { display: inline-flex; }
+
+    @media print { 
+      .no-print { display:none!important; } 
+      body { background:#fff; color:#000; padding-bottom:0; } 
+      .barre-statut { display:none!important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ✅ 🔐 VÉRIFICATION SESSION TOUT EN HAUT -->
+<script>
+const token = localStorage.getItem('token');
+const roleUtilisateur = localStorage.getItem('role') || '';
+const estAdmin = (roleUtilisateur === 'admin' || roleUtilisateur === 'super_admin');
+const estComptable = (roleUtilisateur === 'comptable');
+
+// Redirige si pas connecté
+if (!token) {
+  alert("⛔ Accès refusé — Veuillez vous connecter");
+  window.location.href = '../connexion.html'; // ✅ Adaptez le chemin si nécessaire
+}
+
+// ✅ Affiche les boutons Admin si connecté en tant qu'Admin
+document.addEventListener('DOMContentLoaded', () => {
+  if (estAdmin) {
+    document.body.classList.add('is-admin');
+  }
+});
+</script>
+
+<div class="container py-4">
+
+  <!-- 🌐 LANGUE -->
+  <div class="d-flex justify-content-end gap-2 mb-3 no-print">
+    <button class="btn lang-btn active" data-lang="fr">FR</button>
+    <button class="btn lang-btn" data-lang="en">EN</button>
+    <button class="btn lang-btn" data-lang="ar">ع</button>
+  </div>
+
+  <!-- 📌 EN-TÊTE -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 no-print">
+    <div class="d-flex align-items-center gap-3">
+      <a href="dashboard.html" class="btn btn-outline-light btn-sm">
+        <i class="bi bi-arrow-left-circle me-1"></i>
+        <span class="txt-fr">Retour</span>
+        <span class="txt-en">Back</span>
+        <span class="txt-ar">عودة</span>
+      </a>
+      <div>
+        <h3 class="titre-section mb-1"><i class="bi bi-cash-coin me-2"></i>
+          <span class="txt-fr">Gestion Financière</span>
+          <span class="txt-en">Financial Management</span>
+          <span class="txt-ar">الإدارة المالية</span>
+        </h3>
+        <p class="text-muted small mb-0">
+          <span class="txt-fr">Recettes, Dépenses, Bilan, Budget & Clôture</span>
+          <span class="txt-en">Income, Expenses, Balance, Budget & Closing</span>
+          <span class="txt-ar">الإيرادات، المصروفات، الميزانية، الميزانية التقديرية والإقفال</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="d-flex btn-group-header mt-2">
+      <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#modalBudget">
+        <i class="bi bi-calculator me-1"></i>
+        <span class="txt-fr">Budget</span>
+        <span class="txt-en">Budget</span>
+        <span class="txt-ar">الميزانية</span>
+      </button>
+      <button class="btn btn-accent" onclick="exporterCSV()">
+        <i class="bi bi-file-earmark-spreadsheet me-1"></i>CSV
+      </button>
+      <button class="btn btn-accent" onclick="exporterRapportPDF()">
+        <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+      </button>
+
+      <button class="btn btn-succes" data-bs-toggle="modal" data-bs-target="#modalOperation">
+        <i class="bi bi-plus-lg me-1"></i>
+        <span class="txt-fr">Recette</span>
+        <span class="txt-en">Income</span>
+        <span class="txt-ar">إيراد</span>
+      </button>
+      <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalDepense">
+        <i class="bi bi-dash-lg me-1"></i>
+        <span class="txt-fr">Dépense</span>
+        <span class="txt-en">Expense</span>
+        <span class="txt-ar">مصروف</span>
+      </button>
+
+      <!-- 🔒 Clôture — RÉSERVÉ À L'ADMIN -->
+      <button id="btnCloture" class="btn btn-verrouille btn-admin-action" onclick="gererPeriode()">
+        <i class="bi bi-lock me-1"></i>
+        <span id="txtCloture">
+          <span class="txt-fr">Clôturer</span>
+          <span class="txt-en">Close Period</span>
+          <span class="txt-ar">إقفال الفترة</span>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 🔒 ALERTE PÉRIODE CLÔTURÉE -->
+  <div id="alerteVerrou" class="alerte alerte-verrouille mb-4 d-none no-print">
+    <i class="bi bi-lock-fill me-2"></i>
+    <span id="texteVerrou">
+      <span class="txt-fr"><strong>🔒 Période clôturée :</strong> Ajout, modification et suppression désactivés.</span>
+      <span class="txt-en"><strong>🔒 Period closed:</strong> Add, edit and delete disabled.</span>
+      <span class="txt-ar"><strong>🔒 الفترة مقفلة:</strong> الإضافة والتعديل والحذف معطّل.</span>
+    </span>
+  </div>
+
+  <!-- ⚠️ ALERTE DÉPASSEMENT BUDGET -->
+  <div id="alerteBudget" class="alerte mb-4 d-none no-print">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <span id="texteAlerte"></span>
+  </div>
+
+  <!-- 📊 BILAN GLOBAL -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+      <div class="carte p-3 text-center">
+        <h6 class="text-muted small">
+          <span class="txt-fr">Total Recettes</span>
+          <span class="txt-en">Total Income</span>
+          <span class="txt-ar">إجمالي الإيرادات</span>
+        </h6>
+        <h4 class="montant recette" id="totalRecettes">—</h4>
+        <small id="evoRecettes" class="d-block small"></small>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="carte p-3 text-center">
+        <h6 class="text-muted small">
+          <span class="txt-fr">Total Dépenses</span>
+          <span class="txt-en">Total Expenses</span>
+          <span class="txt-ar">إجمالي المصروفات</span>
+        </h6>
+        <h4 class="montant depense" id="totalDepenses">—</h4>
+        <small id="evoDepenses" class="d-block small"></small>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="carte p-3 text-center">
+        <h6 class="text-muted small">
+          <span class="txt-fr">Solde / Bilan</span>
+          <span class="txt-en">Net Balance</span>
+          <span class="txt-ar">الرصيد</span>
+        </h6>
+        <h4 class="montant benefice" id="solde">—</h4>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="carte p-3 text-center">
+        <h6 class="text-muted small">
+          <span class="txt-fr">Période</span>
+          <span class="txt-en">Period</span>
+          <span class="txt-ar">الفترة</span>
+        </h6>
+        <select id="filtreMois" class="form-select form-select-sm mb-1">
+          <option value=""><span class="txt-fr">Tous les mois</span><span class="txt-en">All months</span></option>
+          <option value="1">Janvier</option><option value="2">Février</option><option value="3">Mars</option>
+          <option value="4">Avril</option><option value="5">Mai</option><option value="6">Juin</option>
+          <option value="7">Juillet</option><option value="8">Août</option><option value="9">Septembre</option>
+          <option value="10">Octobre</option><option value="11">Novembre</option><option value="12">Décembre</option>
+        </select>
+        <select id="filtreAnnee" class="form-select form-select-sm">
+          <option value="2026" selected>2026</option>
+          <option value="2025">2025</option>
+          <option value="2024">2024</option>
+        </select>
+        <small class="text-muted d-block mt-1" id="nbOperations">— opérations</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📊 BARRE DE RÉPARTITION -->
+  <div class="carte p-3 mb-4">
+    <div class="d-flex justify-content-between small mb-2">
+      <span>📊 <span class="txt-fr">Répartition Recettes / Dépenses</span><span class="txt-en">Income / Expenses Split</span></span>
+      <span id="tauxRecette">0% Recettes / 0% Dépenses</span>
+    </div>
+    <div class="progress">
+      <div class="progress-bar bar-recette" id="barRecette" style="width:50%">
+        <span class="txt-fr">Recettes</span><span class="txt-en">Income</span>
+      </div>
+      <div class="progress-bar bar-depense" id="barDepense" style="width:50%">
+        <span class="txt-fr">Dépenses</span><span class="txt-en">Expenses</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📈 GRAPHIQUES -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-5">
+      <div class="carte p-3">
+        <h6 class="titre-section small">📊 <span class="txt-fr">Par Catégorie</span><span class="txt-en">By Category</span></h6>
+        <div class="graphique"><canvas id="camembert"></canvas></div>
+      </div>
+    </div>
+    <div class="col-md-7">
+      <div class="carte p-3">
+        <h6 class="titre-section small">📈 <span class="txt-fr">Évolution Mensuelle</span><span class="txt-en">Monthly Trend</span></h6>
+        <div class="graphique"><canvas id="courbe"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔽 FILTRES -->
+  <div class="carte p-3 mb-4 no-print">
+    <div class="row g-2">
+      <div class="col-md-2">
+        <label class="form-label small txt-fr">Recherche</label>
+        <input type="text" id="recherche" class="form-control" placeholder="Libellé / Réf...">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small txt-fr">Type</label>
+        <select id="filtreType" class="form-select">
+          <option value=""><span class="txt-fr">Tout</span><span class="txt-en">All</span></option>
+          <option value="recette">💰 Recettes</option>
+          <option value="depense">📉 Dépenses</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small txt-fr">Catégorie</label>
+        <select id="filtreCategorie" class="form-select">
+          <option value="">Toutes</option>
+          <option value="frais_scolaires">Frais scolaires</option>
+          <option value="cantine">Cantine</option>
+          <option value="salaire">Salaires</option>
+          <option value="fourniture">Fournitures</option>
+          <option value="entretien">Entretien</option>
+          <option value="autre">Autre</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small txt-fr">Paiement</label>
+        <select id="filtrePaiement" class="form-select">
+          <option value="">Tous</option>
+          <option value="especes">Espèces</option>
+          <option value="virement">Virement</option>
+          <option value="cheque">Chèque</option>
+          <option value="mobile_money">Mobile Money</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small txt-fr">Enregistré par</label>
+        <select id="filtreUtilisateur" class="form-select">
+          <option value="">Tous</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button id="btnReinitialiser" class="btn btn-primaire w-100" title="Réinitialiser les filtres">
+          <i class="bi bi-x-circle"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📋 JOURNAL DES OPÉRATIONS -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="titre-section small mb-0">📋 <span class="txt-fr">Journal des Opérations</span><span class="txt-en">Operations Log</span></h5>
+    <small class="text-muted" id="infoJournal">—</small>
+  </div>
+
+  <div id="listeOperations" class="row g-3">
+    <div class="col-12 text-center py-5 text-muted">
+      <div class="spinner-border text-warning mb-3"></div>
+      <p><span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span></p>
+    </div>
+  </div>
+
+</div>
+
+<!-- BARRE DE STATUT -->
+<div class="barre-statut no-print">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <span id="statutPeriode" class="en-cours">
+        <i class="bi bi-clock-history me-1"></i>
+        <span class="txt-fr">Période en cours — Modifications autorisées</span>
+        <span class="txt-en">Period Open — Edits allowed</span>
+      </span>
+    </div>
+    <div class="text-muted small">
+      <span id="infoTotaux">Chargement...</span>
+    </div>
+    <div class="text-muted small">
+      <span id="dateHeure"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ➕ MODALE RECETTE -->
+<div class="modal fade" id="modalOperation" tabindex="-1" aria-labelledby="titreModaleRecette" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title titre-section" id="titreModaleRecette">💰 <span class="txt-fr">Nouvelle Recette</span><span class="txt-en">New Income</span></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <form id="formRecette" class="modal-body">
+        <input type="hidden" name="id_operation" id="idRecette">
+        <input type="hidden" name="type" value="recette">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label"><span class="txt-fr">Libellé *</span><span class="txt-en">Label *</span></label>
+            <input type="text" name="libelle" id="libelleRecette" class="form-control" required placeholder="Ex: Frais scolaires">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label"><span class="txt-fr">Catégorie</span><span class="txt-en">Category</span></label>
+            <select name="categorie" id="categorieRecette" class="form-select">
+              <option value="frais_scolaires">Frais scolaires</option>
+              <option value="cantine">Cantine</option>
+              <option value="don">Don</option>
+              <option value="autre" selected>Autre</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label"><span class="txt-fr">N° Reçu / Réf.</span><span class="txt-en">Receipt # / Ref.</span></label>
+            <input type="text" name="reference" id="referenceRecette" class="form-control" placeholder="Ex: REC-2026-001">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label"><span class="txt-fr">Montant (F CFA) *</span><span class="txt-en">Amount (XOF) *</span></label>
+            <input type="number" name="montant" id="montantRecette" class="form-control" required min="0" step="100">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label"><span class="txt-fr">Mode de Paiement</span><span class="txt-en">Payment Method</span></label>
+            <select name="mode_paiement" id="paiementRecette" class="form-select">
+              <option value="especes" selected>💵 Espèces</option>
+              <option value="virement">🏦 Virement</option>
+              <option value="cheque">📄 Chèque</option>
+              <option value="mobile_money">📱 Mobile Money</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label"><span class="txt-fr">Date</span><span class="txt-en">Date</span></label>
+            <input type="date" name="date_operation" id="dateRecette" class="form-control">
+          </div>
+          <div class="col-12">
+            <label class="form-label"><span class="txt-fr">Observations / Référence</span><span class="txt-en">Notes / Reference</span></label>
+            <textarea name="commentaire" id="commentaireRecette" class="form-control" rows="2" placeholder="Infos complémentaires..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer mt-3">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <span class="txt-fr">Annuler</span><span class="txt-en">Cancel</span>
+          </button>
+          <button type="submit" class="btn btn-succes">
+            💾 <span class="txt-fr">Enregistrer</span><span class="txt-en">Save</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ➖ MODALE DÉPENSE -->
+<div class="modal fade" id="modalDepense" tabindex="-1" aria-labelledby="titreModaleDepense" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title titre-section" id="titreModaleDepense">📉 <span class="txt-fr">Nouvelle Dépense</span><span class="txt-en">New Expense</span></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <form id="formDepense" class="modal-body">
+        <input type="hidden" name="id_operation" id="idDepense">
+        <input type="hidden" name="type" value="depense">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label"><span class="txt-fr">Libellé *</span><span class="txt-en">Label *</span></label>
+            <input type="text" name="libelle" id="libelleDepense" class="form-control" required placeholder="Ex: Salaire enseignant">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label"><span class="txt-fr">Catégorie</span><span class="txt-en">Category</span></label>
+            <select name="categorie" id="categorieDepense" class="form-select">
+              <option value="salaire">Salaires</option>
+              <option value="fourniture">Fournitures</option>
+              <option value="entretien">Entretien</option>
+              <option value="facture">Factures</option>
+              <option value="autre" selected>Autre</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label"><span class="txt-fr">N° Reçu / Réf.</span><span class="txt-en">Receipt # / Ref.</span></label>
+            <input type="text" name="reference" id="referenceDepense" class="form-control" placeholder="Ex: DEP-2026-001">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label"><span class="txt-fr">Montant (F CFA) *</span><span class="txt-en">Amount (XOF) *</span></label>
+            <input type="number" name="montant" id="montantDepense" class="form-control" required min="0" step="100">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label"><span class="txt-fr">Mode de Paiement</span><span class="txt-en">Payment Method</span></label>
+            <select name="mode_paiement" id="paiementDepense" class="form-select">
+              <option value="especes" selected>💵 Espèces</option>
+              <option value="virement">🏦 Virement</option>
+              <option value="cheque">📄 Chèque</option>
+              <option value="mobile_money">📱 Mobile Money</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label"><span class="txt-fr">Date</span><span class="txt-en">Date</span></label>
+            <input type="date" name="date_operation" id="dateDepense" class="form-control">
+          </div>
+          <div class="col-12">
+            <label class="form-label"><span class="txt-fr">Observations / Bénéficiaire</span><span class="txt-en">Notes / Beneficiary</span></label>
+            <textarea name="commentaire" id="commentaireDepense" class="form-control" rows="2" placeholder="Infos complémentaires..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer mt-3">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <span class="txt-fr">Annuler</span><span class="txt-en">Cancel</span>
+          </button>
+          <button type="submit" class="btn btn-danger">
+            💾 <span class="txt-fr">Enregistrer</span><span class="txt-en">Save</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 🏷️ MODALE BUDGET -->
+<div class="modal fade" id="modalBudget" tabindex="-1" aria-labelledby="titreBudget" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title titre-section" id="titreBudget">🏷️ <span class="txt-fr">Budget Prévisionnel</span><span class="txt-en">Budget Forecast</span></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <form id="formBudget" class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label"><span class="txt-fr">Mois</span><span class="txt-en">Month</span></label>
+            <select name="mois" class="form-select" required>
+              <option value="">-- Choisir --</option>
+              <option value="1">Janvier</option><option value="2">Février</option><option value="3">Mars</option>
+              <option value="4">Avril</option><option value="5">Mai</option><option value="6">Juin</option>
+              <option value="7">Juillet</option><option value="8">Août</option><option value="9">Septembre</option>
+              <option value="10">Octobre</option><option value="11">Novembre</option><option value="12">Décembre</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label"><span class="txt-fr">Année</span><span class="txt-en">Year</span></label>
+            <select name="annee" class="form-select" required>
+              <option value="2026" selected>2026</option>
+              <option value="2025">2025</option>
+              <option value="2024">2024</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label"><span class="txt-fr">Catégorie</span><span class="txt-en">Category</span></label>
+            <select name="categorie" class="form-select" required>
+              <option value="frais_scolaires">Frais scolaires</option>
+              <option value="cantine">Cantine</option>
+              <option value="salaire">Salaires</option>
+              <option value="fourniture">Fournitures</option>
+              <option value="entretien">Entretien</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label"><span class="txt-fr">Montant Prévu (F CFA)</span><span class="txt-en">Planned Amount (XOF)</span></label>
+            <input type="number" name="montant_prevu" class="form-control" required min="0" step="100">
+          </div>
+        </div>
+        <div class="modal-footer mt-3">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <span class="txt-fr">Annuler</span><span class="txt-en">Cancel</span>
+          </button>
+          <button type="submit" class="btn btn-info">
+            💾 <span class="txt-fr">Enregistrer Budget</span><span class="txt-en">Save Budget</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ✅ URL API — VÉRIFIEZ QUE LE PORT EST 5000 COMME LA CONNEXION !
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+let graphCamembert = null, graphCourbe = null;
+let donneesGlobales = null;
+let periodeClose = false;
+
+// ✅ Heure en bas
+function mettreAJourHeure(){
+  const maintenant = new Date();
+  document.getElementById('dateHeure').textContent = maintenant.toLocaleDateString('fr-FR') + ' ' + maintenant.toLocaleTimeString('fr-FR');
+}
+setInterval(mettreAJourHeure, 60000);
+mettreAJourHeure();
+
+// 🌐 Changement de langue
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const lang = btn.dataset.lang;
+    document.documentElement.className = `lang-${lang}`;
+    document.body.className = `lang-${lang}` + (estAdmin ? ' is-admin' : '');
+    localStorage.setItem('langue', lang);
+  });
+});
+
+// 💰 Formatage montant
+function formatMontant(m){ return new Intl.NumberFormat('fr-FR').format(parseFloat(m)||0)+' F CFA'; }
+function nomMois(m){ return ['Janv','Fév','Mars','Avr','Mai','Juin','Juil','Août','Sept','Oct','Nov','Déc'][parseInt(m)-1]||m; }
+function pourcentages(actuel, prec){
+  if(!prec || parseFloat(prec)===0) return {val:0,txt:'—',classe:'text-muted'};
+  const a = parseFloat(actuel)||0, p = parseFloat(prec)||0;
+  const tx = Math.round(((a-p)/p)*100);
+  if(tx>0) return {val:tx,txt:`+${tx}% ↑`,classe:'hausse'};
+  if(tx<0) return {val:tx,txt:`${tx}% ↓`,classe:'baisse'};
+  return {val:0,txt:'Identique',classe:'text-muted'};
+}
+function iconePaiement(m){
+  return {especes:'💵',virement:'🏦',cheque:'📄',mobile_money:'📱'}[m]||'—';
+}
+
+// ✅ Mise à jour barre de statut
+function mettreAJourStatut(){
+  const statutEl = document.getElementById('statutPeriode');
+  if(periodeClose){
+    statutEl.className = 'ferme';
+    statutEl.innerHTML = '<i class="bi bi-lock-fill me-1"></i> <span class="txt-fr">Période CLÔTURÉE — Modifications verrouillées</span><span class="txt-en">Period CLOSED — Edits locked</span>';
+  }else{
+    statutEl.className = 'en-cours';
+    statutEl.innerHTML = '<i class="bi bi-unlock-fill me-1"></i> <span class="txt-fr">Période OUVERTE — Enregistrement autorisé</span><span class="txt-en">Period OPEN — Saving allowed</span>';
+  }
+}
+
+// ✅ Infos totaux dans la barre
+function mettreAJourInfosTotaux(recettes, depenses, solde){
+  document.getElementById('infoTotaux').innerHTML = 
+    `💰 ${formatMontant(recettes)} | 📉 ${formatMontant(depenses)} | ⚖️ ${formatMontant(solde)}`;
+}
+
+// 🔒 Clôturer / Rouvrir la période
+window.gererPeriode = async function(){
+  if(!estAdmin) { 
+    alert("⛔ Seul l'Administrateur peut gérer la clôture"); 
+    return; 
+  }
+  const mois = document.getElementById('filtreMois').value;
+  const annee = document.getElementById('filtreAnnee').value;
+  if(!mois || !annee) { 
+    alert("⚠️ Sélectionnez d'abord un mois et une année !"); 
+    return; 
+  }
+
+  const action = periodeClose ? 'rouvrir' : 'cloturer';
+  const confirmer = periodeClose
+    ? `Confirmer la RÉOUVERTURE de ${nomMois(mois)} ${annee} ?`
+    : `Confirmer la CLÔTURE de ${nomMois(mois)} ${annee} ?\n\n⚠️ Aucune opération ne pourra plus être ajoutée/modifiée/supprimée.`;
+
+  if(!confirm(confirmer)) return;
+
+  try{
+    const r = await fetch(`${API_URL}/${action}`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({mois: parseInt(mois), annee: parseInt(annee)})
+    });
+    
+    const texteBrut = await r.text(); // ✅ D'abord lire en texte pour voir erreur HTML
+    let res;
+    try { res = JSON.parse(texteBrut); } 
+    catch { 
+      alert("❌ Erreur serveur — Réponse invalide. Vérifiez que l'API existe : " + API_URL);
+      console.log("Réponse brute :", texteBrut);
+      return;
+    }
+
+    if(res.ok){ 
+      alert("✅ " + (res.message || (periodeClose ? "Période rouverte" : "Période clôturée"))); 
+      charger(); 
+    }else{ 
+      alert("❌ " + (res.erreur || "Erreur")); 
+    }
+  }catch(e){ 
+    alert("❌ Erreur réseau — Vérifiez que le serveur est démarré : " + e.message); 
+  }
+};
+
+// 📦 Charger toutes les données
+async function charger(){
+  const cont = document.getElementById('listeOperations');
+  const alerte = document.getElementById('alerteBudget');
+  const alerteV = document.getElementById('alerteVerrou');
+  const btnCloture = document.getElementById('btnCloture');
+  const txtCloture = document.getElementById('txtCloture');
+
+  try{
+    const t = document.getElementById('filtreType').value;
+    const c = document.getElementById('filtreCategorie').value;
+    const m = document.getElementById('filtreMois').value;
+    const a = document.getElementById('filtreAnnee').value;
+    const r = document.getElementById('recherche').value.trim();
+    const u = document.getElementById('filtreUtilisateur').value;
+
+    let url = `${API_URL}/liste?`;
+    if(t) url += `type=${encodeURIComponent(t)}&`;
+    if(c) url += `categorie=${encodeURIComponent(c)}&`;
+    if(m) url += `mois=${encodeURIComponent(m)}&`;
+    if(a) url += `annee=${encodeURIComponent(a)}&`;
+    if(r) url += `recherche=${encodeURIComponent(r)}&`;
+    if(u) url += `id_utilisateur=${encodeURIComponent(u)}&`;
+
+    const resp = await fetch(url, {
+      headers:{'Authorization': `Bearer ${token}`}
+    });
+
+    // ✅ Gérer les erreurs HTTP
+    if(resp.status === 401) {
+      alert("⛔ Session expirée — Veuillez vous reconnecter");
+      localStorage.clear();
+      window.location.href = '../connexion.html';
+      return;
+    }
+    if(resp.status === 403) {
+      alert("⛔ Accès refusé — Droits insuffisants");
+      return;
+    }
+    if(!resp.ok) {
+      const errTxt = await resp.text();
+      throw new Error(`Erreur ${resp.status} — Vérifiez l'API : ${API_URL}`);
+    }
+
+    const texteBrut = await resp.text();
+    let res;
+    try { res = JSON.parse(texteBrut); }
+    catch { throw new Error("Réponse non-JSON — Vérifiez l'URL de l'API"); }
+
+    if(!res.ok) throw new Error(res.erreur || "Erreur de chargement");
+
+    donneesGlobales = res;
+    periodeClose = !!res.periodeClose;
+    mettreAJourStatut();
+
+    // 🔒 Verrouillage UI
+    if(periodeClose){
+      alerteV.classList.remove('d-none');
+      btnCloture.classList.remove('btn-verrouille');
+      btnCloture.classList.add('btn-succes');
+      txtCloture.innerHTML = '<span class="txt-fr">Rouvrir</span><span class="txt-en">Reopen</span>';
+    }else{
+      alerteV.classList.add('d-none');
+      btnCloture.classList.remove('btn-succes');
+      btnCloture.classList.add('btn-verrouille');
+      txtCloture.innerHTML = '<span class="txt-fr">Clôturer</span><span class="txt-en">Close</span>';
+    }
+
+    // 📊 Bilan
+    const recettes = parseFloat(res.bilan?.recettes) || 0;
+    const depenses = parseFloat(res.bilan?.depenses) || 0;
+    const solde = recettes - depenses;
+    mettreAJourInfosTotaux(recettes, depenses, solde);
+
+    document.getElementById('totalRecettes').textContent = formatMontant(recettes);
+    document.getElementById('totalDepenses').textContent = formatMontant(depenses);
+    document.getElementById('solde').textContent = formatMontant(Math.abs(solde));
+    document.getElementById('solde').className = `montant ${solde >= 0 ? 'recette' : 'depense'}`;
+    document.getElementById('nbOperations').textContent = `${res.bilan?.nombre_operations || 0} opérations`;
+
+    // 📊 Comparaison
+    const evoRec = pourcentages(recettes, res.bilanPrec?.recettes);
+    const evoDep = pourcentages(depenses, res.bilanPrec?.depenses);
+    document.getElementById('evoRecettes').textContent = evoRec.txt;
+    document.getElementById('evoRecettes').className = `d-block small ${evoRec.classe}`;
+    document.getElementById('evoDepenses').textContent = evoDep.txt;
+    document.getElementById('evoDepenses').className = `d-block small ${evoDep.classe}`;
+
+    // ⚠️ Alerte dépassement
+    if(depenses > recettes){
+      alerte.classList.remove('d-none');
+      document.getElementById('texteAlerte').textContent = `⚠️ Dépenses dépassent Recettes de ${formatMontant(depenses - recettes)} !`;
+    } else {
+      alerte.classList.add('d-none');
+    }
+
+    // 📊 Barre répartition
+    const total = recettes + depenses;
+    const pr = total > 0 ? Math.round((recettes / total) * 100) : 50;
+    const pd = 100 - pr;
+    document.getElementById('barRecette').style.width = pr + '%';
+    document.getElementById('barDepense').style.width = pd + '%';
+    document.getElementById('tauxRecette').textContent = `${pr}% Recettes / ${pd}% Dépenses`;
+
+    // 👤 Liste utilisateurs pour filtre
+    const selUtil = document.getElementById('filtreUtilisateur');
+    const valeurActuelle = selUtil.value;
+    selUtil.innerHTML = '<option value=""><span class="txt-fr">Tous</span><span class="txt-en">All</span></option>';
+    (res.operateurs || []).forEach(op => {
+      const opt = document.createElement('option');
+      opt.value = op.id_utilisateur;
+      opt.textContent = `${op.nom || ''} ${op.prenoms || ''} (${op.nb_ops || 0})`;
+      selUtil.appendChild(opt);
+    });
+    selUtil.value = valeurActuelle;
+
+    // 📊 Dessiner les graphiques
+    dessinerCamembert(res.parCategorie || []);
+    dessinerCourbe(res.evolution || []);
+
+    // 📋 Afficher la liste des opérations
+    document.getElementById('infoJournal').textContent = `${(res.operations || []).length} opération(s) trouvée(s)`;
+    afficher(res.operations || []);
+
+  } catch(e) {
+    console.error("❌ Erreur chargement :", e.message);
+    cont.innerHTML = `<div class="col-12 text-center text-danger py-5">
+      <i class="bi bi-exclamation-triangle fs-1"></i>
+      <p class="mt-2">${e.message}</p>
+      <button class="btn btn-primaire mt-3" onclick="charger()">🔄 Réessayer</button>
+    </div>`;
+  }
+}
+
+// 📊 Graphique Camembert — Répartition par catégorie
+function dessinerCamembert(liste) {
+  const labels = [], valeurs = [], couleurs = [];
+  const pal = ['#10b981','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#64748b'];
+  
+  liste.forEach((l, i) => {
+    labels.push((l.categorie || 'Autre').replace('_', ' '));
+    valeurs.push(parseFloat(l.total) || 0);
+    couleurs.push(pal[i % pal.length]);
+  });
+
+  const ctx = document.getElementById('camembert').getContext('2d');
+  if(graphCamembert) graphCamembert.destroy();
+  
+  graphCamembert = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: valeurs,
+        backgroundColor: couleurs,
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: '#f8fafc',
+            font: { size: 11 },
+            boxWidth: 12,
+            padding: 15
+          }
+        }
+      }
+    }
+  });
+}
+
+// 📈 Graphique Courbe — Évolution mensuelle
+function dessinerCourbe(liste) {
+  const labels = [], recettes = [], depenses = [];
+  
+  liste.forEach(l => {
+    labels.push(`${nomMois(l.mois)} ${l.annee}`);
+    recettes.push(parseFloat(l.recettes) || 0);
+    depenses.push(parseFloat(l.depenses) || 0);
+  });
+
+  const ctx = document.getElementById('courbe').getContext('2d');
+  if(graphCourbe) graphCourbe.destroy();
+  
+  graphCourbe = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Recettes',
+          data: recettes,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16,185,129,.1)',
+          fill: true,
+          tension: .4,
+          borderWidth: 2,
+          pointBackgroundColor: '#10b981',
+          pointRadius: 4
+        },
+        {
+          label: 'Dépenses',
+          data: depenses,
+          borderColor: '#ef4444',
+          backgroundColor: 'rgba(239,68,68,.1)',
+          fill: true,
+          tension: .4,
+          borderWidth: 2,
+          pointBackgroundColor: '#ef4444',
+          pointRadius: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: { color: '#f8fafc', usePointStyle: true, padding: 20 }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#cbd5e1' },
+          grid: { color: 'rgba(255,255,255,.05)' }
+        },
+        y: {
+          ticks: { color: '#cbd5e1' },
+          grid: { color: 'rgba(255,255,255,.05)' }
+        }
+      }
+    }
+  });
+}
+
+// ✏️ Modifier une opération
+window.modifierOperation = function(op) {
+  if(!estAdmin) { alert("⛔ Seul l'Administrateur peut modifier"); return; }
+  if(periodeClose) { alert("🔒 Période clôturée — Modification impossible"); return; }
+
+  const estRecette = op.type === 'recette';
+  if(estRecette) {
+    document.getElementById('titreModaleRecette').innerHTML = '💰 Modifier la Recette';
+    document.getElementById('idRecette').value = op.id_operation;
+    document.getElementById('libelleRecette').value = op.libelle || '';
+    document.getElementById('categorieRecette').value = op.categorie || 'autre';
+    document.getElementById('referenceRecette').value = op.reference || '';
+    document.getElementById('montantRecette').value = op.montant || '';
+    document.getElementById('paiementRecette').value = op.mode_paiement || 'especes';
+    document.getElementById('dateRecette').value = op.date_operation ? op.date_operation.split('T')[0] : '';
+    document.getElementById('commentaireRecette').value = op.commentaire || '';
+    new bootstrap.Modal(document.getElementById('modalOperation')).show();
+  } else {
+    document.getElementById('titreModaleDepense').innerHTML = '📉 Modifier la Dépense';
+    document.getElementById('idDepense').value = op.id_operation;
+    document.getElementById('libelleDepense').value = op.libelle || '';
+    document.getElementById('categorieDepense').value = op.categorie || 'autre';
+    document.getElementById('referenceDepense').value = op.reference || '';
+    document.getElementById('montantDepense').value = op.montant || '';
+    document.getElementById('paiementDepense').value = op.mode_paiement || 'especes';
+    document.getElementById('dateDepense').value = op.date_operation ? op.date_operation.split('T')[0] : '';
+    document.getElementById('commentaireDepense').value = op.commentaire || '';
+    new bootstrap.Modal(document.getElementById('modalDepense')).show();
+  }
+};
+
+// 🎨 Affichage des opérations dans les cartes
+function afficher(liste) {
+  const cont = document.getElementById('listeOperations');
+  if(!liste.length) {
+    cont.innerHTML = `<div class="col-12 text-center py-5 text-muted">
+      <p class="mb-0">Aucune opération ne correspond aux critères</p>
+    </div>`;
+    return;
+  }
+
+  cont.innerHTML = liste.map(op => {
+    const estRecette = op.type === 'recette';
+    const badge = estRecette ? 'badge-recette' : 'badge-depense';
+    const icone = estRecette ? '💰' : '📉';
+    const date = op.date_operation ? new Date(op.date_operation).toLocaleDateString('fr-CA') : '—';
+    const par = op.nom ? `${op.nom} ${op.prenoms || ''}` : '—';
+    const ref = op.reference ? `<span class="badge bg-secondary ms-2">${op.reference}</span>` : '';
+    const paiement = iconePaiement(op.mode_paiement);
+    const montant = formatMontant(op.montant);
+    const idOp = op.id_operation;
+
+    return `
+    <div class="col-md-6 col-lg-4">
+      <div class="carte p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="badge ${badge}">${icone} ${(op.type||'').toUpperCase()}</span>
+          <span class="small text-muted">${date} ${paiement}</span>
+        </div>
+        <h5 class="mb-1">${op.libelle || '—'} ${ref}</h5>
+        <p class="text-muted small mb-2">${(op.categorie||'autre').replace('_',' ')}</p>
+        <h4 class="montant ${estRecette?'recette':'depense'}">${montant}</h4>
+        ${op.commentaire?`<p class="small text-muted mt-2 fst-italic">${op.commentaire}</p>`:''}
+        <p class="small text-muted mt-2 mb-0">
+          <i class="bi bi-person-circle me-1"></i> ${par}
+        </p>
+        <!-- ✅ Boutons Modifier/Supprimer : VISIBLES SEULEMENT POUR L'ADMIN -->
+        <div class="d-flex gap-2 mt-3 no-print btn-admin-action">
+          <button class="btn btn-sm btn-outline-info flex-grow-1" onclick='modifierOperation(${JSON.stringify(op).replace(/'/g, "\\'")})' ${periodeClose?'disabled':''}>
+            <i class="bi bi-pencil"></i> Modifier
+          </button>
+          <button class="btn btn-sm btn-outline-danger flex-grow-1" onclick="supprimer(${idOp})" ${periodeClose?'disabled':''}>
+            <i class="bi bi-trash"></i> Supprimer
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// 💽 Enregistrer ou Modifier une opération
+async function enregistrer(form) {
+  if(periodeClose) { alert("🔒 Période clôturée — Impossible d'enregistrer"); return; }
+  
+  const data = Object.fromEntries(new FormData(form).entries());
+  
+  // Nettoyage ID pour détecter création vs modification
+  if(data.id_operation && data.id_operation !== '') {
+    data.id_operation = parseInt(data.id_operation);
+  } else {
+    delete data.id_operation;
+  }
+
+  // Date du jour si non renseignée
+  if(!data.date_operation) {
+    data.date_operation = new Date().toISOString().split('T')[0];
+  }
+
+  try {
+    const estModification = !!data.id_operation;
+    const url = estModification ? `${API_URL}/${data.id_operation}` : `${API_URL}/enregistrer`;
+    const methode = estModification ? 'PUT' : 'POST';
+
+    const r = await fetch(url, {
+      method: methode,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(data)
+    });
+
+    const texteBrut = await r.text();
+    let res;
+    try { res = JSON.parse(texteBrut); }
+    catch { throw new Error("Réponse invalide du serveur"); }
+
+    if(res.ok) {
+      bootstrap.Modal.getOrCreateInstance(form.closest('.modal')).hide();
+      form.reset();
+      // Réinitialiser la date à aujourd'hui
+      document.querySelector(`#${form.id} [name="date_operation"]`).valueAsDate = new Date();
+      // Réinitialiser titres des modales
+      document.getElementById('titreModaleRecette').innerHTML = '💰 Nouvelle Recette';
+      document.getElementById('titreModaleDepense').innerHTML = '📉 Nouvelle Dépense';
+      charger();
+      alert(estModification ? "✅ Opération mise à jour !" : "✅ Opération enregistrée !");
+    } else {
+      alert("❌ " + (res.erreur || "Erreur lors de l'enregistrement"));
+    }
+  } catch(e) {
+    alert("❌ Erreur réseau — Vérifiez que le serveur est démarré\n" + e.message);
+  }
+}
+
+// 🏷️ Enregistrer Budget Prévisionnel
+document.getElementById('formBudget').addEventListener('submit', async e => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target).entries());
+  data.mois = parseInt(data.mois);
+  data.annee = parseInt(data.annee);
+
+  try {
+    const r = await fetch(`${API_URL}/budget/enregistrer`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(data)
+    });
+
+    const texteBrut = await r.text();
+    let res;
+    try { res = JSON.parse(texteBrut); }
+    catch { throw new Error("Réponse invalide"); }
+
+    if(res.ok) {
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('modalBudget')).hide();
+      e.target.reset();
+      alert("✅ Budget enregistré !");
+    } else {
+      alert("❌ " + (res.erreur || "Erreur"));
+    }
+  } catch {
+    alert("❌ Erreur réseau — Vérifiez le serveur");
+  }
+});
+
+// ❌ Supprimer une opération
+window.supprimer = async function(id_operation) {
+  if(!estAdmin) { alert("⛔ Seul l'Administrateur peut supprimer"); return; }
+  if(periodeClose) { alert("🔒 Période clôturée — Suppression impossible"); return; }
+  if(!confirm("⚠️ Confirmer la suppression DÉFINITIVE de cette opération ?")) return;
+
+  try {
+    const r = await fetch(`${API_URL}/${id_operation}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    const texteBrut = await r.text();
+    let res;
+    try { res = JSON.parse(texteBrut); }
+    catch { throw new Error("Réponse invalide"); }
+
+    if(res.ok) {
+      charger();
+      alert("✅ Opération supprimée !");
+    } else {
+      alert("❌ " + (res.erreur || "Erreur suppression"));
+    }
+  } catch {
+    alert("❌ Erreur réseau — Vérifiez le serveur");
+  }
+};
+
+// 📄 Export PDF
+window.exporterRapportPDF = function() {
+  alert("✅ Rapport généré !\n\n→ Utilisez la fonction « Imprimer » puis choisissez « Enregistrer au format PDF »");
+  window.print();
+};
+
+// 💾 Export CSV
+window.exporterCSV = function() {
+  if(!donneesGlobales || !donneesGlobales.operations?.length) {
+    alert("⚠️ Aucune donnée à exporter");
+    return;
+  }
+
+  const entetes = ['Date','Type','Libellé','Catégorie','Montant','Mode Paiement','Référence','Observations','Enregistré par'];
+  const lignes = donneesGlobales.operations.map(op => [
+    op.date_operation ? new Date(op.date_operation).toLocaleDateString('fr-CA') : '',
+    op.type || '',
+    `"${(op.libelle||'').replace(/"/g,'""')}"`,
+    op.categorie || '',
+    op.montant || 0,
+    op.mode_paiement || 'especes',
+    op.reference || '',
+    `"${(op.commentaire||'').replace(/"/g,'""')}"`,
+    op.nom ? `${op.nom} ${op.prenoms||''}` : ''
+  ].join(';'));
+
+  const csv = entetes.join(';') + '\n' + lignes.join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `finances-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+// 🔄 Événements des formulaires et filtres
+document.getElementById('formRecette').addEventListener('submit', e => {
+  e.preventDefault();
+  enregistrer(e.target);
+});
+document.getElementById('formDepense').addEventListener('submit', e => {
+  e.preventDefault();
+  enregistrer(e.target);
+});
+
+document.getElementById('filtreType').addEventListener('change', charger);
+document.getElementById('filtreCategorie').addEventListener('change', charger);
+document.getElementById('filtreMois').addEventListener('change', charger);
+document.getElementById('filtreAnnee').addEventListener('change', charger);
+document.getElementById('filtreUtilisateur').addEventListener('change', charger);
+document.getElementById('recherche').addEventListener('input', debounce(charger, 400));
+
+document.getElementById('btnReinitialiser').addEventListener('click', () => {
+  document.getElementById('filtreType').value = '';
+  document.getElementById('filtreCategorie').value = '';
+  document.getElementById('filtreMois').value = '';
+  document.getElementById('filtreUtilisateur').value = '';
+  document.getElementById('recherche').value = '';
+  charger();
+});
+
+// ⏱️ Évite trop d'appels au serveur pendant la saisie
+function debounce(f, ms) {
+  let t;
+  return (...a) => {
+    clearTimeout(t);
+    t = setTimeout(() => f.apply(this, a), ms);
+  };
+}
+
+// 🚀 Initialisation — Dates par défaut = aujourd'hui
+document.querySelector('#formRecette [name="date_operation"]').valueAsDate = new Date();
+document.querySelector('#formDepense [name="date_operation"]').valueAsDate = new Date();
+
+// 📦 Chargement au démarrage
+charger();
+</script>
+
+</body>
+</html>

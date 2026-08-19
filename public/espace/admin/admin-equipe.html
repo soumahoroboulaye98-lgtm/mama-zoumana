@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administration — Équipe pédagogique</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body { background: #f0f4f8; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { color: #1e40af; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
+    .barre { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    button { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+    .btn-ajouter { background: #16a34a; color: white; }
+    .btn-ajouter:hover { background: #15803d; }
+    .btn-modif { background: #f59e0b; color: white; padding: 6px 12px; font-size: 14px; margin-right: 5px; }
+    .btn-suppr { background: #ef4444; color: white; padding: 6px 12px; font-size: 14px; }
+    .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .card h3 { color: #1e293b; margin-bottom: 6px; }
+    .card p { color: #64748b; font-size: 14px; margin-bottom: 4px; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 100; }
+    .modal.active { display: flex; }
+    .modal-contenu { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+    .modal-contenu h2 { margin-bottom: 20px; color: #1e40af; }
+    input, textarea, select { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+    .ligne { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+    .btn-fermer { background: #e2e8f0; color: #334155; }
+    .btn-valider { background: #1e40af; color: white; }
+    .message { margin-top: 15px; padding: 10px; border-radius: 6px; display: none; }
+    .message.succes { background: #dcfce7; color: #166534; display: block; }
+    .message.erreur { background: #fee2e2; color: #991b1b; display: block; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>👨‍🏫 Gestion de l'Équipe Pédagogique</h1>
+  <div class="barre">
+    <p id="compteur"></p>
+    <button class="btn-ajouter" onclick="ouvrirFormulaire()">➕ Ajouter un membre</button>
+  </div>
+  <div id="liste"></div>
+</div>
+
+<!-- MODAL FORMULAIRE -->
+<div class="modal" id="formModal">
+  <div class="modal-contenu">
+    <h2 id="titreForm">Ajouter un membre</h2>
+    <form id="formMembre">
+      <input type="hidden" id="id">
+      <div class="ligne">
+        <input type="text" id="nom" placeholder="Nom *" required>
+        <input type="text" id="prenoms" placeholder="Prénoms *" required>
+      </div>
+      <div class="ligne">
+        <input type="text" id="poste_fr" placeholder="Poste (FR) *" required>
+        <input type="text" id="poste_en" placeholder="Poste (EN)">
+      </div>
+      <input type="text" id="poste_ar" placeholder="Poste (AR)">
+      <div class="ligne">
+        <input type="text" id="matiere_fr" placeholder="Matière (FR)">
+        <input type="text" id="matiere_en" placeholder="Matière (EN)">
+      </div>
+      <input type="text" id="matiere_ar" placeholder="Matière (AR)">
+      <textarea id="presentation_fr" rows="3" placeholder="Présentation (FR)"></textarea>
+      <textarea id="presentation_en" rows="3" placeholder="Présentation (EN)"></textarea>
+      <textarea id="presentation_ar" rows="3" placeholder="Présentation (AR)"></textarea>
+      <div class="ligne">
+        <input type="text" id="photo_url" placeholder="URL Photo">
+        <input type="email" id="email" placeholder="Email">
+      </div>
+      <div class="ligne">
+        <input type="number" id="ordre" placeholder="Ordre" value="1">
+        <label style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+          <input type="checkbox" id="est_actif" checked> Actif
+        </label>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn-fermer" onclick="fermerFormulaire()">Annuler</button>
+        <button type="submit" class="btn-valider">Enregistrer</button>
+      </div>
+      <div class="message" id="message"></div>
+    </form>
+  </div>
+</div>
+
+<script>
+const API = '/api/equipe';
+let listeMembres = [];
+
+async function chargerListe() {
+  const res = await fetch(`${API}/liste?tout=1`);
+  const data = await res.json();
+  listeMembres = data.membres || [];
+  document.getElementById('compteur').textContent = `${listeMembres.length} membre(s)`;
+  afficherListe();
+}
+
+function afficherListe() {
+  const conteneur = document.getElementById('liste');
+  conteneur.innerHTML = '';
+  listeMembres.forEach(m => {
+    conteneur.innerHTML += `
+      <div class="card">
+        <h3>${m.prenoms} ${m.nom}</h3>
+        <p><strong>Poste :</strong> ${m.poste_fr}</p>
+        ${m.matiere_fr ? `<p><strong>Matière :</strong> ${m.matiere_fr}</p>` : ''}
+        ${m.email ? `<p><strong>Email :</strong> ${m.email}</p>` : ''}
+        <p><strong>Ordre :</strong> ${m.ordre} — ${m.est_actif ? '✅ Actif' : '❌ Inactif'}</p>
+        <div style="margin-top:10px">
+          <button class="btn-modif" onclick="modifier(${m.id})">✏️ Modifier</button>
+          <button class="btn-suppr" onclick="supprimer(${m.id})">🗑️ Supprimer</button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function ouvrirFormulaire() {
+  document.getElementById('formMembre').reset();
+  document.getElementById('id').value = '';
+  document.getElementById('titreForm').textContent = 'Ajouter un membre';
+  document.getElementById('est_actif').checked = true;
+  document.getElementById('formModal').classList.add('active');
+}
+
+function modifier(id) {
+  const m = listeMembres.find(x => x.id === id);
+  Object.keys(m).forEach(k => {
+    const el = document.getElementById(k);
+    if (el) {
+      if (el.type === 'checkbox') el.checked = m[k];
+      else el.value = m[k] || '';
+    }
+  });
+  document.getElementById('titreForm').textContent = 'Modifier un membre';
+  document.getElementById('formModal').classList.add('active');
+}
+
+function fermerFormulaire() {
+  document.getElementById('formModal').classList.remove('active');
+  document.getElementById('message').className = 'message';
+  document.getElementById('message').textContent = '';
+}
+
+document.getElementById('formMembre').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = document.getElementById('id').value;
+  const donnees = {
+    nom: document.getElementById('nom').value,
+    prenoms: document.getElementById('prenoms').value,
+    poste_fr: document.getElementById('poste_fr').value,
+    poste_en: document.getElementById('poste_en').value,
+    poste_ar: document.getElementById('poste_ar').value,
+    matiere_fr: document.getElementById('matiere_fr').value,
+    matiere_en: document.getElementById('matiere_en').value,
+    matiere_ar: document.getElementById('matiere_ar').value,
+    presentation_fr: document.getElementById('presentation_fr').value,
+    presentation_en: document.getElementById('presentation_en').value,
+    presentation_ar: document.getElementById('presentation_ar').value,
+    photo_url: document.getElementById('photo_url').value,
+    email: document.getElementById('email').value,
+    ordre: parseInt(document.getElementById('ordre').value),
+    est_actif: document.getElementById('est_actif').checked
+  };
+
+  const url = id ? `${API}/${id}` : `${API}/ajouter`;
+  const methode = id ? 'PUT' : 'POST';
+  const res = await fetch(url, {
+    method: methode,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(donnees)
+  });
+  const rep = await res.json();
+
+  const msg = document.getElementById('message');
+  if (rep.ok) {
+    msg.className = 'message succes';
+    msg.textContent = id ? '✅ Membre modifié !' : '✅ Membre ajouté !';
+    await chargerListe();
+    setTimeout(fermerFormulaire, 1200);
+  } else {
+    msg.className = 'message erreur';
+    msg.textContent = `❌ ${rep.erreur}`;
+  }
+});
+
+async function supprimer(id) {
+  if (!confirm('Confirmer la suppression ?')) return;
+  await fetch(`${API}/${id}`, { method: 'DELETE' });
+  await chargerListe();
+}
+
+chargerListe();
+</script>
+</body>
+</html>

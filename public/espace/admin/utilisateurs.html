@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion Utilisateurs — Admin MAMA-ZOUMANA</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b;
+      --orange-clair: #fbbf24;
+      --valide: #10b981;
+      --refuse: #ef4444;
+      --attente: #f59e0b;
+      --texte: #f8fafc;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;transition:all 0.25s ease}
+    body{background:var(--sombre);color:var(--texte);min-height:100vh;font-family:'Segoe UI',sans-serif;}
+    .lang-fr .lang-en, .lang-fr .lang-ar,
+    .lang-en .lang-fr, .lang-en .lang-ar,
+    .lang-ar .lang-fr, .lang-ar .lang-en { display: none !important; }
+    body.lang-ar { direction: rtl; text-align: right; }
+    @keyframes bordTourne {0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+    .btn-anim-orange{position:relative;background:var(--sombre-clair);color:var(--texte);border:none;border-radius:10px;overflow:hidden;z-index:1;}
+    .btn-anim-orange::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(transparent,var(--bord-orange),transparent 30%);animation:bordTourne 2.5s linear infinite;z-index:-2;}
+    .btn-anim-orange::after{content:'';position:absolute;inset:2px;background:var(--sombre-clair);border-radius:8px;z-index:-1;}
+    .btn-valide-lumineux{background:var(--valide);color:white;border-radius:8px;box-shadow:0 0 12px rgba(16,185,129,0.35);border:none;}
+    .btn-valide-lumineux:hover{box-shadow:0 0 20px rgba(16,185,129,0.6);transform:translateY(-1px)}
+    .btn-refuse-lumineux{background:var(--refuse);color:white;border-radius:8px;box-shadow:0 0 12px rgba(239,68,68,0.35);border:none;}
+    .btn-refuse-lumineux:hover{box-shadow:0 0 20px rgba(239,68,68,0.6);transform:translateY(-1px)}
+    .btn-modifier-lumineux{background:var(--bord-orange);color:white;border-radius:8px;box-shadow:0 0 12px rgba(245,158,11,0.35);border:none;}
+    .btn-modifier-lumineux:hover{box-shadow:0 0 20px rgba(245,158,11,0.6);transform:translateY(-1px)}
+    .entete-page{background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.5rem 0;}
+    .carte-filtre{background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);padding:1.25rem;margin-bottom:1rem;}
+    .tableau{background:#fff;border-radius:12px;overflow:hidden;}
+    .table thead{background:linear-gradient(90deg,var(--sombre-clair),#1e3a5f);border-bottom:2px solid var(--bord-orange);}
+    .table th {color:#fff !important;border:none;padding:12px 8px;font-weight:bold;}
+    .table td {border:none;border-bottom:1px solid #ddd;padding:12px 8px;color:#000 !important;}
+    .table tbody tr {background:#fff !important;}
+    .statut-actif{background:rgba(16,185,129,0.15);color:#10b981;padding:4px 10px;border-radius:20px;font-size:0.85rem;font-weight:500}
+    .statut-attente{background:rgba(245,158,11,0.15);color:#f59e0b;padding:4px 10px;border-radius:20px;font-size:0.85rem;font-weight:500}
+    .statut-refuse{background:rgba(239,68,68,0.15);color:#ef4444;padding:4px 10px;border-radius:20px;font-size:0.85rem;font-weight:500}
+    .form-control,.form-select{background:#f8fafc;border:1px solid #cbd5e1;color:#000;border-radius:8px;}
+    .form-control:focus,.form-select:focus{border-color:var(--bord-orange);box-shadow:0 0 0 3px rgba(245,158,11,0.15);}
+    .modal-content{background:var(--sombre-clair);border:2px solid var(--bord-orange);border-radius:14px;}
+    .modal-header{background:linear-gradient(90deg,var(--sombre-clair),#1e3a5f);border-bottom:2px solid var(--bord-orange);color:white;}
+    .btn-close{filter:invert(1)}
+    .btn-langue {border-radius:50px !important;border:none;margin:0 2px;}
+    .btn-langue.actif {background:var(--bord-orange);color:#000;font-weight:bold;}
+  </style>
+</head>
+<body>
+
+<!-- 🔒 PROTECTION + LANGUE -->
+<script>
+if(!localStorage.getItem('token') || !['admin','super_admin'].includes(localStorage.getItem('role'))){
+  alert("⛔ Accès réservé à l'administrateur");
+  location.href='../connexion.html';
+}
+const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+document.body.classList.add('lang-' + langueSauvegardee);
+function appliquerLangue(lang){
+  localStorage.setItem('langue', lang);
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + lang);
+  document.querySelectorAll('.btn-langue').forEach(b=>b.classList.remove('actif'));
+  event.currentTarget.classList.add('actif');
+}
+</script>
+
+<div class="entete-page">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div>
+      <h3 class="mb-1">👥 
+        <span class="lang-fr">Gestion des Utilisateurs</span>
+        <span class="lang-en">User Management</span>
+        <span class="lang-ar">إدارة المستخدمين</span>
+      </h3>
+      <p class="mb-0 opacity-80">
+        <span class="lang-fr">Liste complète des comptes validés</span>
+        <span class="lang-en">Complete list of active user accounts</span>
+        <span class="lang-ar">قائمة الحسابات المصدقة</span>
+      </p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <button data-lang="fr" class="btn btn-langue btn-sm" onclick="appliquerLangue('fr')">FR</button>
+      <button data-lang="en" class="btn btn-langue btn-sm" onclick="appliquerLangue('en')">EN</button>
+      <button data-lang="ar" class="btn btn-langue btn-sm" onclick="appliquerLangue('ar')">AR</button>
+      <a href="dashboard.html" class="btn btn-anim-orange px-4 py-2 ms-2">
+        <i class="bi bi-arrow-left"></i> 
+        <span class="lang-fr">Retour</span>
+        <span class="lang-en">Back</span>
+        <span class="lang-ar">رجوع</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container py-4">
+  <!-- FILTRES -->
+  <div class="carte-filtre">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <input type="text" id="recherche" class="form-control" placeholder="🔍 Rechercher nom, email..." onkeyup="chargerUtilisateurs()">
+      </div>
+      <div class="col-md-3">
+        <select id="filtre-profil" class="form-select" onchange="chargerUtilisateurs()">
+          <option value="">
+            <span class="lang-fr">Tous profils</span>
+            <span class="lang-en">All profiles</span>
+            <span class="lang-ar">جميع الأنماط</span>
+          </option>
+          <option value="admin"><span class="lang-fr">🔧 Admin</span><span class="lang-en">🔧 Admin</span><span class="lang-ar">🔧 مدير</span></option>
+          <option value="directeur"><span class="lang-fr">🏫 Directeur</span><span class="lang-en">🏫 Principal</span><span class="lang-ar">🏫 المدير</span></option>
+          <option value="prof"><span class="lang-fr">👨‍🏫 Enseignant</span><span class="lang-en">👨‍🏫 Teacher</span><span class="lang-ar">👨‍🏫 معلم</span></option>
+          <option value="comptable"><span class="lang-fr">💰 Comptable</span><span class="lang-en">💰 Accountant</span><span class="lang-ar">💰 المحاسب</span></option>
+          <option value="secretaire"><span class="lang-fr">📝 Secrétaire</span><span class="lang-en">📝 Secretary</span><span class="lang-ar">📝 السكرتير</span></option>
+          <option value="eleve"><span class="lang-fr">🎓 Élève</span><span class="lang-en">🎓 Student</span><span class="lang-ar">🎓 تلميذ</span></option>
+          <option value="parent"><span class="lang-fr">👨‍👩‍👧 Parent</span><span class="lang-en">👨‍👩‍👧 Parent</span><span class="lang-ar">👨‍👩‍👧 ولي الأمر</span></option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select id="filtre-statut" class="form-select" onchange="chargerUtilisateurs()">
+          <option value="">
+            <span class="lang-fr">Tous statuts</span>
+            <span class="lang-en">All status</span>
+            <span class="lang-ar">جميع الحالات</span>
+          </option>
+          <option value="valide"><span class="lang-fr">✅ Actif</span><span class="lang-en">✅ Active</span><span class="lang-ar">✅ نشط</span></option>
+          <option value="en_attente"><span class="lang-fr">⏳ En attente</span><span class="lang-en">⏳ Pending</span><span class="lang-ar">⏳ قيد الانتظار</span></option>
+          <option value="refusee"><span class="lang-fr">❌ Refusé</span><span class="lang-en">❌ Rejected</span><span class="lang-ar">❌ مرفوض</span></option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-valide-lumineux w-100 fw-bold" onclick="ouvrirModalAjout()">
+          ➕ <span class="lang-fr">Ajouter</span><span class="lang-en">Add</span><span class="lang-ar">إضافة</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLEAU -->
+  <div class="tableau">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th><span class="lang-fr">Nom & Prénoms</span><span class="lang-en">Full Name</span><span class="lang-ar">الاسم الكامل</span></th>
+          <th><span class="lang-fr">Email</span><span class="lang-en">Email</span><span class="lang-ar">البريد</span></th>
+          <th><span class="lang-fr">Téléphone</span><span class="lang-en">Phone</span><span class="lang-ar">الهاتف</span></th>
+          <th><span class="lang-fr">Profil</span><span class="lang-en">Profile</span><span class="lang-ar">النوع</span></th>
+          <th><span class="lang-fr">Statut</span><span class="lang-en">Status</span><span class="lang-ar">الحالة</span></th>
+          <th class="text-center"><span class="lang-fr">Actions</span><span class="lang-en">Actions</span><span class="lang-ar">إجراءات</span></th>
+        </tr>
+      </thead>
+      <tbody id="liste-utilisateurs">
+        <tr><td colspan="6" class="text-center py-5">
+          <div class="spinner-border text-warning"></div>
+          <p class="mt-3 mb-0">Chargement...</p>
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL : AJOUTER / MODIFIER -->
+<div class="modal fade" id="modalUtilisateur" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <span class="lang-fr">Utilisateur</span>
+          <span class="lang-en">User</span>
+          <span class="lang-ar">المستخدم</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="utilisateur-id">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-bold"><span class="lang-fr">Nom *</span><span class="lang-en">Last Name *</span><span class="lang-ar">اللقب *</span></label>
+            <input type="text" id="utilisateur-nom" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold"><span class="lang-fr">Prénoms *</span><span class="lang-en">First Name *</span><span class="lang-ar">الاسم الأول *</span></label>
+            <input type="text" id="utilisateur-prenoms" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold"><span class="lang-fr">Email *</span><span class="lang-en">Email *</span><span class="lang-ar">البريد *</span></label>
+            <input type="email" id="utilisateur-email" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold"><span class="lang-fr">Téléphone</span><span class="lang-en">Phone</span><span class="lang-ar">الهاتف</span></label>
+            <input type="tel" id="utilisateur-telephone" class="form-control">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold"><span class="lang-fr">Profil *</span><span class="lang-en">Profile *</span><span class="lang-ar">النوع *</span></label>
+            <select id="utilisateur-profil" class="form-select">
+              <option value="admin">🔧 Admin</option>
+              <option value="directeur">🏫 Directeur</option>
+              <option value="prof">👨‍🏫 Enseignant</option>
+              <option value="comptable">💰 Comptable</option>
+              <option value="secretaire">📝 Secrétaire</option>
+              <option value="eleve">🎓 Élève</option>
+              <option value="parent">👨‍👩‍👧 Parent</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold"><span class="lang-fr">Statut</span><span class="lang-en">Status</span><span class="lang-ar">الحالة</span></label>
+            <select id="utilisateur-statut" class="form-select">
+              <option value="valide">✅ Actif</option>
+              <option value="en_attente">⏳ En attente</option>
+              <option value="refusee">❌ Refusé</option>
+            </select>
+          </div>
+          <div class="col-md-12" id="bloc-mdp">
+            <label class="form-label fw-bold"><span class="lang-fr">Mot de passe</span><span class="lang-en">Password</span><span class="lang-ar">كلمة المرور</span></label>
+            <input type="text" id="utilisateur-mdp" class="form-control" placeholder="Laissez vide pour ne pas modifier">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <span class="lang-fr">Annuler</span><span class="lang-en">Cancel</span><span class="lang-ar">إلغاء</span>
+        </button>
+        <button type="button" class="btn btn-valide-lumineux" onclick="enregistrerUtilisateur()">💾 
+          <span class="lang-fr">Enregistrer</span><span class="lang-en">Save</span><span class="lang-ar">حفظ</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API_BASE = "http://localhost:5000/api";
+let modal;
+document.addEventListener('DOMContentLoaded', () => {
+  modal = new bootstrap.Modal(document.getElementById('modalUtilisateur'));
+  document.querySelectorAll('.btn-langue').forEach(b=>{
+    b.classList.toggle('actif', b.dataset.lang === langueSauvegardee);
+  });
+  chargerUtilisateurs();
+});
+
+// 📥 CHARGER LA LISTE
+async function chargerUtilisateurs(){
+  const recherche = document.getElementById('recherche').value.toLowerCase();
+  const profil = document.getElementById('filtre-profil').value;
+  const statut = document.getElementById('filtre-statut').value;
+  const token = localStorage.getItem('token');
+
+  try {
+    const res = await fetch(`${API_BASE}/auth/utilisateurs`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await res.json();
+    const liste = document.getElementById('liste-utilisateurs');
+
+    if(!data.ok || !data.lignes || data.lignes.length === 0){
+      liste.innerHTML = `<tr><td colspan="6" class="text-center py-5 opacity-75">
+        <span class="lang-fr">Aucun utilisateur trouvé</span>
+        <span class="lang-en">No user found</span>
+        <span class="lang-ar">لم يتم العثور على مستخدمين</span>
+      </td></tr>`;
+      return;
+    }
+
+    let utilisateurs = data.lignes;
+    if(recherche){
+      utilisateurs = utilisateurs.filter(u => 
+        ((u.nom||'')+' '+(u.prenoms||'')).toLowerCase().includes(recherche) ||
+        ((u.email||'').toLowerCase().includes(recherche))
+      );
+    }
+    if(profil) utilisateurs = utilisateurs.filter(u => u.role === profil);
+    if(statut) utilisateurs = utilisateurs.filter(u => u.statut_compte === statut);
+
+    liste.innerHTML = utilisateurs.map(u => {
+      const statutActuel = u.statut_compte || 'en_attente';
+      const classeStatut = statutActuel==='valide'?'statut-actif':statutActuel==='refusee'?'statut-refuse':'statut-attente';
+      const libelleStatut = statutActuel==='valide'?'✅ Actif':statutActuel==='refusee'?'❌ Refusé':'⏳ En attente';
+      const nomComplet = `${u.nom||''} ${u.prenoms||''}`;
+      const id = u.id_utilisateur;
+      const roleLabel = {
+        admin:'🔧 Admin', directeur:'🏫 Directeur', prof:'👨‍🏫 Enseignant',
+        comptable:'💰 Comptable', secretaire:'📝 Secrétaire', eleve:'🎓 Élève', parent:'👨‍👩‍👧 Parent'
+      }[u.role] || u.role;
+
+      return `
+        <tr>
+          <td><strong>${nomComplet}</strong></td>
+          <td>${u.email||'—'}</td>
+          <td>${u.telephone||'—'}</td>
+          <td>${roleLabel}</td>
+          <td><span class="${classeStatut}">${libelleStatut}</span></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-modifier-lumineux" onclick="modifierUtilisateur(${id})" title="Modifier">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-sm btn-refuse-lumineux" onclick="supprimerUtilisateur(${id}, '${nomComplet.replace(/'/g, "\\'")}')" title="Supprimer">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+  } catch (e) {
+    console.error("Erreur chargement :", e);
+    document.getElementById('liste-utilisateurs').innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">
+      ❌ Erreur de chargement
+    </td></tr>`;
+  }
+}
+
+// ➕ OUVRIR MODAL AJOUT
+function ouvrirModalAjout(){
+  document.getElementById('utilisateur-id').value = '';
+  document.getElementById('utilisateur-nom').value = '';
+  document.getElementById('utilisateur-prenoms').value = '';
+  document.getElementById('utilisateur-email').value = '';
+  document.getElementById('utilisateur-telephone').value = '';
+  document.getElementById('utilisateur-profil').value = 'eleve';
+  document.getElementById('utilisateur-statut').value = 'valide';
+  document.getElementById('utilisateur-mdp').value = '';
+  document.getElementById('bloc-mdp').style.display = 'block';
+  modal.show();
+}
+
+// ✏️ CHARGER POUR MODIFICATION
+async function modifierUtilisateur(id){
+  document.getElementById('utilisateur-id').value = id;
+  document.getElementById('bloc-mdp').style.display = 'none';
+
+  try {
+    const res = await fetch(`${API_BASE}/auth/utilisateur/${id}`, {
+      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+    });
+    const u = await res.json();
+    if(u.ok && u.utilisateur){
+      document.getElementById('utilisateur-nom').value = u.utilisateur.nom||'';
+      document.getElementById('utilisateur-prenoms').value = u.utilisateur.prenoms||'';
+      document.getElementById('utilisateur-email').value = u.utilisateur.email||'';
+      document.getElementById('utilisateur-telephone').value = u.utilisateur.telephone||'';
+      document.getElementById('utilisateur-profil').value = u.utilisateur.role||'eleve';
+      document.getElementById('utilisateur-statut').value = u.utilisateur.statut_compte||'en_attente';
+    }
+  } catch (e) { console.error("Erreur chargement :", e); }
+  modal.show();
+}
+
+// 💾 ENREGISTRER
+async function enregistrerUtilisateur(){
+  const id = document.getElementById('utilisateur-id').value;
+  const token = localStorage.getItem('token');
+  
+  const donnees = {
+    nom: document.getElementById('utilisateur-nom').value,
+    prenoms: document.getElementById('utilisateur-prenoms').value,
+    email: document.getElementById('utilisateur-email').value,
+    telephone: document.getElementById('utilisateur-telephone').value,
+    role: document.getElementById('utilisateur-profil').value,
+    statut_compte: document.getElementById('utilisateur-statut').value
+  };
+  const mdp = document.getElementById('utilisateur-mdp').value;
+  if(mdp) donnees.mot_de_passe = mdp;
+
+  if(!donnees.nom || !donnees.prenoms || !donnees.email){
+    alert("⚠️ Remplis Nom, Prénoms et Email !"); return;
+  }
+
+  const url = id ? `${API_BASE}/auth/utilisateur/${id}` : `${API_BASE}/auth/creer-utilisateur`;
+  const methode = id ? 'PUT' : 'POST';
+
+  try {
+    const res = await fetch(url, {
+      method: methode,
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify(donnees)
+    });
+    const r = await res.json();
+
+    if(r.ok){
+      alert("✅ Enregistré avec succès !");
+      modal.hide();
+      chargerUtilisateurs();
+    } else {
+      alert("❌ Erreur : " + (r.erreur||'Erreur inconnue'));
+    }
+  } catch (e) {
+    alert("❌ Erreur de connexion au serveur");
+    console.error(e);
+  }
+}
+
+// 🗑️ SUPPRIMER
+async function supprimerUtilisateur(id, nom){
+  const token = localStorage.getItem('token');
+  if(!confirm(`⚠️ Confirmer la suppression de : "${nom}" ?`)) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/auth/utilisateur/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const r = await res.json();
+
+    if(r.ok){
+      alert("✅ Supprimé !");
+      chargerUtilisateurs();
+    } else {
+      alert("❌ Erreur : " + (r.erreur||''));
+    }
+  } catch (e) {
+    alert("❌ Erreur de connexion");
+    console.error(e);
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion Préinscriptions — Admin MAMA-ZOUMANA</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root { --primaire: #0c4a6e; --secondaire: #0369a1; --accent: #f59e0b; --succes: #10b981; --alerte: #ef4444; --sombre: #0f172a; --clair: #f8fafc; }
+    *{margin:0;padding:0;box-sizing:border-box;border-radius:10px !important}
+    body{background:var(--sombre);color:var(--clair);font-family:'Segoe UI',sans-serif;min-height:100vh}
+    .entete{background:linear-gradient(135deg,var(--primaire),var(--secondaire));padding:20px 30px;margin-bottom:25px;display:flex;justify-content:space-between;align-items:center}
+    .btn-retour{color:white;text-decoration:none;font-weight:500}
+    .statut{padding:4px 10px;border-radius:20px;font-size:0.85rem;font-weight:600}
+    .attente{background:rgba(245,158,11,0.2);color:var(--accent);border:1px solid var(--accent)}
+    .validee{background:rgba(16,185,129,0.2);color:var(--succes);border:1px solid var(--succes)}
+    .refusee{background:rgba(239,68,68,0.2);color:var(--alerte);border:1px solid var(--alerte)}
+    .btn-valider{background:var(--succes);color:white;border:none;padding:6px 12px;font-weight:500}
+    .btn-refuser{background:var(--alerte);color:white;border:none;padding:6px 12px;font-weight:500}
+    .btn-doc{background:var(--primaire);color:white;border:none;padding:4px 8px;font-size:0.8rem;font-weight:500;text-decoration:none;display:inline-block;margin:2px}
+    .btn-doc:hover{background:var(--secondaire);color:white}
+    .matricule{font-weight:700;color:var(--accent);font-size:0.9rem}
+    .table-responsive{padding:0 15px}
+    table{background:rgba(15,23,42,0.95);border-radius:12px;overflow:hidden;width:100%}
+    th{background:var(--primaire);color:white;text-align:center;padding:12px;white-space:nowrap}
+    td{padding:10px;text-align:center;border-bottom:1px solid #334155;vertical-align:middle}
+    .alert{margin:15px;border-radius:10px}
+    .mini-img{width:45px;height:45px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid #475569}
+    .mini-img:hover{border-color:var(--accent);transform:scale(1.1);transition:0.2s}
+    .docs-col{min-width:160px}
+    .nom-col{min-width:160px}
+    .modal-img{max-width:100%;max-height:80vh;border-radius:8px}
+  </style>
+</head>
+<body>
+
+<!-- 🔒 PROTECTION -->
+<script>
+if(!localStorage.getItem('token') || !['admin','super_admin'].includes(localStorage.getItem('role'))){
+  alert("⛔ Accès réservé à l'administrateur");
+  location.href='dashboard.html';
+}
+</script>
+
+<!-- 🧭 ENTÊTE -->
+<div class="entete">
+  <a href="dashboard.html" class="btn-retour"><i class="bi bi-arrow-left"></i> Retour Tableau de bord</a>
+  <h3 class="mb-0 text-white"><i class="bi bi-person-lines-fill"></i> Gestion des Préinscriptions</h3>
+  <button class="btn btn-outline-light btn-sm" onclick="chargerListe()"><i class="bi bi-arrow-clockwise"></i> Actualiser</button>
+</div>
+
+<div class="container-fluid">
+  <div id="msg"></div>
+  <div class="table-responsive">
+    <table class="table table-dark table-striped">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th class="nom-col">Nom & Prénoms</th>
+          <th>Profil</th>
+          <th>Classe</th>
+          <th>Documents / Photo</th>
+          <th>Contact</th>
+          <th>Date demande</th>
+          <th>Statut</th>
+          <th>Matricule</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="corpsTableau">
+        <tr><td colspan="10" class="text-center py-4">Chargement en cours...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 🖼️ MODALE AFFICHAGE PHOTO -->
+<div class="modal fade" id="modalPhoto" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content bg-dark text-white">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title">📷 Photo d'identité</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body text-center p-4">
+        <img id="imgApercu" class="modal-img" src="" alt="Photo d'identité">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = "http://localhost:5000/api";
+
+// 📋 CHARGER LA LISTE
+async function chargerListe(){
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_BASE}/preinscription/en-attente`, {
+    headers:{'Authorization':'Bearer '+token}
+  });
+  const d = await res.json();
+
+  if(!d.ok || !d.lignes || d.lignes.length === 0){
+    document.getElementById('corpsTableau').innerHTML = `<tr><td colspan="10" class="text-center py-4 text-warning">Aucune demande en attente</td></tr>`;
+    return;
+  }
+
+  document.getElementById('corpsTableau').innerHTML = d.lignes.map((x,i) => {
+    let classeStatut = '';
+    if(x.statut_preinscription === 'en_attente') classeStatut = 'attente';
+    else if(x.statut_preinscription === 'valide') classeStatut = 'validee';
+    else if(x.statut_preinscription === 'refusee') classeStatut = 'refusee';
+
+    // ✅ CONSTRUCTION DES LIENS DE DOCUMENTS
+    const photoUrl = x.photo_identite ? `${API_BASE}/uploads/${x.photo_identite}` : null;
+    const extraitUrl = x.extrait_naissance ? `${API_BASE}/uploads/${x.extrait_naissance}` : null;
+    const bulletinUrl = x.bulletin ? `${API_BASE}/uploads/${x.bulletin}` : null;
+    const cvUrl = x.cv ? `${API_BASE}/uploads/${x.cv}` : null;
+
+    // ✅ BLOC DOCUMENTS
+    let blocDocs = '';
+    if(photoUrl){
+      blocDocs += `<img src="${photoUrl}" class="mini-img me-1 mb-1" alt="Photo" onclick="voirPhoto('${photoUrl}')" title="Cliquer pour voir la photo">`;
+    } else {
+      blocDocs += `<span class="text-muted small">—</span>`;
+    }
+    if(extraitUrl) blocDocs += `<a href="${extraitUrl}" target="_blank" class="btn-doc"><i class="bi bi-file-earmark-text"></i> Extrait</a><br>`;
+    if(bulletinUrl) blocDocs += `<a href="${bulletinUrl}" target="_blank" class="btn-doc"><i class="bi bi-file-earmark-bar-graph"></i> Bulletin</a><br>`;
+    if(cvUrl) blocDocs += `<a href="${cvUrl}" target="_blank" class="btn-doc"><i class="bi bi-file-earmark-pdf"></i> CV</a>`;
+    if(!extraitUrl && !bulletinUrl && !cvUrl) blocDocs += `<br><span class="text-muted small">Aucun document</span>`;
+
+    return `
+    <tr>
+      <td>${i+1}</td>
+      <td class="text-start fw-medium">${x.nom} ${x.prenoms}</td>
+      <td><span class="badge bg-secondary">${x.profil.toUpperCase()}</span></td>
+      <td><small>${x.libelle_classe || x.id_classe || '—'}</small></td>
+      <td class="docs-col">${blocDocs}</td>
+      <td><small>${x.email}<br>${x.telephone}</small></td>
+      <td><small>${new Date(x.date_preinscription).toLocaleString('fr-FR')}</small></td>
+      <td><span class="statut ${classeStatut}">${x.statut_preinscription.replace('_',' ')}</span></td>
+      <td class="matricule">${x.matricule || '—'}</td>
+      <td>
+        ${x.statut_preinscription==='en_attente'?`
+          <button class="btn-valider me-1 mb-1" onclick="valider(${x.id_preinscription})"><i class="bi bi-check-circle"></i> Valider</button>
+          <button class="btn-refuser me-1 mb-1" onclick="refuser(${x.id_preinscription})"><i class="bi bi-x-circle"></i> Refuser</button>
+        `:'<small class="text-muted">Traité</small>'}
+      </td>
+    </tr>
+  `}).join('');
+}
+
+// 🖼️ AFFICHER LA PHOTO EN GRAND
+function voirPhoto(url){
+  document.getElementById('imgApercu').src = url;
+  new bootstrap.Modal(document.getElementById('modalPhoto')).show();
+}
+
+// ✅ VALIDER
+async function valider(id){
+  if(!confirm('✅ Confirmer la validation ? Un compte sera créé pour cet utilisateur.')) return;
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_BASE}/preinscription/traiter/${id}`, {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':'Bearer '+token
+    },
+    body:JSON.stringify({ statut: 'valide' })
+  });
+  const d = await res.json();
+  afficherMsg(d.ok?'success':'danger', d.ok?'✅ Demande validée ! Compte créé.':'❌ Erreur : '+(d.erreur||''));
+  chargerListe();
+}
+
+// ❌ REFUSER
+async function refuser(id){
+  if(!confirm('❌ Confirmer le refus ?')) return;
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_BASE}/preinscription/traiter/${id}`, {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':'Bearer '+token
+    },
+    body:JSON.stringify({ statut: 'refusee' })
+  });
+  const d = await res.json();
+  afficherMsg(d.ok?'success':'danger', d.ok?'❌ Demande refusée.':'❌ Erreur : '+(d.erreur||''));
+  chargerListe();
+}
+
+function afficherMsg(type,texte){
+  document.getElementById('msg').innerHTML = `<div class="alert alert-${type}">${texte}</div>`;
+  setTimeout(()=>document.getElementById('msg').innerHTML='',5000);
+}
+
+// AU CHARGEMENT
+chargerListe();
+</script>
+
+<!-- ✅ Bootstrap JS pour la modale -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

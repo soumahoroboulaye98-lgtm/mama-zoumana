@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Événements & Calendrier — Administration</span>
+    <span class="txt-en">Events & Calendar — Administration</span>
+    <span class="txt-ar">الفعاليات والتقويم — الإدارة</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --secondaire: #0369a1;
+      --accent: #f59e0b;
+      --succes: #10b981;
+      --alerte: #ef4444;
+      --info: #0dcaf0;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --texte-gris: #94a3b8;
+      --fond-page: #f1f5f9;
+      --blanc: #ffffff;
+      --bord-radius: 16px;
+      --ombre: 0 4px 20px rgba(0,0,0,0.07);
+      --ombre-hover: 0 12px 40px rgba(0,0,0,0.12);
+    }
+
+    /* ===== 🌐 LANGUE ===== */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar .titre-section,
+    body.lang-ar .menu-titre { text-align: right; }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--fond-page); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+    /* ===== ✨ ANIMATIONS ===== */
+    @keyframes monterApparaitre {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulseLigne {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    .animer-apparition {
+      animation: monterApparaitre 0.6s ease forwards;
+      opacity: 0;
+    }
+    .retard-1 { animation-delay: 0.1s; }
+    .retard-2 { animation-delay: 0.2s; }
+    .retard-3 { animation-delay: 0.3s; }
+    .retard-4 { animation-delay: 0.4s; }
+
+    /* ===== 🧭 MENU LATÉRAL ===== */
+    .sidebar {
+      background: linear-gradient(180deg, var(--sombre), var(--sombre-clair));
+      min-height: 100vh;
+      width: 270px;
+      position: fixed; left: 0; top: 0;
+      padding: 1.5rem 0; display: flex; flex-direction: column; z-index: 100;
+      box-shadow: 4px 0 25px rgba(0,0,0,0.08);
+    }
+    body.lang-ar .sidebar { left: auto; right: 0; }
+
+    .sidebar-logo { padding: 0 1.5rem; margin-bottom: 2rem; }
+    .logo {
+      color: var(--accent); font-weight: 800; font-size: 1.45rem;
+      display: flex; align-items: center; gap: 10px; text-decoration: none;
+    }
+    .logo i { font-size: 1.8rem; }
+
+    .menu-titre {
+      color: var(--texte-gris); font-size: 0.75rem; text-transform: uppercase;
+      letter-spacing: 1px; padding: 0 1.5rem; margin: 1.8rem 0 0.6rem; font-weight: 600;
+    }
+
+    .menu-item {
+      display: flex; align-items: center; gap: 0.85rem;
+      padding: 0.95rem 1.5rem; margin: 0.2rem 1rem;
+      color: #cbd5e1; text-decoration: none; border-radius: 12px;
+      transition: all 0.3s; position: relative; overflow: hidden;
+    }
+    .menu-item::before {
+      content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 3px; background: transparent; transition: all 0.3s;
+    }
+    body.lang-ar .menu-item::before { left: auto; right: 0; }
+    .menu-item.actif { background: linear-gradient(90deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05)); color: var(--accent); }
+    .menu-item.actif::before { background: var(--accent); }
+    .menu-item:hover { background: rgba(245,158,11,0.12); color: var(--accent); transform: translateX(5px); }
+    body.lang-ar .menu-item:hover { transform: translateX(-5px); }
+    .menu-item i { font-size: 1.15rem; width: 20px; text-align: center; flex-shrink: 0; }
+
+    .contenu { margin-left: 270px; padding: 2rem; min-height: 100vh; }
+    body.lang-ar .contenu { margin-left: 0; margin-right: 270px; }
+
+    .entete-superieur { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    .btn-accueil-page, .btn-deconnexion-page {
+      padding: 0.6rem 1.2rem; border-radius: 12px; display: flex; align-items: center; gap: 0.5rem;
+      font-weight: 600; text-decoration: none; transition: all 0.3s; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .btn-accueil-page { background: linear-gradient(135deg, var(--primaire), var(--secondaire)); color: white; }
+    .btn-accueil-page:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(12,74,110,0.35); color: white; }
+    .btn-deconnexion-page { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; }
+    .btn-deconnexion-page:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,38,38,0.35); color: white; }
+
+    .btn-langue { border-radius: 50px !important; border: 2px solid transparent; margin: 0 2px; padding: 0.35rem 0.9rem; font-weight: 600; transition: all 0.25s; background: white; color: #475569; }
+    .btn-langue.actif { background: var(--accent); color: var(--sombre); border-color: var(--accent); box-shadow: 0 0 12px rgba(245,158,11,0.4); }
+
+    .zone-utilisateur { display: flex; align-items: center; gap: 1rem; background: white; padding: 0.5rem 1rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .nom-utilisateur-affiche { font-weight: 600; color: var(--primaire); }
+
+    .titre-page { font-size: 1.8rem; font-weight: 800; color: var(--primaire); margin-bottom: 1.5rem; }
+    .carte { background: white; border-radius: var(--bord-radius); box-shadow: var(--ombre); transition: all 0.3s; border: none; }
+    .carte:hover { box-shadow: var(--ombre-hover); }
+    .btn-primaire { background: linear-gradient(135deg, var(--primaire), var(--secondaire)); border: none; border-radius: 10px; color: white; font-weight: 600; transition: all 0.3s; }
+    .btn-primaire:hover { background: linear-gradient(135deg, #0369a1, #075985); transform: translateY(-2px); color: white; box-shadow: 0 6px 18px rgba(12,74,110,0.25); }
+    .btn-accent { background: linear-gradient(135deg, var(--accent), #d97706); border: none; border-radius: 10px; color: #000; font-weight: 600; transition: all 0.3s; }
+    .btn-accent:hover { background: linear-gradient(135deg, #d97706, #b45309); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245,158,11,0.35); color: white; }
+    .form-control, .form-select { border-radius: 10px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem; transition: all 0.2s; }
+    .form-control:focus, .form-select:focus { box-shadow: 0 0 0 3px rgba(12,74,110,0.15); border-color: var(--primaire); }
+
+    /* 📦 BLOC PAR LANGUE */
+    .bloc-langue {
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1.15rem;
+      margin-bottom: 1rem;
+      background: #fafafa;
+      transition: all 0.3s ease;
+    }
+    .bloc-langue:focus-within { border-color: var(--accent); box-shadow: 0 0 12px rgba(245,158,11,0.1); }
+    .bloc-langue h6 {
+      font-weight: 700;
+      margin-bottom: 0.85rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid;
+    }
+    .bloc-fr h6 { color: #0c4a6e; border-bottom-color: #0c4a6e; }
+    .bloc-en h6 { color: #10b981; border-bottom-color: #10b981; }
+    .bloc-ar h6 { color: #f59e0b; border-bottom-color: #f59e0b; direction: rtl; text-align: right; }
+    .etoile-rouge { color: #ef4444; font-weight: bold; }
+
+    /* ⏳ COMPTE À REBOURS — COULEURS PAR PROXIMITÉ */
+    .j5 { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; border-left: 4px solid #f59e0b; }
+    .j4 { background: linear-gradient(135deg, #fed7aa, #fdba74); color: #9a3412; border-left: 4px solid #fb923c; }
+    .j3 { background: linear-gradient(135deg, #fdba74, #fb923c); color: #c2410c; border-left: 4px solid #f97316; }
+    .j2 { background: linear-gradient(135deg, #fecaca, #fca5a5); color: #b91c1c; border-left: 4px solid #ef4444; }
+    .j1 { background: linear-gradient(135deg, #fca5a5, #f87171); color: #991b1b; border-left: 4px solid #dc2626; }
+    .jourJ { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #7f1d1d; border-left: 4px solid #b91c1c; font-weight: bold; animation: pulseLigne 1s ease-in-out infinite; }
+    .passe { background: #f1f5f9; color: #64748b; opacity: 0.7; }
+    body.lang-ar .j5, body.lang-ar .j4, body.lang-ar .j3,
+    body.lang-ar .j2, body.lang-ar .j1, body.lang-ar .jourJ { border-left: none; border-right: 4px solid; }
+
+    /* 🖼️ CARTE ÉVÉNEMENT — DESIGN UNIQUE */
+    .carte-evenement {
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+      border-radius: 16px;
+      border: 1px solid transparent;
+      overflow: hidden;
+      position: relative;
+      background: white;
+    }
+    .carte-evenement::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, transparent, rgba(255,255,255,0.5), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.7s ease;
+    }
+    .carte-evenement:hover::before { transform: translateX(100%); }
+    .carte-evenement:hover {
+      transform: translateY(-6px) scale(1.01);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.14);
+      border-color: rgba(245,158,11,0.35);
+    }
+    .image-conteneur {
+      width: 100%;
+      height: 200px;
+      overflow: hidden;
+      border-radius: 14px;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+      position: relative;
+    }
+    .image-conteneur img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.7s ease;
+    }
+    .carte-evenement:hover .image-conteneur img { transform: scale(1.08); }
+    .icone-type {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(0,0,0,0.65); color: white;
+      padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;
+      backdrop-filter: blur(6px);
+      z-index: 1;
+    }
+    body.lang-ar .icone-type { right: auto; left: 12px; }
+
+    /* 🎬 VIDÉO */
+    .video-conteneur {
+      width: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      margin-top: 1rem;
+      background: #000;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+    }
+    .video-conteneur video { width: 100%; display: block; }
+
+    .badge { padding: 0.4rem 0.75rem; border-radius: 8px; font-weight: 600; }
+    .btn-action-petit { padding: 0.25rem 0.5rem; font-size: 0.85rem; border-radius: 8px; }
+
+    @media (max-width: 991px) {
+      .sidebar { position: relative; width: 100%; min-height: auto; }
+      .contenu { margin: 0 !important; padding: 1rem; }
+      body.lang-ar .contenu { margin-right: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  const nomUtilisateur = localStorage.getItem('nom') || 'Utilisateur';
+  const prenomUtilisateur = localStorage.getItem('prenoms') || '';
+  const nomComplet = (nomUtilisateur + ' ' + prenomUtilisateur).trim();
+  const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+
+  if (!token || !['admin','super_admin'].includes(role)) {
+    alert("⛔ Accès réservé à l'Administrateur");
+    location.href = '../connexion.html';
+  }
+
+  let langue = localStorage.getItem('langue') || 'fr';
+  document.body.classList.add('lang-' + langue);
+
+  window.appliquerLangue = function(lang) {
+    localStorage.setItem('langue', lang);
+    document.body.classList.remove('lang-fr','lang-en','lang-ar');
+    document.body.classList.add('lang-' + lang);
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('actif'));
+    event.currentTarget.classList.add('actif');
+    langue = lang;
+    chargerListe();
+  };
+
+  window.deconnecter = function() {
+    const msg = { ar: 'هل تريد تسجيل الخروج ؟', en: 'Are you sure you want to log out?', fr: 'Êtes-vous sûr de vouloir vous déconnecter ?' }[langue];
+    if (confirm(msg)) { localStorage.clear(); location.href = '../connexion.html'; }
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('actif', b.dataset.lang === langue));
+    document.getElementById('nom-affiche').textContent = nomComplet;
+    chargerListe();
+  });
+</script>
+
+<div class="sidebar">
+  <div class="sidebar-logo"><a href="dashboard.html" class="logo"><i class="bi bi-building"></i> MAMA-ZOUMANA</a></div>
+  <a href="dashboard.html" class="menu-item">
+    <i class="bi bi-speedometer2"></i>
+    <span class="txt-fr">Tableau de bord</span><span class="txt-en">Dashboard</span><span class="txt-ar">لوحة التحكم</span>
+  </a>
+  <div class="menu-titre"><span class="txt-fr">Communication</span><span class="txt-en">Communication</span><span class="txt-ar">التواصل</span></div>
+  <a href="annonces.html" class="menu-item">
+    <i class="bi bi-megaphone"></i>
+    <span class="txt-fr">Annonces</span><span class="txt-en">Announcements</span><span class="txt-ar">الإعلانات</span>
+  </a>
+  <a href="evenements.html" class="menu-item actif">
+    <i class="bi bi-calendar-event"></i>
+    <span class="txt-fr">Événements & Calendrier</span><span class="txt-en">Events & Calendar</span><span class="txt-ar">الفعاليات والتقويم</span>
+  </a>
+  <a href="medias.html" class="menu-item">
+    <i class="bi bi-images"></i>
+    <span class="txt-fr">Médias & Galerie</span><span class="txt-en">Media & Gallery</span><span class="txt-ar">الوسائط والمعرض</span>
+  </a>
+  <div class="menu-titre"><span class="txt-fr">Configuration</span><span class="txt-en">Settings</span><span class="txt-ar">الإعدادات</span></div>
+  <a href="parametres.html" class="menu-item">
+    <i class="bi bi-gear"></i>
+    <span class="txt-fr">Paramètres</span><span class="txt-en">Settings</span><span class="txt-ar">الإعدادات</span>
+  </a>
+  <a href="../changer-mot-de-passe.html" class="menu-item">
+    <i class="bi bi-key"></i>
+    <span class="txt-fr">Changer mot de passe</span><span class="txt-en">Change Password</span><span class="txt-ar">تغيير كلمة المرور</span>
+  </a>
+</div>
+
+<div class="contenu">
+  <div class="entete-superieur">
+    <div class="d-flex gap-2">
+      <a href="dashboard.html" class="btn-accueil-page">
+        <i class="bi bi-arrow-left"></i>
+        <span class="txt-fr">Retour</span><span class="txt-en">Back</span><span class="txt-ar">رجوع</span>
+      </a>
+      <a href="#" onclick="deconnecter(); return false;" class="btn-deconnexion-page">
+        <i class="bi bi-box-arrow-right"></i>
+        <span class="txt-fr">Déconnexion</span><span class="txt-en">Log out</span><span class="txt-ar">تسجيل الخروج</span>
+      </a>
+    </div>
+    <div class="zone-utilisateur">
+      <div>
+        <button data-lang="fr" class="btn btn-langue btn-sm" onclick="appliquerLangue('fr')">FR</button>
+        <button data-lang="en" class="btn btn-langue btn-sm" onclick="appliquerLangue('en')">EN</button>
+        <button data-lang="ar" class="btn btn-langue btn-sm" onclick="appliquerLangue('ar')">AR</button>
+      </div>
+      <span class="nom-utilisateur-affiche"><i class="bi bi-person-circle"></i> <span id="nom-affiche">Chargement...</span></span>
+    </div>
+  </div>
+
+  <h2 class="titre-page">📅 <span class="txt-fr">Gestion des Événements</span><span class="txt-en">Events Management</span><span class="txt-ar">إدارة الفعاليات</span></h2>
+
+  <!-- ➕ FORMULAIRE AJOUT D'ÉVÉNEMENT -->
+  <div class="carte p-4 mb-5">
+    <h5 class="mb-4"><i class="bi bi-pencil-square text-primary me-2"></i> <span class="txt-fr">Ajouter un Événement</span><span class="txt-en">Add New Event</span><span class="txt-ar">إضافة حدث جديد</span></h5>
+    <form id="formEvent" class="row g-3">
+
+      <!-- 🇫🇷 FRANÇAIS -->
+      <div class="bloc-langue bloc-fr">
+        <h6>🇫🇷 Français <span class="etoile-rouge">*</span></h6>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Titre <span class="etoile-rouge">*</span></label>
+            <input type="text" id="titre_fr" name="titre_fr" class="form-control" required placeholder="Nom de l'événement">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Type</label>
+            <select id="type_fr" name="type_fr" class="form-select">
+              <option value="scolaire">📚 Scolaire</option>
+              <option value="extra-scolaire">🎉 Extra-scolaire</option>
+              <option value="ferie">🔴 Jour férié</option>
+              <option value="rencontre">🤝 Rencontre</option>
+              <option value="autre">📌 Autre</option>
+            </select>
+          </div>
+        </div>
+        <label class="form-label mt-2">Description</label>
+        <textarea id="description_fr" name="description_fr" class="form-control" rows="2" placeholder="Détails de l'événement..."></textarea>
+      </div>
+
+      <!-- 🇬🇧 ANGLAIS -->
+      <div class="bloc-langue bloc-en">
+        <h6>🇬🇧 English <span class="etoile-rouge">*</span></h6>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Title <span class="etoile-rouge">*</span></label>
+            <input type="text" id="titre_en" name="titre_en" class="form-control" required placeholder="Event name">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Type</label>
+            <select id="type_en" name="type_en" class="form-select">
+              <option value="school">📚 School</option>
+              <option value="extra-curricular">🎉 Extra-curricular</option>
+              <option value="holiday">🔴 Holiday</option>
+              <option value="meeting">🤝 Meeting</option>
+              <option value="other">📌 Other</option>
+            </select>
+          </div>
+        </div>
+        <label class="form-label mt-2">Description</label>
+        <textarea id="description_en" name="description_en" class="form-control" rows="2" placeholder="Event details..."></textarea>
+      </div>
+
+      <!-- 🇸🇦 ARABE -->
+      <div class="bloc-langue bloc-ar" dir="rtl">
+        <h6>🇸🇦 العربية <span class="etoile-rouge">*</span></h6>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">العنوان <span class="etoile-rouge">*</span></label>
+            <input type="text" id="titre_ar" name="titre_ar" class="form-control" required placeholder="اسم الحدث">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">النوع</label>
+            <select id="type_ar" name="type_ar" class="form-select">
+              <option value="مدرسي">📚 مدرسي</option>
+              <option value="أنشطة لاصفية">🎉 أنشطة لاصفية</option>
+              <option value="عطلة">🔴 عطلة</option>
+              <option value="لقاء">🤝 لقاء</option>
+              <option value="آخر">📌 آخر</option>
+            </select>
+          </div>
+        </div>
+        <label class="form-label mt-2">الوصف</label>
+        <textarea id="description_ar" name="description_ar" class="form-control" rows="2" placeholder="تفاصيل الحدث..."></textarea>
+      </div>
+
+      <!-- ⚙️ INFOS COMPLÉMENTAIRES -->
+      <div class="col-md-3">
+        <label class="form-label fw-semibold"><span class="txt-fr">Date *</span><span class="txt-en">Date *</span><span class="txt-ar">التاريخ *</span></label>
+        <input type="date" name="date_evenement" class="form-control" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold"><span class="txt-fr">Heure</span><span class="txt-en">Time</span><span class="txt-ar">الوقت</span></label>
+        <input type="time" name="heure_evenement" class="form-control">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold"><span class="txt-fr">Lieu</span><span class="txt-en">Location</span><span class="txt-ar">المكان</span></label>
+        <input type="text" name="lieu" class="form-control" placeholder="Salle / Site">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold"><span class="txt-fr">Notifier</span><span class="txt-en">Notify</span><span class="txt-ar">إشعار</span></label>
+        <select name="cible" class="form-select">
+          <option value="tous"><span class="txt-fr">👥 Tous</span><span class="txt-en">👥 All</span><span class="txt-ar">👥 الجميع</span></option>
+          <option value="eleves"><span class="txt-fr">🎓 Élèves</span><span class="txt-en">🎓 Students</span><span class="txt-ar">🎓 التلاميذ</span></option>
+          <option value="parents"><span class="txt-fr">👨‍👩‍👧 Parents</span><span class="txt-en">👨‍👩‍👧 Parents</span><span class="txt-ar">👨‍👩‍👧 أولياء الأمور</span></option>
+          <option value="professeurs"><span class="txt-fr">👨‍🏫 Enseignants</span><span class="txt-en">👨‍🏫 Teachers</span><span class="txt-ar">👨‍🏫 المعلمون</span></option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold"><span class="txt-fr">🖼️ Image (Affiche)</span><span class="txt-en">🖼️ Image URL</span><span class="txt-ar">🖼️ رابط الصورة</span></label>
+        <input type="url" name="url_image" class="form-control" placeholder="https://...">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold"><span class="txt-fr">🎬 Vidéo</span><span class="txt-en">🎬 Video URL</span><span class="txt-ar">🎬 رابط الفيديو</span></label>
+        <input type="url" name="url_video" class="form-control" placeholder="https://...">
+      </div>
+
+      <div class="col-12 d-flex gap-3 mt-4">
+        <button type="submit" class="btn btn-accent">
+          <i class="bi bi-save me-2"></i>
+          <span class="txt-fr">💾 Publier l'Événement</span>
+          <span class="txt-en">💾 Publish Event</span>
+          <span class="txt-ar">💾 نشر الحدث</span>
+        </button>
+        <button type="reset" class="btn btn-outline-secondary">
+          <i class="bi bi-x-circle me-2"></i>
+          <span class="txt-fr">Effacer</span>
+          <span class="txt-en">Clear</span>
+          <span class="txt-ar">مسح</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 📅 LISTE DES ÉVÉNEMENTS — AFFICHÉE SUR L'INDEX JUSQU'À DATE PASSÉE -->
+  <h5 class="mb-3">📅 <span class="txt-fr">Calendrier & Compte à rebours</span><span class="txt-en">Calendar & Countdown</span><span class="txt-ar">التقويم والعد التنازلي</span></h5>
+  <div class="carte p-4">
+    <div id="listeEvenements">
+      <div class="text-center text-muted py-5">
+        <div class="spinner-border text-primary mb-3"></div>
+        <p class="txt-fr">Chargement des événements...</p>
+        <p class="txt-en">Loading events...</p>
+        <p class="txt-ar">جار تحميل الفعاليات...</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ⏳ CALCUL JOURS RESTANTS
+  function calculJoursRestants(dateEvenement) {
+    const aujourdhui = new Date();
+    aujourdhui.setHours(0,0,0,0);
+    const evt = new Date(dateEvenement);
+    evt.setHours(0,0,0,0);
+    return Math.ceil((evt - aujourdhui) / (1000 * 60 * 60 * 24));
+  }
+
+  // 🔔 NIVEAU D'AVERTISSEMENT PAR PROXIMITÉ
+  function getAvertissement(jours) {
+    if (jours === 5) return { cls:'j5', txt:{fr:"🟡 Dans 5 jours", en:"🟡 In 5 days", ar:"🟡 خلال 5 أيام"} };
+    if (jours === 4) return { cls:'j4', txt:{fr:"🟠 Dans 4 jours", en:"🟠 In 4 days", ar:"🟠 خلال 4 أيام"} };
+    if (jours === 3) return { cls:'j3', txt:{fr:"🟠 Dans 3 jours", en:"🟠 In 3 days", ar:"🟠 خلال 3 أيام"} };
+    if (jours === 2) return { cls:'j2', txt:{fr:"🔴 Dans 2 jours", en:"🔴 In 2 days", ar:"🔴 خلال يومين"} };
+    if (jours === 1) return { cls:'j1', txt:{fr:"🔴 Demain", en:"🔴 Tomorrow", ar:"🔴 غداً"} };
+    if (jours === 0) return { cls:'jourJ', txt:{fr:"⚠️ AUJOURD'HUI", en:"⚠️ TODAY", ar:"⚠️ اليوم"} };
+    if (jours < 0) return { cls:'passe', txt:{fr:"✅ Terminé", en:"✅ Past", ar:"✅ انتهى"} };
+    return { cls:'', txt:{fr:`📅 Dans ${jours} jours`, en:`📅 In ${jours} days`, ar:`📅 خلال ${jours} يوماً`} };
+  }
+
+  // 📋 CHARGER LA LISTE — HARMONISÉE AVEC L'AFFICHAGE PUBLIC
+  async function chargerListe(){
+    const conteneur = document.getElementById('listeEvenements');
+    try {
+      const res = await fetch(`${API_URL}/liste`, {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+
+      if(!data.ok || !data.evenements || !data.evenements.length){
+        conteneur.innerHTML = `<div class="text-center text-muted py-5">
+          <i class="bi bi-calendar-x fs-1 mb-3 d-block"></i>
+          <p class="txt-fr">Aucun événement programmé</p>
+          <p class="txt-en">No scheduled events</p>
+          <p class="txt-ar">لا توجد فعاليات مقررة</p>
+        </div>`;
+        return;
+      }
+
+      // ✅ TRI : événements à venir d'abord, puis passés
+      data.evenements.sort((a,b) => new Date(a.date_evenement) - new Date(b.date_evenement));
+
+      conteneur.innerHTML = '';
+      data.evenements.forEach((evt, i) => {
+        const jours = calculJoursRestants(evt.date_evenement);
+        const avert = getAvertissement(jours);
+        const dateAffiche = new Date(evt.date_evenement).toLocaleDateString(langue==='ar'?'ar-TN':'fr-FR');
+        const titre = evt[`titre_${langue}`] || evt.titre_fr || evt.titre_en || evt.titre_ar || '';
+        const description = evt[`description_${langue}`] || evt.description_fr || evt.description_en || evt.description_ar || '';
+        const typeAffiche = {
+          fr: {scolaire:'📚 Scolaire', 'extra-scolaire':'🎉 Extra-scolaire', ferie:'🔴 Férié', rencontre:'🤝 Rencontre', autre:'📌 Autre'},
+          en: {school:'📚 School', 'extra-curricular':'🎉 Extra-curricular', holiday:'🔴 Holiday', meeting:'🤝 Meeting', other:'📌 Other'},
+          ar: {مدرسي:'📚 مدرسي', 'أنشطة لاصفية':'🎉 أنشطة لاصفية', عطلة:'🔴 عطلة', لقاء:'🤝 لقاء', آخر:'📌 آخر'}
+        }[langue][evt.type_fr || evt.type_en || evt.type_ar] || '📌 Autre';
+
+        conteneur.innerHTML += `
+          <div class="carte-evenement ${avert.cls} animer-apparition retard-${(i%4)+1}">
+            ${evt.url_image ? `
+              <div class="image-conteneur">
+                <span class="icone-type">${typeAffiche}</span>
+                <img src="${evt.url_image}" alt="${titre}" loading="lazy">
+              </div>` : ''
+            }
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h5 class="mb-1 fw-bold fs-5">${titre}</h5>
+              <span class="badge bg-dark text-white">${avert.txt[langue]}</span>
+            </div>
+            <p class="mb-2">
+              📅 ${dateAffiche}
+              ${evt.heure_evenement ? ` &nbsp; ⏰ ${evt.heure_evenement}` : ''}
+              ${evt.lieu ? ` &nbsp; 📍 ${evt.lieu}` : ''}
+            </p>
+            ${description ? `<p class="mb-3 text-dark opacity-85">${description}</p>` : ''}
+            ${evt.url_video ? `
+              <div class="video-conteneur">
+                <video controls preload="metadata" src="${evt.url_video}"></video>
+              </div>` : ''
+            }
+            <small class="text-muted d-block mt-3 pt-2 border-top border-opacity-25 border-dark">
+              🔔 <span class="txt-fr">Notifié à</span><span class="txt-en">Notified to</span><span class="txt-ar">أُشعر إلى</span> : 
+              ${evt.cible === 'tous' ? '<span class="txt-fr">Tous</span><span class="txt-en">All</span><span class="txt-ar">الجميع</span>' : 
+                evt.cible === 'eleves' ? '<span class="txt-fr">Élèves</span><span class="txt-en">Students</span><span class="txt-ar">التلاميذ</span>' : 
+                evt.cible === 'parents' ? '<span class="txt-fr">Parents</span><span class="txt-en">Parents</span><span class="txt-ar">أولياء الأمور</span>' : 
+                '<span class="txt-fr">Enseignants</span><span class="txt-en">Teachers</span><span class="txt-ar">المعلمون</span>'}
+              &nbsp;|&nbsp; ${typeAffiche}
+              ${jours >= 0 ? `&nbsp;|&nbsp; <button class="btn btn-sm btn-outline-primary btn-action-petit ms-2" title="Modifier"><i class="bi bi-pencil"></i></button>` : ''}
+              <button class="btn btn-sm btn-outline-danger btn-action-petit ms-1" onclick="supprimerEvenement(${evt.id_evenement})" title="Supprimer">
+                <i class="bi bi-trash"></i>
+              </button>
+            </small>
+          </div>
+        `;
+      });
+    } catch {
+      conteneur.innerHTML = `<div class="text-center text-muted py-5">
+        <i class="bi bi-exclamation-triangle fs-1 mb-3 d-block text-warning"></i>
+        <p class="txt-fr">Chargement impossible</p>
+        <p class="txt-en">Failed to load</p>
+        <p class="txt-ar">تعذر التحميل</p>
+      </div>`;
+    }
+  }
+
+  // ➕ AJOUTER/PUBLIER UN ÉVÉNEMENT — AFFICHÉ DIRECTEMENT SUR L'INDEX
+  document.getElementById('formEvent').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const donnees = {
+      titre_fr: document.getElementById('titre_fr').value.trim(),
+      titre_en: document.getElementById('titre_en').value.trim(),
+      titre_ar: document.getElementById('titre_ar').value.trim(),
+      description_fr: document.getElementById('description_fr').value.trim(),
+      description_en: document.getElementById('description_en').value.trim(),
+      description_ar: document.getElementById('description_ar').value.trim(),
+      type_fr: document.getElementById('type_fr').value,
+      type_en: document.getElementById('type_en').value,
+      type_ar: document.getElementById('type_ar').value,
+      date_evenement: e.target.date_evenement.value,
+      heure_evenement: e.target.heure_evenement.value,
+      lieu: e.target.lieu.value.trim(),
+      cible: e.target.cible.value,
+      url_image: e.target.url_image.value.trim(),
+      url_video: e.target.url_video.value.trim()
+    };
+
+    // ✅ Validation des titres dans les 3 langues
+    if (!donnees.titre_fr || !donnees.titre_en || !donnees.titre_ar) {
+      const msg = {
+        fr: "⚠️ Remplissez les titres dans les 3 langues (Français, Anglais et Arabe)",
+        en: "⚠️ Fill in titles in all 3 languages (French, English and Arabic)",
+        ar: "⚠️ املأ العناوين بجميع اللغات الثلاث (الفرنسية والإنجليزية والعربية)"
+      };
+      alert(msg[langue]);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/publier`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(donnees)
+      });
+      const rep = await res.json();
+
+      if(rep.ok){
+        const msgOk = {
+          fr: "✅ Événement publié ! Affiché sur le site jusqu'à la date de l'événement.",
+          en: "✅ Event published! Displayed on the site until the event date.",
+          ar: "✅ تم النشر! يظهر في الموقع حتى تاريخ الحدث."
+        };
+        alert(msgOk[langue]);
+        e.target.reset();
+        chargerListe();
+      }else{
+        alert("❌ " + (rep.erreur || "Erreur serveur"));
+      }
+    }catch{
+      const msgErr = { fr: "❌ Erreur de connexion", en: "❌ Connection error", ar: "❌ خطأ في الاتصال" };
+      alert(msgErr[langue]);
+    }
+  });
+
+  // 🗑️ SUPPRESSION — SEULEMENT PAR L'ADMIN
+  window.supprimerEvenement = async function(id) {
+    const confMsg = {
+      fr: "⚠️ Supprimer définitivement cet événement ? Cette action est irréversible.",
+      en: "⚠️ Delete this event permanently? This action cannot be undone.",
+      ar: "⚠️ حذف هذا الحدث نهائيًا؟ لا يمكن التراجع عن هذا الإجراء."
+    };
+    if (!confirm(confMsg[langue])) return;
+    try {
+      await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
+      chargerListe();
+    } catch { 
+      const errMsg = { fr: "Erreur lors de la suppression", en: "Deletion error", ar: "خطأ في الحذف" };
+      alert(errMsg[langue]); 
+    }
+  };
+</script>
+
+</body>
+</html>

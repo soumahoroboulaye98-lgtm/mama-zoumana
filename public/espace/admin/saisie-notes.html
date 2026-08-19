@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Administration — Saisie des Notes & Bulletins</span>
+    <span class="txt-en">Administration — Grades & Reports</span>
+    <span class="txt-ar">الإدارة — الدرجات والشهادات</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root { 
+      --sombre: #0f172a; 
+      --sombre-clair: #1e293b; 
+      --sombre-encore-clair: #334155;
+      --bord-orange: #f59e0b; 
+      --orange-fonce: #d97706;
+      --texte: #f8fafc; 
+      --texte-clair: #cbd5e1;
+      --vert: #10b981; 
+      --vert-fonce: #059669;
+      --rouge: #ef4444; 
+      --bleu: #3b82f6;
+      --bleu-fonce: #2563eb;
+    }
+
+    * { 
+      border-radius: 12px !important; 
+      box-sizing: border-box;
+    }
+
+    body { 
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+      color: var(--texte); 
+      min-height: 100vh; 
+      padding: 2rem;
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse-border {
+      0% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(245,158,11,0); }
+      100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
+    }
+    .carte { 
+      background: var(--sombre-clair); 
+      padding: 1.5rem; 
+      margin-bottom: 1.5rem; 
+      border-left: 5px solid var(--bord-orange); 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      animation: fadeInUp 0.5s ease-out;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .carte:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+
+    .btn-orange { 
+      background: linear-gradient(135deg, var(--bord-orange) 0%, var(--orange-fonce) 100%); 
+      border: none; color: #000; font-weight: 600; 
+      transition: all 0.3s ease;
+    }
+    .btn-orange:hover { 
+      background: linear-gradient(135deg, var(--orange-fonce) 0%, #b45309 100%); 
+      color: #fff; transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+    }
+    .btn-vert { 
+      background: linear-gradient(135deg, var(--vert) 0%, var(--vert-fonce) 100%); 
+      border: none; color: #fff; font-weight: 600; 
+      transition: all 0.3s ease;
+    }
+    .btn-vert:hover { 
+      background: linear-gradient(135deg, var(--vert-fonce) 0%, #047857 100%); 
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+    }
+    .btn-bleu { 
+      background: linear-gradient(135deg, var(--bleu) 0%, var(--bleu-fonce) 100%); 
+      border: none; color: #fff; font-weight: 600; 
+      transition: all 0.3s ease;
+    }
+    .btn-bleu:hover { 
+      background: linear-gradient(135deg, var(--bleu-fonce) 0%, #1d4ed8 100%); 
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+    }
+    .btn-outline-light:hover {
+      transform: translateY(-2px); transition: all 0.3s ease;
+    }
+
+    .form-control, .form-select { 
+      background: var(--sombre); 
+      border: 2px solid var(--sombre-encore-clair); 
+      color: white; transition: all 0.3s ease;
+    }
+    .form-control:focus, .form-select:focus { 
+      background: var(--sombre); border-color: var(--bord-orange); 
+      color: white; box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.25); 
+      transform: scale(1.01);
+    }
+    .form-label { color: var(--texte-clair); font-size: 0.9rem; }
+
+    .table { color: var(--texte); border-radius: 12px; overflow: hidden; }
+    .table-dark {
+      --bs-table-bg: var(--sombre);
+      --bs-table-striped-bg: #1e293b;
+      --bs-table-hover-bg: #334155;
+    }
+    .table th { border-top: none; color: var(--bord-orange); font-weight: 600; }
+
+    .note-input { width: 75px; text-align: center; padding: 0.25rem; }
+    .coef-badge { 
+      font-size: 0.65rem; padding: 2px 6px; border-radius: 20px; 
+      background: rgba(245,158,11,0.25); color: #fcd34d;
+    }
+
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; direction: rtl; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+
+    .btn-langue.active { 
+      background: var(--bord-orange); color: #000; 
+      border-color: var(--bord-orange); font-weight: bold; 
+      animation: pulse-border 1.5s infinite;
+    }
+    .titre-section { 
+      border-bottom: 2px solid rgba(245,158,11,0.3); 
+      padding-bottom: 0.5rem; font-weight: 700; font-size: 1.35rem;
+    }
+    .alert { border-radius: 12px !important; animation: fadeInUp 0.4s ease-out; }
+    .badge-admin { background: var(--bleu); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="dashboard-admin.html" class="btn btn-outline-light btn-sm">
+      <i class="bi bi-arrow-left-circle"></i>
+      <span class="txt-fr"> Retour Tableau de bord</span>
+      <span class="txt-en"> Back to Dashboard</span>
+      <span class="txt-ar"> العودة للوحة التحكم</span>
+    </a>
+    <div class="d-flex align-items-center gap-3">
+      <span class="badge-admin">
+        <i class="bi bi-shield-lock me-1"></i>
+        <span class="txt-fr">Mode Administrateur</span>
+        <span class="txt-en">Administrator Mode</span>
+        <span class="txt-ar">وضع المدير</span>
+      </span>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-langue btn-outline-light" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
+        <button class="btn btn-sm btn-langue btn-outline-light" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
+        <button class="btn btn-sm btn-langue btn-outline-light" onclick="changerLangue('ar')" id="btn-ar">🇸🇦 AR</button>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="mb-4 titre-section">
+    <i class="bi bi-pencil-square" style="color:var(--bord-orange)"></i>
+    <span class="txt-fr"> Administration — Saisie des Notes & Bulletins</span>
+    <span class="txt-en"> Administration — Grades & Reports</span>
+    <span class="txt-ar"> الإدارة — إدخال الدرجات والشهادات</span>
+  </h3>
+
+  <!-- 💡 INFO IMPORTANTE -->
+  <div class="alert alert-primary py-2 mb-3 border-2">
+    <i class="bi bi-info-circle me-2"></i>
+    <span class="txt-fr">ℹ️ En tant qu'Administrateur, tu vois TOUTES les classes. Tu peux saisir les notes de n'importe quelle classe.</span>
+    <span class="txt-en">ℹ️ As Administrator, you see ALL classes. You can enter grades for any class.</span>
+    <span class="txt-ar">ℹ️ بصفتك مديراً، ترى جميع الأقسام. يمكنك إدخال درجات أي قسم.</span>
+  </div>
+
+  <div id="zone-message"></div>
+
+  <div class="carte">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">🏫 Classe</span>
+          <span class="txt-en">🏫 Class</span>
+          <span class="txt-ar">🏫 القسم</span>
+        </label>
+        <select id="id_classe" class="form-select" onchange="chargerMatieresEtEleves()">
+          <option value="">
+            <span class="txt-fr">-- Chargement... --</span>
+            <span class="txt-en">-- Loading... --</span>
+            <span class="txt-ar">-- جار التحميل... --</span>
+          </option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">📚 Matière</span>
+          <span class="txt-en">📚 Subject</span>
+          <span class="txt-ar">📚 المادة</span>
+        </label>
+        <select id="id_matiere" class="form-select" onchange="chargerNotesExistantes()">
+          <option value="">
+            <span class="txt-fr">-- Choisir d'abord la classe --</span>
+            <span class="txt-en">-- Choose class first --</span>
+            <span class="txt-ar">-- اختر القسم أولاً --</span>
+          </option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">📅 Trimestre</span>
+          <span class="txt-en">📅 Term</span>
+          <span class="txt-ar">📅 الفصل الدراسي</span>
+        </label>
+        <select id="trimestre" class="form-select" onchange="chargerNotesExistantes()">
+          <option value="1"><span class="txt-fr">1er Trimestre</span><span class="txt-en">1st Term</span><span class="txt-ar">الفصل الأول</span></option>
+          <option value="2"><span class="txt-fr">2ème Trimestre</span><span class="txt-en">2nd Term</span><span class="txt-ar">الفصل الثاني</span></option>
+          <option value="3"><span class="txt-fr">3ème Trimestre</span><span class="txt-en">3rd Term</span><span class="txt-ar">الفصل الثالث</span></option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">📆 Année Scolaire</span>
+          <span class="txt-en">📆 School Year</span>
+          <span class="txt-ar">📆 السنة الدراسية</span>
+        </label>
+        <input type="text" id="annee_scolaire" class="form-control" value="2026-2027">
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-orange w-100" onclick="chargerNotesExistantes()">
+          <i class="bi bi-search"></i>
+          <span class="txt-fr"> Charger</span>
+          <span class="txt-en"> Load</span>
+          <span class="txt-ar"> تحميل</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="carte">
+    <div class="d-flex gap-2 flex-wrap">
+      <button class="btn btn-vert" onclick="genererBulletins()">
+        <i class="bi bi-file-earmark-text"></i>
+        <span class="txt-fr"> Générer Bulletins</span>
+        <span class="txt-en"> Generate Reports</span>
+        <span class="txt-ar"> إنشاء الشهادات</span>
+      </button>
+      <a href="fiche-bulletin.html" class="btn btn-bleu">
+        <i class="bi bi-printer"></i>
+        <span class="txt-fr"> Voir / Imprimer Bulletins</span>
+        <span class="txt-en"> View / Print Reports</span>
+        <span class="txt-ar"> عرض / طباعة الشهادات</span>
+      </a>
+      <button class="btn btn-outline-light" onclick="remplirNotes(10)">
+        <i class="bi bi-pencil"></i>
+        <span class="txt-fr"> Remplir 10</span>
+        <span class="txt-en"> Fill 10</span>
+        <span class="txt-ar"> ملء بـ 10</span>
+      </button>
+      <button class="btn btn-outline-light" onclick="viderNotes()">
+        <i class="bi bi-eraser"></i>
+        <span class="txt-fr"> Vider tout</span>
+        <span class="txt-en"> Clear All</span>
+        <span class="txt-ar"> مسح الكل</span>
+      </button>
+      <button class="btn btn-orange ms-auto" onclick="enregistrerTout()">
+        <i class="bi bi-save"></i>
+        <span class="txt-fr"> 💾 Enregistrer TOUTES les Notes</span>
+        <span class="txt-en"> 💾 Save ALL Grades</span>
+        <span class="txt-ar"> 💾 حفظ جميع الدرجات</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="alert alert-info py-2 border-2">
+    <i class="bi bi-info-circle me-2"></i>
+    <span class="txt-fr">📝 Note 1 + 📋 Note 2 + 📄 Note 3 + 📄 Note 4 + 📄 Note 5 → Moyenne calculée automatiquement</span>
+    <span class="txt-en">📝 Grade 1 + 📋 Grade 2 + 📄 Grade 3 + 📄 Grade 4 + 📄 Grade 5 → Average calculated automatically</span>
+    <span class="txt-ar">📝 الدرجة 1 + 📋 الدرجة 2 + 📄 الدرجة 3 + 📄 الدرجة 4 + 📄 الدرجة 5 → يحسب المعدل تلقائياً</span>
+  </div>
+
+  <div class="carte">
+    <h5 class="mb-3 fw-bold">
+      <i class="bi bi-list-check me-2" style="color:var(--bord-orange)"></i>
+      <span class="txt-fr">Liste des Élèves — Saisie des Notes</span>
+      <span class="txt-en">Student List — Grades Entry</span>
+      <span class="txt-ar">قائمة التلاميذ — إدخال الدرجات</span>
+    </h5>
+    <div class="table-responsive">
+      <table class="table table-dark table-striped table-hover">
+        <thead>
+          <tr>
+            <th class="text-center">#</th>
+            <th><span class="txt-fr">Élève / Matricule</span><span class="txt-en">Student / ID</span><span class="txt-ar">التلميذ / الرقم</span></th>
+            <th class="text-center"><span class="txt-fr">Note 1</span><br><span class="coef-badge">×1</span></th>
+            <th class="text-center"><span class="txt-fr">Note 2</span><br><span class="coef-badge">×1</span></th>
+            <th class="text-center"><span class="txt-fr">Note 3</span><br><span class="coef-badge">×1</span></th>
+            <th class="text-center"><span class="txt-fr">Note 4</span><br><span class="coef-badge">×1</span></th>
+            <th class="text-center"><span class="txt-fr">Note 5</span><br><span class="coef-badge">×1</span></th>
+            <th class="text-center"><span class="txt-fr">⭐ Moyenne</span><span class="txt-en">⭐ Average</span><span class="txt-ar">⭐ المعدل</span></th>
+            <th class="text-center">✅</th>
+          </tr>
+        </thead>
+        <tbody id="corps-tableau">
+          <tr>
+            <td colspan="9" class="text-center text-muted py-5">
+              <i class="bi bi-arrow-down-circle d-block mb-2 fs-4"></i>
+              <span class="txt-fr">Sélectionne une Classe en haut → la liste se charge automatiquement</span>
+              <span class="txt-en">Select a Class above → list loads automatically</span>
+              <span class="txt-ar">اختر القسم أعلاه → يتم التحميل تلقائيا</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+const id_utilisateur = localStorage.getItem('id_utilisateur');
+
+if (!token || role !== 'admin') {
+  alert("⛔ Accès réservé à l'Administrateur !");
+  localStorage.clear();
+  location.href = 'connexion.html';
+}
+
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+let anneeScolaire = "2026-2027";
+let listeEleves = [];
+
+function afficherMessage(texte, type = 'info') {
+  const zone = document.getElementById('zone-message');
+  const icone = type === 'succes' ? '<i class="bi bi-check-circle-fill me-2"></i>' :
+                type === 'erreur' ? '<i class="bi bi-exclamation-triangle-fill me-2"></i>' :
+                '<i class="bi bi-info-circle-fill me-2"></i>';
+  const style = type === 'succes' ? 'alert-success border-success' :
+                type === 'erreur' ? 'alert-danger border-danger' : 'alert-info border-info';
+  zone.innerHTML = `<div class="alert ${style} border-2">${icone}${texte}</div>`;
+  setTimeout(() => zone.innerHTML = '', 10000);
+}
+
+function changerLangue(langue) {
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-'+langue);
+  localStorage.setItem('langue', langue);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active', 'btn-orange'));
+  document.getElementById('btn-'+langue).classList.add('active', 'btn-orange');
+}
+let langue = localStorage.getItem('langue') || 'fr';
+changerLangue(langue);
+
+window.onload = chargerMesClasses;
+
+// ==================================================
+// ✅ CHARGER TOUTES LES CLASSES (ADMIN) OU SES CLASSES (PROF)
+// ==================================================
+async function chargerMesClasses() {
+  try {
+    console.log("🔄 Chargement des classes...");
+    let url;
+
+    // ✅ SI ADMIN → CHARGER TOUTES LES CLASSES
+    if (role === 'admin') {
+      url = `${API_URL}/toutes-classes`; // ⭐ NOUVELLE ROUTE
+    } else {
+      url = `${API_URL}/mes-classes`;
+    }
+
+    const r = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const res = await r.json();
+    console.log("📦 Classes :", res);
+
+    const sel = document.getElementById('id_classe');
+    let listeClasses = res.classes || res.lignes || [];
+
+    if (listeClasses.length === 0) {
+      sel.innerHTML = '<option value="">-- Aucune Classe --</option>';
+      afficherMessage("⚠️ Aucune classe trouvée dans la base", 'info');
+      return;
+    }
+
+    sel.innerHTML = '<option value="">-- Sélectionner une Classe --</option>' +
+      listeClasses.map(c => `<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('');
+    
+    afficherMessage(`✅ ${listeClasses.length} classe(s) chargée(s)`, 'succes');
+
+  } catch(e) {
+    console.error("❌ Erreur :", e);
+    afficherMessage("❌ Erreur chargement : " + e.message, 'erreur');
+  }
+}
+
+async function chargerMatieresEtEleves() {
+  const id_classe = document.getElementById('id_classe').value;
+  const selMat = document.getElementById('id_matiere');
+  
+  if (!id_classe) {
+    selMat.innerHTML = '<option value="">-- Choisis d\'abord la classe --</option>';
+    document.getElementById('corps-tableau').innerHTML = `
+      <tr><td colspan="9" class="text-center text-muted py-5">
+        <i class="bi bi-arrow-up-circle d-block mb-2 fs-4"></i>
+        <span class="txt-fr">Sélectionne une Classe d'abord</span>
+        <span class="txt-en">Select a Class first</span>
+        <span class="txt-ar">اختر القسم أولاً</span>
+      </td></tr>`;
+    listeEleves = [];
+    return;
+  }
+
+  // ✅ Charger matières
+  try {
+    let urlMat;
+    if (role === 'admin') {
+      urlMat = `${API_URL}/toutes-matieres`;
+    } else {
+      urlMat = `${API_URL}/mes-matieres`;
+    }
+
+    const r = await fetch(urlMat, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const res = await r.json();
+    let matieres = res.matieres || res.lignes || [];
+
+    if (matieres.length === 0) {
+      selMat.innerHTML = '<option value="">-- Aucune matière --</option>';
+      afficherMessage("⚠️ Aucune matière trouvée", 'info');
+    } else {
+      selMat.innerHTML = '<option value="">-- Sélectionner une Matière --</option>' +
+        matieres.map(m => `<option value="${m.id_matiere}">${m.libelle_matiere}</option>`).join('');
+    }
+  } catch(e) { 
+    console.error("❌ Erreur matières :", e); 
+  }
+
+  chargerListeEleves(id_classe);
+}
+
+async function chargerListeEleves(id_classe) {
+  try {
+    const r = await fetch(`${API_URL}/eleves-classe/${id_classe}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const res = await r.json();
+    
+    listeEleves = res.eleves || res.lignes || [];
+
+    if (listeEleves.length === 0) {
+      document.getElementById('corps-tableau').innerHTML = `
+        <tr><td colspan="9" class="text-center text-warning py-5">
+          <i class="bi bi-exclamation-triangle d-block mb-2 fs-4"></i>
+          <span class="txt-fr">⚠️ Aucun élève dans cette classe</span>
+          <span class="txt-en">⚠️ No student in this class</span>
+          <span class="txt-ar">⚠️ لا تلاميذ في هذا القسم</span>
+        </td></tr>`;
+      listeEleves = [];
+      return;
+    }
+
+    afficherTableauNotes();
+    afficherMessage(`✅ ${listeEleves.length} élève(s) chargé(s)`, 'succes');
+
+  } catch(e) {
+    console.error("❌ Erreur élèves :", e);
+  }
+}
+
+function afficherTableauNotes() {
+  document.getElementById('corps-tableau').innerHTML = listeEleves.map((el, i) => {
+    const id = el.id_utilisateur || el.id_eleve;
+    const nomComplet = `${el.nom || ''} ${el.prenoms || ''}`;
+    const matricule = el.matricule || '---';
+
+    return `
+    <tr data-eleve="${id}">
+      <td class="fw-bold text-center">${i + 1}</td>
+      <td><div class="fw-bold">${nomComplet}</div><small class="text-muted">📋 ${matricule}</small></td>
+      <td class="text-center"><input type="number" class="form-control form-control-sm note-input" min="0" max="20" step="0.25" data-n1="${id}" oninput="calculerMoyenne(${id})" placeholder="--"></td>
+      <td class="text-center"><input type="number" class="form-control form-control-sm note-input" min="0" max="20" step="0.25" data-n2="${id}" oninput="calculerMoyenne(${id})" placeholder="--"></td>
+      <td class="text-center"><input type="number" class="form-control form-control-sm note-input" min="0" max="20" step="0.25" data-n3="${id}" oninput="calculerMoyenne(${id})" placeholder="--"></td>
+      <td class="text-center"><input type="number" class="form-control form-control-sm note-input" min="0" max="20" step="0.25" data-n4="${id}" oninput="calculerMoyenne(${id})" placeholder="--"></td>
+      <td class="text-center"><input type="number" class="form-control form-control-sm note-input" min="0" max="20" step="0.25" data-n5="${id}" oninput="calculerMoyenne(${id})" placeholder="--"></td>
+      <td class="text-center fw-bold text-success" id="moy-${id}">--</td>
+      <td class="text-center fs-6" id="statut-${id}">💾</td>
+    </tr>`;
+  }).join('');
+}
+
+async function chargerNotesExistantes() {
+  const id_classe = document.getElementById('id_classe').value;
+  const id_matiere = document.getElementById('id_matiere').value;
+  const trimestre = document.getElementById('trimestre').value;
+  const annee = document.getElementById('annee_scolaire').value;
+
+  if (!id_classe || !id_matiere) {
+    afficherMessage("⚠️ Sélectionne Classe ET Matière d'abord !", 'erreur');
+    return;
+  }
+
+  try {
+    const r = await fetch(`${API_URL}/consulter`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ id_classe, id_matiere, trimestre, annee_scolaire: annee })
+    });
+    const res = await r.json();
+    
+    if (res.ok) {
+      const notes = res.notes || res.lignes || [];
+      if (notes.length === 0) {
+        afficherMessage("ℹ️ Aucune note existante — prêt pour la saisie", 'info');
+        return;
+      }
+      notes.forEach(n => {
+        const id = n.id_eleve;
+        const c1 = document.querySelector(`[data-n1="${id}"]`);
+        const c2 = document.querySelector(`[data-n2="${id}"]`);
+        const c3 = document.querySelector(`[data-n3="${id}"]`);
+        const c4 = document.querySelector(`[data-n4="${id}"]`);
+        const c5 = document.querySelector(`[data-n5="${id}"]`);
+        if (c1) c1.value = n.note1 ?? '';
+        if (c2) c2.value = n.note2 ?? '';
+        if (c3) c3.value = n.note3 ?? '';
+        if (c4) c4.value = n.note4 ?? '';
+        if (c5) c5.value = n.note5 ?? '';
+        calculerMoyenne(id);
+      });
+      afficherMessage(`✅ ${notes.length} note(s) chargée(s)`, 'succes');
+    }
+  } catch(e) {
+    afficherMessage("❌ Erreur chargement notes", 'erreur');
+  }
+}
+
+function calculerMoyenne(idEleve) {
+  const n1 = parseFloat(document.querySelector(`[data-n1="${idEleve}"]`)?.value) || null;
+  const n2 = parseFloat(document.querySelector(`[data-n2="${idEleve}"]`)?.value) || null;
+  const n3 = parseFloat(document.querySelector(`[data-n3="${idEleve}"]`)?.value) || null;
+  const n4 = parseFloat(document.querySelector(`[data-n4="${idEleve}"]`)?.value) || null;
+  const n5 = parseFloat(document.querySelector(`[data-n5="${idEleve}"]`)?.value) || null;
+
+  const valeurs = [n1, n2, n3, n4, n5].filter(v => v !== null && !isNaN(v));
+  const moy = valeurs.length > 0 ? (valeurs.reduce((a,b) => a + b, 0) / valeurs.length).toFixed(2) : '--';
+  
+  document.getElementById(`moy-${idEleve}`).textContent = moy;
+  document.getElementById(`statut-${idEleve}`).textContent = "⚠️";
+}
+
+function remplirNotes(valeur) {
+  document.querySelectorAll('.note-input').forEach(i => i.value = valeur);
+  listeEleves.forEach(el => calculerMoyenne(el.id_utilisateur || el.id_eleve));
+  afficherMessage(`✅ Notes remplies par ${valeur}`, 'succes');
+}
+function viderNotes() {
+  document.querySelectorAll('.note-input').forEach(i => i.value = '');
+  document.querySelectorAll('[id^="moy-"]').forEach(el => el.textContent = '--');
+  document.querySelectorAll('[id^="statut-"]').forEach(el => el.textContent = '💾');
+  afficherMessage("✅ Notes effacées", 'succes');
+}
+
+async function enregistrerTout() {
+  const id_classe = document.getElementById('id_classe').value;
+  const id_matiere = document.getElementById('id_matiere').value;
+  const trimestre = document.getElementById('trimestre').value;
+  const annee = document.getElementById('annee_scolaire').value;
+
+  if (!id_classe || !id_matiere || listeEleves.length === 0) {
+    afficherMessage("⚠️ Sélectionne Classe, Matière et charge les élèves d'abord !", 'erreur');
+    return;
+  }
+
+  const notesCompletes = listeEleves.map(el => {
+    const id = el.id_utilisateur || el.id_eleve;
+    const n1 = document.querySelector(`[data-n1="${id}"]`)?.value || null;
+    const n2 = document.querySelector(`[data-n2="${id}"]`)?.value || null;
+    const n3 = document.querySelector(`[data-n3="${id}"]`)?.value || null;
+    const n4 = document.querySelector(`[data-n4="${id}"]`)?.value || null;
+    const n5 = document.querySelector(`[data-n5="${id}"]`)?.value || null;
+    
+    const valeurs = [n1, n2, n3, n4, n5].filter(v => v !== null && v !== '' && !isNaN(parseFloat(v)));
+    const moyenne_matiere = valeurs.length > 0 
+      ? parseFloat((valeurs.reduce((a,b) => parseFloat(a) + parseFloat(b), 0) / valeurs.length).toFixed(2))
+      : null;
+
+    return {
+      id_eleve: id, id_classe, id_matiere, trimestre, annee_scolaire: annee,
+      note1: n1, note2: n2, note3: n3, note4: n4, note5: n5,
+      moyenne_matiere, saisi_par: id_utilisateur
+    };
+  });
+
+  try {
+    const r = await fetch(`${API_URL}/saisir`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ notes: notesCompletes })
+    });
+    const res = await r.json();
+
+    if (res.ok) {
+      afficherMessage(`✅ ${notesCompletes.length} note(s) enregistrée(s) !`, 'succes');
+      listeEleves.forEach(el => {
+        document.getElementById(`statut-${el.id_utilisateur || el.id_eleve}`).textContent = "✅";
+      });
+    } else {
+      afficherMessage("❌ Erreur : " + (res.erreur || "Erreur inconnue"), 'erreur');
+    }
+  } catch(e) {
+    afficherMessage("❌ Erreur réseau", 'erreur');
+  }
+}
+
+async function genererBulletins() {
+  const id_classe = document.getElementById('id_classe').value;
+  const trimestre = document.getElementById('trimestre').value;
+
+  if (!id_classe) { 
+    afficherMessage("⚠️ Sélectionne une Classe d'abord !", 'erreur'); 
+    return; 
+  }
+
+  try {
+    const r = await fetch(`${API_URL}/generer-bulletin/${id_classe}/${trimestre}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const res = await r.json();
+    
+    if (res.ok) {
+      afficherMessage("✅ Bulletins générés ! Va sur 'Voir / Imprimer Bulletins'", 'succes');
+    } else {
+      afficherMessage("❌ Erreur : " + (res.erreur || "Erreur inconnue"), 'erreur');
+    }
+  } catch(e) {
+    afficherMessage("❌ Erreur connexion serveur", 'erreur');
+  }
+}
+</script>
+</body>
+</html>

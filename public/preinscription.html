@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Préinscription — SALAF SALEH</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root { --primaire: #0c4a6e; --secondaire: #0369a1; --accent: #f59e0b; --sombre: #0f172a; --sombre-clair: #1e293b; --clair: #f8fafc; --succes: #10b981; --danger: #ef4444; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:var(--sombre);color:var(--clair);font-family:'Segoe UI',sans-serif;min-height:100vh}
+    body.lang-ar{font-family:'Segoe UI Tahoma',sans-serif;direction:rtl;text-align:right}
+
+    /* ===== CADRE BRILLANT TOURNANT ===== */
+    .cadre-form{position:relative;max-width:850px;margin:40px auto;padding:35px;background:rgba(15,23,42,0.95);border-radius:20px;overflow:hidden;box-shadow:0 0 30px rgba(245,158,11,0.25)}
+    .cadre-form::before{content:'';position:absolute;inset:-4px;background:conic-gradient(from 0deg,var(--accent),#fbbf24,var(--accent),#f59e0b,var(--accent));animation:tourne 3.5s linear infinite;z-index:-1;border-radius:20px}
+    @keyframes tourne{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+    .titre-prin{text-align:center;margin-bottom:30px;color:var(--accent);font-weight:800}
+    .onglets{display:flex;gap:10px;justify-content:center;margin-bottom:25px;flex-wrap:wrap}
+    .btn-onglet{padding:10px 22px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-weight:600;transition:all 0.3s;border-radius:30px !important}
+    .btn-onglet.actif{background:var(--accent);color:var(--sombre);box-shadow:0 0 15px rgba(245,158,11,0.5)}
+    .form-groupe{margin-bottom:18px}
+    label{display:block;margin-bottom:6px;color:#cbd5e1;font-weight:500}
+    input,select,textarea{width:100%;padding:10px 14px;border:1px solid #334155;background:var(--sombre-clair);color:white;border-radius:10px !important}
+    input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 10px rgba(245,158,11,0.3)}
+    .info-delai{background:rgba(245,158,11,0.1);border:1px solid var(--accent);padding:12px 16px;border-radius:10px;margin-bottom:20px;text-align:center;color:var(--accent);font-weight:500;line-height:1.6}
+    .btn-valider{background:var(--accent);color:var(--sombre);font-weight:700;width:100%;padding:12px;border:none;transition:all 0.3s;box-shadow:0 0 15px rgba(245,158,11,0.4);border-radius:30px !important;font-size:1.05rem}
+    .btn-valider:hover{background:#fbbf24;transform:translateY(-2px)}
+
+    /* ✅ Places restantes affichage */
+    .info-classe{padding:10px 14px;border-radius:10px;margin-top:8px;font-weight:500;transition:all 0.3s}
+    .classe-dispo{background:rgba(16,185,129,0.1);border:1px solid var(--succes);color:#34d399}
+    .classe-complete{background:rgba(239,68,68,0.1);border:1px solid var(--danger);color:#fca5a5}
+    option:disabled{color:#ef4444 !important;font-weight:bold;background:rgba(239,68,68,0.1)}
+
+    /* ✅ AFFICHAGE PAR LANGUE */
+    .txt-fr,.txt-en,.txt-ar{display:none !important}
+    body.lang-fr .txt-fr{display:inline !important}
+    body.lang-en .txt-en{display:inline !important}
+    body.lang-ar .txt-ar{display:inline !important}
+    .btn-langue{background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:5px 12px;margin:0 3px}
+    .btn-langue.actif{background:var(--accent);color:var(--sombre)}
+    .champ-cache{display:none}
+    .msg-conf{background:rgba(16,185,129,0.1);border:1px solid #10b981;padding:20px;border-radius:12px;text-align:center;color:#34d399;margin-top:20px}
+    .retour{color:var(--accent);text-decoration:none;display:inline-block;margin-bottom:15px}
+    .retour:hover{text-decoration:underline}
+    .chargement-classe{color:#94a3b8;font-style:italic}
+  </style>
+</head>
+<body class="lang-fr">
+
+<div class="container py-4">
+  <div class="text-center mb-4">
+    <a href="index.html" class="retour">
+      <i class="bi bi-arrow-left"></i>
+      <span class="txt-fr">Retour à l'accueil</span>
+      <span class="txt-en">Back to home</span>
+      <span class="txt-ar">العودة للرئيسية</span>
+    </a>
+    <div class="mt-2">
+      <button class="btn-langue actif" onclick="changerLangue('fr')">FR</button>
+      <button class="btn-langue" onclick="changerLangue('en')">EN</button>
+      <button class="btn-langue" onclick="changerLangue('ar')">AR</button>
+    </div>
+  </div>
+
+  <div class="cadre-form" id="blocFormulaire">
+    <h2 class="titre-prin">
+      <span class="txt-fr">📝 PRÉINSCRIPTION & RÉINSCRIPTION</span>
+      <span class="txt-en">📝 PRE-REGISTRATION & RE-REGISTRATION</span>
+      <span class="txt-ar">📝 التسجيل المسبق وإعادة التسجيل</span>
+    </h2>
+
+    <div class="info-delai">
+      ⏱️
+      <span class="txt-fr">Votre préinscription réserve votre place pendant <strong>72 HEURES</strong>. Au-delà, elle devient disponible pour les autres.</span>
+      <span class="txt-en">Your pre-registration holds your place for <strong>72 HOURS</strong>. After that, the place becomes available.</span>
+      <span class="txt-ar">⏱️ يحجز طلبك مقعدك لمدة <strong>72 ساعة</strong>. وبعدها يعود المقعد متاحاً للآخرين.</span>
+    </div>
+
+    <div class="onglets">
+      <button class="btn-onglet actif" onclick="choisirType('nouveau')">
+        <span class="txt-fr">🆕 Nouvelle Préinscription</span>
+        <span class="txt-en">🆕 New Pre-Registration</span>
+        <span class="txt-ar">🆕 تسجيل مسبق جديد</span>
+      </button>
+      <button class="btn-onglet" onclick="choisirType('reinscrit')">
+        <span class="txt-fr">🔄 Réinscription</span>
+        <span class="txt-en">🔄 Re-Registration</span>
+        <span class="txt-ar">🔄 إعادة تسجيل</span>
+      </button>
+    </div>
+
+    <div class="form-groupe mt-4">
+      <label for="profil">
+        <span class="txt-fr">Je suis :</span>
+        <span class="txt-en">I am :</span>
+        <span class="txt-ar">أنا :</span>
+      </label>
+      <select name="profil" id="profil" required onchange="afficherChampsParProfil()">
+        <option value="">
+          <span class="txt-fr">-- Choisissez votre profil --</span>
+          <span class="txt-en">-- Choose your profile --</span>
+          <span class="txt-ar">-- اختر فئتك --</span>
+        </option>
+        <option value="eleve">
+          <span class="txt-fr">🎓 Élève</span>
+          <span class="txt-en">🎓 Student</span>
+          <span class="txt-ar">🎓 تلميذ</span>
+        </option>
+        <option value="prof">
+          <span class="txt-fr">👨‍🏫 Enseignant</span>
+          <span class="txt-en">👨‍🏫 Teacher</span>
+          <span class="txt-ar">👨‍🏫 معلم</span>
+        </option>
+        <option value="parent">
+          <span class="txt-fr">👨‍👩‍👧 Parent</span>
+          <span class="txt-en">👨‍👩‍👧 Parent</span>
+          <span class="txt-ar">👨‍👩‍👧 ولي أمر</span>
+        </option>
+        <option value="visiteur">
+          <span class="txt-fr">🏛️ Visiteur / Autre</span>
+          <span class="txt-en">🏛️ Visitor / Other</span>
+          <span class="txt-ar">🏛️ زائر / آخر</span>
+        </option>
+      </select>
+    </div>
+
+    <form id="formPreinscription" enctype="multipart/form-data">
+      <input type="hidden" name="type_inscription" id="typeIns" value="nouveau">
+
+      <div class="row g-3">
+        <div class="col-md-6 form-groupe">
+          <label>
+            <span class="txt-fr">Nom</span>
+            <span class="txt-en">Last Name</span>
+            <span class="txt-ar">اللقب</span>
+          </label>
+          <input type="text" name="nom" required>
+        </div>
+        <div class="col-md-6 form-groupe">
+          <label>
+            <span class="txt-fr">Prénoms</span>
+            <span class="txt-en">First Names</span>
+            <span class="txt-ar">الاسم</span>
+          </label>
+          <input type="text" name="prenoms" required>
+        </div>
+        <div class="col-md-6 form-groupe">
+          <label>
+            <span class="txt-fr">Sexe</span>
+            <span class="txt-en">Gender</span>
+            <span class="txt-ar">الجنس</span>
+          </label>
+          <select name="sexe" required>
+            <option value="">--</option>
+            <option value="M">
+              <span class="txt-fr">Masculin</span>
+              <span class="txt-en">Male</span>
+              <span class="txt-ar">ذكر</span>
+            </option>
+            <option value="F">
+              <span class="txt-fr">Féminin</span>
+              <span class="txt-en">Female</span>
+              <span class="txt-ar">أنثى</span>
+            </option>
+          </select>
+        </div>
+        <div class="col-md-6 form-groupe">
+          <label>
+            <span class="txt-fr">Email</span>
+            <span class="txt-en">Email</span>
+            <span class="txt-ar">البريد الإلكتروني</span>
+          </label>
+          <input type="email" name="email" required>
+        </div>
+        <div class="col-md-6 form-groupe">
+          <label>
+            <span class="txt-fr">Téléphone</span>
+            <span class="txt-en">Phone</span>
+            <span class="txt-ar">الهاتف</span>
+          </label>
+          <input type="tel" name="telephone" required>
+        </div>
+      </div>
+
+      <!-- ✅ CHAMPS ÉLÈVE — LISTE DES CLASSES CHARGÉE DEPUIS LA BASE -->
+      <div id="champsEleve" class="champ-cache">
+        <div class="form-groupe">
+          <label for="id_classe">
+            <span class="txt-fr">Classe / Niveau souhaité</span>
+            <span class="txt-en">Desired Class / Level</span>
+            <span class="txt-ar">المستوى المرغوب فيه</span>
+          </label>
+          <select name="id_classe" id="id_classe" required onchange="afficherPlacesRestantes()">
+            <option value="">
+              <span class="txt-fr">-- Chargement des classes... --</span>
+              <span class="txt-en">-- Loading classes... --</span>
+              <span class="txt-ar">-- جارٍ التحميل... --</span>
+            </option>
+          </select>
+          <!-- ✅ Affichage dynamique des places restantes -->
+          <div id="infoPlaces" class="chargement-classe mt-2">
+            <span class="txt-fr">Chargement des disponibilités...</span>
+            <span class="txt-en">Loading availability...</span>
+            <span class="txt-ar">جارٍ تحميل المعلومات...</span>
+          </div>
+        </div>
+        <div class="form-groupe">
+          <label>
+            <span class="txt-fr">Photo d'identité</span>
+            <span class="txt-en">ID Photo</span>
+            <span class="txt-ar">صورة شخصية</span>
+          </label>
+          <input type="file" name="photo_identite" accept="image/*">
+        </div>
+        <div class="form-groupe">
+          <label>
+            <span class="txt-fr">Extrait de naissance</span>
+            <span class="txt-en">Birth Certificate</span>
+            <span class="txt-ar">شهادة الميلاد</span>
+          </label>
+          <input type="file" name="extrait_naissance" accept=".pdf,.jpg,.png">
+        </div>
+        <div class="form-groupe">
+          <label>
+            <span class="txt-fr">Bulletin de notes (année précédente)</span>
+            <span class="txt-en">School Report Card</span>
+            <span class="txt-ar">كشف النقاط</span>
+          </label>
+          <input type="file" name="bulletin" accept=".pdf,.jpg,.png">
+        </div>
+      </div>
+
+      <div id="champsProf" class="champ-cache">
+        <div class="form-groupe">
+          <label>
+            <span class="txt-fr">Photo d'identité</span>
+            <span class="txt-en">ID Photo</span>
+            <span class="txt-ar">صورة شخصية</span>
+          </label>
+          <input type="file" name="photo_identite" accept="image/*">
+        </div>
+        <div class="form-groupe">
+          <label>
+            <span class="txt-fr">Curriculum Vitae (CV)</span>
+            <span class="txt-en">Resume / CV</span>
+            <span class="txt-ar">السيرة الذاتية</span>
+          </label>
+          <input type="file" name="cv" accept=".pdf,.doc,.docx,.jpg,.png">
+        </div>
+      </div>
+
+      <div class="row g-3 mt-2">
+        <div class="col-md-6 form-groupe">
+          <label>
+            <span class="txt-fr">Choisissez un mot de passe</span>
+            <span class="txt-en">Choose a password</span>
+            <span class="txt-ar">اختر كلمة مرور</span>
+          </label>
+          <input type="password" name="mot_de_passe" required minlength="6">
+        </div>
+        <div class="col-md-6 form-groupe">
+          <label>
+            <span class="txt-fr">Confirmez le mot de passe</span>
+            <span class="txt-en">Confirm password</span>
+            <span class="txt-ar">أكد كلمة المرور</span>
+          </label>
+          <input type="password" name="confirmation_mdp" required minlength="6">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-valider mt-4">
+        <span class="txt-fr">✅ Envoyer ma demande</span>
+        <span class="txt-en">✅ Submit my request</span>
+        <span class="txt-ar">✅ إرسال طلبي</span>
+      </button>
+    </form>
+
+    <div id="messageConfirmation" class="msg-conf d-none">
+      <h4>✅</h4>
+      <p class="txt-fr">Votre demande a bien été enregistrée.<br>Nous vous répondrons dans un délai de <strong>24 HEURES</strong> maximum.<br>Votre place est réservée pendant <strong>72 HEURES</strong>.<br>À la validation définitive, vous recevrez votre <strong>matricule</strong>, un <strong>mot de passe provisoire</strong> (à modifier) et votre <strong>Code QR</strong>.</p>
+      <p class="txt-en">Your application has been registered successfully.<br>We will reply within <strong>24 HOURS</strong> maximum.<br>Your place is reserved for <strong>72 HOURS</strong>.<br>Upon final validation, you will receive your <strong>registration number</strong>, a <strong>temporary password</strong> (to be changed) and your <strong>QR Code</strong>.</p>
+      <p class="txt-ar">تم تسجيل طلبك بنجاح.<br>سنرد عليك في غضون <strong>24 ساعة</strong> كحد أقصى.<br>مقعدك محجوز لمدة <strong>72 ساعة</strong>.<br>عند الموافقة النهائية، ستصلك رقمك الوظيفي وكلمة مرور مؤقتة (غيّرها) ورمز QR.</p>
+      <a href="index.html" class="btn btn-success mt-3">
+        <span class="txt-fr">Retour à l'accueil</span>
+        <span class="txt-en">Back to homepage</span>
+        <span class="txt-ar">العودة للصفحة الرئيسية</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+// 🌐 Changement de langue
+function changerLangue(lang) {
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-'+lang);
+  document.querySelectorAll('.btn-langue').forEach(b=>b.classList.remove('actif'));
+  event.target.classList.add('actif');
+  localStorage.setItem('langue', lang);
+}
+
+// 🔄 Choix type d'inscription
+function choisirType(type){
+  document.getElementById('typeIns').value = type;
+  document.querySelectorAll('.btn-onglet').forEach(b=>b.classList.remove('actif'));
+  event.target.classList.add('actif');
+}
+
+// 📋 Afficher les champs selon le profil
+function afficherChampsParProfil(){
+  const p = document.getElementById('profil').value;
+  document.getElementById('champsEleve').classList.add('champ-cache');
+  document.getElementById('champsProf').classList.add('champ-cache');
+  document.getElementById('infoPlaces').innerHTML = '';
+  if(p === 'eleve'){
+    document.getElementById('champsEleve').classList.remove('champ-cache');
+    chargerListeClasses(); // ✅ Charger la liste quand ÉLÈVE est sélectionné
+  }else if(p === 'prof'){
+    document.getElementById('champsProf').classList.remove('champ-cache');
+  }
+}
+
+// 📦 Stocker toutes les classes chargées
+let listeClasses = [];
+
+// ✅ CHARGER LA LISTE DES CLASSES DEPUIS LA BASE — URL CORRIGÉE
+async function chargerListeClasses(){
+  const selectClasse = document.getElementById('id_classe');
+  const infoPlaces = document.getElementById('infoPlaces');
+
+  try {
+    // ✅ URL HARMONISÉE avec ta route existante
+    const res = await fetch('/api/classes');
+    const data = await res.json();
+
+    if(data.ok && data.classes.length > 0){
+      listeClasses = data.classes;
+      selectClasse.innerHTML = '<option value="">-- Sélectionnez une classe --</option>';
+
+      data.classes.forEach(classe => {
+        const option = document.createElement('option');
+        option.value = classe.id;
+
+        // ✅ Afficher le nom de la classe + places restantes
+        const textePlaces = classe.places_restantes > 0 
+          ? `✅ ${classe.nom} — ${classe.places_restantes} place(s) disponible(s)`
+          : `❌ ${classe.nom} — COMPLET`;
+        option.textContent = textePlaces;
+
+        // ⛔ Classe complète = non sélectionnable
+        if(classe.places_restantes <= 0){
+          option.disabled = true;
+        }
+        selectClasse.appendChild(option);
+      });
+
+      infoPlaces.innerHTML = '<span class="txt-fr text-success">✅ Liste chargée avec succès</span><span class="txt-en text-success">✅ List loaded successfully</span><span class="txt-ar text-success">✅ تم تحميل القائمة بنجاح</span>';
+    } else {
+      selectClasse.innerHTML = '<option value="">-- Aucune classe disponible --</option>';
+      infoPlaces.innerHTML = '<span class="txt-fr text-warning">⚠️ Aucune classe n\'a été créée par l\'administration</span><span class="txt-en text-warning">⚠️ No class has been created by the administration</span><span class="txt-ar text-warning">⚠️ لم يتم إنشاء أي فصل بعد</span>';
+    }
+  } catch (erreur) {
+    console.error("Erreur chargement classes :", erreur);
+    selectClasse.innerHTML = '<option value="">-- Erreur de chargement --</option>';
+    infoPlaces.innerHTML = `<span class="txt-fr text-danger">❌ Serveur indisponible — ${erreur.message}</span><span class="txt-en text-danger">❌ Server unavailable</span><span class="txt-ar text-danger">❌ الخادم غير متاح</span>`;
+  }
+}
+
+// ✅ AFFICHER LES PLACES EN DESSOUS DU SÉLECTEUR
+function afficherPlacesRestantes(){
+  const idChoisi = document.getElementById('id_classe').value;
+  const infoPlaces = document.getElementById('infoPlaces');
+  const classe = listeClasses.find(c => String(c.id) === String(idChoisi));
+
+  if(classe){
+    if(classe.places_restantes > 0){
+      infoPlaces.className = 'info-classe classe-dispo';
+      infoPlaces.innerHTML = `✅ <span class="txt-fr">${classe.places_restantes} place(s) restante(s) sur ${classe.capacite_totale}</span><span class="txt-en">${classe.places_restantes} place(s) remaining out of ${classe.capacite_totale}</span><span class="txt-ar">${classe.places_restantes} مقعداً متاحاً من أصل ${classe.capacite_totale}</span>`;
+    } else {
+      infoPlaces.className = 'info-classe classe-complete';
+      infoPlaces.innerHTML = `❌ <span class="txt-fr">Cette classe est COMPLETE (${classe.capacite_totale} places au total)</span><span class="txt-en">This class is FULL (${classe.capacite_totale} places total)</span><span class="txt-ar">هذا الفصل مكتمل (${classe.capacite_totale} مقعد)</span>`;
+    }
+  } else {
+    infoPlaces.innerHTML = '';
+  }
+}
+
+// 📤 Soumission du formulaire
+document.getElementById('formPreinscription').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const msgConf = document.getElementById('messageConfirmation');
+  const form = e.target;
+  const btn = form.querySelector('button[type="submit"]');
+
+  const mdp = form.mot_de_passe.value;
+  const conf = form.confirmation_mdp.value;
+  if(mdp !== conf){
+    alert("⚠️ Les deux mots de passe ne correspondent pas !");
+    return;
+  }
+
+  // ✅ Vérifier qu'une classe complète n'est pas sélectionnée
+  const idClasse = document.getElementById('id_classe').value;
+  const classeChoisie = listeClasses.find(c => String(c.id) === String(idClasse));
+  if(classeChoisie && classeChoisie.places_restantes <= 0){
+    alert("❌ Cette classe est complète, choisissez-en une autre.");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = "<span class='txt-fr'>⏳ Envoi en cours...</span><span class='txt-en'>⏳ Sending...</span><span class='txt-ar'>⏳ جارٍ الإرسال...</span>";
+
+  const donnees = new FormData(form);
+  donnees.append('profil', document.getElementById('profil').value);
+
+  try {
+    const res = await fetch('/api/preinscription', {
+      method: 'POST',
+      body: donnees
+    });
+    const rep = await res.json();
+
+    if(rep.ok){
+      form.classList.add('d-none');
+      document.querySelector('.onglets').classList.add('d-none');
+      document.querySelector('.info-delai').classList.add('d-none');
+      document.getElementById('profil').closest('.form-groupe').classList.add('d-none');
+      msgConf.classList.remove('d-none');
+    }else{
+      alert("❌ Erreur : " + rep.erreur);
+    }
+  } catch {
+    alert("⚠️ Serveur indisponible — réessaie plus tard");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = "<span class='txt-fr'>✅ Envoyer ma demande</span><span class='txt-en'>✅ Submit my request</span><span class='txt-ar'>✅ إرسال طلبي</span>";
+  }
+});
+
+// ✅ Appliquer la langue sauvegardée au chargement
+window.addEventListener('DOMContentLoaded', () => {
+  const langue = localStorage.getItem('langue') || 'fr';
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-'+langue);
+  document.querySelectorAll('.btn-langue').forEach(b=>b.classList.remove('actif'));
+  document.querySelector(`.btn-langue[onclick*="${langue}"]`)?.classList.add('actif');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Mes Paiements & Reçus</span>
+    <span class="txt-en">My Payments & Receipts</span>
+    <span class="txt-ar">مدفوعاتي وإيصالاتي</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --succes: #10b981;
+      --alerte: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --texte-clair: #f8fafc;
+      --texte-dore: #fbbf24;
+    }
+
+    .txt-en,.txt-ar{display:none}
+    body.lang-fr .txt-fr{display:inline}
+    body.lang-fr .txt-en,body.lang-fr .txt-ar{display:none}
+    body.lang-en .txt-en{display:inline}
+    body.lang-en .txt-fr,body.lang-en .txt-ar{display:none}
+    body.lang-ar .txt-ar{display:inline}
+    body.lang-ar .txt-fr,body.lang-ar .txt-en{display:none}
+    body.lang-ar .titre-section,body.lang-ar .text-end-ar{text-align:right}
+
+    body {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #f8fafc;
+      min-height: 100vh;
+    }
+
+    .carte {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    .titre-section { color: var(--texte-dore); font-weight: 600; }
+    .btn-primaire { background: linear-gradient(135deg, var(--primaire), #0369a1); border: none; color: white; }
+    .btn-primaire:hover { background: linear-gradient(135deg, #0369a1, var(--primaire)); color: white; }
+    .btn-succes { background: linear-gradient(135deg, var(--succes), #059669); border: none; color: white; }
+    .btn-accent { background: linear-gradient(135deg, var(--alerte), #d97706); border: none; color: #000; font-weight: 500; }
+
+    .badge-attente { background: #6b7280; }
+    .badge-partiel { background: #f59e0b; color: #000; }
+    .badge-paye { background: #10b981; }
+    .badge-annule { background: #ef4444; }
+
+    .progress { height: 8px; border-radius: 4px; background: rgba(255,255,255,.1); }
+    .progress-bar-paye { background: #10b981; }
+    .progress-bar-partiel { background: #f59e0b; }
+
+    .recus-border { border: 2px dashed #cbd5e1; border-radius: 8px; }
+    .modal-content { background: var(--sombre-clair); border: 1px solid rgba(245,158,11,.25); border-radius: 16px; color: var(--texte-clair); }
+    .btn-close-white { filter: invert(1); }
+
+    .btn-lang { width: 38px; height: 38px; padding: 0; font-size: 14px; border-radius: 50%; border: 2px solid; display: flex; align-items: center; justify-content: center; }
+    .btn-lang.active { background: var(--alerte); color: #000; border-color: var(--alerte); }
+
+    .montant { font-family: 'Segoe UI Mono', monospace; font-weight: 600; }
+    .ligne-non-modifiable { opacity: 0.85; }
+
+    @media print {
+      body { background: #fff; color: #000; }
+      .no-print { display: none !important; }
+      .recus-border { border-color: #000; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container py-4">
+
+  <!-- 🌐 LANGUE -->
+  <div class="d-flex justify-content-end gap-2 mb-3 no-print">
+    <button class="btn btn-lang active" data-lang="fr" title="Français">FR</button>
+    <button class="btn btn-lang" data-lang="en" title="English">EN</button>
+    <button class="btn btn-lang" data-lang="ar" title="العربية">ع</button>
+  </div>
+
+  <!-- 🏠 EN-TÊTE -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="titre-section mb-1">
+        <i class="bi bi-receipt me-2"></i>
+        <span class="txt-fr">Mes Paiements</span>
+        <span class="txt-en">My Payments</span>
+        <span class="txt-ar">مدفوعاتي</span>
+      </h3>
+      <p class="text-muted small mb-0">
+        <span class="txt-fr">Historique et reçus de paiement — Espace Consultation</span>
+        <span class="txt-en">Payment history and receipts — View Only</span>
+        <span class="txt-ar">سجل المدفوعات والإيصالات — عرض فقط</span>
+      </p>
+    </div>
+    <div class="no-print">
+      <span class="badge bg-info text-dark">
+        <i class="bi bi-eye me-1"></i>
+        <span class="txt-fr">Consultation seule</span>
+        <span class="txt-en">View Only</span>
+        <span class="txt-ar">عرض فقط</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- 📊 RÉSUMÉ PERSONNEL -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4 col-sm-6">
+      <div class="carte p-3 text-center">
+        <h6 class="text-muted small">
+          <span class="txt-fr">Montant Total Dû</span>
+          <span class="txt-en">Total Amount Due</span>
+          <span class="txt-ar">المجموع المستحق</span>
+        </h6>
+        <h5 class="montant text-danger" id="resumeTotalDu">—</h5>
+      </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+      <div class="carte p-3 text-center">
+        <h6 class="text-muted small">
+          <span class="txt-fr">Montant Déjà Payé</span>
+          <span class="txt-en">Amount Paid</span>
+          <span class="txt-ar">المبلغ المدفوع</span>
+        </h6>
+        <h5 class="montant text-success" id="resumePaye">—</h5>
+      </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+      <div class="carte p-3 text-center">
+        <h6 class="text-muted small">
+          <span class="txt-fr">Reste à Payer</span>
+          <span class="txt-en">Balance Due</span>
+          <span class="txt-ar">المبلغ المتبقي</span>
+        </h6>
+        <h5 class="montant text-warning" id="resumeRestant">—</h5>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔽 FILTRES -->
+  <div class="carte p-3 mb-4 no-print">
+    <div class="row g-2">
+      <div class="col-md-4">
+        <label class="form-label small">
+          <span class="txt-fr">Statut du paiement</span>
+          <span class="txt-en">Payment Status</span>
+          <span class="txt-ar">حالة الدفع</span>
+        </label>
+        <select id="filtreStatut" class="form-select">
+          <option value="">Tous les statuts</option>
+          <option value="en_attente">⚪ En attente</option>
+          <option value="partiel">🟠 Partiel</option>
+          <option value="paye">🟢 Payé en totalité</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small">
+          <span class="txt-fr">Année scolaire</span>
+          <span class="txt-en">School Year</span>
+          <span class="txt-ar">السنة الدراسية</span>
+        </label>
+        <select id="filtreAnnee" class="form-select">
+          <option value="">Toutes les années</option>
+          <option value="2025">2025-2026</option>
+          <option value="2024">2024-2025</option>
+        </select>
+      </div>
+      <div class="col-md-4 d-flex align-items-end">
+        <button id="btnReinitialiser" class="btn btn-primaire w-100">
+          <i class="bi bi-x-circle me-1"></i>
+          <span class="txt-fr">Réinitialiser</span>
+          <span class="txt-en">Reset</span>
+          <span class="txt-ar">إعادة تعيين</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📋 LISTE DES PAIEMENTS -->
+  <div id="listePaiements" class="row g-3">
+    <div class="col-12 text-center py-5 text-muted">
+      <div class="spinner-border text-warning mb-3"></div>
+      <p>
+        <span class="txt-fr">Chargement de vos paiements...</span>
+        <span class="txt-en">Loading your payments...</span>
+        <span class="txt-ar">جاري تحميل مدفوعاتك...</span>
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<!-- 🧾 MODALE REÇU EN LECTURE SEULE -->
+<div class="modal fade" id="modalRecu" tabindex="-1" aria-labelledby="modalRecuTitre" aria-hidden="false">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      <div class="modal-header no-print">
+        <h5 class="modal-title titre-section" id="modalRecuTitre">
+          🧾 <span class="txt-fr">Reçu de Paiement</span>
+          <span class="txt-en">Payment Receipt</span>
+          <span class="txt-ar">إيصال الدفع</span>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body recus-content" id="contenuRecu">
+        <!-- Rempli dynamiquement -->
+      </div>
+      <div class="modal-footer no-print">
+        <button class="btn btn-primaire" onclick="imprimerRecu()">
+          <i class="bi bi-printer"></i>
+          <span class="txt-fr"> Imprimer / PDF</span>
+          <span class="txt-en"> Print / PDF</span>
+          <span class="txt-ar"> طباعة / PDF</span>
+        </button>
+        <button class="btn btn-succes" onclick="telechargerRecu()">
+          <i class="bi bi-download"></i>
+          <span class="txt-fr"> Télécharger</span>
+          <span class="txt-en"> Download</span>
+          <span class="txt-ar"> تحميل</span>
+        </button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">
+          <span class="txt-fr">Fermer</span>
+          <span class="txt-en">Close</span>
+          <span class="txt-ar">إغلاق</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ==================================================
+// ⚙️ CONFIGURATION
+// ==================================================
+const API_URL = 'http://localhost:5000/api/paiements/liste-pour-utilisateur';
+const token = localStorage.getItem('token');
+let langueActuelle = 'fr';
+let paiementCourant = null;
+
+// ==================================================
+// 🌐 GESTION DES LANGUES
+// ==================================================
+document.querySelectorAll('.btn-lang').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.btn-lang').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    langueActuelle = btn.dataset.lang;
+    document.documentElement.className = `lang-${langueActuelle}`;
+    document.body.className = `lang-${langueActuelle}`;
+  });
+});
+
+// ==================================================
+// 💰 FORMATAGE MONÉTAIRE
+// ==================================================
+function formatMontant(montant) {
+  return new Intl.NumberFormat('fr-FR').format(parseFloat(montant) || 0) + ' F CFA';
+}
+
+// ==================================================
+// 📦 CHARGER LA LISTE DES PAIEMENTS
+// ==================================================
+async function chargerPaiements() {
+  const conteneur = document.getElementById('listePaiements');
+
+  // Vérification authentification
+  if (!token) {
+    conteneur.innerHTML = `
+      <div class="col-12 text-center text-danger py-5">
+        <i class="bi bi-lock fs-1"></i>
+        <p class="mt-2">
+          <span class="txt-fr">Veuillez vous connecter pour consulter vos paiements.</span>
+          <span class="txt-en">Please log in to view your payments.</span>
+          <span class="txt-ar">يرجى تسجيل الدخول لعرض مدفوعاتك.</span>
+        </p>
+        <a href="/connexion.html" class="btn btn-primaire mt-3">
+          <span class="txt-fr">Se connecter</span>
+          <span class="txt-en">Log in</span>
+          <span class="txt-ar">تسجيل الدخول</span>
+        </a>
+      </div>`;
+    return;
+  }
+
+  try {
+    // Construction de l'URL avec filtres
+    const statut = document.getElementById('filtreStatut').value;
+    const annee = document.getElementById('filtreAnnee').value;
+    let url = API_URL + '?';
+    if (statut) url += `statut=${encodeURIComponent(statut)}&`;
+    if (annee) url += `annee=${annee}&`;
+
+    const reponse = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    const donnees = await reponse.json();
+    if (!donnees.ok) throw new Error(donnees.erreur || "Erreur de chargement");
+
+    // Mise à jour du résumé
+    const resume = donnees.resume || {};
+    document.getElementById('resumeTotalDu').textContent = formatMontant(resume.somme_totale || 0);
+    document.getElementById('resumePaye').textContent = formatMontant(resume.somme_payee || 0);
+    document.getElementById('resumeRestant').textContent = formatMontant(resume.somme_restante || 0);
+
+    // Affichage des cartes
+    afficherListePaiements(donnees.paiements || []);
+
+  } catch (erreur) {
+    console.error("❌ Erreur chargement paiements :", erreur);
+    conteneur.innerHTML = `
+      <div class="col-12 text-center text-danger py-5">
+        <i class="bi bi-exclamation-triangle fs-1"></i>
+        <p class="mt-2">
+          <span class="txt-fr">Impossible de charger vos paiements</span>
+          <span class="txt-en">Unable to load your payments</span>
+          <span class="txt-ar">تعذر تحميل مدفوعاتك</span>
+        </p>
+        <p class="small text-muted">${erreur.message}</p>
+        <button class="btn btn-primaire mt-3" onclick="chargerPaiements()">
+          <i class="bi bi-arrow-clockwise"></i>
+          <span class="txt-fr"> Réessayer</span>
+          <span class="txt-en"> Retry</span>
+        </button>
+      </div>`;
+  }
+}
+
+// ==================================================
+// 🎨 AFFICHAGE DES CARTES DE PAIEMENT
+// ==================================================
+function afficherListePaiements(liste) {
+  const conteneur = document.getElementById('listePaiements');
+
+  if (!liste.length) {
+    conteneur.innerHTML = `
+      <div class="col-12 text-center py-5 text-muted">
+        <i class="bi bi-receipt fs-1 mb-3 d-block"></i>
+        <p class="mb-1">
+          <span class="txt-fr">Aucun paiement enregistré pour le moment.</span>
+          <span class="txt-en">No payments recorded yet.</span>
+          <span class="txt-ar">لا توجد مدفوعات مسجلة حتى الآن.</span>
+        </p>
+        <p class="small">
+          <span class="txt-fr">Vos paiements apparaîtront ici dès qu'ils sont enregistrés.</span>
+          <span class="txt-en">Your payments will appear here once recorded.</span>
+        </p>
+      </div>`;
+    return;
+  }
+
+  // Icônes et libellés moyens de paiement
+  const iconesMoyens = {
+    orange_money: '🟠', mtn_money: '🟡', moov_money: '🔵',
+    cheque: '📋', virement_banque: '🏦', espece: '💵', don: '❤️'
+  };
+  const libellesMoyens = {
+    orange_money: 'Orange Money', mtn_money: 'MTN Money', moov_money: 'Moov Money',
+    cheque: 'Chèque Bancaire', virement_banque: 'Virement Bancaire',
+    espece: 'Espèces', don: 'Don / Versement Libre'
+  };
+  const libellesStatuts = {
+    en_attente: { texte: 'En attente', classe: 'badge-attente' },
+    partiel: { texte: 'Partiel', classe: 'badge-partiel' },
+    paye: { texte: 'Payé', classe: 'badge-paye' },
+    annule: { texte: 'Annulé', classe: 'badge-annule' }
+  };
+
+  conteneur.innerHTML = liste.map(paiement => {
+    const statut = libellesStatuts[paiement.statut] || { texte: paiement.statut, classe: 'badge-attente' };
+    const icone = iconesMoyens[paiement.moyen_paiement] || '💳';
+    const moyen = libellesMoyens[paiement.moyen_paiement] || paiement.moyen_paiement;
+    const pourcentage = parseFloat(paiement.pourcentage_paiement || 0);
+    const classeBarre = pourcentage >= 100 ? 'progress-bar-paye' : 'progress-bar-partiel';
+    const date = new Date(paiement.date_paiement).toLocaleDateString('fr-CA');
+
+    return `
+      <div class="col-md-6 col-lg-4">
+        <div class="carte p-3 h-100 ligne-non-modifiable">
+          <!-- En-tête carte -->
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge ${statut.classe}">${statut.texte}</span>
+            <span class="small text-muted">${icone} ${moyen}</span>
+          </div>
+
+          <!-- Informations principales -->
+          <h5 class="mb-1">${paiement.libelle}</h5>
+          <p class="text-muted small mb-3">
+            <i class="bi bi-calendar3 me-1"></i> ${date}
+            ${paiement.reference_externe ? ` — ${paiement.reference_externe}` : ''}
+          </p>
+
+          <!-- Barre de progression -->
+          <div class="progress mb-2">
+            <div class="progress-bar ${classeBarre}" style="width: ${pourcentage}%">
+              ${pourcentage.toFixed(0)}%
+            </div>
+          </div>
+
+          <!-- Montants -->
+          <div class="d-flex justify-content-between small mb-1">
+            <span class="text-muted">
+              <span class="txt-fr">Dû :</span>
+              <span class="txt-en">Due :</span>
+              <span class="txt-ar">المستحق :</span>
+            </span>
+            <span class="montant text-danger">${formatMontant(paiement.montant_total)}</span>
+          </div>
+          <div class="d-flex justify-content-between small mb-1">
+            <span class="text-muted">
+              <span class="txt-fr">Payé :</span>
+              <span class="txt-en">Paid :</span>
+              <span class="txt-ar">مدفوع :</span>
+            </span>
+            <span class="montant text-success">${formatMontant(paiement.montant_paye)}</span>
+          </div>
+          <div class="d-flex justify-content-between small border-top pt-2 mt-1">
+            <span class="fw-bold">
+              <span class="txt-fr">Restant :</span>
+              <span class="txt-en">Remaining :</span>
+              <span class="txt-ar">متبقي :</span>
+            </span>
+            <span class="montant text-warning fw-bold">${formatMontant(paiement.montant_restant)}</span>
+          </div>
+
+          <!-- Actions → Reçu seulement -->
+          <div class="mt-3 no-print">
+            <button class="btn btn-succes w-100" onclick="voirRecu(${paiement.id_paiement})">
+              <i class="bi bi-file-earmark-text me-2"></i>
+              <span class="txt-fr"> Voir / Télécharger le Reçu</span>
+              <span class="txt-en"> View / Download Receipt</span>
+              <span class="txt-ar"> عرض / تحميل الإيصال</span>
+            </button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ==================================================
+// 🧾 AFFICHER LE REÇU
+// ==================================================
+window.voirRecu = async function(idPaiement) {
+  try {
+    // Récupération du paiement concerné
+    const reponse = await fetch(API_URL, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const donnees = await reponse.json();
+    if (!donnees.ok) throw new Error(donnees.erreur);
+
+    paiementCourant = (donnees.paiements || []).find(p => p.id_paiement === idPaiement);
+    if (!paiementCourant) throw new Error("Paiement introuvable");
+
+    // Libellés et icônes
+    const iconesMoyens = {
+      orange_money: '🟠', mtn_money: '🟡', moov_money: '🔵',
+      cheque: '📋', virement_banque: '🏦', espece: '💵', don: '❤️'
+    };
+    const libellesMoyens = {
+      orange_money: 'Orange Money', mtn_money: 'MTN Money', moov_money: 'Moov Money',
+      cheque: 'Chèque Bancaire', virement_banque: 'Virement Bancaire',
+      espece: 'Espèces', don: 'Don / Versement Libre'
+    };
+
+    const icone = iconesMoyens[paiementCourant.moyen_paiement] || '💳';
+    const moyen = libellesMoyens[paiementCourant.moyen_paiement] || paiementCourant.moyen_paiement;
+    const date = new Date(paiementCourant.date_paiement).toLocaleDateString('fr-CA');
+    const pourcentage = parseFloat(paiementCourant.pourcentage_paiement || 0).toFixed(1);
+
+    // Génération du reçu
+    document.getElementById('contenuRecu').innerHTML = `
+      <div class="recus-border p-4 mb-3">
+        <div class="text-center mb-4">
+          <h4 class="mb-1">REÇU DE PAIEMENT</h4>
+          <p class="text-muted small">N°${idPaiement} — ${date}</p>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col-5 fw-bold">
+            <span class="txt-fr">Désignation :</span>
+            <span class="txt-en">Description :</span>
+            <span class="txt-ar">البيان :</span>
+          </div>
+          <div class="col-7">${paiementCourant.libelle}</div>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col-5 fw-bold">
+            <span class="txt-fr">Concerné :</span>
+            <span class="txt-en">For :</span>
+            <span class="txt-ar">لـ :</span>
+          </div>
+          <div class="col-7">${paiementCourant.reference_externe || 'Non spécifié'}</div>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col-5 fw-bold">
+            <span class="txt-fr">Mode de paiement :</span>
+            <span class="txt-en">Payment Method :</span>
+            <span class="txt-ar">وسيلة الدفع :</span>
+          </div>
+          <div class="col-7">${icone} ${moyen}</div>
+        </div>
+
+        ${paiementCourant.numero_transaction ? `
+        <div class="row mb-2">
+          <div class="col-5 fw-bold">N° Transaction :</div>
+          <div class="col-7 font-monospace">${paiementCourant.numero_transaction}</div>
+        </div>` : ''}
+
+        <hr>
+
+        <div class="row mb-1">
+          <div class="col-6 fw-bold">
+            <span class="txt-fr">Montant Total Dû :</span>
+            <span class="txt-en">Total Amount Due :</span>
+            <span class="txt-ar">المجموع المستحق :</span>
+          </div>
+          <div class="col-6 text-end fw-bold">${formatMontant(paiementCourant.montant_total)}</div>
+        </div>
+
+        <div class="row mb-1">
+          <div class="col-6 fw-bold text-success">
+            <span class="txt-fr">Déjà Versé :</span>
+            <span class="txt-en">Already Paid :</span>
+            <span class="txt-ar">مدفوع حتى الآن :</span>
+          </div>
+          <div class="col-6 text-end text-success">${formatMontant(paiementCourant.montant_paye)}</div>
+        </div>
+
+        <div class="row mb-3 border-top pt-2">
+          <div class="col-6 fw-bold text-danger">
+            <span class="txt-fr">Reste à Régler :</span>
+            <span class="txt-en">Remaining Balance :</span>
+            <span class="txt-ar">المتبقي دفعه :</span>
+          </div>
+          <div class="col-6 text-end text-danger fw-bold">${formatMontant(paiementCourant.montant_restant)}</div>
+        </div>
+
+        <div class="text-center py-2 bg-light bg-opacity-10 rounded mb-3">
+          <strong>
+            <span class="txt-fr">Taux réglé : ${pourcentage} %</span>
+            <span class="txt-en">Paid rate : ${pourcentage} %</span>
+            <span class="txt-ar">نسبة الدفع : ${pourcentage} %</span>
+          </strong>
+        </div>
+
+        ${paiementCourant.commentaire ? `
+        <p class="small text-muted fst-italic">
+          <span class="txt-fr">Observations :</span>
+          <span class="txt-en">Notes :</span>
+          <span class="txt-ar">ملاحظات :</span>
+          <br>${paiementCourant.commentaire}
+        </p>` : ''}
+
+        <div class="text-center mt-4 pt-3 border-top">
+          <p class="small text-muted">
+            <span class="txt-fr">Document généré automatiquement — Signature numérique</span>
+            <span class="txt-en">Automatically generated document — Digital signature</span>
+            <span class="txt-ar">وثيقة مولدة آلياً — توقيع رقمي</span>
+          </p>
+          <p class="fw-bold mt-2">ÉTABLISSEMENT SCOLAIRE</p>
+        </div>
+      </div>`;
+
+    // Affichage de la modale
+    new bootstrap.Modal(document.getElementById('modalRecu')).show();
+
+  } catch (erreur) {
+    alert("❌ Impossible d'afficher le reçu : " + erreur.message);
+  }
+};
+
+// ==================================================
+// 🖨️ IMPRIMER LE REÇU
+// ==================================================
+window.imprimerRecu = function() {
+  window.print();
+};
+
+// ==================================================
+// 📤 TÉLÉCHARGER LE REÇU
+// ==================================================
+window.telechargerRecu = function() {
+  alert("✅ Le reçu est prêt !\n\n→ Utilisez la fonction « Imprimer » puis choisissez « Enregistrer au format PDF » dans la liste des imprimantes.");
+  window.print();
+};
+
+// ==================================================
+// 🔄 GESTION DES FILTRES
+// ==================================================
+document.getElementById('filtreStatut').addEventListener('change', chargerPaiements);
+document.getElementById('filtreAnnee').addEventListener('change', chargerPaiements);
+document.getElementById('btnReinitialiser').addEventListener('click', () => {
+  document.getElementById('filtreStatut').value = '';
+  document.getElementById('filtreAnnee').value = '';
+  chargerPaiements();
+});
+
+// ==================================================
+// 🚀 CHARGEMENT AU DEMARRAGE
+// ==================================================
+chargerPaiements();
+</script>
+</body>
+</html> 

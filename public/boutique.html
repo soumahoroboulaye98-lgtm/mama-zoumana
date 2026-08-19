@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🛍️ Boutique Scolaire — MAMA-ZOUMANA</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --succes: #10b981;
+      --alerte: #f59e0b;
+      --danger: #ef4444;
+    }
+    body {
+      background: linear-gradient(135deg, #f0f9ff 0%, #fffbeb 100%);
+      min-height: 100vh;
+    }
+    .entete {
+      background: linear-gradient(90deg, var(--primaire), #0369a1);
+      color: white;
+      padding: 1.5rem;
+      border-radius: 0 0 20px 20px;
+      margin-bottom: 2rem;
+    }
+    .carte-produit {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      border: none;
+      transition: transform 0.3s, box-shadow 0.3s;
+      height: 100%;
+    }
+    .carte-produit:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(12,74,110,0.15);
+    }
+    .prix {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--primaire);
+    }
+    .stock {
+      font-size: 0.85rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .stock-dispo { background: #dcfce7; color: #166534; }
+    .stock-rupture { background: #fee2e2; color: #991b1b; }
+    .btn-acheter {
+      background: linear-gradient(90deg, var(--succes), #059669);
+      border: none;
+    }
+    .categorie-btn {
+      border-radius: 25px;
+      border: 2px solid var(--primaire);
+      color: var(--primaire);
+      background: white;
+      font-weight: 500;
+      transition: all 0.25s;
+    }
+    .categorie-btn:hover, .categorie-btn.active {
+      background: var(--primaire);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🧭 EN-TÊTE -->
+  <div class="entete">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <a href="index.html" class="btn btn-light btn-sm mb-2"><i class="bi bi-arrow-left"></i> Retour</a>
+          <h1 class="mb-0"><i class="bi bi-shop-window me-2"></i> 🛍️ BOUTIQUE SCOLAIRE</h1>
+          <p class="mb-0 opacity-75">Établissement MAMA-ZOUMANA — Fournitures, Livres & Uniformes</p>
+        </div>
+        <div class="text-end d-none d-md-block">
+          <i class="bi bi-book-half fs-1 opacity-50"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container pb-5">
+
+    <!-- 🔍 FILTRES PAR CATÉGORIE -->
+    <div class="d-flex flex-wrap gap-2 mb-4 justify-content-center">
+      <button class="btn categorie-btn active" data-categorie="">Tous les produits</button>
+      <button class="btn categorie-btn" data-categorie="livres">📚 Livres</button>
+      <button class="btn categorie-btn" data-categorie="stylos">✍️ Stylos BIC</button>
+      <button class="btn categorie-btn" data-categorie="cahiers">📓 Cahiers</button>
+      <button class="btn categorie-btn" data-categorie="fournitures">📐 Fournitures</button>
+      <button class="btn categorie-btn" data-categorie="uniformes">👕 Uniformes</button>
+    </div>
+
+    <!-- 📦 GRILLE DES PRODUITS -->
+    <div id="grilleProduits" class="row g-4">
+      <div class="col-12 text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-2">Chargement des produits...</p>
+      </div>
+    </div>
+
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+http://localhost:5000/api';
+let categorieActuelle = '';
+
+// 📦 CHARGER LES PRODUITS
+async function chargerProduits() {
+  const grille = document.getElementById('grilleProduits');
+  grille.innerHTML = `<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2">Chargement...</p></div>`;
+
+  try {
+    const url = categorieActuelle 
+      ? `${API_URL}/boutique/produits?categorie=${encodeURIComponent(categorieActuelle)}`
+      : `${API_URL}/boutique/produits`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.ok || !data.produits.length) {
+      grille.innerHTML = `<div class="col-12 text-center py-5 text-muted">
+        <i class="bi bi-inbox fs-1"></i><br>Aucun produit disponible dans cette catégorie
+      </div>`;
+      return;
+    }
+
+    grille.innerHTML = '';
+    data.produits.forEach(prod => {
+      const statutStock = prod.stock > 10 
+        ? `<span class="stock stock-dispo">✅ En stock (${prod.stock})</span>`
+        : prod.stock > 0 
+          ? `<span class="stock stock-dispo">⚠️ Plus que ${prod.stock} !</span>`
+          : `<span class="stock stock-rupture">❌ Rupture de stock</span>`;
+
+      grille.innerHTML += `
+        <div class="col-sm-6 col-md-4 col-lg-3">
+          <div class="carte-produit p-3">
+            <div class="text-center mb-3">
+              <div style="font-size:3rem;">${iconeCategorie(prod.categorie)}</div>
+            </div>
+            <h5 class="text-center">${prod.nom_produit}</h5>
+            <p class="text-muted small text-center">${prod.description || ''}</p>
+            <div class="text-center mb-2">${statutStock}</div>
+            <div class="prix text-center">${prod.prix_unitaire.toLocaleString('fr-FR')} FCFA</div>
+            <hr>
+            <button class="btn btn-acheter w-100 text-white ${prod.stock <= 0 ? 'disabled opacity-50' : ''}" 
+                    ${prod.stock <= 0 ? 'disabled' : ''}>
+              <i class="bi bi-cart-plus me-1"></i> ${prod.stock > 0 ? 'Acheter' : 'Indisponible'}
+            </button>
+          </div>
+        </div>
+      `;
+    });
+
+  } catch (e) {
+    grille.innerHTML = `<div class="col-12 text-center py-5 text-danger">❌ Erreur de chargement : ${e.message}</div>`;
+  }
+}
+
+// 🎯 ICÔNES PAR CATÉGORIE
+function iconeCategorie(cat) {
+  const icones = {
+    livres: '📚',
+    stylos: '✍️',
+    cahiers: '📓',
+    fournitures: '📐',
+    uniformes: '👕'
+  };
+  return icones[cat] || '📦';
+}
+
+// 🔍 FILTRER PAR CATÉGORIE
+document.querySelectorAll('.categorie-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.categorie-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    categorieActuelle = btn.dataset.categorie;
+    chargerProduits();
+  });
+});
+
+// AU CHARGEMENT
+chargerProduits();
+</script>
+</body>
+</html>

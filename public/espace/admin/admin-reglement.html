@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administration — Règlement Intérieur</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body { background: #f0f4f8; padding: 20px; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    h1 { color: #1e40af; margin-bottom: 25px; }
+    .barre { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    button { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .btn-ajouter { background: #16a34a; color: white; }
+    .btn-modif { background: #f59e0b; color: white; padding: 6px 12px; font-size: 14px; margin-right: 5px; }
+    .btn-suppr { background: #ef4444; color: white; padding: 6px 12px; font-size: 14px; }
+    .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .card h3 { color: #1e293b; margin-bottom: 8px; }
+    .card .contenu { color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-wrap; margin-bottom: 10px; }
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .badge.publie { background: #dcfce7; color: #166534; }
+    .badge-brouillon { background: #fef3c7; color: #92400e; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 100; }
+    .modal.active { display: flex; }
+    .modal-contenu { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 650px; max-height: 90vh; overflow-y: auto; }
+    .modal-contenu h2 { margin-bottom: 20px; color: #1e40af; }
+    input, textarea { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+    textarea { min-height: 100px; }
+    .ligne { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+    .btn-fermer { background: #e2e8f0; color: #334155; }
+    .btn-valider { background: #1e40af; color: white; }
+    .message { margin-top: 15px; padding: 10px; border-radius: 6px; display: none; }
+    .message.succes { background: #dcfce7; color: #166534; display: block; }
+    .message.erreur { background: #fee2e2; color: #991b1b; display: block; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>📄 Gestion du Règlement Intérieur</h1>
+  <div class="barre">
+    <p id="compteur"></p>
+    <button class="btn-ajouter" onclick="ouvrirFormulaire()">➕ Ajouter un article</button>
+  </div>
+  <div id="liste"></div>
+</div>
+
+<div class="modal" id="formModal">
+  <div class="modal-contenu">
+    <h2 id="titreForm">Ajouter un article</h2>
+    <form id="formArticle">
+      <input type="hidden" id="id">
+      <input type="text" id="titre_fr" placeholder="Titre (FR) *" required>
+      <div class="ligne">
+        <input type="text" id="titre_en" placeholder="Titre (EN)">
+        <input type="text" id="titre_ar" placeholder="Titre (AR)">
+      </div>
+      <textarea id="contenu_fr" rows="5" placeholder="Contenu (FR) *" required></textarea>
+      <textarea id="contenu_en" rows="4" placeholder="Contenu (EN)"></textarea>
+      <textarea id="contenu_ar" rows="4" placeholder="Contenu (AR)"></textarea>
+      <div class="ligne">
+        <input type="number" id="ordre" placeholder="Ordre" value="1">
+        <label style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+          <input type="checkbox" id="est_publie" checked> Publié
+        </label>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn-fermer" onclick="fermerFormulaire()">Annuler</button>
+        <button type="submit" class="btn-valider">Enregistrer</button>
+      </div>
+      <div class="message" id="message"></div>
+    </form>
+  </div>
+</div>
+
+<script>
+const API = '/api/reglement';
+let listeArticles = [];
+
+async function chargerListe() {
+  const res = await fetch(`${API}/liste?tout=1`);
+  const data = await res.json();
+  listeArticles = data.articles || [];
+  document.getElementById('compteur').textContent = `${listeArticles.length} article(s)`;
+  afficherListe();
+}
+
+function afficherListe() {
+  const conteneur = document.getElementById('liste');
+  conteneur.innerHTML = '';
+  listeArticles.forEach(a => {
+    conteneur.innerHTML += `
+      <div class="card">
+        <h3>${a.ordre}. ${a.titre_fr} 
+          <span class="badge ${a.est_publie ? 'publie' : 'badge-brouillon'}">
+            ${a.est_publie ? '✅ Publié' : '📄 Brouillon'}
+          </span>
+        </h3>
+        <div class="contenu">${a.contenu_fr}</div>
+        <div style="margin-top:8px">
+          <button class="btn-modif" onclick="modifier(${a.id})">✏️ Modifier</button>
+          <button class="btn-suppr" onclick="supprimer(${a.id})">🗑️ Supprimer</button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function ouvrirFormulaire() {
+  document.getElementById('formArticle').reset();
+  document.getElementById('id').value = '';
+  document.getElementById('titreForm').textContent = 'Ajouter un article';
+  document.getElementById('est_publie').checked = true;
+  document.getElementById('formModal').classList.add('active');
+}
+
+function modifier(id) {
+  const a = listeArticles.find(x => x.id === id);
+  Object.keys(a).forEach(k => {
+    const el = document.getElementById(k);
+    if (el) {
+      if (el.type === 'checkbox') el.checked = a[k];
+      else el.value = a[k] || '';
+    }
+  });
+  document.getElementById('titreForm').textContent = 'Modifier un article';
+  document.getElementById('formModal').classList.add('active');
+}
+
+function fermerFormulaire() {
+  document.getElementById('formModal').classList.remove('active');
+  document.getElementById('message').className = 'message';
+  document.getElementById('message').textContent = '';
+}
+
+document.getElementById('formArticle').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = document.getElementById('id').value;
+  const donnees = {
+    titre_fr: document.getElementById('titre_fr').value,
+    titre_en: document.getElementById('titre_en').value,
+    titre_ar: document.getElementById('titre_ar').value,
+    contenu_fr: document.getElementById('contenu_fr').value,
+    contenu_en: document.getElementById('contenu_en').value,
+    contenu_ar: document.getElementById('contenu_ar').value,
+    ordre: parseInt(document.getElementById('ordre').value),
+    est_publie: document.getElementById('est_publie').checked
+  };
+
+  const url = id ? `${API}/${id}` : `${API}/ajouter`;
+  const methode = id ? 'PUT' : 'POST';
+  const res = await fetch(url, {
+    method: methode,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(donnees)
+  });
+  const rep = await res.json();
+
+  const msg = document.getElementById('message');
+  if (rep.ok) {
+    msg.className = 'message succes';
+    msg.textContent = id ? '✅ Article modifié !' : '✅ Article ajouté !';
+    await chargerListe();
+    setTimeout(fermerFormulaire, 1200);
+  } else {
+    msg.className = 'message erreur';
+    msg.textContent = `❌ ${rep.erreur}`;
+  }
+});
+
+async function supprimer(id) {
+  if (!confirm('Confirmer la suppression ?')) return;
+  await fetch(`${API}/${id}`, { method: 'DELETE' });
+  await chargerListe();
+}
+
+chargerListe();
+</script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documents Officiels — Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root { --sombre:#0f172a; --sombre-clair:#1e293b; --bord-orange:#f59e0b; --fond-dore:#b78628; --fond-dore-clair:#d4a03a; --texte:#f8fafc; }
+    body{background:linear-gradient(160deg,var(--fond-dore),var(--fond-dore-clair));color:var(--texte);min-height:100vh}
+    .entete{background:rgba(15,23,42,0.85);border-bottom:2px solid var(--bord-orange);padding:1.5rem 0}
+    .carte{background:rgba(15,23,42,0.9);border-radius:12px;padding:1.25rem;border-left:3px solid var(--bord-orange)}
+    .form-control,.form-select{background:rgba(15,23,42,0.95);border:1px solid #334155;color:white;border-radius:8px}
+    .barre-langue{display:flex;gap:0.75rem;justify-content:center;margin-bottom:2rem}
+    .carte-scolaire{background:white;color:black;border-radius:10px;padding:2rem;max-width:450px;margin:1rem auto;border:3px solid var(--bord-orange)}
+    .logo-carte{font-size:1.8rem;font-weight:bold;color:var(--primaire)}
+    .numero-ref{font-family:monospace;font-weight:bold;color:#666}
+    [dir="rtl"]{font-family:'Segoe UI Tahoma',sans-serif}
+    @media print{body{background:white !important;color:black !important}.entete,.barre-langue,.btn,.no-print{display:none}.carte{border:none}}
+  </style>
+</head>
+<body>
+<script>if(!localStorage.getItem('token') || localStorage.getItem('role')!=='admin'){alert("⛔ Accès réservé");location.href='../connexion.html';}</script>
+
+<div class="entete">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div><h3 class="mb-1">🪪 Documents Officiels</h3><p class="mb-0 opacity-80">Carte Scolaire — Attestations — Certificats</p></div>
+    <a href="dashboard.html" class="btn btn-outline-light">Retour</a>
+  </div>
+</div>
+
+<div class="container py-4">
+  <div class="barre-langue">
+    <button class="btn btn-outline-warning active" onclick="changerLangue('fr')">🇫🇷</button>
+    <button class="btn btn-outline-warning" onclick="changerLangue('ar')">🇸🇦</button>
+    <button class="btn btn-outline-warning" onclick="changerLangue('en')">🇬🇧</button>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-5">
+      <div class="carte">
+        <h5>Délivrer un document</h5>
+        <form id="formDoc" class="g-3">
+          <div class="mb-3"><label>Élève</label><select name="id_eleve" id="sel-eleve" class="form-select" required></select></div>
+          <div class="mb-3"><label>Type document</label>
+            <select name="type_doc" class="form-select" required>
+              <option value="carte_scolaire">🪪 Carte Scolaire</option>
+              <option value="attestation_scolarite">📄 Attestation de Scolarité</option>
+              <option value="certificat_scolarite">📃 Certificat de Scolarité</option>
+              <option value="releve_notes">📊 Relevé de Notes</option>
+            </select>
+          </div>
+          <div class="mb-3"><label>Année Scolaire</label><input type="text" name="annee_scolaire" class="form-control" value="2026-2027" required></div>
+          <button type="submit" class="btn btn-success w-100">Générer & Enregistrer</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="col-md-7">
+      <div id="affichage-carte"></div>
+    </div>
+  </div>
+</div>
+<a href="../deconnexion.html" class="menu-item text-danger">
+  <i class="bi bi-box-arrow-right"></i>
+  <span data-fr="Déconnexion" data-ar="تسجيل الخروج" data-en="Logout">Déconnexion</span>
+</a>
+<script>
+let donneesEleve=null;
+async function chargerEleves(){
+  const r=await fetch('/api/auth/eleves/tous',{headers:{'Authorization':`Bearer ${localStorage.getItem('token')}`}}).then(x=>x.json());
+  document.getElementById('sel-eleve').innerHTML=r.lignes.map(e=>`<option value="${e.id_utilisateur}">${e.nom} ${e.prenoms} — ${e.nom_classe}</option>`).join('');
+  donneesEleve=r.lignes;
+}
+
+document.getElementById('formDoc').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const d=Object.fromEntries(new FormData(e.target));
+  const res=await fetch('/api/auth/document/delivrer',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('token')}`},body:JSON.stringify(d)});
+  const rep=await res.json();
+  if(!rep.ok)return alert(rep.erreur);
+
+  const el=donneesEleve.find(x=>x.id_utilisateur==d.id_eleve);
+  document.getElementById('affichage-carte').innerHTML=`
+    <div class="carte-scolaire">
+      <div class="text-center mb-3">
+        <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
+        <div class="small opacity-75">Établissement Scolaire & Centre Islamique</div>
+        <hr class="border-warning">
+      </div>
+      <h4 class="text-center text-uppercase">${d.type_doc.replace('_',' ')}</h4>
+      <div class="mt-4">
+        <p><strong>Nom :</strong> ${el.nom}</p>
+        <p><strong>Prénoms :</strong> ${el.prenoms}</p>
+        <p><strong>Classe :</strong> ${el.nom_classe}</p>
+        <p><strong>Année :</strong> ${d.annee_scolaire}</p>
+        <p class="numero-ref">N° ${rep.numero_unique}</p>
+      </div>
+      <div class="text-center mt-4">
+        <button class="btn btn-warning no-print" onclick="window.print()">🖨️ Imprimer en PDF</button>
+      </div>
+    </div>
+  `;
+});
+
+chargerEleves();
+</script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Valider Inscriptions — Admin MAMA-ZOUMANA</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b;
+      --orange-clair: #fbbf24;
+      --valide: #10b981;
+      --refuse: #ef4444;
+      --texte: #f8fafc;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;transition:all 0.25s ease}
+    body{background:var(--sombre);color:var(--texte);min-height:100vh;font-family:'Segoe UI',sans-serif;}
+    @keyframes bordTourne {0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+    .btn-anim-orange{position:relative;background:var(--sombre-clair);color:var(--texte);border:none;border-radius:10px;overflow:hidden;z-index:1;}
+    .btn-anim-orange::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(transparent,var(--bord-orange),transparent 30%);animation:bordTourne 2.5s linear infinite;z-index:-2;}
+    .btn-anim-orange::after{content:'';position:absolute;inset:2px;background:var(--sombre-clair);border-radius:8px;z-index:-1;}
+    .btn-valide-lumineux{background:var(--valide);color:white;border-radius:8px;box-shadow:0 0 12px rgba(16,185,129,0.35);border:none;}
+    .btn-valide-lumineux:hover{box-shadow:0 0 20px rgba(16,185,129,0.6);transform:translateY(-1px)}
+    .btn-refuse-lumineux{background:var(--refuse);color:white;border-radius:8px;box-shadow:0 0 12px rgba(239,68,68,0.35);border:none;}
+    .btn-refuse-lumineux:hover{box-shadow:0 0 20px rgba(239,68,68,0.6);transform:translateY(-1px)}
+    .entete-page{background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.5rem 0;}
+    .carte-demande{background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);padding:1.25rem;margin-bottom:1rem;}
+    .barre-langue{display:flex;gap:0.75rem;justify-content:center;margin-bottom:2rem;}
+    [dir="rtl"]{font-family:'Segoe UI Tahoma',sans-serif}
+  </style>
+</head>
+<body>
+
+<!-- 🔒 PROTECTION -->
+<script>
+if(!localStorage.getItem('token') || localStorage.getItem('role') !== 'admin'){
+  alert("⛔ Accès réservé à l'administrateur");
+  location.href='connexion.html';
+}
+</script>
+
+<div class="entete-page">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div>
+      <h3 class="mb-1">🏫 Valider les Inscriptions</h3>
+      <p class="mb-0 opacity-80" id="sous-titre">Demandes en attente de validation</p>
+    </div>
+    <a href="dashboard.html" class="btn btn-anim-orange px-4 py-2">
+      <i class="bi bi-arrow-left"></i> Retour
+    </a>
+  </div>
+</div>
+
+<div class="container py-4">
+  <!-- 🌐 CHOIX LANGUE -->
+  <div class="barre-langue">
+    <button class="btn btn-anim-orange px-4 py-2 active" onclick="changerLangue('fr')">🇫🇷 Français</button>
+    <button class="btn btn-anim-orange px-4 py-2" onclick="changerLangue('ar')">🇸🇦 العربية</button>
+    <button class="btn btn-anim-orange px-4 py-2" onclick="changerLangue('en')">🇬🇧 English</button>
+  </div>
+
+  <div id="liste-demandes">
+    <div class="text-center py-5">
+      <div class="spinner-border text-warning"></div>
+      <p class="mt-3 opacity-80" id="chargement">Chargement des demandes...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = "http://localhost:5000/api";
+const textes = {
+  fr: {
+    sous_titre: "Demandes en attente de validation",
+    chargement: "Chargement des demandes...",
+    nom: "Nom & Prénoms",
+    mail: "Email",
+    tel: "Téléphone",
+    classe: "Classe (ID)",
+    profil: "Profil",
+    valider: "✅ Valider",
+    refuser: "❌ Refuser",
+    vide: "Aucune demande en attente",
+    ok_valide: "✅ Demande validée ! Compte utilisateur créé.",
+    ok_refuse: "❌ Demande refusée."
+  },
+  ar: {
+    sous_titre: "الطلبات في انتظار الموافقة",
+    chargement: "جاري التحميل...",
+    nom: "الاسم الكامل",
+    mail: "البريد الإلكتروني",
+    tel: "الهاتف",
+    classe: "المستوى الدراسي",
+    profil: "الملف",
+    valider: "✅ موافقة",
+    refuser: "❌ رفض",
+    vide: "لا يوجد طلبات في الانتظار",
+    ok_valide: "✅ تمت الموافقة وإنشاء الحساب !",
+    ok_refuse: "❌ تم الرفض."
+  },
+  en: {
+    sous_titre: "Requests pending approval",
+    chargement: "Loading requests...",
+    nom: "Full Name",
+    mail: "Email",
+    tel: "Phone",
+    classe: "Class (ID)",
+    profil: "Profile",
+    valider: "✅ Approve",
+    refuser: "❌ Reject",
+    vide: "No pending requests",
+    ok_valide: "✅ Approved! User account created.",
+    ok_refuse: "❌ Rejected."
+  }
+};
+
+let langueActuelle = 'fr';
+function changerLangue(lang){
+  langueActuelle = lang;
+  document.querySelectorAll('.barre-langue button').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('sous-titre').textContent = textes[lang].sous_titre;
+  document.getElementById('chargement').textContent = textes[lang].chargement;
+  document.documentElement.lang = lang;
+  document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  chargerDemandes();
+}
+
+async function chargerDemandes(){
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_BASE}/preinscription/en-attente`, {
+    headers:{'Authorization':'Bearer '+token}
+  });
+  const data = await res.json();
+  const liste = document.getElementById('liste-demandes');
+
+  if(!data.ok || !data.lignes || data.lignes.length === 0){
+    liste.innerHTML = `<div class="text-center py-5 opacity-75">${textes[langueActuelle].vide}</div>`;
+    return;
+  }
+
+  liste.innerHTML = data.lignes.map(d=>`
+    <div class="carte-demande">
+      <div class="row align-items-center g-3">
+        <div class="col-md-3"><strong>${textes[langueActuelle].nom}:</strong><br>${d.nom} ${d.prenoms}</div>
+        <div class="col-md-2"><strong>${textes[langueActuelle].mail}:</strong><br>${d.email}</div>
+        <div class="col-md-2"><strong>${textes[langueActuelle].tel}:</strong><br>${d.telephone}</div>
+        <div class="col-md-2"><strong>${textes[langueActuelle].classe}:</strong><br>${d.id_classe || '—'}</div>
+        <div class="col-md-2"><strong>${textes[langueActuelle].profil}:</strong><br>${d.profil}</div>
+        <div class="col-md-1 d-flex gap-2">
+          <button class="btn btn-valide-lumineux btn-sm" onclick="traiter(${d.id_preinscription},'valide')">${textes[langueActuelle].valider}</button>
+          <button class="btn btn-refuse-lumineux btn-sm" onclick="traiter(${d.id_preinscription},'refusee')">${textes[langueActuelle].refuser}</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function traiter(id, statut){
+  if(!confirm("⚠️ Confirmer cette action ?")) return;
+  const token = localStorage.getItem('token');
+
+  const res = await fetch(`${API_BASE}/preinscription/traiter/${id}`, {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':'Bearer '+token
+    },
+    body:JSON.stringify({ statut })
+  });
+  const r = await res.json();
+
+  const message = statut==='valide' ? textes[langueActuelle].ok_valide : textes[langueActuelle].ok_refuse;
+  alert(r.ok ? message : "❌ Erreur : " + (r.erreur||''));
+  chargerDemandes();
+}
+
+chargerDemandes();
+</script>
+</body>
+</html>

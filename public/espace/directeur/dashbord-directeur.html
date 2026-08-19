@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Tableau de Bord — Directeur</span>
+    <span class="txt-en">Director Dashboard</span>
+    <span class="txt-ar">لوحة تحكم المدير</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --succes: #10b981;
+      --info: #3b82f6;
+      --alerte: #f59e0b;
+      --danger: #ef4444;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --texte-clair: #f8fafc;
+      --texte-dore: #fbbf24;
+    }
+
+    .txt-en,.txt-ar{display:none}
+    body.lang-fr .txt-fr{display:inline}
+    body.lang-fr .txt-en,body.lang-fr .txt-ar{display:none}
+    body.lang-en .txt-en{display:inline}
+    body.lang-en .txt-fr,body.lang-en .txt-ar{display:none}
+    body.lang-ar .txt-ar{display:inline}
+    body.lang-ar .txt-fr,body.lang-ar .txt-en{display:none}
+    body.lang-ar .titre-section{text-align:right}
+
+    body {
+      background: linear-gradient(135deg, var(--sombre), var(--sombre-clair));
+      color: var(--texte-clair);
+      min-height: 100vh;
+    }
+
+    .carte {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      transition: all 0.3s ease;
+    }
+    .carte:hover {
+      border-color: var(--alerte);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.15);
+    }
+
+    .btn-primaire { background: linear-gradient(135deg, var(--primaire), #0369a1); border:none; color:white; }
+    .btn-primaire:hover { background: linear-gradient(135deg, #0369a1, var(--primaire)); color:white; }
+    .btn-succes { background: linear-gradient(135deg, var(--succes), #059669); border:none; color:white; }
+    .btn-info { background: linear-gradient(135deg, var(--info), #2563eb); border:none; color:white; }
+    .btn-accent { background: linear-gradient(135deg, var(--alerte), #d97706); border:none; color:#000; font-weight:500; }
+
+    .titre-section { color: var(--texte-dore); font-weight:600; }
+
+    .stat-valeur { font-size:1.8rem; font-weight:700; }
+    .stat-icone { font-size:2rem; opacity:0.8; }
+
+    .onglet {
+      padding: 10px 20px;
+      border-radius: 10px 10px 0 0;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+    }
+    .onglet:hover { color: white; background: rgba(255,255,255,0.05); }
+    .onglet.active {
+      background: rgba(12, 74, 110, 0.6);
+      color: var(--texte-dore);
+      font-weight: 600;
+      border-bottom: 2px solid var(--alerte);
+    }
+
+    .contenu-onglet { display: none; }
+    .contenu-onglet.actif { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+    .btn-lang { width:38px; height:38px; padding:0; font-size:14px; border-radius:50%; border:2px solid; display:flex; align-items:center; justify-content:center; }
+    .btn-lang.active { background:var(--alerte); color:#000; border-color:var(--alerte); }
+
+    .badge-attente { background: #f59e0b; color:#000; }
+    .badge-valide { background: #10b981; }
+    .badge-refuse { background: #ef4444; }
+  </style>
+</head>
+<body>
+
+<div class="container py-4">
+  <!-- 🌐 LANGUE & PROFIL -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="titre-section mb-1">
+        <i class="bi bi-bank2 me-2"></i>
+        <span class="txt-fr">Tableau de Bord — Directeur</span>
+        <span class="txt-en">Director Dashboard</span>
+        <span class="txt-ar">لوحة تحكم المدير</span>
+      </h3>
+      <p class="text-muted small mb-0">
+        <span class="txt-fr">Supervision globale de l'établissement</span>
+        <span class="txt-en">Global institution supervision</span>
+        <span class="txt-ar">الإشراف العام على المؤسسة</span>
+      </p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <span class="badge bg-info me-2" id="nomDirecteur">—</span>
+      <button class="btn btn-lang active" data-lang="fr">FR</button>
+      <button class="btn btn-lang" data-lang="en">EN</button>
+      <button class="btn btn-lang" data-lang="ar">ع</button>
+      <a href="connexion.html" class="btn btn-outline-danger btn-sm ms-2">
+        <i class="bi bi-box-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+
+  <!-- 📊 CARTES STATISTIQUES -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+      <div class="carte p-3 text-center">
+        <i class="bi bi-people text-info stat-icone"></i>
+        <div class="stat-valeur text-info" id="nbEleves">—</div>
+        <span class="text-muted small">
+          <span class="txt-fr">Élèves</span>
+          <span class="txt-en">Students</span>
+          <span class="txt-ar">التلاميذ</span>
+        </span>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="carte p-3 text-center">
+        <i class="bi bi-person-check text-success stat-icone"></i>
+        <div class="stat-valeur text-success" id="nbProfs">—</div>
+        <span class="text-muted small">
+          <span class="txt-fr">Enseignants</span>
+          <span class="txt-en">Teachers</span>
+          <span class="txt-ar">الأساتذة</span>
+        </span>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="carte p-3 text-center">
+        <i class="bi bi-building text-warning stat-icone"></i>
+        <div class="stat-valeur text-warning" id="nbClasses">—</div>
+        <span class="text-muted small">
+          <span class="txt-fr">Classes</span>
+          <span class="txt-en">Classes</span>
+          <span class="txt-ar">الفصول</span>
+        </span>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="carte p-3 text-center">
+        <i class="bi bi-clock-history text-danger stat-icone"></i>
+        <div class="stat-valeur text-danger" id="nbAttente">—</div>
+        <span class="text-muted small">
+          <span class="txt-fr">En attente</span>
+          <span class="txt-en">Pending</span>
+          <span class="txt-ar">في الانتظار</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📱 ONGLETS -->
+  <div class="d-flex flex-wrap gap-1 mb-3 border-bottom pb-1">
+    <button class="onglet active" data-onglet="inscriptions">
+      <i class="bi bi-file-check me-1"></i>
+      <span class="txt-fr">Inscriptions</span>
+      <span class="txt-en">Registrations</span>
+      <span class="txt-ar">التسجيلات</span>
+    </button>
+    <button class="onglet" data-onglet="bulletins">
+      <i class="bi bi-file-earmark-text me-1"></i>
+      <span class="txt-fr">Bulletins</span>
+      <span class="txt-en">Reports</span>
+      <span class="txt-ar">الشهادات</span>
+    </button>
+    <button class="onglet" data-onglet="paiements">
+      <i class="bi bi-cash-coin me-1"></i>
+      <span class="txt-fr">Paiements</span>
+      <span class="txt-en">Payments</span>
+      <span class="txt-ar">المدفوعات</span>
+    </button>
+    <button class="onglet" data-onglet="annonces">
+      <i class="bi bi-megaphone me-1"></i>
+      <span class="txt-fr">Annonces</span>
+      <span class="txt-en">Announcements</span>
+      <span class="txt-ar">الإعلانات</span>
+    </button>
+    <button class="onglet" data-onglet="evenements">
+      <i class="bi bi-calendar-event me-1"></i>
+      <span class="txt-fr">Événements</span>
+      <span class="txt-en">Events</span>
+      <span class="txt-ar">الفعاليات</span>
+    </button>
+  </div>
+
+  <!-- 📋 INSCRIPTIONS EN ATTENTE -->
+  <div id="onglet-inscriptions" class="contenu-onglet actif">
+    <div class="carte p-3">
+      <h5 class="titre-section mb-3">
+        <span class="txt-fr">Inscriptions en Attente de Validation</span>
+        <span class="txt-en">Pending Registrations</span>
+        <span class="txt-ar">التسجيلات في انتظار المصادقة</span>
+      </h5>
+      <div id="listeInscriptions">
+        <p class="text-center text-muted">Chargement...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📄 BULLETINS -->
+  <div id="onglet-bulletins" class="contenu-onglet">
+    <div class="carte p-3">
+      <h5 class="titre-section mb-3">
+        <span class="txt-fr">Consultation des Bulletins</span>
+        <span class="txt-en">Reports Overview</span>
+        <span class="txt-ar">معاينة الشهادات</span>
+      </h5>
+      <div class="row g-2 mb-3">
+        <div class="col-md-4">
+          <select id="filtreClasseBulletin" class="form-select">
+            <option value="">— Classe —</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <select id="filtreTrimestreBulletin" class="form-select">
+            <option value="1">1er Trimestre</option>
+            <option value="2">2ème Trimestre</option>
+            <option value="3">3ème Trimestre</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <button class="btn btn-primaire w-100" onclick="chargerBulletins()">
+            <i class="bi bi-search"></i>
+            <span class="txt-fr"> Consulter</span>
+            <span class="txt-en"> View</span>
+          </button>
+        </div>
+      </div>
+      <div id="listeBulletins">
+        <p class="text-center text-muted">Sélectionnez une classe et un trimestre</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 💰 PAIEMENTS -->
+  <div id="onglet-paiements" class="contenu-onglet">
+    <div class="carte p-3">
+      <h5 class="titre-section mb-3">
+        <span class="txt-fr">Synthèse des Paiements</span>
+        <span class="txt-en">Payments Summary</span>
+        <span class="txt-ar">ملخص المدفوعات</span>
+      </h5>
+      <div class="row g-2 mb-3">
+        <div class="col-md-4"><div class="bg-danger bg-opacity-25 p-3 rounded text-center"><span class="small">Total Dû</span><h4 class="text-danger" id="totalDu">—</h4></div></div>
+        <div class="col-md-4"><div class="bg-success bg-opacity-25 p-3 rounded text-center"><span class="small">Perçu</span><h4 class="text-success" id="totalPaye">—</h4></div></div>
+        <div class="col-md-4"><div class="bg-warning bg-opacity-25 p-3 rounded text-center"><span class="small">Restant</span><h4 class="text-warning" id="totalRestant">—</h4></div></div>
+      </div>
+      <div id="listePaiementsDirecteur"></div>
+    </div>
+  </div>
+
+  <!-- 📢 ANNONCES -->
+  <div id="onglet-annonces" class="contenu-onglet">
+    <div class="carte p-3">
+      <h5 class="titre-section mb-3">
+        <span class="txt-fr">Liste des Annonces</span>
+        <span class="txt-en">All Announcements</span>
+        <span class="txt-ar">قائمة الإعلانات</span>
+      </h5>
+      <div id="listeAnnoncesDirecteur">
+        <p class="text-center text-muted">Chargement...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📅 ÉVÉNEMENTS -->
+  <div id="onglet-evenements" class="contenu-onglet">
+    <div class="carte p-3">
+      <h5 class="titre-section mb-3">
+        <span class="txt-fr">Calendrier des Événements</span>
+        <span class="txt-en">Events Calendar</span>
+        <span class="txt-ar">جدول الفعاليات</span>
+      </h5>
+      <div id="listeEvenements">
+        <p class="text-center text-muted">Chargement...</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+const token = localStorage.getItem('token');
+let langueActuelle = 'fr';
+
+// 🌐 LANGUE
+document.querySelectorAll('.btn-lang').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.btn-lang').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    langueActuelle = btn.dataset.lang;
+    document.documentElement.className = `lang-${langueActuelle}`;
+    document.body.className = `lang-${langueActuelle}`;
+  });
+});
+
+// 📂 CHANGEMENT D'ONGLET
+document.querySelectorAll('.onglet').forEach(ong => {
+  ong.addEventListener('click', () => {
+    document.querySelectorAll('.onglet').forEach(o => o.classList.remove('active'));
+    ong.classList.add('active');
+    const nom = ong.dataset.onglet;
+    document.querySelectorAll('.contenu-onglet').forEach(c => c.classList.remove('actif'));
+    document.getElementById(`onglet-${nom}`).classList.add('actif');
+    if(nom==='inscriptions') chargerInscriptions();
+    if(nom==='paiements') chargerPaiements();
+    if(nom==='annonces') chargerAnnonces();
+    if(nom==='evenements') chargerEvenements();
+  });
+});
+
+// 🚀 CHARGER STATISTIQUES
+async function chargerStats(){
+  try{
+    const r = await fetch(`${API_URL}/statistiques`, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+    document.getElementById('nbEleves').textContent = res.eleves || 0;
+    document.getElementById('nbProfs').textContent = res.profs || 0;
+    document.getElementById('nbClasses').textContent = res.classes || 0;
+    document.getElementById('nbAttente').textContent = res.attente || 0;
+    document.getElementById('nomDirecteur').textContent = `${res.directeur?.prenoms||''} ${res.directeur?.nom||''}`.trim() || 'Directeur';
+  }catch(err){ console.error("Stats :", err.message); }
+}
+
+// 📋 CHARGER INSCRIPTIONS
+async function chargerInscriptions(){
+  try{
+    const r = await fetch(`${API_URL}/inscriptions-attente`, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+    const c = document.getElementById('listeInscriptions');
+    if(!res.inscriptions.length){
+      c.innerHTML=`<p class="text-center text-success">✅ Aucune inscription en attente</p>`;
+      return;
+    }
+    c.innerHTML = `<div class="table-responsive"><table class="table table-dark table-striped table-hover">
+      <thead class="table-warning text-dark"><tr>
+        <th>Élève</th><th>Classe</th><th>Date</th><th>Statut</th><th>Actions</th>
+      </tr></thead><tbody>` + res.inscriptions.map(i => `
+      <tr>
+        <td>${i.prenoms} ${i.nom}</td>
+        <td>${i.libelle_classe||'—'}</td>
+        <td>${new Date(i.date_inscription).toLocaleDateString('fr-CA')}</td>
+        <td><span class="badge badge-attente">En attente</span></td>
+        <td>
+          <button class="btn btn-sm btn-succes" onclick="validerInscription(${i.id_inscription})">✅ Valider</button>
+          <button class="btn btn-sm btn-danger" onclick="refuserInscription(${i.id_inscription})">❌ Refuser</button>
+        </td>
+      </tr>`).join('') + `</tbody></table></div>`;
+  }catch(err){ document.getElementById('listeInscriptions').innerHTML=`<p class="text-center text-danger">${err.message}</p>`; }
+}
+
+// ✅ VALIDER INSCRIPTION
+window.validerInscription = async function(id){
+  if(!confirm("Confirmer la validation ?")) return;
+  try{
+    const r = await fetch(`${API_URL}/valider-inscription/${id}`, {method:'PATCH', headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(res.ok) chargerInscriptions();
+    else alert(res.erreur);
+  }catch(err){ alert(err.message); }
+};
+
+// ❌ REFUSER INSCRIPTION
+window.refuserInscription = async function(id){
+  if(!confirm("Confirmer le refus ?")) return;
+  try{
+    const r = await fetch(`${API_URL}/refuser-inscription/${id}`, {method:'PATCH', headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(res.ok) chargerInscriptions();
+    else alert(res.erreur);
+  }catch(err){ alert(err.message); }
+};
+
+// 📄 CHARGER BULLETINS
+async function chargerBulletins(){
+  const id_classe = document.getElementById('filtreClasseBulletin').value;
+  const trimestre = document.getElementById('filtreTrimestreBulletin').value;
+  if(!id_classe) return alert("Sélectionnez une classe");
+  try{
+    const r = await fetch(`${API_URL}/bulletins?classe=${id_classe}&trimestre=${trimestre}`, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+    document.getElementById('listeBulletins').innerHTML = res.html||`<pre>${JSON.stringify(res,null,2)}</pre>`;
+  }catch(err){ document.getElementById('listeBulletins').innerHTML=`<p class="text-center text-danger">${err.message}</p>`; }
+}
+
+// 💰 CHARGER PAIEMENTS
+async function chargerPaiements(){
+  try{
+    const r = await fetch(`${API_URL}/paiements-synthese`, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+    document.getElementById('totalDu').textContent = format(res.totale);
+    document.getElementById('totalPaye').textContent = format(res.paye);
+    document.getElementById('totalRestant').textContent = format(res.restant);
+  }catch(err){ alert(err.message); }
+}
+
+// 📢 CHARGER ANNONCES
+async function chargerAnnonces(){
+  try{
+    const r = await fetch(`${API_URL}/annonces`, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+    const c = document.getElementById('listeAnnoncesDirecteur');
+    if(!res.annonces.length){ c.innerHTML=`<p class="text-center text-muted">Aucune annonce</p>`; return; }
+    c.innerHTML = res.annonces.map(a => `
+    <div class="alert alert-secondary mb-2">
+      <h6 class="mb-1">${a.titre_fr||a.titre}</h6>
+      <p class="mb-1 small">${(a.contenu_fr||a.contenu||'').substring(0,120)}...</p>
+      <span class="small text-muted">${new Date(a.date_publication).toLocaleDateString('fr-CA')} — ${a.public_cible||'Tous'}</span>
+    </div>`).join('');
+  }catch(err){ document.getElementById('listeAnnoncesDirecteur').innerHTML=`<p class="text-center text-danger">${err.message}</p>`; }
+}
+
+// 📅 CHARGER ÉVÉNEMENTS
+async function chargerEvenements(){
+  try{
+    const r = await fetch(`${API_URL}/evenements`, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+    const c = document.getElementById('listeEvenements');
+    if(!res.evenements.length){ c.innerHTML=`<p class="text-center text-muted">Aucun événement programmé</p>`; return; }
+    c.innerHTML = res.evenements.map(e => `
+    <div class="alert alert-info mb-2">
+      <h6 class="mb-1">📅 ${e.libelle_fr||e.libelle}</h6>
+      <p class="mb-1 small">${e.description_fr||e.description||''}</p>
+      <span class="small text-muted">${new Date(e.date_evenement).toLocaleDateString('fr-CA')} — ${e.type_evenement||'Général'}</span>
+    </div>`).join('');
+  }catch(err){ document.getElementById('listeEvenements').innerHTML=`<p class="text-center text-danger">${err.message}</p>`; }
+}
+
+function format(m){ return new Intl.NumberFormat('fr-FR').format(parseFloat(m)||0)+' F CFA'; }
+
+// 🚀 INIT
+chargerStats();
+chargerInscriptions();
+</script>
+</body>
+</html>

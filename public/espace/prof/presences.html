@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Gestion Présences — Enseignant</span>
+    <span class="txt-en">Attendance Management — Teacher</span>
+    <span class="txt-ar">إدارة الحضور — المعلم</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --accent: #f59e0b;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b;
+      --vert: #10b981;
+      --rouge: #ef4444;
+      --bleu: #3b82f6;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #f1f5f9; font-family: 'Segoe UI', 'Roboto', sans-serif; min-height: 100vh; }
+
+    .menu-gauche { background: linear-gradient(180deg, var(--sombre), var(--primaire)); min-height: 100vh; width: 260px; position: fixed; padding: 0; overflow-y: auto; }
+    .entete-menu { padding: 25px 20px; border-bottom: 1px solid rgba(245,158,11,0.15); }
+    .logo-menu { color: var(--accent); font-weight: 800; font-size: 1.3rem; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+    .logo-menu i { font-size: 1.6rem; }
+    .nav-menu { padding: 20px 12px; }
+    .lien-nav { display: flex; align-items: center; gap: 12px; padding: 12px 15px; margin-bottom: 6px; color: #cbd5e1; text-decoration: none; border-radius: 10px; transition: all 0.25s ease; }
+    .lien-nav:hover, .lien-nav.actif { background: rgba(245,158,11,0.08); color: var(--accent); }
+
+    .contenu-principal { margin-left: 260px; padding: 25px 30px; min-height: 100vh; }
+    .barre-haut { background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+    .btn-langue { background: rgba(12,74,110,0.08); border: 1px solid var(--primaire); border-radius: 20px; padding: 5px 12px; font-size: 0.85rem; cursor: pointer; margin: 0 2px; color: var(--primaire); font-weight: 600; }
+    .btn-langue.active { background: var(--accent); color: #000; border-color: var(--accent); }
+    .btn-deco { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 6px 12px; border-radius: 8px; transition: all 0.2s; }
+    .btn-deco:hover { background: var(--accent); color: #000; }
+
+    .carte { background: white; border-radius: 14px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 4px solid var(--accent); margin-bottom: 1.5rem; }
+    .form-control, .form-select { background: #f8fafc; border: 1px solid #cbd5e1; color: #1e293b; border-radius: 8px; }
+    .form-control:focus, .form-select:focus { border-color: var(--bord-orange); box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15); }
+
+    .btn-present { background: var(--vert); color: white; border: none; }
+    .btn-retard { background: var(--bleu); color: white; border: none; }
+    .btn-absent { background: var(--rouge); color: white; border: none; }
+    .ligne-eleve { border-bottom: 1px solid #e2e8f0; padding: 1rem 0; transition: background 0.2s; }
+    .ligne-eleve:hover { background: rgba(245,158,11,0.03); border-radius: 8px; }
+    .photo-eleve { width: 50px; height: 50px; object-fit: cover; border-radius: 50%; border: 2px solid var(--accent); }
+    .btn-enregistrer { background: linear-gradient(90deg, var(--vert), #34d399); color: white; font-weight: 700; border: none; padding: 0.8rem 2.5rem; border-radius: 10px; font-size: 1.05rem; transition: transform 0.2s; }
+    .btn-enregistrer:hover { transform: translateY(-2px); color: white; }
+
+    .message-info { padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+    .message-erreur { background: #fee2e2; color: #dc2626; border-left: 4px solid #ef4444; }
+    .message-succes { background: #d1fae5; color: #059669; border-left: 4px solid #10b981; }
+    .badge-transmis { font-size: 0.75rem; padding: 2px 6px; border-radius: 10px; background: #d1fae5; color: #059669; }
+
+    /* ✅ MODÈLE DE LANGUE UNIFORME */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar .titre-section { text-align: right; }
+    body.lang-ar { direction: rtl; }
+  </style>
+</head>
+<body>
+
+<div class="d-flex">
+  <!-- ✅ MENU LATÉRAL -->
+  <aside class="menu-gauche">
+    <div class="entete-menu">
+      <a href="dashboard.html" class="logo-menu">
+        <i class="bi bi-building"></i> MAMA-ZOUMANA
+      </a>
+    </div>
+    <nav class="nav-menu">
+      <a href="dashboard.html" class="lien-nav">
+        <i class="bi bi-speedometer2"></i>
+        <span class="txt-fr">Tableau de bord</span>
+        <span class="txt-en">Dashboard</span>
+        <span class="txt-ar">لوحة التحكم</span>
+      </a>
+      <a href="mes-classes.html" class="lien-nav">
+        <i class="bi bi-grid"></i>
+        <span class="txt-fr">Mes Classes</span>
+        <span class="txt-en">My Classes</span>
+        <span class="txt-ar">فصولي</span>
+      </a>
+      <a href="presences.html" class="lien-nav actif">
+        <i class="bi bi-check2-square"></i>
+        <span class="txt-fr">Présences & Retards</span>
+        <span class="txt-en">Attendance & Lateness</span>
+        <span class="txt-ar">الحضور والتأخير</span>
+      </a>
+      <a href="saisie-notes.html" class="lien-nav">
+        <i class="bi bi-pencil-square"></i>
+        <span class="txt-fr">Saisie des Notes</span>
+        <span class="txt-en">Enter Grades</span>
+        <span class="txt-ar">إدخال الدرجات</span>
+      </a>
+      <a href="devoirs.html" class="lien-nav">
+        <i class="bi bi-journal-text"></i>
+        <span class="txt-fr">Devoirs & Examens</span>
+        <span class="txt-en">Homework & Exams</span>
+        <span class="txt-ar">الواجبات والامتحانات</span>
+      </a>
+      <a href="messages.html" class="lien-nav">
+        <i class="bi bi-chat-dots"></i>
+        <span class="txt-fr">Messages</span>
+        <span class="txt-en">Messages</span>
+        <span class="txt-ar">الرسائل</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- ✅ CONTENU PRINCIPAL -->
+  <main class="contenu-principal">
+    <div class="barre-haut">
+      <div class="titre-section">
+        <h4 class="mb-0 text-uppercase fw-bold text-primary">
+          <span class="txt-fr">Gestion Présences</span>
+          <span class="txt-en">Attendance Management</span>
+          <span class="txt-ar">إدارة الحضور</span>
+        </h4>
+        <small class="text-muted">
+          <span class="txt-fr">Présences · Absences · Retards</span>
+          <span class="txt-en">Present · Absent · Late</span>
+          <span class="txt-ar">حضور · غياب · تأخر</span>
+        </small>
+      </div>
+      <div class="utilisateur d-flex align-items-center gap-2">
+        <button class="btn-langue" data-lang="fr">FR</button>
+        <button class="btn-langue" data-lang="en">EN</button>
+        <button class="btn-langue" data-lang="ar">AR</button>
+        <i class="bi bi-person-circle fs-4 ms-2"></i>
+        <span id="nom-prof"></span>
+        <button class="btn btn-deco ms-2" onclick="deconnexion()">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="txt-fr">Déconnexion</span>
+          <span class="txt-en">Logout</span>
+          <span class="txt-ar">تسجيل الخروج</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ✅ LIEN RETOUR -->
+    <a href="mes-classes.html" class="btn btn-outline-secondary mb-4">
+      <i class="bi bi-arrow-left"></i>
+      <span class="txt-fr">Retour à Mes Classes</span>
+      <span class="txt-en">Back to My Classes</span>
+      <span class="txt-ar">الرجوع إلى فصولي</span>
+    </a>
+
+    <!-- ⚠️ ZONE DE MESSAGES -->
+    <div id="zone-message"></div>
+
+    <!-- 🔽 INFOS DE LA SÉANCE -->
+    <div class="carte">
+      <h5 class="mb-3 fw-bold text-primary">
+        <i class="bi bi-calendar-event me-2" style="color:var(--accent)"></i>
+        <span class="txt-fr">Informations de la séance</span>
+        <span class="txt-en">Session Information</span>
+        <span class="txt-ar">معلومات الحصة</span>
+      </h5>
+      <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">🏫 Classe</span>
+            <span class="txt-en">🏫 Class</span>
+            <span class="txt-ar">🏫 الفصل</span>
+          </label>
+          <select id="classe" class="form-select" onchange="chargerEleves()">
+            <option value="">--- Chargement ---</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">📅 Date</span>
+            <span class="txt-en">📅 Date</span>
+            <span class="txt-ar">📅 التاريخ</span>
+          </label>
+          <input type="date" id="date_jour" class="form-control" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">📆 Année Scolaire</span>
+            <span class="txt-en">📆 School Year</span>
+            <span class="txt-ar">📆 السنة الدراسية</span>
+          </label>
+          <input type="text" id="annee_scolaire" class="form-control" value="2026-2027">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">📖 Trimestre</span>
+            <span class="txt-en">📖 Term</span>
+            <span class="txt-ar">📖 الفصل</span>
+          </label>
+          <select id="trimestre" class="form-select">
+            <option value="1">T1</option>
+            <option value="2">T2</option>
+            <option value="3">T3</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">✍️ Signature</span>
+            <span class="txt-en">✍️ Signature</span>
+            <span class="txt-ar">✍️ التوقيع</span>
+          </label>
+          <input type="text" id="signature_prof" class="form-control" placeholder="Votre nom...">
+        </div>
+      </div>
+    </div>
+
+    <!-- 📋 LISTE DES ÉLÈVES -->
+    <div id="zoneListe" class="d-none">
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <h5 class="mb-0 fw-bold text-primary">
+          <i class="bi bi-people me-2" style="color:var(--accent)"></i>
+          <span class="txt-fr">Liste des Élèves</span>
+          <span class="txt-en">Student List</span>
+          <span class="txt-ar">قائمة التلاميذ</span>
+        </h5>
+        <div>
+          <button class="btn btn-present btn-sm me-1" onclick="marquerTout('present')">
+            ✅ <span class="txt-fr">Tous Présents</span><span class="txt-en">All Present</span><span class="txt-ar">الكل حاضر</span>
+          </button>
+          <button class="btn btn-retard btn-sm me-1" onclick="marquerTout('retard')">
+            ⏰ <span class="txt-fr">Tous en Retard</span><span class="txt-en">All Late</span><span class="txt-ar">الكل متأخر</span>
+          </button>
+          <button class="btn btn-absent btn-sm" onclick="marquerTout('absent')">
+            ❌ <span class="txt-fr">Tous Absents</span><span class="txt-en">All Absent</span><span class="txt-ar">الكل غائب</span>
+          </button>
+        </div>
+      </div>
+      <div class="carte">
+        <div class="row fw-bold opacity-75 mb-2 px-2 align-items-center">
+          <div class="col-md-5">
+            <span class="txt-fr">Élève / Photo / Matricule</span>
+            <span class="txt-en">Student / Photo / ID</span>
+            <span class="txt-ar">التلميذ / صورة / الرقم</span>
+          </div>
+          <div class="col-md-2 text-center">
+            <span class="txt-fr">Statut</span>
+            <span class="txt-en">Status</span>
+            <span class="txt-ar">الحالة</span>
+          </div>
+          <div class="col-md-5 text-center">
+            <span class="txt-fr">Justification</span>
+            <span class="txt-en">Notes</span>
+            <span class="txt-ar">ملاحظة</span>
+          </div>
+        </div>
+        <div id="listeEleves">
+          <div class="text-center py-4 text-muted">
+            <span class="txt-fr">Sélectionnez une classe pour afficher les élèves...</span>
+            <span class="txt-en">Select a class to show students...</span>
+            <span class="txt-ar">اختر قسماً لعرض التلاميذ...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✍️ ENREGISTREMENT -->
+      <div class="text-center mt-4">
+        <button class="btn-enregistrer" onclick="enregistrerTout()">
+          <i class="bi bi-check-circle-fill me-2"></i>
+          <span class="txt-fr">✅ Enregistrer les Présences</span>
+          <span class="txt-en">✅ Save Attendance</span>
+          <span class="txt-ar">✅ حفظ الحضور</span>
+        </button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ==================================================
+// ✅ CONFIGURATION & SÉCURITÉ
+// ==================================================
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+const API_URL = 'http://localhost:5000/api/presences'; // ✅ CORRIGÉE
+
+console.log("🔑 Token :", token ? "PRÉSENT ✅" : "MANQUANT ❌");
+console.log("👤 Rôle :", role);
+
+if(!token || role !== 'prof'){
+  alert("⛔ Accès réservé aux Enseignants — Veuillez vous connecter");
+  localStorage.clear();
+  location.href = '/connexion.html';
+}
+
+// ✅ Valeurs par défaut
+const aujourdhui = new Date().toISOString().split('T')[0];
+document.getElementById('date_jour').value = aujourdhui;
+document.getElementById('signature_prof').value = 
+  (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || '');
+document.getElementById('nom-prof').textContent = 
+  (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || '');
+
+// ==================================================
+// 🗣️ GESTION DE LA LANGUE
+// ==================================================
+function appliquerLangue(lang) {
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-'+lang);
+  localStorage.setItem('langue', lang);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-lang="${lang}"]`)?.classList.add('active');
+}
+
+const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+appliquerLangue(langueSauvegardee);
+document.querySelectorAll('.btn-langue').forEach(btn => {
+  btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
+});
+
+// ==================================================
+// 💬 MESSAGES
+// ==================================================
+function afficherMessage(texte, type = 'info') {
+  const zone = document.getElementById('zone-message');
+  const classe = type === 'erreur' ? 'message-erreur' : type === 'succes' ? 'message-succes' : '';
+  zone.innerHTML = `<div class="message-info ${classe}">${texte}</div>`;
+  setTimeout(() => zone.innerHTML = '', 10000);
+}
+
+// ==================================================
+// 📥 CHARGER MES CLASSES
+// ==================================================
+let eleves = [];
+
+window.onload = async function() {
+  await chargerClasses();
+  const params = new URLSearchParams(window.location.search);
+  const id_classe_url = params.get('id_classe');
+  if(id_classe_url) {
+    setTimeout(() => {
+      document.getElementById('classe').value = id_classe_url;
+      chargerEleves();
+    }, 300);
+  }
+};
+
+async function chargerClasses(){
+  const sel = document.getElementById('classe');
+  sel.innerHTML = '<option value="">--- Chargement en cours... ---</option>';
+
+  try {
+    console.log("📡 Appel API :", API_URL + "/mes-classes");
+    const r = await fetch(`${API_URL}/mes-classes`, {
+      headers: {'Authorization': `Bearer ${token}`}
+    });
+
+    console.log("📡 Réponse HTTP :", r.status);
+    const res = await r.json();
+    console.log("📊 Données reçues :", res);
+
+    sel.innerHTML = '<option value="">--- Sélectionner une classe ---</option>';
+    
+    if(res.ok && res.classes && res.classes.length > 0){
+      res.classes.forEach(c => {
+        sel.innerHTML += `<option value="${c.id_classe}">${c.libelle_classe}</option>`;
+      });
+      afficherMessage(`✅ ${res.classes.length} classes trouvées !`, 'succes');
+    } else {
+      sel.innerHTML += '<option value="" disabled>⚠️ Aucune classe affectée — Contacter l\'admin</option>';
+      afficherMessage("⚠️ Aucune classe ne vous est affectée. Contactez l'administrateur.", 'erreur');
+    }
+  } catch(e) {
+    console.log("❌ Erreur chargement classes :", e);
+    sel.innerHTML = '<option value="">❌ Erreur de connexion</option>';
+    afficherMessage("❌ Erreur réseau : " + e.message, 'erreur');
+  }
+}
+
+// ==================================================
+// 👥 CHARGER LES ÉLÈVES
+// ==================================================
+async function chargerEleves(){
+  const id_classe = document.getElementById('classe').value;
+  if(!id_classe){
+    document.getElementById('zoneListe').classList.add('d-none');
+    return;
+  }
+
+  try {
+    const r = await fetch(`${API_URL}/eleves-classe/${id_classe}`, {
+      headers: {'Authorization': `Bearer ${token}`}
+    });
+    const res = await r.json();
+
+    if(res.ok && res.eleves && res.eleves.length > 0){
+      eleves = res.eleves;
+      console.log("📋 Élèves chargés :", eleves);
+      genererLignes();
+      document.getElementById('zoneListe').classList.remove('d-none');
+      chargerPresencesExistantes();
+    } else {
+      document.getElementById('listeEleves').innerHTML = `
+        <div class="text-center py-4 text-muted">
+          <span class="txt-fr">Aucun élève dans cette classe</span>
+          <span class="txt-en">No students in this class</span>
+          <span class="txt-ar">لا يوجد تلاميذ في هذا القسم</span>
+        </div>`;
+      document.getElementById('zoneListe').classList.remove('d-none');
+    }
+  } catch(e) {
+    console.log("❌ Erreur chargement élèves :", e);
+  }
+}
+
+// ==================================================
+// 📄 GÉNÉRER LES LIGNES
+// ==================================================
+function genererLignes(){
+  document.getElementById('listeEleves').innerHTML = eleves.map(e => {
+    const id = e.id_utilisateur || e.id_eleve;
+    
+    // ✅ Photo ou Avatar par défaut
+    let photoUrl = e.photo_eleve ? `http://localhost:5000/uploads/${e.photo_eleve}` : null;
+    if (!photoUrl) {
+      const nomPrenom = encodeURIComponent(`${e.nom} ${e.prenoms || ''}`);
+      photoUrl = `https://ui-avatars.com/api/?name=${nomPrenom}&background=0c4a6e&color=fff&size=80`;
+    }
+
+    return `
+    <div class="ligne-eleve row align-items-center" data-id="${id}">
+      <div class="col-md-5">
+        <div class="d-flex align-items-center gap-3">
+          <img src="${photoUrl}" alt="Photo ${e.nom}" 
+               class="photo-eleve"
+               onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(e.nom)}&background=0c4a6e&color=fff&size=80'">
+          <div>
+            <div class="fw-bold">${e.nom} ${e.prenoms || ''}</div>
+            <div class="small text-muted">📋 ${e.matricule || 'Non attribué'}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-2 text-center">
+        <select class="form-select statut-select" data-id="${id}">
+          <option value="present">✅ <span class="txt-fr">Présent</span><span class="txt-en">Present</span><span class="txt-ar">حاضر</span></option>
+          <option value="retard">⏰ <span class="txt-fr">Retard</span><span class="txt-en">Late</span><span class="txt-ar">متأخر</span></option>
+          <option value="absent">❌ <span class="txt-fr">Absent</span><span class="txt-en">Absent</span><span class="txt-ar">غائب</span></option>
+        </select>
+      </div>
+      
+      <div class="col-md-5">
+        <input type="text" class="form-control justification-input" data-id="${id}" 
+               placeholder="Justification si absence..." value="${e.justification || ''}">
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ==================================================
+// 📥 CHARGER LES PRÉSENCES EXISTANTES
+// ==================================================
+async function chargerPresencesExistantes(){
+  const id_classe = document.getElementById('classe').value;
+  const date_jour = document.getElementById('date_jour').value;
+  if(!id_classe || !date_jour) return;
+
+  try {
+    const r = await fetch(`${API_URL}/liste`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ id_classe, date_jour })
+    });
+    const res = await r.json();
+
+    if(res.ok && res.lignes && res.lignes.length > 0){
+      res.lignes.forEach(p => {
+        const select = document.querySelector(`.statut-select[data-id="${p.id_eleve}"]`);
+        const justif = document.querySelector(`.justification-input[data-id="${p.id_eleve}"]`);
+        if(select) select.value = p.statut;
+        if(justif) justif.value = p.justification || '';
+      });
+      afficherMessage(`📋 ${res.lignes.length} présences déjà enregistrées`, 'info');
+    }
+  } catch(e) {
+    console.log("ℹ️ Aucune présence existante :", e.message);
+  }
+}
+
+// ==================================================
+// 🔄 MARQUER TOUS D'UN COUP
+// ==================================================
+function marquerTout(statut){
+  document.querySelectorAll('.statut-select').forEach(s => s.value = statut);
+}
+
+// ==================================================
+// 💾 ENREGISTRER
+// ==================================================
+async function enregistrerTout(){
+  const id_classe = document.getElementById('classe').value;
+  const date_jour = document.getElementById('date_jour').value;
+  const signature_prof = document.getElementById('signature_prof').value.trim();
+  const annee_scolaire = document.getElementById('annee_scolaire').value.trim();
+  const trimestre = document.getElementById('trimestre').value;
+
+  if(!id_classe || !date_jour){
+    alert("⚠️ Sélectionnez une classe et une date !");
+    return;
+  }
+  if(!signature_prof){
+    alert("⚠️ Saisissez votre signature avant d'enregistrer !");
+    return;
+  }
+
+  const presences = eleves.map(e => {
+    const id = e.id_utilisateur || e.id_eleve;
+    return {
+      id_eleve: id,
+      statut: document.querySelector(`.statut-select[data-id="${id}"]`).value,
+      justification: document.querySelector(`.justification-input[data-id="${id}"]`).value.trim() || null
+    };
+  });
+
+  try {
+    const r = await fetch(`${API_URL}/marquer`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ 
+        id_classe, date_jour, presences, signature_prof, annee_scolaire, trimestre 
+      })
+    });
+
+    const res = await r.json();
+    
+    if(res.ok){
+      afficherMessage(`✅ ${res.message || "Présences enregistrées !"}`, 'succes');
+      document.getElementById('classe').value = '';
+      document.getElementById('zoneListe').classList.add('d-none');
+    } else {
+      afficherMessage("❌ Erreur : " + (res.erreur || "Erreur inconnue"), 'erreur');
+    }
+  } catch(e) {
+    afficherMessage("❌ Erreur Réseau : " + e.message, 'erreur');
+  }
+}
+
+// ==================================================
+// ✅ DÉCONNEXION
+// ==================================================
+function deconnexion(){
+  localStorage.clear();
+  location.href = '/connexion.html';
+}
+</script>
+
+</body>
+</html>

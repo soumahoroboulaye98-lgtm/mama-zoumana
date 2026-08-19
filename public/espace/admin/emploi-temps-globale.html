@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Emploi du Temps Global — MAMA-ZOUMANA</span>
+    <span class="txt-en">Global Timetable — MAMA-ZOUMANA</span>
+    <span class="txt-ar">الجدول الزمني العام — ماما زومانا</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --secondaire: #f59e0b;
+      --accent: #10b981;
+      --rouge: #ef4444;
+      --bleu-clair: #3b82f6;
+      --violet: #8b5cf6;
+      --gris-fond: #f8fafc;
+      --ombre: 0 10px 40px rgba(12, 74, 110, 0.12);
+      --ombre-hover: 0 15px 50px rgba(12, 74, 110, 0.18);
+    }
+
+    body {
+      background: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 50%, #f0fdf4 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+
+    /* ========== ANIMATIONS ========== */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .fade-in-up {
+      animation: fadeInUp 0.7s ease-out forwards;
+      opacity: 0;
+    }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .pulse-slow { animation: pulse-slow 2.5s infinite; }
+    .float { animation: float 3s ease-in-out infinite; }
+
+    /* ========== CARTES ========== */
+    .card-glass {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: var(--ombre);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      overflow: hidden;
+    }
+    .card-glass:hover {
+      transform: translateY(-6px) scale(1.015);
+      box-shadow: var(--ombre-hover);
+    }
+    .card-header-grad {
+      background: linear-gradient(90deg, var(--primaire) 0%, #0369a1 100%);
+      color: white;
+      font-weight: 700;
+      border-radius: 20px 20px 0 0 !important;
+      padding: 1rem 1.5rem;
+    }
+
+    /* ========== BANDEAU INFO ========== */
+    .info-bar {
+      background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+      border-left: 5px solid var(--secondaire);
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.15);
+    }
+    .heure-utc {
+      font-family: 'Courier New', monospace;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--primaire);
+      letter-spacing: 1px;
+    }
+
+    /* ========== TABLEAU ========== */
+    .table-responsive {
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .table {
+      margin-bottom: 0;
+    }
+    .table thead th {
+      background: linear-gradient(90deg, var(--primaire) 0%, #0369a1 100%);
+      color: white;
+      font-weight: 600;
+      border: none;
+      padding: 1rem;
+      font-size: 0.95rem;
+    }
+    .table tbody tr {
+      transition: all 0.3s ease;
+    }
+    .table tbody tr:hover {
+      background-color: rgba(12, 74, 110, 0.06);
+      transform: scale(1.008);
+    }
+    .table tbody tr td {
+      vertical-align: middle;
+      padding: 0.9rem 1rem;
+      border-color: #e2e8f0;
+    }
+
+    /* ========== COULEURS PAR JOUR ========== */
+    .jour-lundi { border-left: 4px solid var(--bleu-clair); }
+    .jour-mardi { border-left: 4px solid var(--accent); }
+    .jour-mercredi { border-left: 4px solid var(--violet); }
+    .jour-jeudi { border-left: 4px solid var(--secondaire); }
+    .jour-vendredi { border-left: 4px solid var(--primaire); }
+    .jour-samedi { border-left: 4px solid var(--rouge); }
+
+    /* ========== BADGES ========== */
+    .badge-classe {
+      background: linear-gradient(135deg, var(--primaire), #0369a1);
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 0.4rem 0.7rem;
+      border-radius: 10px;
+    }
+    .badge-matiere {
+      background: linear-gradient(135deg, var(--secondaire), #f97316);
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 0.4rem 0.7rem;
+      border-radius: 10px;
+    }
+    .badge-prof {
+      background: linear-gradient(135deg, var(--accent), #059669);
+      font-weight: 500;
+      font-size: 0.85rem;
+      padding: 0.4rem 0.7rem;
+      border-radius: 10px;
+    }
+    .badge-heure {
+      background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+      color: var(--primaire);
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 8px;
+    }
+
+    /* ========== RESPONSIVE MOBILE ========== */
+    @media (max-width: 768px) {
+      .card-header-grad { padding: 0.8rem 1rem; font-size: 1rem; }
+      .table thead { display: none; }
+      .table tbody tr { display: block; margin-bottom: 1rem; border-radius: 12px; border: 1px solid #e2e8f0; }
+      .table tbody td { display: flex; justify-content: space-between; padding: 0.7rem 1rem; border: none; border-bottom: 1px solid #f1f5f9; }
+      .table tbody td::before { content: attr(data-label); font-weight: 600; color: var(--primaire); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container py-4 py-md-5">
+
+  <!-- 📍 FIL D'ARIANE -->
+  <div class="mb-4 fade-in-up delay-1">
+    <a href="dashbord.html" class="text-decoration-none">
+      <i class="bi bi-arrow-left-circle me-2"></i>
+      <span class="txt-fr">Retour au Tableau de Bord</span>
+      <span class="txt-en d-none">Back to Dashboard</span>
+      <span class="txt-ar d-none">العودة إلى لوحة التحكم</span>
+    </a>
+  </div>
+
+  <!-- 📅 EN-TÊTE : DATE & HEURE GREENWICH -->
+  <div class="info-bar p-4 mb-4 fade-in-up delay-2">
+    <div class="row align-items-center g-3">
+      <div class="col-md-5">
+        <h5 class="mb-2 text-dark">
+          <i class="bi bi-calendar3 text-warning me-2"></i>
+          <span class="txt-fr">Date du Jour</span>
+          <span class="txt-en d-none">Today's Date</span>
+          <span class="txt-ar d-none">تاريخ اليوم</span>
+        </h5>
+        <div id="dateDuJour" class="fs-5 fw-bold text-dark pulse-slow"></div>
+      </div>
+      <div class="col-md-7 text-md-end">
+        <h5 class="mb-2 text-dark">
+          <i class="bi bi-clock text-primary me-2"></i>
+          🕐 Heure Greenwich (UTC)
+        </h5>
+        <div id="heureUTC" class="heure-utc float"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📊 EMPLOI DU TEMPS GLOBAL -->
+  <div class="card card-glass fade-in-up delay-3">
+    <div class="card-header card-header-grad d-flex align-items-center justify-content-between">
+      <span>
+        <i class="bi bi-table me-2"></i>
+        <span class="txt-fr">EMPLOI DU TEMPS GLOBAL — TOUTES CLASSES</span>
+        <span class="txt-en d-none">GLOBAL TIMETABLE — ALL CLASSES</span>
+        <span class="txt-ar d-none">الجدول الزمني العام — جميع الفصول</span>
+      </span>
+      <button class="btn btn-sm btn-light" onclick="chargerEmploiTemps()">
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive p-3">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>📅 Jour</th>
+              <th>⏰ Heure</th>
+              <th>🏫 Classe</th>
+              <th>📖 Matière</th>
+              <span class="txt-fr"><th>👨‍🏫 Professeur</th></span>
+              <span class="txt-en d-none"><th>👨‍🏫 Teacher</th></span>
+              <span class="txt-ar d-none"><th>👨‍🏫 الأستاذ</th></span>
+            </tr>
+          </thead>
+          <tbody id="corpsEmploi">
+            <!-- Chargé par JavaScript -->
+            <tr>
+              <td colspan="5" class="text-center py-4 text-muted">
+                <div class="spinner-border text-primary mb-2" role="status"></div>
+                <br>Chargement en cours...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+const token = localStorage.getItem('token');
+
+// 🕐 METTRE À JOUR DATE & HEURE UTC EN TEMPS RÉEL
+function mettreAJourHeure() {
+  const maintenant = new Date();
+
+  // 📅 Date du jour en français
+  const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+  const dateFr = maintenant.toLocaleDateString('fr-FR', opts);
+  document.getElementById('dateDuJour').textContent = dateFr.charAt(0).toUpperCase() + dateFr.slice(1);
+
+  // 🕐 Heure UTC / Greenwich
+  const h = maintenant.getUTCHours().toString().padStart(2, '0');
+  const m = maintenant.getUTCMinutes().toString().padStart(2, '0');
+  const s = maintenant.getUTCSeconds().toString().padStart(2, '0');
+  document.getElementById('heureUTC').textContent = `${h}:${m}:${s} UTC`;
+}
+mettreAJourHeure();
+setInterval(mettreAJourHeure, 1000);
+
+// 📅 CHARGER L'EMPLOI DU TEMPS GLOBAL
+async function chargerEmploiTemps() {
+  const corps = document.getElementById('corpsEmploi');
+  corps.innerHTML = `<tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-primary"></div><br>Chargement...</td></tr>`;
+
+  try {
+    const reponse = await fetch(`${API_URL}/emploi/global`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await reponse.json();
+
+    if (!reponse.ok || !data.ok) throw new Error(data.erreur || 'Erreur chargement');
+
+    if (!data.seances || data.seances.length === 0) {
+      corps.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">
+        <i class="bi bi-calendar-x fs-1"></i><br>Aucune séance programmée pour l'instant.
+      </td></tr>`;
+      return;
+    }
+
+    // 🎨 Afficher les séances
+    corps.innerHTML = '';
+    data.seances.forEach(seance => {
+      const jourClasse = seance.jour === 'Lundi' ? 'jour-lundi' :
+                        seance.jour === 'Mardi' ? 'jour-mardi' :
+                        seance.jour === 'Mercredi' ? 'jour-mercredi' :
+                        seance.jour === 'Jeudi' ? 'jour-jeudi' :
+                        seance.jour === 'Vendredi' ? 'jour-vendredi' :
+                        seance.jour === 'Samedi' ? 'jour-samedi' : '';
+
+      const ligne = document.createElement('tr');
+      ligne.className = jourClasse;
+      ligne.innerHTML = `
+        <td data-label="Jour" class="fw-semibold">${seance.jour}</td>
+        <td data-label="Heure"><span class="badge-heure">${seance.heure_debut.slice(0,5)} - ${seance.heure_fin.slice(0,5)}</span></td>
+        <td data-label="Classe"><span class="badge badge-classe">${seance.libelle_classe || '-'}</span></td>
+        <td data-label="Matière"><span class="badge badge-matiere">${seance.libelle_matiere || '-'}</span></td>
+        <td data-label="Professeur"><span class="badge-prof">${seance.professeur || '-'}</span></td>
+      `;
+      corps.appendChild(ligne);
+    });
+
+  } catch (erreur) {
+    corps.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">
+      <i class="bi bi-exclamation-triangle fs-1"></i><br>
+      Erreur : ${erreur.message}
+    </td></tr>`;
+    console.error('❌ ERREUR EMPLOI :', erreur);
+  }
+}
+
+// 🔄 Charger au démarrage
+document.addEventListener('DOMContentLoaded', chargerEmploiTemps);
+</script>
+</body>
+</html>

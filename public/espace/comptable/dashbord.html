@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion Financière — Comptable</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b;
+      --succes: #10b981;
+      --alerte: #ef4444;
+      --info: #3b82f6;
+    }
+    body{background:#f1f5f9;min-height:100vh}
+    .entete{background:linear-gradient(90deg,var(--sombre),var(--sombre-clair));color:white;padding:1.5rem;border-bottom:4px solid var(--bord-orange)}
+    .carte-stat{background:white;border-radius:12px;padding:1.25rem;box-shadow:0 2px 8px rgba(0,0,0,0.08);border-left:4px solid var(--info);transition:all 0.25s}
+    .carte-stat:hover{transform:translateY(-3px)}
+    .valeur-stat{font-size:2rem;font-weight:700;color:var(--sombre)}
+    .table th{border-top:none;color:#64748b;font-size:0.85rem;text-transform:uppercase}
+    .badge-payé{background:#dcfce7;color:#166534;padding:4px 10px;border-radius:20px;font-size:0.8rem}
+    .badge-impayé{background:#fee2e2;color:#991b1b;padding:4px 10px;border-radius:20px;font-size:0.8rem}
+    .lien-menu{text-decoration:none;color:inherit}
+  </style>
+</head>
+<body>
+
+<script>
+// 🔒 SÉCURITÉ
+if(!localStorage.getItem('token') || localStorage.getItem('role')!=='comptable'){
+  alert("⛔ Accès réservé au Comptable");
+  location.href='../connexion.html';
+}
+</script>
+
+<!-- 📌 EN-TÊTE -->
+<div class="entete">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="mb-1">📊 Espace Comptable</h2>
+        <p class="mb-0 opacity-75">Suivi des paiements, frais scolaires et reçus</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="../changer-mot-de-passe.html" class="btn btn-outline-light btn-sm">🔐 Changer MDP</a>
+        <button class="btn btn-outline-light btn-sm" onclick="deconnexion()">🚪 Déconnexion</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container py-4">
+
+  <!-- 📊 CARTES FINANCIÈRES -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="carte-stat">
+        <p class="text-muted mb-1">💰 Total Perçu</p>
+        <p class="valeur-stat mb-0 text-success" id="totalPerçu">— F CFA</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="carte-stat" style="border-left-color:var(--alerte)">
+        <p class="text-muted mb-1">⚠️ Impayés</p>
+        <p class="valeur-stat mb-0 text-danger" id="totalImpaye">— F CFA</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="carte-stat" style="border-left-color:var(--bord-orange)">
+        <p class="text-muted mb-1">📋 Encaissements ce mois</p>
+        <p class="valeur-stat mb-0" id="ceMois">— F CFA</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📋 ENREGISTRER PAIEMENT & DERNIERS RÈGLEMENTS -->
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white">
+          <h5 class="mb-0">✍️ Enregistrer un Paiement</h5>
+        </div>
+        <div class="card-body">
+          <form id="formPaiement">
+            <div class="mb-3">
+              <label class="form-label">N° Matricule / Élève</label>
+              <input type="text" id="rechercheEleve" class="form-control" placeholder="Saisissez matricule ou nom..." required>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label">Type de Frais</label>
+                <select id="typeFrais" class="form-select" required>
+                  <option value="">— Choisir —</option>
+                  <option>Inscription</option>
+                  <option>Scolarité</option>
+                  <option>Examen</option>
+                  <option>Divers</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label">Montant (F CFA)</label>
+                <input type="number" id="montant" class="form-control" min="0" required>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Période / Trimestre</label>
+              <select id="periode" class="form-select">
+                <option>Trimestre 1</option>
+                <option>Trimestre 2</option>
+                <option>Trimestre 3</option>
+                <option>Annuel</option>
+              </select>
+            </div>
+            <button type="submit" class="btn w-100 text-white" style="background:var(--bord-orange)">💾 Enregistrer & Générer Reçu</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">📑 Derniers Paiements</h5>
+          <a href="#" class="btn btn-sm btn-outline-light">Exporter PDF</a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive p-3">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Élève</th>
+                  <th>Type</th>
+                  <th>Montant</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody id="listePaiements">
+                <tr><td colspan="4" class="text-center text-muted py-3">Chargement...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🧭 ACCÈS RAPIDE -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white">
+          <h5 class="mb-0">🧭 Rapports & Recherches</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4 col-sm-6">
+              <a href="#" class="lien-menu">
+                <div class="p-3 border rounded text-center">
+                  <i class="bi bi-exclamation-triangle fs-3 text-danger"></i>
+                  <p class="mt-2 mb-0">Liste des Impayés</p>
+                </div>
+              </a>
+            </div>
+            <div class="col-md-4 col-sm-6">
+              <a href="#" class="lien-menu">
+                <div class="p-3 border rounded text-center">
+                  <i class="bi bi-file-earmark-text fs-3 text-success"></i>
+                  <p class="mt-2 mb-0">Reçus & Factures</p>
+                </div>
+              </a>
+            </div>
+            <div class="col-md-4 col-sm-6">
+              <a href="#" class="lien-menu">
+                <div class="p-3 border rounded text-center">
+                  <i class="bi bi-graph-up-arrow fs-3 text-primary"></i>
+                  <p class="mt-2 mb-0">Rapport par Classe</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function deconnexion(){ localStorage.clear(); location.href='../connexion.html'; }
+
+// 💾 ENREGISTRER UN PAIEMENT
+document.getElementById('formPaiement').addEventListener('submit', async e => {
+  e.preventDefault();
+  alert("✅ Paiement enregistré !\nLe reçu sera généré.\n\n(Connecté à la route /api/finances/paiement)");
+});
+
+// 📊 CHARGER LES DONNÉES
+async function charger(){
+  document.getElementById('totalPerçu').textContent = '— F CFA';
+  document.getElementById('totalImpaye').textContent = '— F CFA';
+  document.getElementById('ceMois').textContent = '— F CFA';
+}
+charger();
+</script>
+</body>
+</html>

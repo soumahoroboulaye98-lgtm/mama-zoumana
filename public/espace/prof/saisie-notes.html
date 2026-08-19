@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Saisie des Notes — Enseignant</span>
+    <span class="txt-en">Grade Entry — Teacher</span>
+    <span class="txt-ar">إدخال الدرجات — المعلم</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b;
+      --vert: #10b981;
+      --rouge: #ef4444;
+      --bleu: #3b82f6;
+      --texte: #f8fafc;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.25s ease; }
+    body {
+      background: var(--sombre);
+      color: var(--texte);
+      min-height: 100vh;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    .entete-page {
+      background: var(--sombre-clair);
+      border-bottom: 3px solid var(--bord-orange);
+      padding: 1.2rem 0;
+      margin-bottom: 2rem;
+    }
+    .carte {
+      background: var(--sombre-clair);
+      border-radius: 14px;
+      border-left: 4px solid var(--bord-orange);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .form-control, .form-select {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: white;
+      border-radius: 10px;
+    }
+    .form-control:focus, .form-select:focus {
+      background: #0f172a;
+      border-color: var(--bord-orange);
+      color: white;
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.25);
+    }
+    .btn-valide {
+      background: var(--vert);
+      color: white;
+      border-radius: 10px;
+      border: none;
+      font-weight: 600;
+    }
+    .btn-valide:hover {
+      background: #059669;
+      box-shadow: 0 0 15px rgba(16,185,129,0.4);
+      color: white;
+    }
+    .btn-langue { border-radius: 8px; }
+    .btn-langue.active {
+      background: var(--bord-orange);
+      color: #000;
+      border-color: var(--bord-orange);
+      font-weight: 700;
+    }
+    .note-input {
+      width: 70px;
+      text-align: center;
+      font-weight: bold;
+      border-radius: 6px;
+    }
+    .photo-eleve {
+      width: 45px;
+      height: 45px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 2px solid var(--bord-orange);
+    }
+    .ligne-eleve {
+      border-bottom: 1px solid #334155;
+      padding: 0.8rem 0.75rem;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    .ligne-eleve:hover { background: rgba(245,158,11,0.06); }
+    .moyenne-badge {
+      background: var(--bleu);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    .mention-badge {
+      font-weight: 700;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+    .rang-badge {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #000;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .appreciation-texte {
+      font-size: 0.85rem;
+      opacity: 0.85;
+      line-height: 1.3;
+    }
+
+    /* ✅ GESTION DES LANGUES */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en { direction: ltr; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-ar { direction: rtl; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+  </style>
+</head>
+<body class="lang-fr">
+
+<!-- 🔐 SÉCURITÉ & CONFIGURATION -->
+<script>
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+const id_utilisateur = localStorage.getItem('id_utilisateur');
+const nom = localStorage.getItem('nom') || 'Enseignant';
+const prenoms = localStorage.getItem('prenoms') || '';
+
+if (!token || role !== 'prof') {
+  alert("⛔ Accès réservé aux Enseignants — Reconnecte-toi !");
+  localStorage.clear();
+  location.href = 'connexion.html';
+}
+
+const API_URL = 'http://localhost:5000/api';
+</script>
+
+<!-- 📌 EN-TÊTE -->
+<div class="entete-page">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div>
+      <h3 class="mb-1 fw-bold">
+        <i class="bi bi-pencil-square" style="color:var(--bord-orange)"></i>
+        <span class="txt-fr"> Saisie des Notes</span>
+        <span class="txt-en"> Grade Entry</span>
+        <span class="txt-ar"> إدخال الدرجات</span>
+      </h3>
+      <p class="mb-0 opacity-75">
+        <span class="txt-fr">Notes · Devoirs · Examens — </span>
+        <span class="txt-en">Grades · Homework · Exams — </span>
+        <span class="txt-ar">درجات · واجبات · امتحانات — </span>
+        <strong>${nom} ${prenoms}</strong>
+      </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('ar')" id="btn-ar">🇸🇦 AR</button>
+      <a href="mes-classes.html" class="btn btn-outline-light ms-2">
+        <i class="bi bi-arrow-left-circle"></i>
+        <span class="txt-fr"> Retour</span>
+        <span class="txt-en"> Back</span>
+        <span class="txt-ar"> عودة</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <!-- ⚠️ ZONE MESSAGES -->
+  <div id="zone-message"></div>
+
+  <!-- 📋 SÉLECTION CLASSE / MATIÈRE / PÉRIODE -->
+  <div class="carte">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">🏫 Classe</span>
+          <span class="txt-en">🏫 Class</span>
+          <span class="txt-ar">🏫 الفصل</span>
+        </label>
+        <select id="id_classe" class="form-select" onchange="quandClasseChange(this.value)">
+          <option value="">
+            <span class="txt-fr">-- Chargement... --</span>
+            <span class="txt-en">-- Loading... --</span>
+            <span class="txt-ar">-- جار التحميل... --</span>
+          </option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">📚 Matière</span>
+          <span class="txt-en">📚 Subject</span>
+          <span class="txt-ar">📚 المادة</span>
+        </label>
+        <select id="id_matiere" class="form-select" onchange="quandMatiereChange()">
+          <option value="">-- Choisir une Classe d'abord --</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">📆 Année</span>
+          <span class="txt-en">📆 Year</span>
+          <span class="txt-ar">📆 السنة</span>
+        </label>
+        <input type="text" id="annee_scolaire" class="form-control" value="2026-2027">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">📖 Trimestre</span>
+          <span class="txt-en">📖 Term</span>
+          <span class="txt-ar">📖 الفصل</span>
+        </label>
+        <select id="trimestre" class="form-select" onchange="chargerNotesExistantes()">
+          <option value="1">T1</option>
+          <option value="2">T2</option>
+          <option value="3">T3</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">⚖️ Note sur</span>
+          <span class="txt-en">⚖️ Out Of</span>
+          <span class="txt-ar">⚖️ من</span>
+        </label>
+        <select id="note_sur" class="form-select">
+          <option value="20" selected>20</option>
+          <option value="10">10</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📋 LISTE DES ÉLÈVES + NOTES + MENTION + CLASSEMENT -->
+  <div id="zone-eleves" class="d-none">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0 fw-bold">
+        <span class="txt-fr">👥 Saisie des Notes — Élèves</span>
+        <span class="txt-en">👥 Grade Entry — Students</span>
+        <span class="txt-ar">👥 إدخال الدرجات — التلاميذ</span>
+      </h5>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-light" onclick="remplirNotes(10)">
+          <span class="txt-fr">Remplir 10</span>
+          <span class="txt-en">Fill 10</span>
+        </button>
+        <button class="btn btn-sm btn-outline-light" onclick="viderNotes()">
+          <span class="txt-fr">Vider tout</span>
+          <span class="txt-en">Clear All</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="carte">
+      <div class="row fw-bold opacity-75 mb-3 px-2 border-bottom pb-2 align-items-center text-center">
+        <div class="col-md-2 text-start">
+          <span class="txt-fr">Élève / Matricule</span>
+          <span class="txt-en">Student / ID</span>
+          <span class="txt-ar">التلميذ / الرقم</span>
+        </div>
+        <div class="col-md-1"><span class="txt-fr">Note 1</span><span class="txt-en">G1</span><span class="txt-ar">م1</span></div>
+        <div class="col-md-1"><span class="txt-fr">Note 2</span><span class="txt-en">G2</span><span class="txt-ar">م2</span></div>
+        <div class="col-md-1"><span class="txt-fr">Note 3</span><span class="txt-en">G3</span><span class="txt-ar">م3</span></div>
+        <div class="col-md-1"><span class="txt-fr">Note 4</span><span class="txt-en">G4</span><span class="txt-ar">م4</span></div>
+        <div class="col-md-1"><span class="txt-fr">Note 5</span><span class="txt-en">G5</span><span class="txt-ar">م5</span></div>
+        <div class="col-md-1"><span class="txt-fr">Moy.</span><span class="txt-en">Avg.</span><span class="txt-ar">المتوسط</span></div>
+        <div class="col-md-1"><span class="txt-fr">Rang</span><span class="txt-en">Rank</span><span class="txt-ar">الترتيب</span></div>
+        <div class="col-md-2"><span class="txt-fr">Mention / Appréciation</span><span class="txt-en">Honor / Comment</span><span class="txt-ar">التقدير</span></div>
+      </div>
+      <div id="corps-liste">
+        <div class="text-center py-4 text-muted">
+          <span class="txt-fr">Chargement des élèves...</span>
+          <span class="txt-en">Loading students...</span>
+          <span class="txt-ar">جار تحميل التلاميذ...</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-4">
+      <button class="btn-valide px-5 py-2" onclick="enregistrerTout()">
+        <i class="bi bi-save2 me-2"></i>
+        <span class="txt-fr">💾 Enregistrer TOUTES les Notes</span>
+        <span class="txt-en">💾 Save ALL Grades</span>
+        <span class="txt-ar">💾 حفظ جميع الدرجات</span>
+      </button>
+      <a href="bulletins.html" class="btn btn-outline-light ms-2 px-4 py-2">
+        <i class="bi bi-file-earmark-text me-2"></i>
+        <span class="txt-fr">📄 Générer les Bulletins</span>
+        <span class="txt-en">📄 Generate Report Cards</span>
+        <span class="txt-ar">📄 إنشاء الشهادات</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+let listeEleves = [];
+let resultatsCalculs = {};
+
+// 🗣️ GESTION DE LA LANGUE
+function changerLangue(langue) {
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + langue);
+  localStorage.setItem('langue', langue);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + langue).classList.add('active');
+}
+const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+changerLangue(langueSauvegardee);
+
+// 💬 AFFICHAGE DES MESSAGES
+function afficherMessage(texte, type = 'info') {
+  const zone = document.getElementById('zone-message');
+  const style = type === 'succes' ? 'border-success bg-success bg-opacity-10 text-success' :
+                type === 'erreur' ? 'border-danger bg-danger bg-opacity-10 text-danger' :
+                'border-info bg-info bg-opacity-10 text-info';
+  zone.innerHTML = `<div class="alert ${style} border-2">${texte}</div>`;
+  setTimeout(() => zone.innerHTML = '', 8000);
+}
+
+// 📥 CHARGER MES CLASSES DU PROF — ✅ HARMONISÉ AVEC TA ROUTE
+async function chargerClasses() {
+  try {
+    console.log("🔄 Chargement des classes...");
+    const r = await fetch(`${API_URL}/presences/mes-classes`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const res = await r.json();
+    console.log("📦 RÉPONSE CLASSES :", res);
+
+    const sel = document.getElementById('id_classe');
+    let listeClasses = [];
+    
+    if (res.classes && Array.isArray(res.classes)) {
+      listeClasses = res.classes;
+    } else if (res.lignes && Array.isArray(res.lignes)) {
+      listeClasses = res.lignes;
+    }
+
+    if (listeClasses.length > 0) {
+      sel.innerHTML = '<option value="">-- Sélectionner une Classe --</option>' +
+        listeClasses.map(c => `<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('');
+      afficherMessage(`✅ ${listeClasses.length} classes chargées`, 'succes');
+    } else {
+      sel.innerHTML = '<option value="">-- Aucune Classe trouvée --</option>';
+      afficherMessage("⚠️ Aucune classe affectée. Contacter l'administrateur.", 'info');
+    }
+  } catch (e) {
+    console.error("❌ Erreur chargement classes :", e);
+    afficherMessage("❌ Erreur réseau : " + e.message, 'erreur');
+  }
+}
+
+// 🔄 QUAND ON CHOISIT UNE CLASSE → CHARGE MATIÈRES + ÉLÈVES
+async function quandClasseChange(id_classe) {
+  if (!id_classe) {
+    document.getElementById('zone-eleves').classList.add('d-none');
+    document.getElementById('id_matiere').innerHTML = '<option value="">-- Choisir une Classe d\'abord --</option>';
+    return;
+  }
+  await chargerMatieresPourClasse(id_classe);
+  await chargerEleves(id_classe);
+}
+
+// 📚 CHARGER MATIÈRES — ✅ HARMONISÉ AVEC TA ROUTE
+async function chargerMatieresPourClasse(id_classe) {
+  const sel = document.getElementById('id_matiere');
+  sel.innerHTML = '<option value="">-- Chargement... --</option>';
+
+  try {
+    const r = await fetch(`${API_URL}/notes/mes-matieres/${id_classe}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const res = await r.json();
+    console.log("📦 MATIÈRES :", res);
+
+    let matieres = [];
+    if (res.matieres && Array.isArray(res.matieres)) {
+      matieres = res.matieres;
+    } else if (res.lignes && Array.isArray(res.lignes)) {
+      matieres = res.lignes;
+    }
+
+    if (matieres.length > 0) {
+      sel.innerHTML = '<option value="">-- Choisir une matière --</option>' +
+        matieres.map(m => `<option value="${m.id_matiere}">${m.libelle_matiere}</option>`).join('');
+      afficherMessage(`✅ ${matieres.length} matières chargées`, 'succes');
+    } else {
+      sel.innerHTML = '<option value="">-- Aucune matière trouvée --</option>';
+      afficherMessage("⚠️ Aucune matière affectée pour cette classe", 'info');
+    }
+  } catch (e) {
+    console.error("❌ Erreur matières :", e);
+    sel.innerHTML = '<option value="">-- Erreur chargement --</option>';
+  }
+}
+
+// 👥 CHARGER LES ÉLÈVES D'UNE CLASSE
+async function chargerEleves(id_classe) {
+  const zone = document.getElementById('zone-eleves');
+  try {
+    const r = await fetch(`${API_URL}/presences/eleves-classe/${id_classe}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const res = await r.json();
+    console.log("📦 ÉLÈVES :", res);
+
+    let eleves = [];
+    if (res.eleves && Array.isArray(res.eleves)) eleves = res.eleves;
+    else if (res.lignes && Array.isArray(res.lignes)) eleves = res.lignes;
+
+    if (eleves.length > 0) {
+      listeEleves = eleves;
+      afficherListeEleves();
+      zone.classList.remove('d-none');
+    } else {
+      document.getElementById('corps-liste').innerHTML = `
+        <div class="text-center py-4 text-warning">
+          <span class="txt-fr">⚠️ Aucun élève dans cette classe</span>
+          <span class="txt-en">⚠️ No student in this class</span>
+          <span class="txt-ar">⚠️ لا تلاميذ في هذا القسم</span>
+        </div>`;
+      zone.classList.remove('d-none');
+    }
+  } catch (e) {
+    console.error("❌ Erreur élèves :", e);
+  }
+}
+
+// 📄 AFFICHER LA LISTE DES ÉLÈVES — ✅ 5 NOTES CONFORME À TA TABLE
+function afficherListeEleves() {
+  document.getElementById('corps-liste').innerHTML = listeEleves.map(el => {
+    const id = el.id_utilisateur || el.id_eleve;
+    const nomEleve = el.nom || el.nom_utilisateur || '';
+    const prenomEleve = el.prenoms || el.prenom || '';
+    const matricule = el.matricule || '---';
+
+    let photoUrl = el.photo_profil ? `http://localhost:5000/uploads/${el.photo_profil}` : null;
+    if (!photoUrl) {
+      const nomPrenom = encodeURIComponent(`${nomEleve} ${prenomEleve}`);
+      photoUrl = `https://ui-avatars.com/api/?name=${nomPrenom}&background=0f172a&color=f59e0b&size=80`;
+    }
+
+    return `
+    <div class="ligne-eleve row align-items-center" data-id="${id}">
+      <div class="col-md-2 text-start">
+        <div class="d-flex align-items-center gap-2">
+          <img src="${photoUrl}" alt="Photo" class="photo-eleve"
+               onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(nomEleve)}&background=0f172a&color=f59e0b&size=80'">
+          <div>
+            <div class="fw-bold small">${nomEleve} ${prenomEleve}</div>
+            <div class="small opacity-50">📋 ${matricule}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-1 text-center">
+        <input type="number" step="0.25" min="0" max="20" 
+               class="form-control form-control-sm note-input note1" data-id="${id}"
+               placeholder="--" oninput="calculerMoyenneEtClasser()">
+      </div>
+      <div class="col-md-1 text-center">
+        <input type="number" step="0.25" min="0" max="20" 
+               class="form-control form-control-sm note-input note2" data-id="${id}"
+               placeholder="--" oninput="calculerMoyenneEtClasser()">
+      </div>
+      <div class="col-md-1 text-center">
+        <input type="number" step="0.25" min="0" max="20" 
+               class="form-control form-control-sm note-input note3" data-id="${id}"
+               placeholder="--" oninput="calculerMoyenneEtClasser()">
+      </div>
+      <div class="col-md-1 text-center">
+        <input type="number" step="0.25" min="0" max="20" 
+               class="form-control form-control-sm note-input note4" data-id="${id}"
+               placeholder="--" oninput="calculerMoyenneEtClasser()">
+      </div>
+      <div class="col-md-1 text-center">
+        <input type="number" step="0.25" min="0" max="20" 
+               class="form-control form-control-sm note-input note5" data-id="${id}"
+               placeholder="--" oninput="calculerMoyenneEtClasser()">
+      </div>
+      <div class="col-md-1 text-center">
+        <span class="moyenne-badge" id="moyenne-${id}">--</span>
+      </div>
+      <div class="col-md-1 text-center">
+        <span class="rang-badge" id="rang-${id}">#</span>
+      </div>
+      <div class="col-md-2 text-center">
+        <div class="mention-badge text-warning" id="mention-${id}">--</div>
+        <div id="tableau-honneur-${id}" class="mt-1"></div>
+        <div class="appreciation-texte fst-italic mt-1" id="appreciation-${id}">--</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// 📊 ATTRIBUER MENTION & APPRÉCIATION
+function attribuerMentionEtAppreciation(moyenne) {
+  const m = parseFloat(moyenne);
+  if (isNaN(m)) return { mention: '--', tableau_honneur: false, appreciation: '--', couleur: '#888' };
+  if (m >= 18) return { mention: '🏆 EXCELLENT', tableau_honneur: true, appreciation: 'Félicitations exceptionnelles !', couleur: '#f59e0b' };
+  if (m >= 16) return { mention: '⭐ TRÈS BIEN', tableau_honneur: true, appreciation: 'Très belle prestation — Félicitations !', couleur: '#fbbf24' };
+  if (m >= 14) return { mention: '🎖️ BIEN', tableau_honneur: false, appreciation: 'Bon travail — Continuer ainsi !', couleur: '#10b981' };
+  if (m >= 12) return { mention: '✅ ASSEZ BIEN', tableau_honneur: false, appreciation: 'Effort appréciable — Progrès attendus !', couleur: '#3b82f6' };
+  if (m >= 10) return { mention: '— PASSABLE', tableau_honneur: false, appreciation: 'Conforme aux attentes — Efforts à poursuivre.', couleur: '#94a3b8' };
+  if (m >= 8) return { mention: '⚠️ INSUFFISANT', tableau_honneur: false, appreciation: 'Résultats insuffisants — Un effort important est nécessaire.', couleur: '#f97316' };
+  return { mention: '❌ MÉDIOCRE', tableau_honneur: false, appreciation: 'Résultats très préoccupants — Travail indispensable.', couleur: '#ef4444' };
+}
+
+// 🏆 CALCULER MOYENNE + CLASSEMENT — ✅ 5 NOTES PRISES EN COMPTE
+function calculerMoyenneEtClasser() {
+  resultatsCalculs = {};
+  listeEleves.forEach(el => {
+    const id = el.id_utilisateur || el.id_eleve;
+    const n1 = parseFloat(document.querySelector(`.note1[data-id="${id}"]`)?.value) || null;
+    const n2 = parseFloat(document.querySelector(`.note2[data-id="${id}"]`)?.value) || null;
+    const n3 = parseFloat(document.querySelector(`.note3[data-id="${id}"]`)?.value) || null;
+    const n4 = parseFloat(document.querySelector(`.note4[data-id="${id}"]`)?.value) || null;
+    const n5 = parseFloat(document.querySelector(`.note5[data-id="${id}"]`)?.value) || null;
+    const notes = [n1, n2, n3, n4, n5].filter(n => n !== null);
+    const moyenne = notes.length > 0 ? parseFloat((notes.reduce((a,b)=>a+b,0)/notes.length).toFixed(2)) : null;
+    resultatsCalculs[id] = { moyenne };
+  });
+
+  const classements = Object.entries(resultatsCalculs)
+    .filter(([_,d]) => d.moyenne !== null)
+    .sort((a,b) => b[1].moyenne - a[1].moyenne);
+
+  classements.forEach(([id, data], index) => { data.rang = index + 1; });
+
+  listeEleves.forEach(el => {
+    const id = el.id_utilisateur || el.id_eleve;
+    const data = resultatsCalculs[id];
+    const moyenne = data?.moyenne;
+    document.getElementById(`moyenne-${id}`).textContent = moyenne !== null ? moyenne.toFixed(2) : '--';
+    
+    const rangEl = document.getElementById(`rang-${id}`);
+    rangEl.textContent = data?.rang ? `#${data.rang}` : '#';
+    rangEl.style.background = data?.rang === 1 ? 'linear-gradient(135deg, #ffd700, #ffb300)' :
+                              data?.rang === 2 ? 'linear-gradient(135deg, #c0c0c0, #a0a0a0)' :
+                              data?.rang === 3 ? 'linear-gradient(135deg, #cd7f32, #b87333)' : '';
+
+    const { mention, tableau_honneur, appreciation, couleur } = attribuerMentionEtAppreciation(moyenne);
+    document.getElementById(`mention-${id}`).textContent = mention;
+    document.getElementById(`mention-${id}`).style.color = couleur;
+    document.getElementById(`tableau-honneur-${id}`).innerHTML = tableau_honneur ? '<span class="badge bg-warning text-dark small">📋 Tableau d\'honneur</span>' : '';
+    document.getElementById(`appreciation-${id}`).textContent = appreciation;
+  });
+}
+
+// 📄 QUAND MATIÈRE CHOISIE → CHARGE LES NOTES EXISTANTES
+async function quandMatiereChange() {
+  await chargerNotesExistantes();
+}
+
+// 📥 CHARGER LES NOTES DÉJÀ ENREGISTRÉES
+async function chargerNotesExistantes() {
+  const id_classe = document.getElementById('id_classe').value;
+  const id_matiere = document.getElementById('id_matiere').value;
+  const trimestre = document.getElementById('trimestre').value;
+  const annee = document.getElementById('annee_scolaire').value;
+  if (!id_classe || !id_matiere) return;
+
+  try {
+    const r = await fetch(`${API_URL}/notes/consulter`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ id_classe, id_matiere, trimestre, annee_scolaire: annee })
+    });
+    const res = await r.json();
+    console.log("📦 NOTES EXISTANTES :", res);
+
+    let notes = [];
+    if (res.notes && Array.isArray(res.notes)) notes = res.notes;
+    else if (res.lignes && Array.isArray(res.lignes)) notes = res.lignes;
+
+    if (notes.length > 0) {
+      notes.forEach(n => {
+        const id = n.id_eleve;
+        const c1 = document.querySelector(`.note1[data-id="${id}"]`);
+        const c2 = document.querySelector(`.note2[data-id="${id}"]`);
+        const c3 = document.querySelector(`.note3[data-id="${id}"]`);
+        const c4 = document.querySelector(`.note4[data-id="${id}"]`);
+        const c5 = document.querySelector(`.note5[data-id="${id}"]`);
+        if (c1) c1.value = n.note1 ?? '';
+        if (c2) c2.value = n.note2 ?? '';
+        if (c3) c3.value = n.note3 ?? '';
+        if (c4) c4.value = n.note4 ?? '';
+        if (c5) c5.value = n.note5 ?? '';
+      });
+      calculerMoyenneEtClasser();
+      afficherMessage(`📋 ${notes.length} notes chargées`, 'info');
+    }
+  } catch (e) {
+    console.log("ℹ️ Aucune note existante :", e.message);
+  }
+}
+
+// 🔄 REMPLIR / VIDER LES NOTES
+function remplirNotes(valeur) {
+  document.querySelectorAll('.note-input').forEach(i => i.value = valeur);
+  calculerMoyenneEtClasser();
+}
+function viderNotes() {
+  document.querySelectorAll('.note-input').forEach(i => i.value = '');
+  document.querySelectorAll('.moyenne-badge').forEach(b => b.textContent = '--');
+  document.querySelectorAll('.rang-badge').forEach(b => { b.textContent = '#'; b.style.background = ''; });
+  document.querySelectorAll('.mention-badge').forEach(b => { b.textContent = '--'; b.style.color = ''; });
+  document.querySelectorAll('.appreciation-texte').forEach(b => b.textContent = '--');
+  document.querySelectorAll('[id^="tableau-honneur-"]').forEach(b => b.innerHTML = '');
+  resultatsCalculs = {};
+}
+
+// 💾 ENREGISTRER TOUT — ✅ 5 NOTES + CHAMPS COMPLETS
+async function enregistrerTout() {
+  const id_classe = document.getElementById('id_classe').value;
+  const id_matiere = document.getElementById('id_matiere').value;
+  const trimestre = document.getElementById('trimestre').value;
+  const annee_scolaire = document.getElementById('annee_scolaire').value;
+
+  if (!id_classe || !id_matiere) {
+    alert("⚠️ Sélectionne une Classe et une Matière d'abord !");
+    return;
+  }
+
+  const notesCompletes = listeEleves.map(el => {
+    const id = el.id_utilisateur || el.id_eleve;
+    const n1 = parseFloat(document.querySelector(`.note1[data-id="${id}"]`)?.value) || null;
+    const n2 = parseFloat(document.querySelector(`.note2[data-id="${id}"]`)?.value) || null;
+    const n3 = parseFloat(document.querySelector(`.note3[data-id="${id}"]`)?.value) || null;
+    const n4 = parseFloat(document.querySelector(`.note4[data-id="${id}"]`)?.value) || null;
+    const n5 = parseFloat(document.querySelector(`.note5[data-id="${id}"]`)?.value) || null;
+    const calc = resultatsCalculs[id] || {};
+    const { mention, tableau_honneur, appreciation } = attribuerMentionEtAppreciation(calc.moyenne);
+
+    return { 
+      id_eleve: id, 
+      id_classe,
+      id_matiere,
+      trimestre,
+      annee_scolaire,
+      note1: n1, 
+      note2: n2, 
+      note3: n3,
+      note4: n4,
+      note5: n5,
+      moyenne_matiere: calc.moyenne, 
+      rang: calc.rang || null, 
+      mention, 
+      tableau_honneur, 
+      appreciation,
+      saisi_par: id_utilisateur
+    };
+  });
+
+  try {
+    const r = await fetch(`${API_URL}/notes/saisir`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ notes: notesCompletes })
+    });
+    const res = await r.json();
+
+    afficherMessage(res.ok ? "✅ ENREGISTRÉ ! Notes + Moyennes + Mentions sauvegardées !" : "❌ Erreur : " + (res.erreur || "Erreur inconnue"), res.ok ? 'succes' : 'erreur');
+  } catch (e) {
+    afficherMessage("❌ Erreur Réseau : " + e.message, 'erreur');
+  }
+}
+
+// 🚀 AU CHARGEMENT
+chargerClasses();
+</script>
+
+</body>
+</html>

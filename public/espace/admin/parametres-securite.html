@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paramètres Sécurité — MAMA-ZOUMANA</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root { --sidebar-fond:#0f172a; --bord-orange:#f59e0b; --blanc:#fff; --fond-page:#f8fafc; }
+    *{border-radius:12px !important}
+    body{background:var(--fond-page);font-family:system-ui,sans-serif}
+    .sidebar{background:var(--sidebar-fond);min-height:100vh;width:260px;position:fixed;left:0;top:0;padding:1.5rem 0}
+    .contenu{margin-left:260px;padding:2rem}
+    .logo{color:var(--bord-orange);font-weight:800;font-size:1.4rem;padding:0 1.5rem;margin-bottom:2rem}
+    .menu-item{display:flex;align-items:center;gap:0.75rem;padding:0.85rem 1.5rem;color:#cbd5e1;text-decoration:none;transition:0.25s;margin:0.25rem 1rem}
+    .menu-item:hover{background:rgba(245,158,11,0.15);color:var(--bord-orange);transform:translateX(4px)}
+    .menu-item.actif{background:rgba(245,158,11,0.1);color:var(--bord-orange);border-left:3px solid var(--bord-orange)}
+    .carte{background:white;padding:1.5rem;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.05)}
+    .btn-orange{background:var(--bord-orange);border:none;color:black;font-weight:500}
+    .btn-orange:hover{background:#d97706;color:white}
+  </style>
+</head>
+<body>
+<script>
+if(!localStorage.getItem('token') || localStorage.getItem('role')!=='admin'){alert("Accès réservé");location.href='../connexion.html'}
+</script>
+
+<div class="sidebar">
+  <div class="logo"><i class="bi bi-building"></i> MAMA-ZOUMANA</div>
+  <a href="dashboard.html" class="menu-item"><i class="bi bi-speedometer2"></i> <span data-fr="Tableau de bord" data-ar="لوحة التحكم" data-en="Dashboard">Tableau de bord</span></a>
+  <a href="parametres.html" class="menu-item"><i class="bi bi-gear"></i> <span data-fr="Paramètres Généraux" data-ar="الإعدادات العامة" data-en="General Settings">Paramètres Généraux</span></a>
+  <a href="parametres-securite.html" class="menu-item actif"><i class="bi bi-shield-lock"></i> <span data-fr="Paramètres Sécurité" data-ar="إعدادات الأمان" data-en="Security Settings">Paramètres Sécurité</span></a>
+  <a href="../deconnexion.html" class="menu-item text-danger"><i class="bi bi-box-arrow-right"></i> <span data-fr="Déconnexion" data-ar="تسجيل الخروج" data-en="Logout">Déconnexion</span></a>
+</div>
+
+<div class="contenu">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><span data-fr="Paramètres de Sécurité" data-ar="إعدادات الحماية والأمان" data-en="Security Settings">Paramètres de Sécurité</span></h3>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-warning fw-bold" onclick="document.documentElement.lang='fr'">FR</button>
+      <button class="btn btn-sm btn-outline-secondary" onclick="document.documentElement.lang='en'">EN</button>
+      <button class="btn btn-sm btn-outline-secondary" onclick="document.documentElement.lang='ar'">AR</button>
+    </div>
+  </div>
+
+  <div class="carte mb-4">
+    <h5 class="mb-3"><span data-fr="Modifier Mot de Passe Admin" data-ar="تغيير كلمة المرور" data-en="Change Admin Password">Modifier Mot de Passe Admin</span></h5>
+    <div class="row g-3">
+      <div class="col-md-6"><label class="form-label"><span data-fr="Ancien mot de passe" data-ar="كلمة المرور القديمة" data-en="Old Password">Ancien mot de passe</span></label><input type="password" class="form-control"></div>
+      <div class="col-md-6"><label class="form-label"><span data-fr="Nouveau mot de passe" data-ar="كلمة المرور الجديدة" data-en="New Password">Nouveau mot de passe</span></label><input type="password" class="form-control"></div>
+      <div class="col-md-6"><label class="form-label"><span data-fr="Confirmer nouveau mot de passe" data-ar="تأكيد كلمة المرور" data-en="Confirm New Password">Confirmer nouveau mot de passe</span></label><input type="password" class="form-control"></div>
+      <div class="col-md-12"><button class="btn btn-orange"><span data-fr="Enregistrer" data-ar="حفظ" data-en="Save">Enregistrer</span></button></div>
+    </div>
+  </div>
+
+  <div class="carte">
+    <h5 class="mb-3"><span data-fr="Règles de sécurité" data-ar="قواعد الأمان" data-en="Security Rules">Règles de sécurité</span></h5>
+    <ul class="mb-0">
+      <li><span data-fr="5 essais max puis verrouillage 30 min" data-ar="5 محاولات فقط ثم حظر لمدة 30 دقيقة" data-en="Max 5 attempts then lock 30 min">5 essais max puis verrouillage 30 min</span></li>
+      <li><span data-fr="Connexion expire après 8h" data-ar="انتهاء صلاحية الجلسة بعد 8 ساعات" data-en="Session expires after 8h">Connexion expire après 8h</span></li>
+      <li><span data-fr="Tous les mots de passe cryptés" data-ar="جميع كلمات المرور مشفرة" data-en="All passwords encrypted">Tous les mots de passe cryptés</span></li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

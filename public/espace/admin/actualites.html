@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Actualités — Administration</span>
+    <span class="txt-en">News — Administration</span>
+    <span class="txt-ar">الأخبار — الإدارة</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --primaire-clair: #0ea5e9;
+      --accent: #f59e0b;
+      --accent-clair: #fbbf24;
+      --succes: #10b981;
+      --alerte: #ef4444;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --texte-gris: #94a3b8;
+      --fond-page: #f8fafc;
+      --blanc: #ffffff;
+      --bord-radius: 20px;
+      --ombre: 0 8px 30px rgba(12,74,110,0.08);
+      --ombre-hover: 0 15px 40px rgba(12,74,110,0.15);
+    }
+
+    /* 🌍 Traduction & RTL */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar { direction: rtl; text-align: right; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar .titre-section,
+    body.lang-ar .dropdown-menu,
+    body.lang-ar .bloc-langue h6 { text-align: right; }
+
+    /* 🎨 Reset & Base */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, #f0f4f8 0%, #f8fafc 100%);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ✨ ANIMATIONS D'APPARITION */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes pulse-accent {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
+      50% { box-shadow: 0 0 0 12px rgba(245,158,11,0); }
+    }
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .fade-in-up { animation: fadeInUp 0.7s ease-out forwards; opacity: 0; }
+    .fade-in { animation: fadeIn 0.6s ease-out forwards; opacity: 0; }
+    .slide-in-left { animation: slideInLeft 0.6s ease-out forwards; opacity: 0; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .float { animation: float 3s ease-in-out infinite; }
+
+    /* 🧭 Barre de navigation */
+    .navbar-principale {
+      background: linear-gradient(90deg, var(--sombre) 0%, var(--primaire) 100%);
+      padding: 1rem 2rem;
+      box-shadow: 0 4px 25px rgba(12,74,110,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 1030;
+      backdrop-filter: blur(10px);
+    }
+    .navbar-brand {
+      color: var(--accent-clair) !important;
+      font-weight: 800;
+      font-size: 1.45rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+    }
+    .navbar-brand:hover { transform: scale(1.03); }
+    .navbar-brand i { font-size: 1.9rem; }
+
+    .nav-link {
+      color: #e2e8f0 !important;
+      font-weight: 500;
+      padding: 0.65rem 1rem !important;
+      border-radius: 12px;
+      transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+    .nav-link::before {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 50%; width: 0;
+      height: 3px;
+      background: var(--accent);
+      transition: all 0.35s ease;
+      transform: translateX(-50%);
+    }
+    .nav-link:hover, .nav-link.active {
+      background: rgba(245,158,11,0.12);
+      color: var(--accent-clair) !important;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(245,158,11,0.15);
+    }
+    .nav-link:hover::before, .nav-link.active::before { width: 80%; }
+
+    .dropdown-menu {
+      border: none; border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+      padding: 0.75rem;
+      border-top: 3px solid var(--accent);
+      animation: fadeInUp 0.25s ease-out;
+    }
+    .dropdown-item {
+      padding: 0.7rem 1.1rem; border-radius: 12px;
+      transition: all 0.25s ease;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .dropdown-item:hover {
+      background: linear-gradient(90deg, rgba(12,74,110,0.06), rgba(14,165,233,0.08));
+      color: var(--primaire);
+      transform: translateX(5px);
+    }
+    body.lang-ar .dropdown-item:hover { transform: translateX(-5px); }
+
+    .btn-langue {
+      border-radius: 50px; padding: 0.4rem 1rem;
+      font-weight: 600; font-size: 0.9rem;
+      background: rgba(255,255,255,0.1); color: #cbd5e1;
+      border: none; margin: 0 3px;
+      transition: all 0.3s ease;
+    }
+    .btn-langue.actif {
+      background: linear-gradient(135deg, var(--accent), var(--accent-clair));
+      color: var(--sombre); box-shadow: 0 4px 15px rgba(245,158,11,0.35);
+      animation: pulse-accent 2s infinite;
+    }
+    .btn-langue:hover:not(.actif) {
+      background: rgba(255,255,255,0.18); color: white;
+      transform: translateY(-2px);
+    }
+
+    .btn-deconnexion {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: white !important; border-radius: 12px;
+      padding: 0.55rem 1.3rem !important; margin-left: 0.8rem;
+      border: none; transition: all 0.3s ease;
+    }
+    .btn-deconnexion:hover {
+      background: linear-gradient(135deg, #b91c1c, #991b1b);
+      transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,38,38,0.3);
+    }
+
+    /* 📦 Contenu */
+    .contenu { padding: 2.5rem; max-width: 1280px; margin: 0 auto; }
+    .bienvenue {
+      background: linear-gradient(135deg, rgba(12,74,110,0.06), rgba(245,158,11,0.08));
+      padding: 2.2rem 2.8rem; border-radius: 24px;
+      margin-bottom: 2.5rem; border-left: 5px solid var(--accent);
+      box-shadow: var(--ombre);
+      transition: all 0.4s ease;
+    }
+    .bienvenue:hover { box-shadow: var(--ombre-hover); transform: translateY(-2px); }
+    body.lang-ar .bienvenue { border-left: none; border-right: 5px solid var(--accent); }
+   .bienvenue h2 {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: var(--primaire);
+  margin-bottom: 0.5rem;
+  background: linear-gradient(90deg, var(--primaire), var(--primaire-clair));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+} 
+    .nom-utilisateur-affiche {
+      font-weight: 600; color: var(--primaire); background: white;
+      padding: 0.5rem 1.2rem; border-radius: 50px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .titre-section {
+      font-size: 1.45rem; font-weight: 700; color: var(--primaire);
+      margin-bottom: 1.5rem; padding-bottom: 0.5rem;
+      border-bottom: 3px solid transparent;
+      background: linear-gradient(90deg, var(--primaire), var(--accent)) 0 100% / 100% 3px no-repeat;
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    /* 📝 Formulaire */
+    .form-card {
+      background: white; border-radius: var(--bord-radius);
+      box-shadow: var(--ombre); padding: 2.2rem; margin-bottom: 2.2rem;
+      transition: all 0.4s ease;
+    }
+    .form-card:hover { box-shadow: var(--ombre-hover); }
+    .bloc-langue {
+      border: 2px solid #e2e8f0; border-radius: 16px;
+      padding: 1.5rem; margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #fafbfc, #f8fafc);
+      transition: all 0.35s ease;
+    }
+    .bloc-langue:hover { border-color: var(--primaire-clair); box-shadow: 0 5px 20px rgba(14,165,233,0.08); }
+    .bloc-langue h6 {
+      font-weight: 700; margin-bottom: 1.2rem; padding-bottom: 0.6rem;
+      border-bottom: 3px solid; display: flex; align-items: center; gap: 8px;
+    }
+    .bloc-fr h6 { color: #0c4a6e; border-bottom-color: #0c4a6e; }
+    .bloc-en h6 { color: #059669; border-bottom-color: #059669; }
+    .bloc-ar h6 { color: #d97706; border-bottom-color: #d97706; }
+
+    .form-label {
+      font-weight: 600; color: #334155; margin-bottom: 0.5rem;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .form-control, .form-select {
+      border-radius: 12px; border: 2px solid #e2e8f0;
+      padding: 0.75rem 1rem; font-size: 0.95rem;
+      transition: all 0.3s ease;
+      background: #fcfcfd;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--primaire-clair); box-shadow: 0 0 0 4px rgba(14,165,233,0.12);
+      outline: none; background: white;
+    }
+    .form-control::placeholder { color: #94a3b8; }
+
+    .etoile-rouge { color: #ef4444; font-weight: bold; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primaire), var(--primaire-clair));
+      border: none; border-radius: 12px; padding: 0.8rem 2rem;
+      font-weight: 600; font-size: 1rem;
+      transition: all 0.35s ease;
+      box-shadow: 0 4px 15px rgba(12,74,110,0.2);
+    }
+    .btn-primary:hover {
+      transform: translateY(-3px); box-shadow: 0 8px 25px rgba(12,74,110,0.3);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    /* 📰 Cartes Actualités */
+    .actu-card {
+      background: white; border-radius: 18px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06); padding: 1.6rem;
+      margin-bottom: 1.2rem; border-left: 5px solid var(--primaire);
+      transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+      opacity: 0; transform: translateY(25px);
+      animation: fadeInUp 0.6s ease-out forwards;
+    }
+    .actu-card:hover {
+      transform: translateY(-6px) scale(1.01);
+      box-shadow: 0 15px 40px rgba(12,74,110,0.15);
+      border-left-width: 8px;
+    }
+    body.lang-ar .actu-card { border-left: none; border-right: 5px solid var(--primaire); }
+    body.lang-ar .actu-card:hover { border-right-width: 8px; }
+    .actu-card.epingle {
+      border-left-color: var(--accent); background: linear-gradient(135deg, #fffbeb, #ffffff);
+    }
+    body.lang-ar .actu-card.epingle { border-right-color: var(--accent); }
+    .actu-card.epingle:hover { box-shadow: 0 15px 40px rgba(245,158,11,0.18); }
+
+    .actu-titre {
+      font-weight: 700; font-size: 1.15rem; color: var(--sombre);
+      margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;
+    }
+    .actu-meta {
+      font-size: 0.88rem; color: #64748b; margin-bottom: 0.8rem;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .actu-contenu { color: #475569; line-height: 1.7; }
+
+    .btn-sm { border-radius: 10px; padding: 0.35rem 0.55rem; transition: all 0.25s ease; }
+    .btn-sm:hover { transform: scale(1.1); }
+
+    .badge { border-radius: 50px; padding: 0.35rem 0.8rem; font-weight: 600; }
+
+    /* 📱 Responsive */
+    @media (max-width: 767px) {
+      .contenu { padding: 1.2rem; }
+      .bienvenue { padding: 1.5rem; }
+      .form-card { padding: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  const nomUtilisateur = localStorage.getItem('nom') || 'Utilisateur';
+  const prenomUtilisateur = localStorage.getItem('prenoms') || '';
+  const nomComplet = (nomUtilisateur + ' ' + prenomUtilisateur).trim();
+  const API_URL = '/api/actualites';
+
+  if (!token || !['admin','super_admin'].includes(role)) {
+    alert("⛔ Accès réservé à l'Administrateur");
+    location.href = '../connexion.html';
+  }
+
+  let langue = localStorage.getItem('langue') || 'fr';
+  document.body.classList.add('lang-' + langue);
+  let editionId = null;
+
+  window.appliquerLangue = function(lang, e) {
+    localStorage.setItem('langue', lang);
+    document.body.classList.remove('lang-fr','lang-en','lang-ar');
+    document.body.classList.add('lang-' + lang);
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('actif'));
+    e.currentTarget.classList.add('actif');
+    langue = lang;
+  };
+
+  window.deconnecter = function() {
+    const msg = { 
+      ar: 'هل تريد تسجيل الخروج ؟', en: 'Are you sure you want to log out?', fr: 'Êtes-vous sûr de vouloir vous déconnecter ?' 
+    }[langue];
+    if (confirm(msg)) { localStorage.clear(); location.href = '../connexion.html'; }
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('actif', b.dataset.lang === langue));
+    document.getElementById('nom-affiche').textContent = nomComplet;
+    chargerActualites();
+  });
+
+  const msg = {
+    chargerErreur: { fr: "Erreur de chargement", en: "Loading error", ar: "خطأ في التحميل" },
+    connexionErreur: { fr: "❌ Erreur de connexion au serveur", en: "❌ Server connection error", ar: "❌ خطأ في الاتصال بالخادم" },
+    aucunChampVide: { fr: "⚠️ Remplissez au moins le titre et le contenu en français", en: "⚠️ Fill at least French title and content", ar: "⚠️ املأ العنوان والمحتوى بالفرنسية على الأقل" },
+    ajouterSucces: { fr: "✅ Actualité publiée avec succès !", en: "✅ News published successfully!", ar: "✅ تم نشر الخبر بنجاح!" },
+    modifierSucces: { fr: "✅ Actualité mise à jour !", en: "✅ News updated!", ar: "✅ تم تحديث الخبر!" },
+    supprimerConfirmer: { fr: "Supprimer cette actualité ?", en: "Delete this news item?", ar: "حذف هذا الخبر؟" },
+    supprimerSucces: { fr: "✅ Supprimé avec succès !", en: "✅ Deleted successfully!", ar: "✅ تم الحذف بنجاح!" },
+    annuler: { fr: "Annuler", en: "Cancel", ar: "إلغاء" },
+    modifier: { fr: "Modifier", en: "Edit", ar: "تعديل" },
+    supprimer: { fr: "Supprimer", en: "Delete", ar: "حذف" },
+    publier: { fr: "🚀 Publier l'Actualité", en: "🚀 Publish News", ar: "🚀 نشر الخبر" },
+    miseAJour: { fr: "✅ Mettre à jour", en: "✅ Update", ar: "✅ تحديث" },
+    aucunEnregistrement: { fr: "Aucune actualité enregistrée", en: "No news recorded", ar: "لا أخبار مسجلة" }
+  };
+
+  async function chargerActualites() {
+    try {
+      const r = await fetch(`${API_URL}/liste?tout=1`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const texte = await r.text();
+      let res;
+      try { res = JSON.parse(texte); } 
+      catch { throw new Error("Vérifiez que la route /api/actualites est déclarée AVANT express.static dans serveur.js"); }
+
+      const cont = document.getElementById('liste-actualites');
+      if (res.ok && res.actualites?.length > 0) {
+        cont.innerHTML = '';
+        res.actualites.forEach((a, index) => {
+          const titreAffiche = a[`titre_${langue}`] || a.titre_fr || a.titre_en || a.titre_ar || '';
+          const resumeAffiche = a[`resume_${langue}`] || a.resume_fr || '';
+          const dateAffiche = a.date_publication 
+            ? new Date(a.date_publication).toLocaleDateString(langue === 'ar' ? 'ar-MA' : 'fr-FR', { day:'2-digit', month:'long', year:'numeric' }) 
+            : '';
+          
+          cont.innerHTML += `
+            <div class="actu-card ${a.epingle ? 'epingle' : ''}" style="animation-delay: ${0.1 + index * 0.08}s">
+              <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                  <div class="actu-titre">
+                    ${a.epingle ? '<i class="bi bi-pin-angle-fill text-warning float" style="animation-delay:0s"></i>' : ''}
+                    ${titreAffiche}
+                    ${!a.est_publie ? `<span class="badge bg-secondary ms-2 txt-fr">Brouillon</span>` : ''}
+                  </div>
+                  <div class="actu-meta"><i class="bi bi-calendar3 text-primary"></i> ${dateAffiche}</div>
+                  ${resumeAffiche ? `<p class="actu-contenu">${resumeAffiche}</p>` : ''}
+                </div>
+                <div class="btn-group ms-2">
+                  <button class="btn btn-sm btn-outline-primary" onclick="editerActualite(${a.id})" title="${msg.modifier[langue]}">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" onclick="supprimerActualite(${a.id})" title="${msg.supprimer[langue]}">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+              </div>
+            </div>`;
+        });
+      } else {
+        cont.innerHTML = `<p class="text-muted text-center py-5 fade-in">
+          <i class="bi bi-newspaper display-4 d-block mb-3 text-opacity-25"></i>
+          📰 <span class="txt-fr">${msg.aucunEnregistrement.fr}</span>
+          <span class="txt-en">${msg.aucunEnregistrement.en}</span>
+          <span class="txt-ar">${msg.aucunEnregistrement.ar}</span>
+        </p>`;
+      }
+    } catch (e) {
+      document.getElementById('liste-actualites').innerHTML = `
+        <div class="alert alert-danger fade-in-up" role="alert">
+          ⚠️ ${msg.chargerErreur[langue]} : ${e.message}
+        </div>`;
+    }
+  }
+
+  function reinitialiserFormulaire() {
+    document.getElementById('form-actualite').reset();
+    document.querySelector('#form-actualite button[type="submit"]').innerHTML = `
+      <i class="bi bi-send-check me-2"></i>
+      <span class="txt-fr">${msg.publier.fr}</span>
+      <span class="txt-en">${msg.publier.en}</span>
+      <span class="txt-ar">${msg.publier.ar}</span>`;
+    editionId = null;
+  }
+
+  window.editerActualite = async function(id) {
+    try {
+      const r = await fetch(`${API_URL}/liste?tout=1`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await r.json();
+      const actu = res.actualites.find(a => a.id === id);
+      if (!actu) return;
+
+      document.getElementById('titre_fr').value = actu.titre_fr || '';
+      document.getElementById('titre_en').value = actu.titre_en || '';
+      document.getElementById('titre_ar').value = actu.titre_ar || '';
+      document.getElementById('resume_fr').value = actu.resume_fr || '';
+      document.getElementById('resume_en').value = actu.resume_en || '';
+      document.getElementById('resume_ar').value = actu.resume_ar || '';
+      document.getElementById('contenu_fr').value = actu.contenu_fr || '';
+      document.getElementById('contenu_en').value = actu.contenu_en || '';
+      document.getElementById('contenu_ar').value = actu.contenu_ar || '';
+      document.getElementById('est_publie').checked = actu.est_publie !== false;
+      document.getElementById('epingle').checked = actu.epingle === true;
+
+      document.querySelector('#form-actualite button[type="submit"]').innerHTML = `
+        <i class="bi bi-check2-square me-2"></i>
+        <span class="txt-fr">${msg.miseAJour.fr}</span>
+        <span class="txt-en">${msg.miseAJour.en}</span>
+        <span class="txt-ar">${msg.miseAJour.ar}</span>
+        <button type="button" class="btn btn-sm btn-outline-secondary ms-3" onclick="reinitialiserFormulaire()">
+          <span class="txt-fr">${msg.annuler.fr}</span>
+          <span class="txt-en">${msg.annuler.en}</span>
+          <span class="txt-ar">${msg.annuler.ar}</span>
+        </button>`;
+      editionId = id;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e) { alert(e.message); }
+  };
+
+  window.supprimerActualite = async function(id) {
+    if (!confirm(msg.supprimerConfirmer[langue])) return;
+    try {
+      const r = await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const res = await r.json();
+      if (res.ok) { alert(msg.supprimerSucces[langue]); chargerActualites(); }
+      else alert("❌ " + (res.erreur || "Erreur"));
+    } catch { alert(msg.connexionErreur[langue]); }
+  };
+
+  document.getElementById('form-actualite').addEventListener('submit', async e => {
+    e.preventDefault();
+    const titre_fr = document.getElementById('titre_fr').value.trim();
+    const titre_en = document.getElementById('titre_en').value.trim();
+    const titre_ar = document.getElementById('titre_ar').value.trim();
+    const resume_fr = document.getElementById('resume_fr').value.trim();
+    const resume_en = document.getElementById('resume_en').value.trim();
+    const resume_ar = document.getElementById('resume_ar').value.trim();
+    const contenu_fr = document.getElementById('contenu_fr').value.trim();
+    const contenu_en = document.getElementById('contenu_en').value.trim();
+    const contenu_ar = document.getElementById('contenu_ar').value.trim();
+    const est_publie = document.getElementById('est_publie').checked;
+    const epingle = document.getElementById('epingle').checked;
+
+    if (!titre_fr || !contenu_fr) { alert(msg.aucunChampVide[langue]); return; }
+
+    const donnees = { titre_fr, titre_en, titre_ar, resume_fr, resume_en, resume_ar, contenu_fr, contenu_en, contenu_ar, est_publie, epingle };
+
+    try {
+      let r, res;
+      if (editionId) {
+        r = await fetch(`${API_URL}/${editionId}`, {
+          method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(donnees)
+        });
+        res = await r.json();
+        if (res.ok) alert(msg.modifierSucces[langue]);
+      } else {
+        r = await fetch(`${API_URL}/enregistrer`, {
+          method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(donnees)
+        });
+        res = await r.json();
+        if (res.ok) alert(msg.ajouterSucces[langue]);
+      }
+      if (!res.ok) return alert("❌ " + (res.erreur || "Erreur serveur"));
+      reinitialiserFormulaire();
+      chargerActualites();
+    } catch { alert(msg.connexionErreur[langue]); }
+  });
+</script>
+
+
+<nav class="navbar-principale navbar-expand-lg navbar-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="dashboard.html"><i class="bi bi-building float"></i> MAMA-ZOUMANA</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="menuPrincipal">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="dashboard.html">
+            <i class="bi bi-speedometer2"></i> 
+            <span class="txt-fr">Tableau de Bord</span>
+            <span class="txt-en">Dashboard</span>
+            <span class="txt-ar">لوحة التحكم</span>
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            <i class="bi bi-people"></i> 
+            <span class="txt-fr">Utilisateurs</span>
+            <span class="txt-en">Users</span>
+            <span class="txt-ar">المستخدمون</span>
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="utilisateurs.html">
+              <i class="bi bi-person-lines-fill"></i> 
+              <span class="txt-fr">Gérer Utilisateurs</span>
+              <span class="txt-en">Manage Users</span>
+              <span class="txt-ar">إدارة المستخدمين</span>
+            </a></li>
+            <li><a class="dropdown-item" href="affectation-prof.html">
+              <i class="bi bi-person-check"></i> 
+              <span class="txt-fr">Affectation Enseignants</span>
+              <span class="txt-en">Teacher Assignment</span>
+              <span class="txt-ar">تكليف المدرسين</span>
+            </a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+            <i class="bi bi-megaphone"></i> 
+            <span class="txt-fr">Communication</span>
+            <span class="txt-en">Communication</span>
+            <span class="txt-ar">التواصل</span>
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="annonces.html">
+              <i class="bi bi-broadcast-pin"></i> 
+              <span class="txt-fr">Annonces</span>
+              <span class="txt-en">Announcements</span>
+              <span class="txt-ar">الإعلانات</span>
+            </a></li>
+            <li><a class="dropdown-item active" href="actualites.html">
+              <i class="bi bi-newspaper"></i> 
+              <span class="txt-fr">Actualités</span>
+              <span class="txt-en">News</span>
+              <span class="txt-ar">الأخبار</span>
+            </a></li>
+            <li><a class="dropdown-item" href="evenements.html">
+              <i class="bi bi-calendar-event"></i> 
+              <span class="txt-fr">Événements</span>
+              <span class="txt-en">Events</span>
+              <span class="txt-ar">الفعاليات</span>
+            </a></li>
+          </ul>
+        </li>
+      </ul>
+      <div class="d-flex align-items-center">
+        <button class="btn-langue" data-lang="fr" onclick="appliquerLangue('fr', event)">🇫🇷 FR</button>
+        <button class="btn-langue" data-lang="en" onclick="appliquerLangue('en', event)">🇬🇧 EN</button>
+        <button class="btn-langue" data-lang="ar" onclick="appliquerLangue('ar', event)">🇩🇪 AR</button>
+        <span class="nom-utilisateur-affiche ms-3 d-none d-md-inline">
+          <i class="bi bi-person-circle text-primary"></i> <span id="nom-affiche">...</span>
+        </span>
+        <button class="btn-deconnexion nav-link" onclick="deconnecter()">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="d-none d-sm-inline txt-fr">Déconnexion</span>
+          <span class="d-none d-sm-inline txt-en">Log out</span>
+          <span class="d-none d-sm-inline txt-ar">تسجيل الخروج</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+<div class="contenu">
+  <div class="bienvenue fade-in-up">
+    <h2>📰 
+      <span class="txt-fr">Gestion des Actualités</span>
+      <span class="txt-en">News Management</span>
+      <span class="txt-ar">إدارة الأخبار</span>
+    </h2>
+    <p class="text-muted mb-0">
+      <span class="txt-fr">Publiez et gérez vos actualités en trois langues : Français, Anglais et Arabe.</span>
+      <span class="txt-en">Publish and manage your news in three languages: French, English and Arabic.</span>
+      <span class="txt-ar">انشر وأخبر أخبارك بثلاث لغات: الفرنسية والإنجليزية والعربية.</span>
+    </p>
+  </div>
+
+  <div class="form-card fade-in-up delay-1">
+    <h5 class="titre-section mb-4">
+      <i class="bi bi-pencil-square text-primary"></i>
+      <span class="txt-fr">Publier une Nouvelle Actualité</span>
+      <span class="txt-en">Publish New News</span>
+      <span class="txt-ar">نشر خبر جديد</span>
+    </h5>
+
+    <form id="form-actualite">
+      <!-- 🇫🇷 FRANÇAIS -->
+      <div class="bloc-langue bloc-fr">
+        <h6><i class="bi bi-translate"></i> 🇫🇷 Français</h6>
+        <div class="row g-3">
+          <div class="col-md-12">
+            <label class="form-label">Titre <span class="etoile-rouge">*</span></label>
+            <input type="text" id="titre_fr" class="form-control" required placeholder="Titre de l'actualité">
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">Résumé court</label>
+            <textarea id="resume_fr" class="form-control" rows="2" placeholder="Brève description affichée dans la liste"></textarea>
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">Contenu complet <span class="etoile-rouge">*</span></label>
+            <textarea id="contenu_fr" class="form-control" rows="5" required placeholder="Contenu détaillé de l'actualité"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🇬🇧 ANGLAIS -->
+      <div class="bloc-langue bloc-en">
+        <h6><i class="bi bi-translate"></i> 🇬🇧 English</h6>
+        <div class="row g-3">
+          <div class="col-md-12">
+            <label class="form-label">Title</label>
+            <input type="text" id="titre_en" class="form-control" placeholder="News title">
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">Short summary</label>
+            <textarea id="resume_en" class="form-control" rows="2" placeholder="Brief description displayed in list"></textarea>
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">Full content</label>
+            <textarea id="contenu_en" class="form-control" rows="5" placeholder="Detailed news content"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🇸🇦 ARABE -->
+      <div class="bloc-langue bloc-ar">
+        <h6><i class="bi bi-translate"></i> 🇸🇦 العربية</h6>
+        <div class="row g-3">
+          <div class="col-md-12">
+            <label class="form-label">العنوان</label>
+            <input type="text" id="titre_ar" class="form-control" placeholder="عنوان الخبر">
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">ملخص مختصر</label>
+            <textarea id="resume_ar" class="form-control" rows="2" placeholder="وصف مختصر يظهر في القائمة"></textarea>
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">المحتوى الكامل</label>
+            <textarea id="contenu_ar" class="form-control" rows="5" placeholder="المحتوى التفصيلي للخبر"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⚙️ Options -->
+      <div class="bloc-langue" style="border-color: #e5e7eb; background: #fafafa;">
+        <h6 style="color: #4b5563; border-bottom-color: #e5e7eb;"><i class="bi bi-gear"></i> Options de publication</h6>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="est_publie" checked>
+              <label class="form-check-label" for="est_publie">
+                <span class="txt-fr">✅ Publié immédiatement</span>
+                <span class="txt-en">✅ Published immediately</span>
+                <span class="txt-ar">✅ منشور فوراً</span>
+              </label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="epingle">
+              <label class="form-check-label" for="epingle">
+                <span class="txt-fr">📌 Épingler en haut</span>
+                <span class="txt-en">📌 Pin to top</span>
+                <span class="txt-ar">📌 تثبيت في الأعلى</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100 mt-4">
+        <i class="bi bi-send-check me-2"></i>
+        <span class="txt-fr">🚀 Publier l'Actualité</span>
+        <span class="txt-en">🚀 Publish News</span>
+        <span class="txt-ar">🚀 نشر الخبر</span>
+      </button>
+    </form>
+  </div>
+
+  <div class="fade-in-up delay-3">
+    <h4 class="titre-section">
+      <i class="bi bi-list-ul text-primary"></i>
+      <span class="txt-fr">Liste des Actualités</span>
+      <span class="txt-en">List of News</span>
+      <span class="txt-ar">قائمة الأخبار</span>
+    </h4>
+    <div id="liste-actualites" class="mt-2"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

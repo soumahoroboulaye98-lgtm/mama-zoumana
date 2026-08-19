@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Tableau de Bord — Enseignant MAMA-ZOUMANA</span>
+    <span class="txt-en">Dashboard — Teacher MAMA-ZOUMANA</span>
+    <span class="txt-ar">لوحة تحكم المعلم — ماما زومانا</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --accent: #f59e0b;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b;
+      --vert: #10b981;
+      --bleu: #3b82f6;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#f1f5f9;font-family:'Segoe UI','Roboto',sans-serif;min-height:100vh}
+
+    /* ✅ MENU LATÉRAL */
+    .menu-gauche{
+      background:linear-gradient(180deg,var(--sombre),var(--primaire));
+      min-height:100vh;
+      width:260px;
+      position:fixed;
+      padding:0;
+      overflow-y:auto;
+      box-shadow:4px 0 15px rgba(0,0,0,0.08);
+      z-index:100;
+    }
+    .entete-menu{
+      padding:25px 20px;
+      border-bottom:1px solid rgba(245,158,11,0.15);
+      background:rgba(0,0,0,0.08);
+    }
+    .logo-menu{
+      color:var(--accent);
+      font-weight:800;
+      font-size:1.3rem;
+      text-decoration:none;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      transition:transform 0.3s ease;
+    }
+    .logo-menu:hover{transform:scale(1.03)}
+    .logo-menu i{font-size:1.6rem}
+
+    .nav-menu{padding:20px 12px}
+    .lien-nav{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:12px 15px;
+      margin-bottom:6px;
+      color:#cbd5e1;
+      text-decoration:none;
+      border-radius:10px;
+      transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+      position:relative;
+      overflow:hidden;
+    }
+    .lien-nav::before{
+      content:'';
+      position:absolute;
+      left:0;
+      top:0;
+      height:100%;
+      width:3px;
+      background:var(--accent);
+      transform:scaleY(0);
+      transition:transform 0.3s ease;
+    }
+    .lien-nav:hover, .lien-nav.actif{
+      background:rgba(245,158,11,0.12);
+      color:var(--accent);
+      transform:translateX(4px);
+    }
+    .lien-nav:hover::before, .lien-nav.actif::before{
+      transform:scaleY(1);
+    }
+    .lien-nav i{font-size:1.1rem}
+
+    /* ✅ CONTENU PRINCIPAL */
+    .contenu-principal{
+      margin-left:260px;
+      padding:25px 30px;
+      min-height:100vh;
+      animation:fadeInUp 0.6s ease-out;
+    }
+    @keyframes fadeInUp{
+      from{opacity:0;transform:translateY(20px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+
+    .barre-haut{
+      background:white;
+      padding:18px 28px;
+      border-radius:16px;
+      box-shadow:0 4px 15px rgba(0,0,0,0.04);
+      margin-bottom:28px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:15px;
+      border:1px solid rgba(12,74,110,0.06);
+    }
+
+    .btn-langue{
+      background:rgba(12,74,110,0.06);
+      border:1px solid transparent;
+      border-radius:20px;
+      padding:5px 14px;
+      font-size:0.85rem;
+      cursor:pointer;
+      margin:0 2px;
+      color:var(--primaire);
+      font-weight:600;
+      transition:all 0.25s ease;
+    }
+    .btn-langue:hover{border-color:var(--primaire);background:rgba(12,74,110,0.08)}
+    .btn-langue.active{
+      background:var(--accent);
+      color:#000;
+      border-color:var(--accent);
+      box-shadow:0 2px 8px rgba(245,158,11,0.25);
+    }
+
+    .btn-deco{
+      background:transparent;
+      border:1px solid var(--accent);
+      color:var(--accent);
+      padding:7px 14px;
+      border-radius:10px;
+      transition:all 0.3s ease;
+      font-weight:500;
+    }
+    .btn-deco:hover{
+      background:var(--accent);
+      color:#000;
+      transform:translateY(-2px);
+      box-shadow:0 4px 12px rgba(245,158,11,0.3);
+    }
+
+    /* ✅ CARTES STATISTIQUES */
+    .carte-stat{
+      background:white;
+      border-radius:16px;
+      padding:24px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.04);
+      border-left:5px solid var(--accent);
+      transition:all 0.35s cubic-bezier(0.4,0,0.2,1);
+      position:relative;
+      overflow:hidden;
+    }
+    .carte-stat::after{
+      content:'';
+      position:absolute;
+      top:0;
+      right:0;
+      width:80px;
+      height:80px;
+      background:linear-gradient(135deg, rgba(245,158,11,0.08), transparent);
+      border-radius:0 16px 0 100%;
+    }
+    .carte-stat:hover{
+      transform:translateY(-6px);
+      box-shadow:0 12px 28px rgba(12,74,110,0.12);
+    }
+    .chiffre-stat{
+      font-size:2.4rem;
+      font-weight:800;
+      color:var(--primaire);
+      line-height:1;
+    }
+    .label-stat{
+      color:#64748b;
+      font-weight:500;
+      margin-top:6px;
+      font-size:0.95rem;
+    }
+
+    /* ✅ CARTES ACTIONS RAPIDES */
+    .carte-action{
+      background:white;
+      border-radius:16px;
+      padding:24px 20px;
+      box-shadow:0 4px 15px rgba(0,0,0,0.04);
+      text-align:center;
+      transition:all 0.35s cubic-bezier(0.4,0,0.2,1);
+      border:2px solid transparent;
+      cursor:pointer;
+    }
+    .carte-action:hover{
+      border-color:var(--accent);
+      transform:translateY(-8px) scale(1.02);
+      box-shadow:0 14px 30px rgba(245,158,11,0.15);
+    }
+    .icone-action{
+      width:62px;
+      height:62px;
+      border-radius:50%;
+      background:linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05));
+      color:var(--accent);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin:0 auto 14px;
+      font-size:1.75rem;
+      transition:all 0.3s ease;
+    }
+    .carte-action:hover .icone-action{
+      background:linear-gradient(135deg, var(--accent), #fbbf24);
+      color:#000;
+      transform:rotate(-5deg) scale(1.1);
+    }
+    .carte-action a{
+      text-decoration:none;
+      color:var(--primaire);
+      font-weight:600;
+      font-size:0.95rem;
+      display:block;
+    }
+
+    /* ✅ LIEN RAPIDE EN HAUT */
+    .lien-rapide{
+      background:linear-gradient(135deg, var(--sombre-clair), var(--primaire));
+      border:2px solid var(--bord-orange);
+      color:white;
+      padding:1rem 1.25rem;
+      border-radius:14px;
+      text-decoration:none;
+      display:flex;
+      align-items:center;
+      gap:14px;
+      margin-bottom:12px;
+      transition:all 0.35s ease;
+      box-shadow:0 4px 12px rgba(12,74,110,0.15);
+    }
+    .lien-rapide:hover{
+      transform:translateY(-3px);
+      box-shadow:0 8px 20px rgba(245,158,11,0.25);
+      border-color:#fbbf24;
+    }
+    .lien-rapide i{
+      font-size:1.4rem;
+      color:var(--accent);
+      filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+
+    /* ✅ STYLE SPÉCIAL BULLETIN */
+    .lien-bulletin{
+      background:linear-gradient(135deg, rgba(16,185,129,0.12), rgba(12,74,110,0.08));
+      border:2px solid var(--vert);
+      color:#065f46;
+    }
+    .lien-bulletin:hover{
+      border-color:#34d399;
+      box-shadow:0 8px 20px rgba(16,185,129,0.2);
+    }
+    .lien-bulletin i{color:var(--vert)}
+    .carte-bulletin{border-color:var(--vert)}
+    .carte-bulletin .icone-action{
+      background:linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05));
+      color:var(--vert);
+    }
+    .carte-bulletin:hover .icone-action{
+      background:linear-gradient(135deg, var(--vert), #34d399);
+      color:white;
+    }
+
+    /* ✅ GESTION DES LANGUES */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar .titre-section { text-align: right; }
+    body.lang-ar { direction: rtl; }
+    body.lang-ar .menu-gauche { right:0; left:auto; }
+    body.lang-ar .contenu-principal { margin-left:0; margin-right:260px; }
+  </style>
+</head>
+<body>
+
+<div class="d-flex">
+  <aside class="menu-gauche">
+    <div class="entete-menu">
+      <a href="#" class="logo-menu">
+        <i class="bi bi-building"></i> MAMA-ZOUMANA
+      </a>
+    </div>
+    <nav class="nav-menu">
+      <a href="#" class="lien-nav actif">
+        <i class="bi bi-speedometer2"></i>
+        <span class="txt-fr">Tableau de bord</span>
+        <span class="txt-en">Dashboard</span>
+        <span class="txt-ar">لوحة التحكم</span>
+      </a>
+      <a href="mes-classes.html" class="lien-nav">
+        <i class="bi bi-grid"></i>
+        <span class="txt-fr">Mes Classes</span>
+        <span class="txt-en">My Classes</span>
+        <span class="txt-ar">فصولي</span>
+      </a>
+      <a href="presences.html" class="lien-nav">
+        <i class="bi bi-check2-square"></i>
+        <span class="txt-fr">Présences & Retards</span>
+        <span class="txt-en">Attendance & Lateness</span>
+        <span class="txt-ar">الحضور والتأخير</span>
+      </a>
+      <a href="saisie-notes.html" class="lien-nav">
+        <i class="bi bi-pencil-square"></i>
+        <span class="txt-fr">Saisie des Notes</span>
+        <span class="txt-en">Enter Grades</span>
+        <span class="txt-ar">إدخال الدرجات</span>
+      </a>
+      <!-- ✅ BOUTON BULLETINS AJOUTÉ DANS LE MENU -->
+      <a href="bulletins.html" class="lien-nav">
+        <i class="bi bi-file-earmark-text"></i>
+        <span class="txt-fr">Bulletins Scolaires</span>
+        <span class="txt-en">School Report Cards</span>
+        <span class="txt-ar">الشهادات المدرسية</span>
+      </a>
+      <a href="devoirs.html" class="lien-nav">
+        <i class="bi bi-journal-text"></i>
+        <span class="txt-fr">Devoirs & Examens</span>
+        <span class="txt-en">Homework & Exams</span>
+        <span class="txt-ar">الواجبات والامتحانات</span>
+      </a>
+      <a href="emploi-temps.html" class="lien-nav">
+        <i class="bi bi-calendar-week"></i>
+        <span class="txt-fr">Emploi du Temps</span>
+        <span class="txt-en">Timetable</span>
+        <span class="txt-ar">الجدول الزمني</span>
+      </a>
+      <a href="contacter-parents.html" class="lien-nav">
+        <i class="bi bi-people"></i>
+        <span class="txt-fr">Contacter Parents</span>
+        <span class="txt-en">Contact Parents</span>
+        <span class="txt-ar">التواصل مع الأولياء</span>
+      </a>
+      <a href="messages.html" class="lien-nav">
+        <i class="bi bi-chat-dots"></i>
+        <span class="txt-fr">Messages</span>
+        <span class="txt-en">Messages</span>
+        <span class="txt-ar">الرسائل</span>
+      </a>
+      <a href="changer-mot-de-passe.html" class="lien-nav">
+        <i class="bi bi-key"></i>
+        <span class="txt-fr">Changer Mot de Passe</span>
+        <span class="txt-en">Change Password</span>
+        <span class="txt-ar">تغيير كلمة المرور</span>
+      </a>
+    </nav>
+  </aside>
+
+  <main class="contenu-principal">
+    <div class="barre-haut">
+      <div class="titre-section">
+        <h4 class="mb-0 text-uppercase fw-bold text-primary">
+          <span class="txt-fr">Bienvenue, Enseignant</span>
+          <span class="txt-en">Welcome, Teacher</span>
+          <span class="txt-ar">مرحباً، أيها المعلم</span>
+        </h4>
+        <small class="text-muted">
+          <span class="txt-fr">Espace pédagogique — MAMA-ZOUMANA</span>
+          <span class="txt-en">Teaching Area — MAMA-ZOUMANA</span>
+          <span class="txt-ar">الفضاء التربوي — ماما زومانا</span>
+        </small>
+      </div>
+      <div class="utilisateur d-flex align-items-center gap-2">
+        <button class="btn-langue" data-lang="fr">FR</button>
+        <button class="btn-langue" data-lang="en">EN</button>
+        <button class="btn-langue" data-lang="ar">AR</button>
+        <i class="bi bi-person-circle fs-4 ms-2"></i>
+        <span id="nom-prof"></span>
+        <button class="btn btn-deco ms-2" onclick="deconnexion()">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="txt-fr">Déconnexion</span>
+          <span class="txt-en">Logout</span>
+          <span class="txt-ar">تسجيل الخروج</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ✅ LIENS RAPIDES EN HAUT -->
+    <a href="saisie-notes.html" class="lien-rapide">
+      <i class="bi bi-pencil-square fs-5"></i>
+      <div>
+        <div class="fw-bold">
+          <span class="txt-fr">📝 Saisie des Notes</span>
+          <span class="txt-en">📝 Grades Entry</span>
+          <span class="txt-ar">📝 إدخال الدرجات</span>
+        </div>
+        <div class="small opacity-75">
+          <span class="txt-fr">Saisir, calculer et consulter les notes</span>
+          <span class="txt-en">Enter, calculate & view grades</span>
+          <span class="txt-ar">إدخال وحساب وعرض الدرجات</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="presences.html" class="lien-rapide">
+      <i class="bi bi-clipboard-check fs-5"></i>
+      <div>
+        <div class="fw-bold">
+          <span class="txt-fr">✅ Gestion Présences</span>
+          <span class="txt-en">✅ Attendance Management</span>
+          <span class="txt-ar">✅ إدارة الحضور</span>
+        </div>
+        <div class="small opacity-75">
+          <span class="txt-fr">Présences · Absences · Retards</span>
+          <span class="txt-en">Present · Absent · Late</span>
+          <span class="txt-ar">حضور · غياب · تأخر</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- ✅ LIEN BULLETINS MIS EN ÉVIDENCE -->
+    <a href="bulletins.html" class="lien-rapide lien-bulletin">
+      <i class="bi bi-file-earmark-text fs-5"></i>
+      <div>
+        <div class="fw-bold">
+          <span class="txt-fr">🎓 Bulletins Scolaires & Classement</span>
+          <span class="txt-en">🎓 Report Cards & Ranking</span>
+          <span class="txt-ar">🎓 الشهادات المدرسية والترتيب</span>
+        </div>
+        <div class="small opacity-75">
+          <span class="txt-fr">Calculer moyennes · Générer bulletins · Imprimer</span>
+          <span class="txt-en">Calculate averages · Generate reports · Print</span>
+          <span class="txt-ar">حساب المعدلات · إنشاء الشهادات · طباعة</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- ✅ STATISTIQUES -->
+    <div class="row g-4 mb-5 mt-3">
+      <div class="col-md-3">
+        <div class="carte-stat">
+          <div class="chiffre-stat" id="stat-classes">—</div>
+          <div class="label-stat">
+            <span class="txt-fr">Classes assurées</span>
+            <span class="txt-en">Classes Taught</span>
+            <span class="txt-ar">الفصول المسؤولة عنها</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="carte-stat">
+          <div class="chiffre-stat" id="stat-eleves">—</div>
+          <div class="label-stat">
+            <span class="txt-fr">Élèves suivis</span>
+            <span class="txt-en">Students Monitored</span>
+            <span class="txt-ar">التلاميذ المتابعون</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="carte-stat">
+          <div class="chiffre-stat" id="stat-matieres">—</div>
+          <div class="label-stat">
+            <span class="txt-fr">Matières enseignées</span>
+            <span class="txt-en">Subjects Taught</span>
+            <span class="txt-ar">المواد المدرسة</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="carte-stat">
+          <div class="chiffre-stat" id="stat-notes">—</div>
+          <div class="label-stat">
+            <span class="txt-fr">Notes à saisir</span>
+            <span class="txt-en">Grades to Enter</span>
+            <span class="txt-ar">الدرجات المطلوبة</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h5 class="mb-4 text-uppercase fw-semibold text-primary titre-section">
+      <span class="txt-fr">Actions Rapides</span>
+      <span class="txt-en">Quick Actions</span>
+      <span class="txt-ar">إجراءات سريعة</span>
+    </h5>
+    <div class="row g-4">
+      <div class="col-md-3 col-sm-6">
+        <div class="carte-action">
+          <div class="icone-action"><i class="bi bi-check2-square"></i></div>
+          <a href="presences.html">
+            <span class="txt-fr">Saisir présences</span>
+            <span class="txt-en">Mark Attendance</span>
+            <span class="txt-ar">تسجيل الحضور</span>
+          </a>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="carte-action">
+          <div class="icone-action"><i class="bi bi-pencil-square"></i></div>
+          <a href="saisie-notes.html">
+            <span class="txt-fr">Saisir notes</span>
+            <span class="txt-en">Enter Grades</span>
+            <span class="txt-ar">إدخال الدرجات</span>
+          </a>
+        </div>
+      </div>
+      <!-- ✅ CARTE BULLETINS DANS ACTIONS RAPIDES -->
+      <div class="col-md-3 col-sm-6">
+        <div class="carte-action carte-bulletin">
+          <div class="icone-action"><i class="bi bi-file-earmark-text"></i></div>
+          <a href="bulletins.html">
+            <span class="txt-fr">Bulletins</span>
+            <span class="txt-en">Report Cards</span>
+            <span class="txt-ar">الشهادات</span>
+          </a>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="carte-action">
+          <div class="icone-action"><i class="bi bi-journal-plus"></i></div>
+          <a href="ajouter-devoir.html">
+            <span class="txt-fr">Ajouter devoir</span>
+            <span class="txt-en">Add Homework</span>
+            <span class="txt-ar">إضافة واجب</span>
+          </a>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="carte-action">
+          <div class="icone-action"><i class="bi bi-calendar-week"></i></div>
+          <a href="emploi-temps.html">
+            <span class="txt-fr">Emploi du temps</span>
+            <span class="txt-en">Timetable</span>
+            <span class="txt-ar">الجدول الزمني</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ==================================================
+// ✅ SÉCURITÉ
+// ==================================================
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+
+console.log("🔑 Token :", token ? "PRÉSENT" : "MANQUANT");
+console.log("👤 Rôle :", role);
+
+if(!token || role !== 'prof'){
+  alert("⛔ Accès réservé aux Enseignants — Reconnecte-toi");
+  localStorage.clear();
+  location.href = '/connexion.html';
+}
+
+// ✅ AFFICHER NOM
+document.getElementById('nom-prof').textContent = 
+  (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || 'Enseignant');
+
+// ==================================================
+// 🗣️ GESTION LANGUE
+// ==================================================
+function appliquerLangue(lang) {
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-'+lang);
+  localStorage.setItem('langue', lang);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-lang="${lang}"]`)?.classList.add('active');
+}
+
+const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+appliquerLangue(langueSauvegardee);
+document.querySelector(`[data-lang="${langueSauvegardee}"]`)?.classList.add('active');
+document.querySelectorAll('.btn-langue').forEach(btn => {
+  btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
+});
+
+// ==================================================
+// 📊 CHARGER STATISTIQUES
+// ==================================================
+async function chargerStatistiques(){
+  try {
+    console.log("📡 Chargement statistiques...");
+    const res = await fetch('http://localhost:5000/api/notes/mes-classes-matieres', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    console.log("📊 Données reçues :", data);
+    
+    if(data.ok){
+      document.getElementById('stat-classes').textContent = (data.classes || []).length;
+      document.getElementById('stat-matieres').textContent = (data.matieres || []).length;
+    }
+  } catch(e) {
+    console.log("⚠️ Erreur chargement stats :", e.message);
+  }
+}
+chargerStatistiques();
+
+// ==================================================
+// ✅ DÉCONNEXION
+// ==================================================
+function deconnexion(){
+  localStorage.clear();
+  location.href = '/connexion.html';
+}
+</script>
+
+</body>
+</html>

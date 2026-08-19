@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Annonces & Actualités — Administration</span>
+    <span class="txt-en">Announcements & News — Administration</span>
+    <span class="txt-ar">الإعلانات والأخبار — الإدارة</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --secondaire: #0369a1;
+      --accent: #f59e0b;
+      --succes: #10b981;
+      --alerte: #ef4444;
+      --info: #0dcaf0;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --texte: #f8fafc;
+      --texte-gris: #94a3b8;
+      --fond-page: #f1f5f9;
+      --blanc: #ffffff;
+      --bord-radius: 16px;
+      --ombre: 0 4px 20px rgba(0,0,0,0.07);
+      --ombre-hover: 0 12px 40px rgba(0,0,0,0.12);
+    }
+
+    /* ===== 🌐 LANGUE ===== */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar .titre-page,
+    body.lang-ar .menu-titre { text-align: right; }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--fond-page); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+    /* ===== ✨ ANIMATIONS ===== */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(25px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes pulseSoft {
+      0%, 100% { box-shadow: 0 0 0 rgba(245,158,11,0); }
+      50% { box-shadow: 0 0 15px rgba(245,158,11,0.35); }
+    }
+    .fade-in-up { animation: fadeInUp 0.6s ease-out forwards; opacity: 0; }
+    .fade-in { animation: fadeIn 0.5s ease-out forwards; opacity: 0; }
+    .slide-in-left { animation: slideInLeft 0.5s ease-out forwards; opacity: 0; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+
+    /* ===== 🎞️ BANDEAU DÉFILANT ===== */
+    .bandeau-defilant {
+      background: linear-gradient(90deg, var(--primaire), var(--accent), var(--primaire));
+      background-size: 200% 100%;
+      animation: bandeauLumiere 4s ease infinite;
+      color: white;
+      padding: 12px 20px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 4px 15px rgba(12,74,110,0.2);
+      margin-bottom: 1.5rem;
+      border-radius: 12px;
+    }
+    @keyframes bandeauLumiere {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .texte-defilant {
+      display: inline-block;
+      white-space: nowrap;
+      animation: defiler 20s linear infinite;
+    }
+    @keyframes defiler {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+    body.lang-ar .texte-defilant {
+      animation: defilerArabe 20s linear infinite;
+      direction: rtl;
+    }
+    @keyframes defilerArabe {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    /* ===== 🧭 MENU LATÉRAL ===== */
+    .sidebar {
+      background: linear-gradient(180deg, var(--sombre), var(--sombre-clair));
+      min-height: 100vh;
+      width: 270px;
+      position: fixed; left: 0; top: 0;
+      padding: 1.5rem 0; display: flex; flex-direction: column; z-index: 100;
+      box-shadow: 4px 0 25px rgba(0,0,0,0.08);
+    }
+    body.lang-ar .sidebar { left: auto; right: 0; }
+
+    .sidebar-logo { padding: 0 1.5rem; margin-bottom: 2rem; }
+    .logo {
+      color: var(--accent); font-weight: 800; font-size: 1.45rem;
+      display: flex; align-items: center; gap: 10px; text-decoration: none;
+    }
+    .logo i { font-size: 1.8rem; }
+
+    .menu-titre {
+      color: var(--texte-gris); font-size: 0.75rem; text-transform: uppercase;
+      letter-spacing: 1px; padding: 0 1.5rem; margin: 1.8rem 0 0.6rem; font-weight: 600;
+    }
+
+    .menu-item {
+      display: flex; align-items: center; gap: 0.85rem;
+      padding: 0.95rem 1.5rem; margin: 0.2rem 1rem;
+      color: #cbd5e1; text-decoration: none; border-radius: 12px;
+      transition: all 0.3s ease; position: relative; overflow: hidden;
+    }
+    .menu-item::before {
+      content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 3px; background: transparent; transition: all 0.3s;
+    }
+    body.lang-ar .menu-item::before { left: auto; right: 0; }
+    .menu-item.actif { background: linear-gradient(90deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05)); color: var(--accent); }
+    .menu-item.actif::before { background: var(--accent); }
+    .menu-item:hover { background: rgba(245,158,11,0.12); color: var(--accent); transform: translateX(5px); }
+    body.lang-ar .menu-item:hover { transform: translateX(-5px); }
+    .menu-item i { font-size: 1.15rem; width: 20px; text-align: center; flex-shrink: 0; }
+
+    .contenu { margin-left: 270px; padding: 2rem; min-height: 100vh; }
+    body.lang-ar .contenu { margin-left: 0; margin-right: 270px; }
+
+    .entete-superieur { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+    .btn-accueil-page, .btn-deconnexion-page {
+      padding: 0.6rem 1.2rem; border-radius: 12px; display: flex; align-items: center; gap: 0.5rem;
+      font-weight: 600; text-decoration: none; transition: all 0.3s ease; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .btn-accueil-page { background: linear-gradient(135deg, var(--primaire), var(--secondaire)); color: white; }
+    .btn-accueil-page:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(12,74,110,0.35); color: white; }
+    .btn-deconnexion-page { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; }
+    .btn-deconnexion-page:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,38,38,0.35); color: white; }
+
+    .btn-langue { border-radius: 50px !important; border: 2px solid transparent; margin: 0 2px; padding: 0.35rem 0.9rem; font-weight: 600; transition: all 0.25s ease; background: white; color: #475569; }
+    .btn-langue.actif { background: var(--accent); color: var(--sombre); border-color: var(--accent); box-shadow: 0 0 12px rgba(245,158,11,0.4); }
+
+    .zone-utilisateur { display: flex; align-items: center; gap: 1rem; background: white; padding: 0.5rem 1rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .nom-utilisateur-affiche { font-weight: 600; color: var(--primaire); }
+
+    .titre-page { font-size: 1.8rem; font-weight: 800; color: var(--primaire); margin-bottom: 1rem; }
+    .carte { background: white; border-radius: var(--bord-radius); box-shadow: var(--ombre); transition: all 0.4s ease; border: none; }
+    .carte:hover { box-shadow: var(--ombre-hover); transform: translateY(-3px); }
+    .btn-primaire { 
+      background: linear-gradient(135deg, var(--primaire), var(--secondaire)); 
+      border: none; border-radius: 10px; transition: all 0.3s ease; 
+    }
+    .btn-primaire:hover { 
+      background: linear-gradient(135deg, #0369a1, #075985); 
+      transform: translateY(-2px); box-shadow: 0 6px 18px rgba(12,74,110,0.25); 
+    }
+    .form-control, .form-select { border-radius: 10px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem; transition: all 0.2s ease; }
+    .form-control:focus, .form-select:focus { box-shadow: 0 0 0 3px rgba(12,74,110,0.15); border-color: var(--primaire); }
+
+    /* 📦 BLOC PAR LANGUE */
+    .bloc-langue {
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1.15rem;
+      margin-bottom: 1rem;
+      background: #fafafa;
+      transition: all 0.3s ease;
+    }
+    .bloc-langue:focus-within { border-color: var(--primaire); box-shadow: 0 0 12px rgba(12,74,110,0.08); }
+    .bloc-langue h6 {
+      font-weight: 700;
+      margin-bottom: 0.85rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid;
+    }
+    .bloc-fr h6 { color: #0c4a6e; border-bottom-color: #0c4a6e; }
+    .bloc-en h6 { color: #10b981; border-bottom-color: #10b981; }
+    .bloc-ar h6 { color: #f59e0b; border-bottom-color: #f59e0b; direction: rtl; text-align: right; }
+    .etoile-rouge { color: #ef4444; font-weight: bold; }
+
+    /* 📢 CARTE ANNONCE — Harmonisée avec l'index */
+    .annonce-card {
+      border-left: 4px solid;
+      transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+      position: relative;
+      overflow: hidden;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeInUp 0.5s ease-out forwards;
+      background: white;
+      border-radius: 14px !important;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    body.lang-ar .annonce-card { border-left: none; border-right: 4px solid; }
+    .annonce-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, transparent, rgba(255,255,255,0.4), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+    .annonce-card:hover::before { transform: translateX(100%); }
+    .annonce-card:hover { 
+      transform: translateY(-5px); 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12); 
+    }
+    .annonce-card.importante { border-left-color: var(--alerte); }
+    body.lang-ar .annonce-card.importante { border-right-color: var(--alerte); }
+    .annonce-card.info { border-left-color: var(--info); }
+    body.lang-ar .annonce-card.info { border-right-color: var(--info); }
+    .annonce-card.normal { border-left-color: var(--succes); }
+    body.lang-ar .annonce-card.normal { border-right-color: var(--succes); }
+
+    /* ⏰ Statut expiration */
+    .statut-public { font-size: 0.8rem; padding: 2px 10px; border-radius: 20px; font-weight: 500; }
+    .statut-visible { background: #dcfce7; color: #166534; }
+    .statut-cachee { background: #f1f5f9; color: #64748b; }
+
+    /* 🎯 Boutons action */
+    .btn-outline-primary, .btn-outline-danger { border-radius: 8px; transition: all 0.2s ease; }
+    .btn-outline-primary:hover { transform: scale(1.05); }
+    .btn-outline-danger:hover { transform: scale(1.05); }
+
+    @media (max-width: 991px) {
+      .sidebar { position: relative; width: 100%; min-height: auto; }
+      .contenu { margin: 0 !important; padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  const nomUtilisateur = localStorage.getItem('nom') || 'Utilisateur';
+  const prenomUtilisateur = localStorage.getItem('prenoms') || '';
+  const nomComplet = (nomUtilisateur + ' ' + prenomUtilisateur).trim();
+  const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+
+  if (!token || !['admin','super_admin'].includes(role)) {
+    alert("⛔ Accès réservé à l'Administrateur");
+    location.href = '../connexion.html';
+  }
+
+  let langue = localStorage.getItem('langue') || 'fr';
+  document.body.classList.add('lang-' + langue);
+
+  window.appliquerLangue = function(lang) {
+    localStorage.setItem('langue', lang);
+    document.body.classList.remove('lang-fr','lang-en','lang-ar');
+    document.body.classList.add('lang-' + lang);
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('actif'));
+    event.currentTarget.classList.add('actif');
+    langue = lang;
+    chargerAnnonces();
+  };
+
+  window.deconnecter = function() {
+    const msg = { ar: 'هل تريد تسجيل الخروج ؟', en: 'Are you sure you want to log out?', fr: 'Êtes-vous sûr de vouloir vous déconnecter ?' }[langue];
+    if (confirm(msg)) { localStorage.clear(); location.href = '../connexion.html'; }
+  };
+
+  // ⏰ AUCUNE EXPIRATION — L'ANNONCE RESTE JUSQU'À SUPPRESSION/REMPLACEMENT PAR L'ADMIN
+  function estVisibleSurSite(datePublication) {
+    return true; // ✅ TOUJOURS VISIBLE — JAMAIS EXPIRÉE
+  }
+
+  function joursVisibiliteRestants(datePublication) {
+    return "♾️ Illimité"; // ✅ AUCUNE LIMITE DE TEMPS
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('actif', b.dataset.lang === langue));
+    document.getElementById('nom-affiche').textContent = nomComplet;
+    chargerAnnonces();
+  });
+</script>
+
+<div class="sidebar">
+  <div class="sidebar-logo"><a href="dashboard.html" class="logo"><i class="bi bi-building"></i> MAMA-ZOUMANA</a></div>
+  <a href="dashboard.html" class="menu-item">
+    <i class="bi bi-speedometer2"></i>
+    <span class="txt-fr">Tableau de bord</span><span class="txt-en">Dashboard</span><span class="txt-ar">لوحة التحكم</span>
+  </a>
+  <div class="menu-titre"><span class="txt-fr">Configuration</span><span class="txt-en">Settings</span><span class="txt-ar">الإعدادات</span></div>
+  <a href="config-site.html" class="menu-item">
+    <i class="bi bi-gear"></i>
+    <span class="txt-fr">Paramètres du Site</span><span class="txt-en">Site Settings</span><span class="txt-ar">إعدادات الموقع</span>
+  </a>
+  <a href="annonces.html" class="menu-item actif">
+    <i class="bi bi-megaphone"></i>
+    <span class="txt-fr">Annonces & Actualités</span><span class="txt-en">Announcements</span><span class="txt-ar">الإعلانات والأخبار</span>
+  </a>
+  <a href="../changer-mot-de-passe.html" class="menu-item">
+    <i class="bi bi-key"></i>
+    <span class="txt-fr">Changer mot de passe</span><span class="txt-en">Change Password</span><span class="txt-ar">تغيير كلمة المرور</span>
+  </a>
+</div>
+
+<div class="contenu">
+  <div class="entete-superieur">
+    <div class="d-flex gap-2">
+      <a href="dashboard.html" class="btn-accueil-page">
+        <i class="bi bi-arrow-left"></i>
+        <span class="txt-fr">Retour</span><span class="txt-en">Back</span><span class="txt-ar">رجوع</span>
+      </a>
+      <a href="#" onclick="deconnecter(); return false;" class="btn-deconnexion-page">
+        <i class="bi bi-box-arrow-right"></i>
+        <span class="txt-fr">Déconnexion</span><span class="txt-en">Log out</span><span class="txt-ar">تسجيل الخروج</span>
+      </a>
+    </div>
+    <div class="zone-utilisateur">
+      <div>
+        <button data-lang="fr" class="btn btn-langue btn-sm" onclick="appliquerLangue('fr')">FR</button>
+        <button data-lang="en" class="btn btn-langue btn-sm" onclick="appliquerLangue('en')">EN</button>
+        <button data-lang="ar" class="btn btn-langue btn-sm" onclick="appliquerLangue('ar')">AR</button>
+      </div>
+      <span class="nom-utilisateur-affiche"><i class="bi bi-person-circle"></i> <span id="nom-affiche">Chargement...</span></span>
+    </div>
+  </div>
+
+  <!-- 🎞️ BANDEAU DÉFILANT — AFFICHE TOUTES LES ANNONCES ACTIVES -->
+  <div class="bandeau-defilant">
+    <span class="texte-defilant" id="texte-bandeau">
+      🔔 <span class="txt-fr">Chargement des annonces...</span><span class="txt-en">Loading announcements...</span><span class="txt-ar">جار تحميل الإعلانات...</span>
+    </span>
+  </div>
+
+  <h2 class="titre-page fade-in-up">📢 <span class="txt-fr">Gestion des Annonces</span><span class="txt-en">Announcements Management</span><span class="txt-ar">إدارة الإعلانات</span></h2>
+
+  <div class="row g-4">
+    <!-- ✏️ FORMULAIRE DE PUBLICATION -->
+    <div class="col-lg-4 fade-in-up delay-1">
+      <div class="carte p-4">
+        <h5 class="mb-3"><i class="bi bi-pencil-square text-primary me-2"></i> <span class="txt-fr">Publier une Annonce</span><span class="txt-en">Publish an Announcement</span><span class="txt-ar">نشر إعلان</span></h5>
+        <p class="text-success small mb-3">
+          <i class="bi bi-info-circle"></i>
+          <span class="txt-fr">✅ Publiée immédiatement — visible EN PERMANENCE. Reste jusqu'à ce que vous la supprimiez ou la remplacez.</span>
+          <span class="txt-en">✅ Published immediately — visible FOREVER. Stays until you delete or replace it.</span>
+          <span class="txt-ar">✅ نُشرت فورًا — تظهر دائمًا حتى تحذفها أو تستبدلها.</span>
+        </p>
+        <form id="form-annonce">
+
+          <!-- 🇫🇷 FRANÇAIS -->
+          <div class="bloc-langue bloc-fr">
+            <h6>🇫🇷 Français <span class="etoile-rouge">*</span></h6>
+            <label class="form-label">Titre</label>
+            <input type="text" id="titre_fr" class="form-control" required placeholder="Titre en français">
+            <label class="form-label mt-2">Contenu</label>
+            <textarea id="contenu_fr" class="form-control" rows="3" required placeholder="Texte en français"></textarea>
+          </div>
+
+          <!-- 🇬🇧 ANGLAIS -->
+          <div class="bloc-langue bloc-en">
+            <h6>🇬🇧 Anglais <span class="etoile-rouge">*</span></h6>
+            <label class="form-label">Title</label>
+            <input type="text" id="titre_en" class="form-control" required placeholder="Title in English">
+            <label class="form-label mt-2">Content</label>
+            <textarea id="contenu_en" class="form-control" rows="3" required placeholder="Text in English"></textarea>
+          </div>
+
+          <!-- 🇸🇦 ARABE -->
+          <div class="bloc-langue bloc-ar" dir="rtl">
+            <h6>🇸🇦 العربية <span class="etoile-rouge">*</span></h6>
+            <label class="form-label">العنوان</label>
+            <input type="text" id="titre_ar" class="form-control" required placeholder="العنوان بالعربية">
+            <label class="form-label mt-2">المحتوى</label>
+            <textarea id="contenu_ar" class="form-control" rows="3" required placeholder="النص بالعربية"></textarea>
+          </div>
+
+          <!-- ⚙️ PRIORITÉ ET CIBLE -->
+          <div class="mb-3">
+            <label class="form-label"><span class="txt-fr">Priorité</span><span class="txt-en">Priority</span><span class="txt-ar">الأولوية</span></label>
+            <select id="priorite" class="form-select">
+              <option value="normal"><span class="txt-fr">Normale</span><span class="txt-en">Normal</span><span class="txt-ar">عادي</span></option>
+              <option value="info"><span class="txt-fr">Information</span><span class="txt-en">Info</span><span class="txt-ar">معلومة</span></option>
+              <option value="importante"><span class="txt-fr">Importante</span><span class="txt-en">Important</span><span class="txt-ar">هام</span></option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="form-label"><span class="txt-fr">Cible</span><span class="txt-en">Target</span><span class="txt-ar">الفئة المستهدفة</span></label>
+            <select id="cible" class="form-select">
+              <option value="tous"><span class="txt-fr">Tous</span><span class="txt-en">Everyone</span><span class="txt-ar">الجميع</span></option>
+              <option value="parents"><span class="txt-fr">Parents</span><span class="txt-en">Parents</span><span class="txt-ar">أولياء التلاميذ</span></option>
+              <option value="professeurs"><span class="txt-fr">Enseignants</span><span class="txt-en">Teachers</span><span class="txt-ar">المدرسون</span></option>
+              <option value="eleves"><span class="txt-fr">Élèves</span><span class="txt-en">Students</span><span class="txt-ar">التلاميذ</span></option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primaire text-white w-100">
+            <i class="bi bi-send me-2"></i>
+            <span class="txt-fr">Publier l'annonce</span><span class="txt-en">Publish</span><span class="txt-ar">نشر الإعلان</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 📋 LISTE DES ANNONCES — TOUJOURS VISIBLES JUSQU'À SUPPRESSION ADMIN -->
+    <div class="col-lg-8 fade-in-up delay-2">
+      <div class="carte p-4">
+        <h5 class="mb-3"><i class="bi bi-list-check text-success me-2"></i> <span class="txt-fr">Toutes les Annonces</span><span class="txt-en">All Announcements</span><span class="txt-ar">جميع الإعلانات</span></h5>
+        <p class="text-muted small mb-3">
+          <span class="txt-fr">♾️ Visible EN PERMANENCE sur le site public. Vous seul remplacez ou supprimez.</span>
+          <span class="txt-en">♾️ Visible FOREVER on public site. You alone replace or delete it.</span>
+          <span class="txt-ar">♾️ تظهر دائمًا في الموقع. أنت فقط من يستبدلها أو يحذفها.</span>
+        </p>
+        <div id="liste-annonces">
+          <p class="text-muted text-center py-4"><span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جار التحميل...</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ✅ SOUMISSION FORMULAIRE — PUBLICATION IMMÉDIATE
+  document.getElementById('form-annonce').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const titre_fr = document.getElementById('titre_fr').value.trim();
+    const titre_en = document.getElementById('titre_en').value.trim();
+    const titre_ar = document.getElementById('titre_ar').value.trim();
+    const contenu_fr = document.getElementById('contenu_fr').value.trim();
+    const contenu_en = document.getElementById('contenu_en').value.trim();
+    const contenu_ar = document.getElementById('contenu_ar').value.trim();
+    const priorite = document.getElementById('priorite').value;
+    const cible = document.getElementById('cible').value;
+
+    // Validation des 6 champs
+    if (!titre_fr || !titre_en || !titre_ar || !contenu_fr || !contenu_en || !contenu_ar) {
+      const msgVide = {
+        fr: "⚠️ Remplissez TOUS les champs (Français, Anglais et Arabe)",
+        en: "⚠️ Fill in ALL fields (French, English and Arabic)",
+        ar: "⚠️ املأ جميع الحقول (الفرنسية والإنجليزية والعربية)"
+      };
+      alert(msgVide[langue]);
+      return;
+    }
+
+    try {
+      const r = await fetch(API_URL + '/publier', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ titre_fr, titre_en, titre_ar, contenu_fr, contenu_en, contenu_ar, priorite, cible })
+      });
+      const res = await r.json();
+      if (res.ok) {
+        const msgOk = { 
+          fr: "✅ Annonce publiée ! Visible en permanence jusqu'à suppression.", 
+          en: "✅ Published! Visible forever until deleted.", 
+          ar: "✅ تم النشر! تظهر دائمًا حتى الحذف." 
+        };
+        alert(msgOk[langue]);
+        document.getElementById('form-annonce').reset();
+        chargerAnnonces();
+      } else {
+        alert(res.erreur || "Erreur serveur");
+      }
+    } catch {
+      const msgErr = { fr: "❌ Erreur de connexion", en: "❌ Connection error", ar: "❌ خطأ في الاتصال" };
+      alert(msgErr[langue]);
+    }
+  });
+
+  // ✅ CHARGE TOUTES LES ANNONCES — AFFICHAGE HARMONISÉ AVEC L'INDEX
+  async function chargerAnnonces() {
+    try {
+      const r = await fetch(API_URL, { headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await r.json();
+      const zone = document.getElementById('liste-annonces');
+      const bandeau = document.getElementById('texte-bandeau');
+
+      if (res.ok && res.annonces?.length > 0) {
+        // 🎞️ Bandeau défilant = TOUTES LES ANNONCES
+        let texteDefilant = '';
+        res.annonces.forEach(ann => {
+          const titre = ann[`titre_${langue}`] || ann.titre_fr || '';
+          texteDefilant += `🔔 ${titre} &nbsp;&nbsp;&nbsp; — &nbsp;&nbsp;&nbsp; `;
+        });
+        bandeau.textContent = texteDefilant;
+
+        // 📋 LISTE COMPLÈTE — Harmonisée avec l'affichage public
+        zone.innerHTML = res.annonces.map((a, idx) => {
+          const titreAffiche = a[`titre_${langue}`] || a.titre_fr || '';
+          const contenuAffiche = a[`contenu_${langue}`] || a.contenu_fr || '';
+          const datePub = a.date_publication ? new Date(a.date_publication).toLocaleString('fr-FR') : '';
+
+          return `
+            <div class="annonce-card ${a.priorite} p-3 mb-3 rounded-2" style="animation-delay: ${idx * 0.1}s">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <h6 class="mb-1 fw-bold">${titreAffiche}</h6>
+                <div class="d-flex gap-2 align-items-center">
+                  <span class="badge bg-${a.priorite==='importante'?'danger':a.priorite==='info'?'info':'success'}">${a.priorite}</span>
+                  <span class="statut-public statut-visible">♾️ <span class="txt-fr">Active</span><span class="txt-en">Active</span><span class="txt-ar">نشطة</span></span>
+                </div>
+              </div>
+              <p class="mb-2 text-dark">${contenuAffiche}</p>
+              <div class="d-flex flex-wrap justify-content-between align-items-center small text-muted pt-2 border-top">
+                <div>
+                  <i class="bi bi-calendar3 me-1"></i>
+                  <span class="txt-fr">Publié le</span><span class="txt-en">Published on</span><span class="txt-ar">نشر في</span>
+                  : ${datePub} | ♾️ <span class="txt-fr">Visible en permanence</span><span class="txt-en">Permanently visible</span><span class="txt-ar">دائم الظهور</span>
+                </div>
+                <div class="d-flex gap-1 mt-1">
+                  <button class="btn btn-sm btn-outline-primary py-0 px-2" title="Modifier/Remplacer">
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="supprimerAnnonce(${a.id_annonce})" title="Supprimer définitivement">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        bandeau.textContent = "🔔 Aucune annonce pour l'instant";
+        zone.innerHTML = `<p class="text-muted text-center py-4"><span class="txt-fr">Aucune annonce publiée</span><span class="txt-en">No announcement yet</span><span class="txt-ar">لا توجد إعلانات</span></p>`;
+      }
+    } catch {
+      document.getElementById('texte-bandeau').textContent = "⚠️ Impossible de charger les annonces";
+      zone.innerHTML = `<p class="text-muted text-center py-4"><span class="txt-fr">Chargement impossible</span><span class="txt-en">Load failed</span><span class="txt-ar">فشل التحميل</span></p>`;
+    }
+  }
+
+  // ✅ SUPPRESSION = SEULEMENT PAR L'ADMIN MANUELLEMENT
+  window.supprimerAnnonce = async function(id) {
+    const confMsg = {
+      fr: "⚠️ Supprimer définitivement cette annonce ? Cette action est irréversible.",
+      en: "⚠️ Delete this announcement permanently? This action cannot be undone.",
+      ar: "⚠️ حذف هذا الإعلان نهائيًا؟ لا يمكن التراجع عن هذا الإجراء."
+    };
+    if (!confirm(confMsg[langue])) return;
+    try {
+      await fetch(API_URL + '/' + id, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+      chargerAnnonces();
+    } catch { 
+      const errMsg = { fr: "Erreur lors de la suppression", en: "Deletion error", ar: "خطأ في الحذف" };
+      alert(errMsg[langue]); 
+    }
+  };
+</script>
+</body>
+</html>

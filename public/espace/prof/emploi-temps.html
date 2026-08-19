@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Emploi du Temps — Enseignant</span>
+    <span class="txt-en">My Timetable — Teacher</span>
+    <span class="txt-ar">الجدول الزمني — المعلم</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --accent: #f59e0b;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --vert: #10b981;
+      --bleu: #3b82f6;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #f1f5f9; font-family: 'Segoe UI', 'Roboto', sans-serif; min-height: 100vh; }
+
+    .menu-gauche { background: linear-gradient(180deg, var(--sombre), var(--primaire)); min-height: 100vh; width: 260px; position: fixed; padding: 0; overflow-y: auto; }
+    .entete-menu { padding: 25px 20px; border-bottom: 1px solid rgba(245,158,11,0.15); }
+    .logo-menu { color: var(--accent); font-weight: 800; font-size: 1.3rem; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+    .logo-menu i { font-size: 1.6rem; }
+    .nav-menu { padding: 20px 12px; }
+    .lien-nav { display: flex; align-items: center; gap: 12px; padding: 12px 15px; margin-bottom: 6px; color: #cbd5e1; text-decoration: none; border-radius: 10px; transition: all 0.25s ease; }
+    .lien-nav:hover, .lien-nav.actif { background: rgba(245,158,11,0.08); color: var(--accent); }
+
+    .contenu-principal { margin-left: 260px; padding: 25px 30px; min-height: 100vh; }
+    .barre-haut { background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+    .btn-langue { background: rgba(12,74,110,0.08); border: 1px solid var(--primaire); border-radius: 20px; padding: 5px 12px; font-size: 0.85rem; cursor: pointer; margin: 0 2px; color: var(--primaire); font-weight: 600; }
+    .btn-langue.active { background: var(--accent); color: #000; border-color: var(--accent); }
+    .btn-deco { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 6px 12px; border-radius: 8px; transition: all 0.2s; }
+    .btn-deco:hover { background: var(--accent); color: #000; }
+
+    .carte { background: white; border-radius: 14px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 4px solid var(--accent); margin-bottom: 1rem; transition: transform 0.2s; }
+    .carte:hover { transform: translateY(-3px); }
+
+    /* ✅ MODÈLE DE LANGUE UNIFORME */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar .titre-section { text-align: right; }
+    body.lang-ar { direction: rtl; }
+  </style>
+</head>
+<body>
+
+<div class="d-flex">
+  <!-- ✅ MENU LATÉRAL IDENTIQUE AUX AUTRES PAGES PROF -->
+  <aside class="menu-gauche">
+    <div class="entete-menu">
+      <a href="dashboard-prof.html" class="logo-menu">
+        <i class="bi bi-building"></i> MAMA-ZOUMANA
+      </a>
+    </div>
+    <nav class="nav-menu">
+      <a href="dashboard.html" class="lien-nav">
+        <i class="bi bi-speedometer2"></i>
+        <span class="txt-fr">Tableau de bord</span>
+        <span class="txt-en">Dashboard</span>
+        <span class="txt-ar">لوحة التحكم</span>
+      </a>
+      <a href="mes-classes.html" class="lien-nav">
+        <i class="bi bi-grid"></i>
+        <span class="txt-fr">Mes Classes</span>
+        <span class="txt-en">My Classes</span>
+        <span class="txt-ar">فصولي</span>
+      </a>
+      <a href="presences.html" class="lien-nav">
+        <i class="bi bi-check2-square"></i>
+        <span class="txt-fr">Présences & Retards</span>
+        <span class="txt-en">Attendance & Lateness</span>
+        <span class="txt-ar">الحضور والتأخير</span>
+      </a>
+      <a href="saisie-notes.html" class="lien-nav">
+        <i class="bi bi-pencil-square"></i>
+        <span class="txt-fr">Saisie des Notes</span>
+        <span class="txt-en">Enter Grades</span>
+        <span class="txt-ar">إدخال الدرجات</span>
+      </a>
+      <a href="#" class="lien-nav actif">
+        <i class="bi bi-calendar3"></i>
+        <span class="txt-fr">Emploi du Temps</span>
+        <span class="txt-en">Timetable</span>
+        <span class="txt-ar">الجدول الزمني</span>
+      </a>
+      <a href="devoirs.html" class="lien-nav">
+        <i class="bi bi-book"></i>
+        <span class="txt-fr">Devoirs & Examens</span>
+        <span class="txt-en">Homework & Exams</span>
+        <span class="txt-ar">الواجبات والامتحانات</span>
+      </a>
+      <a href="messages.html" class="lien-nav">
+        <i class="bi bi-chat-dots"></i>
+        <span class="txt-fr">Messages</span>
+        <span class="txt-en">Messages</span>
+        <span class="txt-ar">الرسائل</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- ✅ CONTENU PRINCIPAL -->
+  <main class="contenu-principal">
+    <div class="barre-haut">
+      <div class="titre-section">
+        <h4 class="mb-0 text-uppercase fw-bold text-primary">
+          <span class="txt-fr">Mon Emploi du Temps</span>
+          <span class="txt-en">My Timetable</span>
+          <span class="txt-ar">جدولي الزمني</span>
+        </h4>
+        <small class="text-muted">
+          <span class="txt-fr">Reçu de l'administrateur — Mes séances programmées</span>
+          <span class="txt-en">Received from administrator — My scheduled sessions</span>
+          <span class="txt-ar">مستلم من المدير — حصصي المجدولة</span>
+        </small>
+      </div>
+      <div class="utilisateur d-flex align-items-center gap-2">
+        <button class="btn-langue" data-lang="fr">FR</button>
+        <button class="btn-langue" data-lang="en">EN</button>
+        <button class="btn-langue" data-lang="ar">AR</button>
+        <i class="bi bi-person-circle fs-4 ms-2"></i>
+        <span id="nom-prof"></span>
+        <button class="btn btn-deco ms-2" onclick="deconnexion()">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="txt-fr">Déconnexion</span>
+          <span class="txt-en">Logout</span>
+          <span class="txt-ar">تسجيل الخروج</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ✅ LIEN RETOUR CORRIGÉ -->
+    <a href="dashboard.html" class="btn btn-outline-secondary mb-4">
+      <i class="bi bi-arrow-left"></i>
+      <span class="txt-fr">Retour au Tableau de Bord</span>
+      <span class="txt-en">Back to Dashboard</span>
+      <span class="txt-ar">الرجوع إلى لوحة التحكم</span>
+    </a>
+
+    <!-- ✅ INFO SOURCE -->
+    <div class="alert alert-info py-2 mb-3">
+      <i class="bi bi-info-circle me-2"></i>
+      <span class="txt-fr">Cet emploi du temps vous a été transmis par l'administrateur — Mis à jour en temps réel</span>
+      <span class="txt-en">This timetable was sent to you by the administrator — Updated in real time</span>
+      <span class="txt-ar">هذا الجدول مستلم من المدير — محدّث آنياً</span>
+    </div>
+
+    <!-- ✅ LISTE DES SÉANCES -->
+    <div id="liste-mes-cours">
+      <div class="text-center py-5">
+        <div class="spinner-border text-warning" role="status"></div>
+        <p class="mt-3 text-muted">
+          <span class="txt-fr">Chargement de votre emploi du temps...</span>
+          <span class="txt-en">Loading your timetable...</span>
+          <span class="txt-ar">جاري تحميل جدولك الزمني...</span>
+        </p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ==================================================
+// ✅ SÉCURITÉ
+// ==================================================
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+
+console.log("🔑 Token :", token ? "PRÉSENT ✅" : "MANQUANT ❌");
+console.log("👤 Rôle :", role);
+
+// ✅ VÉRIFICATION ACCÈS
+if (!token || role !== 'prof') {
+  alert("⛔ Accès réservé aux Enseignants — Reconnectez-vous");
+  localStorage.clear();
+  location.href = '/connexion.html';
+}
+
+// ✅ AFFICHER NOM DE L'ENSEIGNANT
+document.getElementById('nom-prof').textContent = 
+  (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || 'Enseignant');
+
+// ==================================================
+// 🗣️ GESTION DE LA LANGUE
+// ==================================================
+function appliquerLangue(lang) {
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-'+lang);
+  localStorage.setItem('langue', lang);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-lang="${lang}"]`)?.classList.add('active');
+}
+
+const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+appliquerLangue(langueSauvegardee);
+document.querySelectorAll('.btn-langue').forEach(btn => {
+  btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
+});
+
+// ==================================================
+// 📋 CHARGER MES SÉANCES — CORRIGÉ ✅
+// ==================================================
+async function chargerEmploiTemps(){
+  try {
+    const urlAppel = `${API_URL}/prof`;
+    const id_utilisateur = localStorage.getItem('id_utilisateur');
+
+    console.log("📡 Appel API :", urlAppel, "| ID Prof :", id_utilisateur);
+
+    const res = await fetch(urlAppel, {
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'X-ID-Utilisateur': id_utilisateur
+      }
+    });
+
+    // ✅ Plus de déconnexion automatique
+    const data = await res.json();
+    console.log("📊 Mes séances reçues :", data);
+
+    const conteneur = document.getElementById('liste-mes-cours');
+
+    if (!data.ok || !data.lignes || data.lignes.length === 0) {
+      conteneur.innerHTML = `
+        <div class="text-center opacity-75 py-5">
+          <i class="bi bi-calendar-x fs-1 text-muted"></i>
+          <h5 class="mt-3 text-muted">
+            <span class="txt-fr">Aucune séance ne vous a encore été attribuée</span>
+            <span class="txt-en">No sessions assigned yet</span>
+            <span class="txt-ar">لم يتم تعيين أي حصة لك بعد</span>
+          </h5>
+        </div>`;
+      return;
+    }
+
+    // ✅ TRI PAR JOUR + HEURE
+    const ordreJours = { 'Lundi':1, 'Mardi':2, 'Mercredi':3, 'Jeudi':4, 'Vendredi':5, 'Samedi':6 };
+    data.lignes.sort((a,b) => (ordreJours[a.jour]||9) - (ordreJours[b.jour]||9) || a.heure_debut.localeCompare(b.heure_debut));
+
+    // ✅ AFFICHAGE DES SÉANCES
+    conteneur.innerHTML = data.lignes.map(seance => `
+      <div class="carte">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0 fw-bold text-primary">
+            <i class="bi bi-calendar-event me-2" style="color:var(--accent)"></i>
+            ${seance.jour}
+          </h5>
+          <span class="badge bg-warning text-dark fw-bold">
+            <i class="bi bi-clock me-1"></i>
+            ${(seance.heure_debut||'00:00').substring(0,5)} — ${(seance.heure_fin||'00:00').substring(0,5)}
+          </span>
+        </div>
+        <div class="row g-2">
+          <div class="col-md-6">
+            <i class="bi bi-grid-3x3-gap me-2 text-muted"></i>
+            <strong>
+              <span class="txt-fr">Classe : </span>
+              <span class="txt-en">Class : </span>
+              <span class="txt-ar">القسم : </span>
+            </strong>
+            ${seance.libelle_classe}
+          </div>
+          <div class="col-md-6">
+            <i class="bi bi-book me-2 text-muted"></i>
+            <strong>
+              <span class="txt-fr">Matière : </span>
+              <span class="txt-en">Subject : </span>
+              <span class="txt-ar">المادة : </span>
+            </strong>
+            ${seance.libelle_matiere}
+          </div>
+        </div>
+        ${seance.salle ? `
+          <div class="mt-2 text-muted small">
+            <i class="bi bi-geo-alt me-1"></i>
+            <span class="txt-fr">Salle : </span>
+            <span class="txt-en">Room : </span>
+            <span class="txt-ar">القاعة : </span>
+            ${seance.salle}
+          </div>` : ''
+        }
+      </div>
+    `).join('');
+
+  } catch (e) {
+    console.error("❌ ERREUR :", e);
+    document.getElementById('liste-mes-cours').innerHTML = `
+      <div class="alert alert-danger text-center">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <span class="txt-fr">Erreur de chargement</span>
+        <span class="txt-en">Loading error</span>
+        <span class="txt-ar">خطأ في التحميل</span>
+        <br><small>${e.message}</small>
+      </div>`;
+  }
+}
+
+// ==================================================
+// ✅ DÉCONNEXION
+// ==================================================
+function deconnexion(){
+  localStorage.clear();
+  location.href = '/connexion.html';
+}
+
+// ✅ LANCER AU CHARGEMENT
+chargerEmploiTemps();
+</script>
+
+</body>
+</html>

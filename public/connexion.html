@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Connexion — MAMA-ZOUMANA</span>
+    <span class="txt-en">Login — MAMA-ZOUMANA</span>
+    <span class="txt-ar">تسجيل الدخول — ماما زومانا</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --succes: #10b981;
+      --alerte: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --texte-clair: #f8fafc;
+      --texte-dore: #fbbf24;
+    }
+
+    /* ✅ MODÈLE DE LANGUE UNIFORME — Identique à la page Finances */
+    .txt-en, .txt-ar { display: none !important; }
+    body.lang-fr .txt-fr { display: inline !important; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none !important; }
+    body.lang-en .txt-en { display: inline !important; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none !important; }
+    body.lang-ar .txt-ar { display: inline !important; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none !important; }
+    body.lang-ar { direction: rtl; }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--sombre), var(--sombre-clair));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .cadre-lumineux {
+      position: relative;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 20px;
+      padding: 40px 30px;
+      max-width: 520px;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+    .cadre-lumineux::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: conic-gradient(transparent, var(--alerte), var(--texte-dore), var(--alerte), transparent 30%);
+      animation: rotation-bord 3.5s linear infinite;
+    }
+    .cadre-lumineux::after {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      background: rgba(15, 23, 42, 0.98);
+      border-radius: 18px;
+      z-index: 1;
+    }
+    @keyframes rotation-bord {
+      100% { transform: rotate(360deg); }
+    }
+
+    .contenu-form { position: relative; z-index: 2; }
+    .titre-form {
+      color: var(--texte-dore);
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    .sous-titre {
+      color: #cbd5e1;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 0.95rem;
+    }
+
+    .btn-langue {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid var(--alerte);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 0.88rem;
+      cursor: pointer;
+      margin: 0 3px;
+      color: var(--alerte);
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-langue.active {
+      background: var(--alerte);
+      color: var(--sombre);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+    }
+
+    .form-label { color: #e2e8f0; font-weight: 500; }
+    .form-control, .form-select {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      color: var(--texte-clair);
+      border-radius: 10px;
+      padding: 10px 14px;
+      transition: all 0.3s ease;
+    }
+    .form-control:focus, .form-select:focus {
+      background: rgba(30, 41, 59, 0.9);
+      border-color: var(--alerte);
+      box-shadow: 0 0 0 0.25rem rgba(245, 158, 11, 0.15);
+      color: var(--texte-clair);
+    }
+    select option { background: var(--sombre-clair); color: white; }
+
+    .btn-envoi {
+      width: 100%;
+      background: linear-gradient(135deg, var(--alerte), #f97316);
+      border: none;
+      color: var(--sombre);
+      font-weight: 700;
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 10px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease;
+    }
+    .btn-envoi:hover { transform: translateY(-2px); }
+    .btn-envoi::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: reflet-bouton 2.5s ease-in-out infinite;
+    }
+    @keyframes reflet-bouton {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    .liens-bas {
+      margin-top: 25px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .lien-utile {
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .lien-utile:hover { color: var(--alerte); }
+
+    .mdp-indice { color: var(--alerte); font-size: 0.85rem; margin-top: 5px; }
+    .matricule-exemple { color: #94a3b8; font-size: 0.85rem; margin-top: 5px; }
+    .champ-identifiant { transition: opacity 0.3s ease, height 0.3s ease; }
+  </style>
+</head>
+<body class="lang-fr">
+
+<div class="cadre-lumineux">
+  <div class="contenu-form">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <a href="index.html" class="text-decoration-none d-flex align-items-center gap-2">
+        <i class="bi bi-arrow-left-circle-fill fs-4" style="color:var(--alerte)"></i>
+        <span class="txt-fr fw-bold" style="color:var(--alerte)">Retour</span>
+        <span class="txt-en fw-bold" style="color:var(--alerte)">Back</span>
+        <span class="txt-ar fw-bold" style="color:var(--alerte)">رجوع</span>
+      </a>
+      <div>
+        <button class="btn-langue active" data-lang="fr">FR</button>
+        <button class="btn-langue" data-lang="en">EN</button>
+        <button class="btn-langue" data-lang="ar">AR</button>
+      </div>
+    </div>
+
+    <h2 class="titre-form">
+      <span class="txt-fr">🔐 Espace Connexion</span>
+      <span class="txt-en">🔐 Login Area</span>
+      <span class="txt-ar">🔐 مساحة الدخول</span>
+    </h2>
+    <p class="sous-titre">
+      <span class="txt-fr">Accédez à votre espace personnel</span>
+      <span class="txt-en">Access your personal space</span>
+      <span class="txt-ar">الوصول إلى مساحتك الخاصة</span>
+    </p>
+
+    <form id="formConnexion">
+      <!-- 🎯 CHOIX DU PROFIL -->
+      <div class="mb-3">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">Je suis</span>
+          <span class="txt-en">I am</span>
+          <span class="txt-ar">أنا</span>
+        </label>
+        <select id="role" class="form-select" required onchange="changerChampIdentifiant()">
+          <option value="">
+            <span class="txt-fr">-- Sélectionner votre profil --</span>
+            <span class="txt-en">-- Select your profile --</span>
+            <span class="txt-ar">-- اختر ملفك --</span>
+          </option>
+          <option value="admin">
+            <span class="txt-fr">🔧 Administrateur</span>
+            <span class="txt-en">🔧 Administrator</span>
+            <span class="txt-ar">🔧 مدير النظام</span>
+          </option>
+          <option value="comptable">
+            <span class="txt-fr">💰 Comptable</span>
+            <span class="txt-en">💰 Accountant</span>
+            <span class="txt-ar">💰 المحاسب</span>
+          </option>
+          <option value="directeur">
+            <span class="txt-fr">🏫 Directeur</span>
+            <span class="txt-en">🏫 Principal</span>
+            <span class="txt-ar">🏫 المدير</span>
+          </option>
+          <option value="prof">
+            <span class="txt-fr">👨‍🏫 Enseignant</span>
+            <span class="txt-en">👨‍🏫 Teacher</span>
+            <span class="txt-ar">👨‍🏫 المدرس</span>
+          </option>
+          <option value="secretaire">
+            <span class="txt-fr">📝 Secrétaire</span>
+            <span class="txt-en">📝 Secretary</span>
+            <span class="txt-ar">📝 السكرتير</span>
+          </option>
+          <option value="eleve">
+            <span class="txt-fr">🎓 Élève</span>
+            <span class="txt-en">🎓 Student</span>
+            <span class="txt-ar">🎓 تلميذ</span>
+          </option>
+          <option value="parent">
+            <span class="txt-fr">👨‍👩‍👧 Parent</span>
+            <span class="txt-en">👨‍👩‍👧 Parent</span>
+            <span class="txt-ar">👨‍👩‍👧 ولي الأمر</span>
+          </option>
+        </select>
+      </div>
+
+      <!-- ✅ CHAMP IDENTIFIANT -->
+      <div class="mb-3 champ-identifiant" id="zoneIdentifiant">
+        <label class="form-label" id="labelIdentifiant">
+          <i class="bi bi-card-text me-1"></i>
+          <span class="txt-fr">Identifiant</span>
+          <span class="txt-en">Identifier</span>
+          <span class="txt-ar">معرّف</span>
+        </label>
+        <input type="text" id="identifiant" class="form-control" required placeholder="">
+        <div id="indiceIdentifiant" class="matricule-exemple d-none"></div>
+      </div>
+
+      <!-- 🔒 MOT DE PASSE -->
+      <div class="mb-3">
+        <label class="form-label">
+          <span class="txt-fr">Mot de passe</span>
+          <span class="txt-en">Password</span>
+          <span class="txt-ar">كلمة المرور</span>
+        </label>
+        <div class="input-group">
+          <input type="password" id="mdp" class="form-control" required>
+          <button type="button" class="btn btn-outline-warning" id="btnOeil" onclick="voirOuCacherMdp()">👁️</button>
+        </div>
+        <div class="mdp-indice">
+          <span class="txt-fr">✅ Ce que vous tapez : </span>
+          <span class="txt-en">✅ What you type : </span>
+          <span class="txt-ar">✅ ما تكتبه : </span>
+          <span id="voirMdp"></span>
+        </div>
+      </div>
+
+      <div id="msgErreur" class="alert alert-danger py-2 d-none mb-3"></div>
+
+      <button type="submit" class="btn-envoi">
+        <span id="texteBtn">
+          <span class="txt-fr">Se connecter</span>
+          <span class="txt-en">Log in</span>
+          <span class="txt-ar">الدخول</span>
+        </span>
+        <span id="chargement" class="spinner-border spinner-border-sm d-none ms-2"></span>
+      </button>
+    </form>
+
+    <div class="liens-bas">
+      <a href="preinscription.html" class="lien-utile">
+        <span class="txt-fr">📝 Pas encore inscrit ? S'inscrire</span>
+        <span class="txt-en">📝 Not registered yet ? Sign up</span>
+        <span class="txt-ar">📝 غير مسجل ؟ التسجيل</span>
+      </a>
+      <a href="mot-de-passe-oublie.html" class="lien-utile">
+        <span class="txt-fr">🔑 Mot de passe oublié ?</span>
+        <span class="txt-en">🔑 Forgot password ?</span>
+        <span class="txt-ar">🔑 نسيت كلمة المرور ؟</span>
+      </a>
+      <a href="index.html" class="lien-utile">
+        <span class="txt-fr">🏠 Retour à l'accueil</span>
+        <span class="txt-en">🏠 Back to home</span>
+        <span class="txt-ar">🏠 العودة للرئيسية</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+// 🗣️ CHANGEMENT DE LANGUE
+document.querySelectorAll('.btn-langue').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const lang = btn.dataset.lang;
+    document.body.classList.remove('lang-fr','lang-en','lang-ar');
+    document.body.classList.add('lang-'+lang);
+    document.documentElement.lang = lang;
+    localStorage.setItem('langue', lang);
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// 🔄 CHANGER LE CHAMP IDENTIFIANT SELON LE RÔLE
+function changerChampIdentifiant() {
+  const role = document.getElementById('role').value;
+  const champ = document.getElementById('identifiant');
+  const label = document.getElementById('labelIdentifiant');
+  const indice = document.getElementById('indiceIdentifiant');
+
+  if (role === 'eleve') {
+    champ.type = 'text';
+    champ.placeholder = 'Ex: MZ-2025-CE1-0042';
+    label.innerHTML = `<i class="bi bi-card-text me-1"></i>
+      <span class="txt-fr">Matricule Scolaire</span>
+      <span class="txt-en">Student ID Number</span>
+      <span class="txt-ar">الرقم المدرسي</span>`;
+    indice.classList.remove('d-none');
+    indice.innerHTML = `<span class="txt-fr">Format : CodeÉcole - Année - Classe - Numéro</span>
+      <span class="txt-en">Format : SchoolCode - Year - Class - Number</span>`;
+  } else {
+    champ.type = 'email';
+    champ.placeholder = 'exemple@domaine.ci';
+    label.innerHTML = `<i class="bi bi-envelope me-1"></i>
+      <span class="txt-fr">Adresse Email</span>
+      <span class="txt-en">Email Address</span>
+      <span class="txt-ar">البريد الإلكتروني</span>`;
+    indice.classList.add('d-none');
+  }
+}
+
+// 👁️ VOIR / CACHER MOT DE PASSE
+let mdpVisible = false;
+function voirOuCacherMdp(){
+  const champ = document.getElementById('mdp');
+  const btn = document.getElementById('btnOeil');
+  mdpVisible = !mdpVisible;
+  champ.type = mdpVisible ? 'text' : 'password';
+  btn.textContent = mdpVisible ? '🙈' : '👁️';
+}
+
+// ✅ SOUMISSION FORMULAIRE — CONNEXION HARMONISÉE
+document.getElementById('formConnexion').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msgErreur = document.getElementById('msgErreur');
+  const identifiant = document.getElementById('identifiant').value.trim();
+  const mot_de_passe = document.getElementById('mdp').value;
+  const role = document.getElementById('role').value;
+  const texteBtn = document.getElementById('texteBtn');
+  const chargement = document.getElementById('chargement');
+
+  msgErreur.classList.add('d-none');
+
+  if(!identifiant || !mot_de_passe || !role){
+    msgErreur.innerHTML = "⚠️ Remplissez TOUS les champs !";
+    msgErreur.classList.remove('d-none');
+    return;
+  }
+
+  texteBtn.classList.add('d-none');
+  chargement.classList.remove('d-none');
+
+  // 📦 Préparer les données
+  const donnees = { mot_de_passe, role };
+  if (role === 'eleve') {
+    donnees.matricule = identifiant.toUpperCase();
+  } else {
+    donnees.email = identifiant.toLowerCase();
+  }
+
+  try {
+    const res = await fetch('http://localhost:5000/api/auth/connexion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(donnees)
+    });
+
+    const data = await res.json();
+
+    if(data.ok){
+      // ✅ SESSION UNIFIÉE — Transmet est_admin pour la page Finances
+      const estAdmin = (data.role === 'admin' || data.role === 'super_admin');
+      localStorage.setItem('token', data.token || '');
+      localStorage.setItem('id_utilisateur', data.id_utilisateur || '');
+      localStorage.setItem('matricule', data.matricule || '');
+      localStorage.setItem('nom', data.nom || 'Utilisateur');
+      localStorage.setItem('prenoms', data.prenoms || '');
+      localStorage.setItem('role', data.role || role);
+      localStorage.setItem('est_admin', estAdmin ? 'true' : 'false'); // ✅ Clé pour Finances
+
+      // ✅ REDIRECTIONS CORRIGÉES — Chacun sa page
+switch(data.role || role){
+  case 'admin': 
+  case 'super_admin':
+    location.href = 'espace/admin/dashboard.html';  // 🧑‍💻 Page Admin
+    break;
+  case 'comptable':
+    location.href = 'espace/comptable/dashboard.html';  // 💰 SA PROPRE PAGE Comptable
+    break;
+  case 'directeur':
+    location.href = 'espace/directeur/dashboard.html';
+    break;
+  case 'prof':
+    location.href = 'espace/prof/dashboard.html';
+    break;
+  case 'eleve':
+    location.href = 'espace/eleve/dashboard.html';
+    break;
+  case 'parent':
+    location.href = 'espace/parent/dashboard.html';
+    break;
+  case 'secretaire':
+    location.href = 'espace/secretaire/dashboard.html';
+    break;
+  default:
+    msgErreur.textContent = "⚠️ Profil inconnu : " + (data.role || role);
+    msgErreur.classList.remove('d-none');
+    localStorage.clear();
+}
+    }else{
+      msgErreur.textContent = "❌ " + (data.erreur || "Échec de la connexion");
+      msgErreur.classList.remove('d-none');
+    }
+  } catch(err) {
+    msgErreur.textContent = "⛔ Serveur injoignable — Démarrez le serveur !";
+    msgErreur.classList.remove('d-none');
+    console.error("Erreur :", err);
+  } finally {
+    texteBtn.classList.remove('d-none');
+    chargement.classList.add('d-none');
+  }
+});
+
+// ✅ Affichage en temps réel du mot de passe
+document.getElementById('mdp').addEventListener('input', function(){
+  document.getElementById('voirMdp').textContent = this.value;
+});
+
+// ✅ Restaurer langue sauvegardée
+const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+document.body.classList.remove('lang-fr','lang-en','lang-ar');
+document.body.classList.add('lang-'+langueSauvegardee);
+document.querySelectorAll('.btn-langue').forEach(b => {
+  b.classList.remove('active');
+  if(b.dataset.lang === langueSauvegardee) b.classList.add('active');
+});
+</script>
+</body>
+</html>

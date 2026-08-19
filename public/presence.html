@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Gestion Présences — Enseignant</span>
+    <span class="txt-en">Attendance Management — Teacher</span>
+    <span class="txt-ar">إدارة الحضور — المعلم</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --accent: #f59e0b;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b;
+      --vert: #10b981;
+      --rouge: #ef4444;
+      --jaune: #f59e0b;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#f1f5f9;font-family:'Segoe UI','Roboto',sans-serif;min-height:100vh}
+
+    .menu-gauche{background:linear-gradient(180deg,var(--sombre),var(--primaire));min-height:100vh;width:260px;position:fixed;padding:0;overflow-y:auto}
+    .entete-menu{padding:25px 20px;border-bottom:1px solid rgba(245,158,11,0.15)}
+    .logo-menu{color:var(--accent);font-weight:800;font-size:1.3rem;text-decoration:none;display:flex;align-items:center;gap:10px}
+    .logo-menu i{font-size:1.6rem}
+    .nav-menu{padding:20px 12px}
+    .lien-nav{display:flex;align-items:center;gap:12px;padding:12px 15px;margin-bottom:6px;color:#cbd5e1;text-decoration:none;border-radius:10px;transition:all 0.25s ease}
+    .lien-nav:hover,.lien-nav.actif{background:rgba(245,158,11,0.08);color:var(--accent)}
+
+    .contenu-principal{margin-left:260px;padding:25px 30px;min-height:100vh}
+    .barre-haut{background:white;padding:15px 25px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:25px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px}
+    .btn-langue{background:rgba(12,74,110,0.08);border:1px solid var(--primaire);border-radius:20px;padding:5px 12px;font-size:0.85rem;cursor:pointer;margin:0 2px;color:var(--primaire);font-weight:600}
+    .btn-langue.active{background:var(--accent);color:#000;border-color:var(--accent)}
+    .btn-deco{background:transparent;border:1px solid var(--accent);color:var(--accent);padding:6px 12px;border-radius:8px;transition:all 0.2s}
+    .btn-deco:hover{background:var(--accent);color:#000}
+
+    .carte{background:white;border-radius:14px;padding:22px;box-shadow:0 4px 12px rgba(0,0,0,0.05);margin-bottom:25px}
+    .titre-section{font-weight:700;color:var(--primaire);margin-bottom:1.5rem}
+    .badge-pr{background:var(--vert);color:#fff}
+    .badge-ab{background:var(--rouge);color:#fff}
+    .badge-re{background:var(--jaune);color:#000}
+    .btn-pr{background:var(--vert);color:#fff;border:none}
+    .btn-ab{background:var(--rouge);color:#fff;border:none}
+    .btn-re{background:var(--jaune);color:#000;border:none}
+    .btn-pr:hover{background:#059669;color:#fff}
+    .btn-ab:hover{background:#dc2626;color:#fff}
+    .btn-re:hover{background:#d97706;color:#fff}
+    .statut-eleve{width:90px}
+
+    /* ✅ MODÈLE TRILINGUE */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar .titre-section { text-align: right; }
+    body.lang-ar { direction: rtl; }
+  </style>
+</head>
+<body>
+
+<div class="d-flex">
+  <aside class="menu-gauche">
+    <div class="entete-menu">
+      <a href="#" class="logo-menu">
+        <i class="bi bi-building"></i> MAMA-ZOUMANA
+      </a>
+    </div>
+    <nav class="nav-menu">
+      <a href="presence.html" class="lien-nav">
+        <i class="bi bi-speedometer2"></i>
+        <span class="txt-fr">Tableau de bord</span>
+        <span class="txt-en">Dashboard</span>
+        <span class="txt-ar">لوحة التحكم</span>
+      </a>
+      <a href="mes-classes.html" class="lien-nav">
+        <i class="bi bi-grid"></i>
+        <span class="txt-fr">Mes Classes</span>
+        <span class="txt-en">My Classes</span>
+        <span class="txt-ar">فصولي</span>
+      </a>
+      <a href="#" class="lien-nav actif">
+        <i class="bi bi-check2-square"></i>
+        <span class="txt-fr">Présences & Retards</span>
+        <span class="txt-en">Attendance & Lateness</span>
+        <span class="txt-ar">الحضور والتأخير</span>
+      </a>
+      <a href="saisie-notes.html" class="lien-nav">
+        <i class="bi bi-pencil-square"></i>
+        <span class="txt-fr">Saisie des Notes</span>
+        <span class="txt-en">Enter Grades</span>
+        <span class="txt-ar">إدخال الدرجات</span>
+      </a>
+      <a href="devoirs.html" class="lien-nav">
+        <i class="bi bi-journal-text"></i>
+        <span class="txt-fr">Devoirs & Examens</span>
+        <span class="txt-en">Homework & Exams</span>
+        <span class="txt-ar">الواجبات والامتحانات</span>
+      </a>
+      <a href="messages.html" class="lien-nav">
+        <i class="bi bi-chat-dots"></i>
+        <span class="txt-fr">Messages</span>
+        <span class="txt-en">Messages</span>
+        <span class="txt-ar">الرسائل</span>
+      </a>
+    </nav>
+  </aside>
+
+  <main class="contenu-principal">
+    <div class="barre-haut">
+      <div class="titre-section">
+        <h4 class="mb-0">
+          <span class="txt-fr">Gestion des Présences</span>
+          <span class="txt-en">Attendance Management</span>
+          <span class="txt-ar">إدارة الحضور</span>
+        </h4>
+        <small class="text-muted">
+          <span class="txt-fr">Enregistrer présences, absences et retards</span>
+          <span class="txt-en">Record present, absent and late status</span>
+          <span class="txt-ar">تسجيل حالات الحضور والغياب والتأخير</span>
+        </small>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn-langue" data-lang="fr">FR</button>
+        <button class="btn-langue" data-lang="en">EN</button>
+        <button class="btn-langue" data-lang="ar">AR</button>
+        <i class="bi bi-person-circle fs-4 ms-2"></i>
+        <span id="nom-prof"></span>
+        <button class="btn btn-deco ms-2" onclick="deconnexion()">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="txt-fr">Déconnexion</span>
+          <span class="txt-en">Logout</span>
+          <span class="txt-ar">تسجيل الخروج</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 🔽 FILTRES -->
+    <div class="carte">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">🏫 Classe</span>
+            <span class="txt-en">🏫 Class</span>
+            <span class="txt-ar">🏫 القسم</span>
+          </label>
+          <select id="id_classe" class="form-select" onchange="chargerListeEleves()">
+            <option value="">
+              <span class="txt-fr">-- Chargement... --</span>
+              <span class="txt-en">-- Loading... --</span>
+              <span class="txt-ar">-- جار التحميل... --</span>
+            </option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">📅 Date</span>
+            <span class="txt-en">📅 Date</span>
+            <span class="txt-ar">📅 التاريخ</span>
+          </label>
+          <input type="date" id="date-presence" class="form-control">
+        </div>
+        <div class="col-md-4 d-flex align-items-end gap-2">
+          <button class="btn btn-orange flex-grow-1" onclick="chargerPresences()">
+            <i class="bi bi-search"></i>
+            <span class="txt-fr"> Charger</span>
+            <span class="txt-en"> Load</span>
+            <span class="txt-ar"> تحميل</span>
+          </button>
+          <button class="btn btn-vert" onclick="enregistrerTout()">
+            <i class="bi bi-save"></i>
+            <span class="txt-fr"> Sauvegarder</span>
+            <span class="txt-en"> Save</span>
+            <span class="txt-ar"> حفظ</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📊 LÉGENDE -->
+    <div class="alert alert-info py-2">
+      <span class="txt-fr">✅ Présent · ❌ Absent · ⚠️ En retard</span>
+      <span class="txt-en">✅ Present · ❌ Absent · ⚠️ Late</span>
+      <span class="txt-ar">✅ حاضر · ❌ غائب · ⚠️ متأخر</span>
+    </div>
+
+    <!-- 📋 TABLEAU PRÉSENCES -->
+    <div class="carte">
+      <h5 class="mb-3 titre-section">
+        <span class="txt-fr">Liste des Élèves — Présences du jour</span>
+        <span class="txt-en">Student List — Daily Attendance</span>
+        <span class="txt-ar">قائمة التلاميذ — سجل الحضور اليومي</span>
+      </h5>
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th class="text-center">#</th>
+              <th>
+                <span class="txt-fr">Élève</span>
+                <span class="txt-en">Student</span>
+                <span class="txt-ar">التلميذ</span>
+              </th>
+              <th class="text-center statut-eleve">
+                <span class="txt-fr">Statut</span>
+                <span class="txt-en">Status</span>
+                <span class="txt-ar">الحالة</span>
+              </th>
+              <th class="text-center">
+                <span class="txt-fr">Observation / Motif</span>
+                <span class="txt-en">Observation / Reason</span>
+                <span class="txt-ar">ملاحظات / السبب</span>
+              </th>
+              <th class="text-center">✅</th>
+            </tr>
+          </thead>
+          <tbody id="corps-tableau">
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">
+                <span class="txt-fr">Sélectionne une Classe → la liste se charge automatiquement</span>
+                <span class="txt-en">Select a Class → list loads automatically</span>
+                <span class="txt-ar">اختر القسم → يتم التحميل تلقائيا</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 📊 STATISTIQUES DU JOUR -->
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="carte text-center">
+          <div class="display-4 fw-bold text-success" id="stat-present">0</div>
+          <div class="text-muted">
+            <span class="txt-fr">Présents</span>
+            <span class="txt-en">Present</span>
+            <span class="txt-ar">الحضور</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="carte text-center">
+          <div class="display-4 fw-bold text-danger" id="stat-absent">0</div>
+          <div class="text-muted">
+            <span class="txt-fr">Absents</span>
+            <span class="txt-en">Absent</span>
+            <span class="txt-ar">الغياب</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="carte text-center">
+          <div class="display-4 fw-bold text-warning" id="stat-retard">0</div>
+          <div class="text-muted">
+            <span class="txt-fr">En retard</span>
+            <span class="txt-en">Late</span>
+            <span class="txt-ar">التأخير</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ✅ SÉCURITÉ
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+const API_BASE = "/api";
+
+if(!token || role !== 'prof'){
+  alert("⛔ Accès réservé aux Enseignants — Reconnecte-toi");
+  localStorage.clear();
+  location.href = '/connexion.html';
+}
+
+document.getElementById('nom-prof').textContent = localStorage.getItem('nom') || 'Enseignant';
+
+// 🗣️ GESTION DE LA LANGUE
+function appliquerLangue(lang) {
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-'+lang);
+  localStorage.setItem('langue', lang);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-lang="${lang}"]`)?.classList.add('active');
+}
+
+// ✅ Restaurer langue sauvegardée
+const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+appliquerLangue(langueSauvegardee);
+document.querySelectorAll('.btn-langue').forEach(btn => {
+  btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
+});
+
+// ✅ Date du jour par défaut
+document.getElementById('date-presence').valueAsDate = new Date();
+
+let listeEleves = [];
+
+// 🚀 AU CHARGEMENT → charger mes classes
+window.onload = chargerMesClasses;
+
+// 📥 CHARGER MES CLASSES
+async function chargerMesClasses() {
+  try {
+    const r = await fetch(`${API_BASE}/notes/mes-classes-matieres`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const res = await r.json();
+    const sel = document.getElementById('id_classe');
+    
+    if (res.ok && res.classes?.length > 0) {
+      sel.innerHTML = '<option value="">-- Sélectionner --</option>' +
+        res.classes.map(c => `<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('');
+    } else {
+      sel.innerHTML = '<option value="">-- Aucune classe assignée --</option>';
+    }
+  } catch(e) {
+    console.error("❌ Erreur chargement classes :", e);
+    document.getElementById('id_classe').innerHTML = '<option value="">-- Erreur chargement --</option>';
+  }
+}
+
+// 📥 CHARGER LA LISTE DES ÉLÈVES DE LA CLASSE SÉLECTIONNÉE
+async function chargerListeEleves() {
+  const id_classe = document.getElementById('id_classe').value;
+  if (!id_classe) {
+    document.getElementById('corps-tableau').innerHTML = `
+      <tr><td colspan="5" class="text-center text-muted py-4">
+        <span class="txt-fr">Sélectionne une Classe</span>
+        <span class="txt-en">Select a Class</span>
+        <span class="txt-ar">اختر القسم</span>
+      </td></tr>`;
+    listeEleves = [];
+    reinitialiserStats();
+    return;
+  }
+
+  try {
+    const r = await fetch(`${API_BASE}/notes/eleves-classe/${id_classe}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const res = await r.json();
+    
+    if (res.ok && res.eleves?.length > 0) {
+      listeEleves = res.eleves;
+      afficherTableau();
+    } else {
+      document.getElementById('corps-tableau').innerHTML = `
+        <tr><td colspan="5" class="text-center text-warning py-4">
+          <span class="txt-fr">⚠️ Aucun élève dans cette classe</span>
+          <span class="txt-en">⚠️ No student in this class</span>
+          <span class="txt-ar">⚠️ لا تلاميذ في هذا القسم</span>
+        </td></tr>`;
+      listeEleves = [];
+      reinitialiserStats();
+    }
+  } catch(e) {
+    console.error("❌ Erreur chargement élèves :", e);
+  }
+}
+
+// 📄 AFFICHER LE TABLEAU
+function afficherTableau() {
+  document.getElementById('corps-tableau').innerHTML = listeEleves.map((el, i) => `
+    <tr data-eleve="${el.id_utilisateur}">
+      <td class="fw-bold text-center">${i + 1}</td>
+      <td>${el.nom || ''} ${el.prenoms || ''}<br><small class="text-muted">${el.matricule || ''}</small></td>
+      <td class="text-center">
+        <div class="btn-group btn-group-sm" role="group">
+          <button type="button" class="btn btn-pr" data-statut="P" onclick="changerStatut(${el.id_utilisateur}, 'P')">✅</button>
+          <button type="button" class="btn btn-re" data-statut="R" onclick="changerStatut(${el.id_utilisateur}, 'R')">⚠️</button>
+          <button type="button" class="btn btn-ab" data-statut="A" onclick="changerStatut(${el.id_utilisateur}, 'A')">❌</button>
+        </div>
+        <span class="badge bg-secondary mt-1 d-block" id="badge-${el.id_utilisateur}">
+          <span class="txt-fr">Non saisi</span>
+          <span class="txt-en">Not set</span>
+          <span class="txt-ar">غير مسجل</span>
+        </span>
+      </td>
+      <td>
+        <input type="text" class="form-control form-control-sm" id="obs-${el.id_utilisateur}" placeholder="Observation...">
+      </td>
+      <td class="text-center" id="etat-${el.id_utilisateur}">💾</td>
+    </tr>`).join('');
+  reinitialiserStats();
+}
+
+// 🔄 CHANGER LE STATUT
+function changerStatut(idEleve, statut) {
+  const badge = document.getElementById(`badge-${idEleve}`);
+  const boutons = badge.parentElement.querySelectorAll('button');
+  boutons.forEach(b => b.classList.remove('active'));
+  badge.parentElement.querySelector(`[data-statut="${statut}"]`)?.classList.add('active');
+
+  // Mise à jour badge
+  if (statut === 'P') {
+    badge.className = 'badge badge-pr mt-1 d-block';
+    badge.innerHTML = `<span class="txt-fr">Présent</span><span class="txt-en">Present</span><span class="txt-ar">حاضر</span>`;
+  } else if (statut === 'A') {
+    badge.className = 'badge badge-ab mt-1 d-block';
+    badge.innerHTML = `<span class="txt-fr">Absent</span><span class="txt-en">Absent</span><span class="txt-ar">غائب</span>`;
+  } else if (statut === 'R') {
+    badge.className = 'badge badge-re mt-1 d-block';
+    badge.innerHTML = `<span class="txt-fr">En retard</span><span class="txt-en">Late</span><span class="txt-ar">متأخر</span>`;
+  }
+
+  // Enregistre le statut dans l'objet élève
+  const el = listeEleves.find(x => x.id_utilisateur === idEleve);
+  if (el) { 
+    el.statut = statut; 
+    document.getElementById(`etat-${idEleve}`).textContent = "⚠️";
+  }
+
+  mettreAJourStats();
+}
+
+// 📊 METTRE À JOUR LES STATISTIQUES
+function mettreAJourStats() {
+  const pres = listeEleves.filter(e => e.statut === 'P').length;
+  const abs = listeEleves.filter(e => e.statut === 'A').length;
+  const ret = listeEleves.filter(e => e.statut === 'R').length;
+  
+  document.getElementById('stat-present').textContent = pres;
+  document.getElementById('stat-absent').textContent = abs;
+  document.getElementById('stat-retard').textContent = ret;
+}
+
+function reinitialiserStats() {
+  document.getElementById('stat-present').textContent = '0';
+  document.getElementById('stat-absent').textContent = '0';
+  document.getElementById('stat-retard').textContent = '0';
+}
+
+// 📖 CHARGER LES PRÉSENCES DÉJÀ ENREGISTRÉES
+async function chargerPresences() {
+  const id_classe = document.getElementById('id_classe').value;
+  const date = document.getElementById('date-presence').value;
+
+  if (!id_classe || !date) {
+    alert("⚠️ Sélectionne Classe et Date d'abord !");
+    return;
+  }
+
+  try {
+    const r = await fetch(`${API_BASE}/presence/lire`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ id_classe, date })
+    });
+    const res = await r.json();
+    
+    if (res.ok && res.lignes) {
+      res.lignes.forEach(p => {
+        changerStatut(p.id_eleve, p.statut);
+        document.getElementById(`obs-${p.id_eleve}`).value = p.observation || '';
+      });
+      alert(`✅ ${res.lignes.length} enregistrements chargés !`);
+    }
+  } catch(e) {
+    console.error("❌ Erreur chargement présences :", e);
+  }
+}
+
+// 💾 ENREGISTRER TOUTES LES PRÉSENCES
+async function enregistrerTout() {
+  const id_classe = document.getElementById('id_classe').value;
+  const date = document.getElementById('date-presence').value;
+
+  if (!id_classe || !date || listeEleves.length === 0) {
+    alert("⚠️ Sélectionne Classe, Date et charge les élèves d'abord !");
+    return;
+  }
+
+  let okCount = 0;
+  for (const el of listeEleves) {
+    if (!el.statut) continue;
+
+    const observation = document.getElementById(`obs-${el.id_utilisateur}`)?.value || '';
+
+    try {
+      const r = await fetch(`${API_BASE}/presence/enregistrer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          id_eleve: el.id_utilisateur,
+          id_classe,
+          date,
+          statut: el.statut,
+          observation
+        })
+      });
+      const res = await r.json();
+      if (res.ok) {
+        okCount++;
+        document.getElementById(`etat-${el.id_utilisateur}`).textContent = "✅";
+      } else {
+        document.getElementById(`etat-${el.id_utilisateur}`).textContent = "❌";
+      }
+    } catch(e) {
+      document.getElementById(`etat-${el.id_utilisateur}`).textContent = "❌";
+    }
+  }
+
+  alert(`✅ ${okCount}/${listeEleves.length} présences enregistrées !`);
+}
+
+// ✅ DÉCONNEXION
+function deconnexion(){
+  localStorage.clear();
+  location.href = '/connexion.html';
+}
+</script>
+
+</body>
+</html>

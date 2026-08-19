@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administration — Calendrier Scolaire</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body { background: #f0f4f8; padding: 20px; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    h1 { color: #1e40af; margin-bottom: 25px; }
+    .barre { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    button { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .btn-ajouter { background: #16a34a; color: white; }
+    .btn-modif { background: #f59e0b; color: white; padding: 6px 12px; font-size: 14px; margin-right: 5px; }
+    .btn-suppr { background: #ef4444; color: white; padding: 6px 12px; font-size: 14px; }
+    .card { background: white; border-radius: 12px; padding: 18px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 5px solid; }
+    .cours { border-color: #22c55e; }
+    .vacances { border-color: #f59e0b; }
+    .ferie { border-color: #ef4444; }
+    .card h3 { color: #1e293b; margin-bottom: 6px; }
+    .card p { color: #64748b; font-size: 14px; margin-bottom: 4px; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-left: 8px; }
+    .badge.cours { background: #dcfce7; color: #166534; }
+    .badge.vacances { background: #fef3c7; color: #92400e; }
+    .badge.ferie { background: #fee2e2; color: #991b1b; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 100; }
+    .modal.active { display: flex; }
+    .modal-contenu { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 550px; max-height: 90vh; overflow-y: auto; }
+    .modal-contenu h2 { margin-bottom: 20px; color: #1e40af; }
+    input, select, textarea { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+    .ligne { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+    .btn-fermer { background: #e2e8f0; color: #334155; }
+    .btn-valider { background: #1e40af; color: white; }
+    .message { margin-top: 15px; padding: 10px; border-radius: 6px; display: none; }
+    .message.succes { background: #dcfce7; color: #166534; display: block; }
+    .message.erreur { background: #fee2e2; color: #991b1b; display: block; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>📅 Gestion du Calendrier Scolaire</h1>
+  <div class="barre">
+    <p id="compteur"></p>
+    <button class="btn-ajouter" onclick="ouvrirFormulaire()">➕ Ajouter une période</button>
+  </div>
+  <div id="liste"></div>
+</div>
+
+<div class="modal" id="formModal">
+  <div class="modal-contenu">
+    <h2 id="titreForm">Ajouter une période</h2>
+    <form id="formPeriode">
+      <input type="hidden" id="id">
+      <input type="text" id="periode" placeholder="Nom de la période *" required>
+      <div class="ligne">
+        <input type="date" id="date_debut" required>
+        <input type="date" id="date_fin" required>
+      </div>
+      <select id="type_periode" required>
+        <option value="">— Type —</option>
+        <option value="Cours">🟢 Cours</option>
+        <option value="Vacances">🟠 Vacances</option>
+        <option value="Jour férié">🔴 Jour férié</option>
+      </select>
+      <input type="text" id="annee_scolaire" placeholder="Année scolaire" value="2026-2027">
+      <textarea id="description_fr" rows="3" placeholder="Description (FR)"></textarea>
+      <textarea id="description_en" rows="2" placeholder="Description (EN)"></textarea>
+      <textarea id="description_ar" rows="2" placeholder="Description (AR)"></textarea>
+      <div class="actions">
+        <button type="button" class="btn-fermer" onclick="fermerFormulaire()">Annuler</button>
+        <button type="submit" class="btn-valider">Enregistrer</button>
+      </div>
+      <div class="message" id="message"></div>
+    </form>
+  </div>
+</div>
+
+<script>
+const API = '/api/calendrier';
+let listeCalendrier = [];
+
+async function chargerListe() {
+  const res = await fetch(`${API}/liste`);
+  const data = await res.json();
+  listeCalendrier = data.calendrier || [];
+  document.getElementById('compteur').textContent = `${listeCalendrier.length} période(s)`;
+  afficherListe();
+}
+
+function classeType(t) {
+  if (t === 'Cours') return 'cours';
+  if (t === 'Vacances') return 'vacances';
+  return 'ferie';
+}
+
+function afficherListe() {
+  const conteneur = document.getElementById('liste');
+  conteneur.innerHTML = '';
+  listeCalendrier.forEach(p => {
+    const classe = classeType(p.type_periode);
+    conteneur.innerHTML += `
+      <div class="card ${classe}">
+        <h3>${p.periode} <span class="badge ${classe}">${p.type_periode}</span></h3>
+        <p>📅 Du ${formatDate(p.date_debut)} au ${formatDate(p.date_fin)} — ${p.annee_scolaire}</p>
+        ${p.description_fr ? `<p>${p.description_fr}</p>` : ''}
+        <div style="margin-top:8px">
+          <button class="btn-modif" onclick="modifier(${p.id})">✏️ Modifier</button>
+          <button class="btn-suppr" onclick="supprimer(${p.id})">🗑️ Supprimer</button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function formatDate(d) {
+  return new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+}
+
+function ouvrirFormulaire() {
+  document.getElementById('formPeriode').reset();
+  document.getElementById('id').value = '';
+  document.getElementById('titreForm').textContent = 'Ajouter une période';
+  document.getElementById('annee_scolaire').value = '2026-2027';
+  document.getElementById('formModal').classList.add('active');
+}
+
+function modifier(id) {
+  const p = listeCalendrier.find(x => x.id === id);
+  Object.keys(p).forEach(k => {
+    const el = document.getElementById(k);
+    if (el) el.value = p[k] || '';
+  });
+  document.getElementById('titreForm').textContent = 'Modifier une période';
+  document.getElementById('formModal').classList.add('active');
+}
+
+function fermerFormulaire() {
+  document.getElementById('formModal').classList.remove('active');
+  document.getElementById('message').className = 'message';
+  document.getElementById('message').textContent = '';
+}
+
+document.getElementById('formPeriode').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = document.getElementById('id').value;
+  const donnees = {
+    periode: document.getElementById('periode').value,
+    date_debut: document.getElementById('date_debut').value,
+    date_fin: document.getElementById('date_fin').value,
+    type_periode: document.getElementById('type_periode').value,
+    annee_scolaire: document.getElementById('annee_scolaire').value,
+    description_fr: document.getElementById('description_fr').value,
+    description_en: document.getElementById('description_en').value,
+    description_ar: document.getElementById('description_ar').value
+  };
+
+  const url = id ? `${API}/${id}` : `${API}/ajouter`;
+  const methode = id ? 'PUT' : 'POST';
+  const res = await fetch(url, {
+    method: methode,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(donnees)
+  });
+  const rep = await res.json();
+
+  const msg = document.getElementById('message');
+  if (rep.ok) {
+    msg.className = 'message succes';
+    msg.textContent = id ? '✅ Période modifiée !' : '✅ Période ajoutée !';
+    await chargerListe();
+    setTimeout(fermerFormulaire, 1200);
+  } else {
+    msg.className = 'message erreur';
+    msg.textContent = `❌ ${rep.erreur}`;
+  }
+});
+
+async function supprimer(id) {
+  if (!confirm('Confirmer la suppression ?')) return;
+  await fetch(`${API}/${id}`, { method: 'DELETE' });
+  await chargerListe();
+}
+
+chargerListe();
+</script>
+</body>
+</html>

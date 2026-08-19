@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Classes & Matières — Administration</span>
+    <span class="txt-en">Classes & Subjects — Administration</span>
+    <span class="txt-ar">المستويات والمواد — الإدارة</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b;
+      --orange-clair: #fbbf24;
+      --valide: #10b981;
+      --action: #3b82f6;
+      --suppr: #ef4444;
+      --texte: #f8fafc;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;transition:all 0.25s ease}
+    body{background:var(--sombre);color:var(--texte);min-height:100vh;font-family:'Segoe UI',sans-serif}
+
+    @keyframes bordTourne {
+      0%{transform:rotate(0deg)}
+      100%{transform:rotate(360deg)}
+    }
+    .btn-anim-orange{position:relative;background:var(--sombre-clair);color:var(--texte);border:none;border-radius:10px;overflow:hidden;z-index:1}
+    .btn-anim-orange::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(transparent,var(--bord-orange),transparent 30%);animation:bordTourne 2.5s linear infinite;z-index:-2}
+    .btn-anim-orange::after{content:'';position:absolute;inset:2px;background:var(--sombre-clair);border-radius:8px;z-index:-1}
+    .btn-anim-orange:hover{color:var(--orange-clair);box-shadow:0 0 15px rgba(245,158,11,0.4)}
+
+    .btn-valide-lumineux{background:var(--valide);color:white;border-radius:8px;box-shadow:0 0 12px rgba(16,185,129,0.35);border:none}
+    .btn-valide-lumineux:hover{box-shadow:0 0 20px rgba(16,185,129,0.6);transform:translateY(-1px)}
+    .btn-action-lumineux{background:var(--action);color:white;border-radius:8px;box-shadow:0 0 12px rgba(59,130,246,0.35);border:none}
+    .btn-action-lumineux:hover{box-shadow:0 0 20px rgba(59,130,246,0.6);transform:translateY(-1px)}
+    .btn-suppr-lumineux{background:var(--suppr);color:white;border-radius:8px;box-shadow:0 0 12px rgba(239,68,68,0.35);border:none}
+    .btn-suppr-lumineux:hover{box-shadow:0 0 20px rgba(239,68,68,0.6);transform:translateY(-1px)}
+
+    .entete-page{background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.5rem 0}
+    .carte-gestion{background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);padding:1.25rem;margin-bottom:1.5rem}
+    .form-control,.form-select{background:#0f172a;border:1px solid #334155;color:white;border-radius:8px}
+    .form-control:focus,.form-select:focus{background:#0f172a;border-color:var(--bord-orange);color:white;box-shadow:0 0 0 0.25rem rgba(245,158,11,0.25)}
+    .barre-langue{display:flex;gap:0.75rem;justify-content:center;margin-bottom:2rem}
+    .menu-fixed{position:fixed;bottom:2rem;right:2rem;z-index:999}
+
+    /* ✅ LANGUE — Harmonisé avec tes autres pages */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+
+    body.lang-en { direction: ltr; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+
+    body.lang-ar { direction: rtl; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+  </style>
+</head>
+<body class="lang-fr">
+
+<script>
+// 🔒 SÉCURITÉ — SEUL L'ADMIN PEUT ACCÉDER
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+if(!token || role !== 'admin'){
+  alert("⛔ Accès réservé à l'Administrateur");
+  localStorage.clear();
+  location.href='dashboard.html';
+}
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+</script>
+
+<div class="entete-page">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div>
+      <h3 class="mb-1"><i class="bi bi-building me-2" style="color:var(--bord-orange)"></i>
+        <span class="txt-fr">🏫 Classes & Matières</span>
+        <span class="txt-en">🏫 Classes & Subjects</span>
+        <span class="txt-ar">🏫 المستويات والمواد</span>
+      </h3>
+      <p class="mb-0 opacity-80">
+        <span class="txt-fr">Ajouter / Modifier / Supprimer / Consulter</span>
+        <span class="txt-en">Add / Edit / Delete / View</span>
+        <span class="txt-ar">إضافة / تعديل / حذف / عرض</span>
+      </p>
+    </div>
+    <a href="dashboard.html" class="btn btn-anim-orange px-4 py-2">
+      <i class="bi bi-arrow-left"></i>
+      <span class="txt-fr"> Retour</span>
+      <span class="txt-en"> Back</span>
+      <span class="txt-ar"> عودة</span>
+    </a>
+  </div>
+</div>
+
+<div class="container py-4">
+  <div class="barre-langue">
+    <button class="btn btn-anim-orange px-4 py-2 active" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
+    <button class="btn btn-anim-orange px-4 py-2" onclick="changerLangue('ar')" id="btn-ar">🇸🇦 AR</button>
+    <button class="btn btn-anim-orange px-4 py-2" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
+  </div>
+
+  <div class="row g-4">
+    <!-- 📚 FORMULAIRE CLASSE — TOUS LES CHAMPS -->
+    <div class="col-md-6">
+      <div class="carte-gestion">
+        <h5 class="mb-3">
+          <span class="txt-fr">📚 Ajouter une Classe</span>
+          <span class="txt-en">📚 Add New Class</span>
+          <span class="txt-ar">📚 إضافة مستوى دراسي</span>
+        </h5>
+        <form id="formClasse">
+          <input type="hidden" name="id_classe" id="edit-id-classe">
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Nom de la Classe *</span>
+              <span class="txt-en">Class Name *</span>
+              <span class="txt-ar">اسم المستوى *</span>
+            </label>
+            <input type="text" name="libelle_classe" id="edit-libelle" class="form-control" placeholder="Ex: CP1" required>
+          </div>
+          <!-- ✅ CHAMP CYCLE -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Cycle / Niveau *</span>
+              <span class="txt-en">Level / Cycle *</span>
+              <span class="txt-ar">المرحلة الدراسية *</span>
+            </label>
+            <select name="cycle" id="edit-cycle" class="form-select" required>
+              <option value="">-- Choisir --</option>
+              <option value="maternelle">Maternelle</option>
+              <option value="primaire">Primaire</option>
+              <option value="college">Collège</option>
+              <option value="lycee">Lycée</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Capacité Maximum * (10 à 80)</span>
+              <span class="txt-en">Max Capacity * (10–80)</span>
+              <span class="txt-ar">السعة القصوى * (10–80)</span>
+            </label>
+            <input type="number" name="capacite_max" id="edit-capacite" class="form-control" value="30" min="10" max="80" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Salle</span>
+              <span class="txt-en">Room</span>
+              <span class="txt-ar">القاعة</span>
+            </label>
+            <input type="text" name="salle" id="edit-salle" class="form-control" placeholder="Ex: Salle 1">
+          </div>
+          <!-- ✅ CHAMP STATUT -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Statut</span>
+              <span class="txt-en">Status</span>
+              <span class="txt-ar">الحالة</span>
+            </label>
+            <select name="statut" id="edit-statut" class="form-select">
+              <option value="ouverte">Ouverte</option>
+              <option value="complete">Complète</option>
+              <option value="fermee">Fermée</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-valide-lumineux w-100 py-2" id="btn-classe">
+            <i class="bi bi-floppy2-fill me-1"></i>
+            <span class="txt-fr">Enregistrer</span>
+            <span class="txt-en"> Save</span>
+            <span class="txt-ar"> حفظ</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 📖 FORMULAIRE MATIÈRE -->
+    <div class="col-md-6">
+      <div class="carte-gestion">
+        <h5 class="mb-3">
+          <span class="txt-fr">📖 Ajouter une Matière</span>
+          <span class="txt-en">📖 Add Subject</span>
+          <span class="txt-ar">📖 إضافة مادة دراسية</span>
+        </h5>
+        <form id="formMatiere">
+          <input type="hidden" name="id_matiere" id="edit-id-mat">
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Nom de la Matière *</span>
+              <span class="txt-en">Subject Name *</span>
+              <span class="txt-ar">اسم المادة *</span>
+            </label>
+            <input type="text" name="libelle_matiere" id="edit-nom-mat" class="form-control" placeholder="Ex: Mathématiques" required>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-md-4">
+              <label class="form-label fw-bold">
+                <span class="txt-fr">Coefficient</span>
+                <span class="txt-en">Coeff.</span>
+                <span class="txt-ar">المعامل</span>
+              </label>
+              <input type="number" name="coefficient" id="edit-coef" class="form-control" value="1" min="1" step="0.5">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">
+                <span class="txt-fr">Vol. Horaire</span>
+                <span class="txt-en">Hours/Week</span>
+                <span class="txt-ar">الحصة</span>
+              </label>
+              <input type="number" name="volume_horaire" id="edit-vol" class="form-control" value="3" min="0">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">
+                <span class="txt-fr">Langue</span>
+                <span class="txt-en">Language</span>
+                <span class="txt-ar">اللغة</span>
+              </label>
+              <select name="langue_ens" id="edit-langue" class="form-select">
+                <option value="fr">🇫🇷 FR</option>
+                <option value="ar">🇸🇦 AR</option>
+                <option value="en">🇬🇧 EN</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-valide-lumineux w-100 py-2" id="btn-mat">
+            <i class="bi bi-floppy2-fill me-1"></i>
+            <span class="txt-fr">Enregistrer</span>
+            <span class="txt-en"> Save</span>
+            <span class="txt-ar"> حفظ</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-5">
+    <h4 class="mb-3">
+      <span class="txt-fr">📋 Liste des Classes & Matières</span>
+      <span class="txt-en">📋 Classes & Subjects List</span>
+      <span class="txt-ar">📋 قائمة المستويات والمواد</span>
+    </h4>
+    <div id="liste-complete" class="row g-3">
+      <div class="col-12 text-center py-5 text-muted">
+        <span class="txt-fr">Chargement...</span>
+        <span class="txt-en">Loading...</span>
+        <span class="txt-ar">جار التحميل...</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="menu-fixed">
+  <a href="deconnexion.html" class="btn btn-suppr-lumineux px-4 py-2">
+    <i class="bi bi-box-arrow-right"></i>
+    <span class="txt-fr"> Déconnexion</span>
+    <span class="txt-en"> Logout</span>
+    <span class="txt-ar"> خروج</span>
+  </a>
+</div>
+
+<script>
+// 🌐 CHANGEMENT DE LANGUE
+let langueActuelle = localStorage.getItem('langue') || 'fr';
+function changerLangue(lang){
+  langueActuelle = lang;
+  document.body.className = 'lang-' + lang;
+  localStorage.setItem('langue', lang);
+  document.querySelectorAll('.barre-langue button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('btn-'+lang).classList.add('active');
+}
+document.body.className = 'lang-' + langueActuelle;
+
+// 📤 ENREGISTRER CLASSE (AJOUT ou MODIFICATION)
+document.getElementById('formClasse').addEventListener('submit', async e => {
+  e.preventDefault();
+  const d = Object.fromEntries(new FormData(e.target));
+  d.capacite_max = Number(d.capacite_max);
+
+  // ✅ Validation contrainte base : 10 à 80
+  if(d.capacite_max < 10 || d.capacite_max > 80){
+    alert(langueActuelle==='ar'?"السعة يجب أن تكون بين 10 و 80":
+          langueActuelle==='en'?"Capacity must be between 10 and 80":
+          "⚠️ Capacité doit être entre 10 et 80");
+    return;
+  }
+
+  const estModif = !!d.id_classe;
+  const url = estModif ? `${API_URL}/classes/${d.id_classe}` : `${API_URL}/classes/`;
+  const methode = estModif ? 'PUT' : 'POST';
+  delete d.id_classe;
+
+  try {
+    const r = await fetch(url, {
+      method: methode,
+      headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body: JSON.stringify(d)
+    });
+    const res = await r.json();
+
+    if(res.ok) {
+      alert(langueActuelle==='ar'?"✅ تم الحفظ":langueActuelle==='en'?"✅ Saved":"✅ Classe enregistrée !");
+      e.target.reset();
+      document.getElementById('edit-id-classe').value='';
+      document.getElementById('btn-classe').innerHTML='<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span><span class="txt-en">Save</span><span class="txt-ar">حفظ</span>';
+      chargerListe();
+    } else {
+      alert("❌ " + (res.erreur || "Erreur"));
+    }
+  } catch {
+    alert(langueActuelle==='ar'?"❌ خطأ في الاتصال":langueActuelle==='en'?"❌ Network Error":"❌ Erreur Réseau");
+  }
+});
+
+// 📤 ENREGISTRER MATIÈRE
+document.getElementById('formMatiere').addEventListener('submit', async e => {
+  e.preventDefault();
+  const d = Object.fromEntries(new FormData(e.target));
+  d.coefficient = Number(d.coefficient);
+  d.volume_horaire = Number(d.volume_horaire);
+
+  const estModif = !!d.id_matiere;
+  const url = estModif ? `${API_URL}/matieres/${d.id_matiere}` : `${API_URL}/matieres/ajouter`;
+  const methode = estModif ? 'PUT' : 'POST';
+  delete d.id_matiere;
+
+  try {
+    const r = await fetch(url, {
+      method: methode,
+      headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body: JSON.stringify(d)
+    });
+    const res = await r.json();
+
+    if(res.ok) {
+      alert(langueActuelle==='ar'?"✅ تم الحفظ":langueActuelle==='en'?"✅ Saved":"✅ Matière enregistrée !");
+      e.target.reset();
+      document.getElementById('edit-id-mat').value='';
+      document.getElementById('btn-mat').innerHTML='<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span><span class="txt-en">Save</span><span class="txt-ar">حفظ</span>';
+      chargerListe();
+    } else {
+      alert("❌ " + (res.erreur || "Erreur"));
+    }
+  } catch {
+    alert(langueActuelle==='ar'?"❌ خطأ في الاتصال":langueActuelle==='en'?"❌ Network Error":"❌ Erreur Réseau");
+  }
+});
+
+// 📋 CHARGER LISTE COMPLÈTE
+async function chargerListe(){
+  try {
+    const [cl, mt] = await Promise.all([
+      fetch(`${API_URL}/classes/`,{headers:{'Authorization':`Bearer ${token}`}}).then(x=>x.json()),
+      fetch(`${API_URL}/matieres/`,{headers:{'Authorization':`Bearer ${token}`}}).then(x=>x.json())
+    ]);
+
+    let html = '';
+
+    // 📚 AFFICHER CLASSES — AVEC CYCLE + STATUT
+    if(cl.ok && cl.lignes?.length>0){
+      html += `<div class="col-md-6"><h5 class="mb-3">📚 Classes</h5>`;
+      html += cl.lignes.map(x => {
+        const statutBadge = x.statut === 'ouverte' ? 'bg-success' : x.statut === 'complete' ? 'bg-primary' : 'bg-secondary';
+        return `
+        <div class="carte-gestion d-flex justify-content-between align-items-center">
+          <div>
+            <strong>${x.libelle_classe}</strong>
+            <span class="opacity-75 ms-2">(${x.cycle || '—'} • ${x.capacite_max} pl)</span>
+            ${x.salle?`<span class="badge bg-info text-dark ms-1">${x.salle}</span>`:''}
+            <span class="badge ${statutBadge} ms-1">${x.statut || 'ouverte'}</span>
+          </div>
+          <div class="d-flex gap-1">
+            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick="modifierClasse(${x.id_classe},'${(x.libelle_classe||'').replace(/'/g,"\\'")}','${x.cycle||''}',${x.capacite_max},'${(x.salle||'').replace(/'/g,"\\'")}','${x.statut||'ouverte'}')">✏️</button>
+            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerClasse(${x.id_classe})">🗑️</button>
+          </div>
+        </div>`;
+      }).join('');
+      html += `</div>`;
+    }
+
+    // 📖 AFFICHER MATIÈRES
+    if(mt.ok && mt.lignes?.length>0){
+      html += `<div class="col-md-6"><h5 class="mb-3">📖 Matières</h5>`;
+      html += mt.lignes.map(x => `
+        <div class="carte-gestion d-flex justify-content-between align-items-center">
+          <div>
+            <strong>${x.libelle_matiere}</strong>
+            <span class="opacity-75 ms-2">(Coef: ${x.coefficient})</span>
+            <span class="badge bg-info text-dark ms-1">${(x.langue_ens||'FR').toUpperCase()}</span>
+          </div>
+          <div class="d-flex gap-1">
+            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick="modifierMatiere(${x.id_matiere},'${(x.libelle_matiere||'').replace(/'/g,"\\'")}',${x.coefficient},${x.volume_horaire||0},'${x.langue_ens||'fr'}')">✏️</button>
+            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerMatiere(${x.id_matiere})">🗑️</button>
+          </div>
+        </div>`).join('');
+      html += `</div>`;
+    }
+
+    document.getElementById('liste-complete').innerHTML = html || `<div class="col-12 text-center opacity-75 py-5">
+      <span class="txt-fr">Aucune donnée — Ajoute une classe ou une matière !</span>
+      <span class="txt-en">No data — Add a class or subject!</span>
+      <span class="txt-ar">لا توجد بيانات — أضف مستوى أو مادة!</span>
+    </div>`;
+  } catch {
+    document.getElementById('liste-complete').innerHTML = `<div class="col-12 text-center text-danger py-5">
+      <span class="txt-fr">❌ Erreur de chargement</span>
+      <span class="txt-en">❌ Loading Error</span>
+      <span class="txt-ar">❌ خطأ في التحميل</span>
+    </div>`;
+  }
+}
+
+// ✏️ MODIFIER CLASSE — AVEC CYCLE + STATUT
+window.modifierClasse = function(id, libelle, cycle, capacite, salle, statut){
+  document.getElementById('edit-id-classe').value = id;
+  document.getElementById('edit-libelle').value = libelle;
+  document.getElementById('edit-cycle').value = cycle;
+  document.getElementById('edit-capacite').value = capacite;
+  document.getElementById('edit-salle').value = salle;
+  document.getElementById('edit-statut').value = statut;
+  document.getElementById('btn-classe').innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+
+// ❌ SUPPRIMER CLASSE
+window.supprimerClasse = async function(id){
+  const conf = langueActuelle==='ar'?"حذف هذه المستوى ؟":
+               langueActuelle==='en'?"Delete this class?":
+               "⚠️ Supprimer cette classe ?";
+  if(!confirm(conf)) return;
+  try {
+    const r = await fetch(`${API_URL}/classes/${id}`, {method:'DELETE', headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    alert(res.ok ? "✅ Classe supprimée !" : "❌ " + (res.erreur||"Erreur"));
+    chargerListe();
+  } catch { alert("❌ Erreur Réseau"); }
+};
+
+// ✏️ MODIFIER MATIÈRE
+window.modifierMatiere = function(id, libelle, coef, vol, langue){
+  document.getElementById('edit-id-mat').value = id;
+  document.getElementById('edit-nom-mat').value = libelle;
+  document.getElementById('edit-coef').value = coef;
+  document.getElementById('edit-vol').value = vol;
+  document.getElementById('edit-langue').value = langue;
+  document.getElementById('btn-mat').innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+
+// ❌ SUPPRIMER MATIÈRE
+window.supprimerMatiere = async function(id){
+  const conf = langueActuelle==='ar'?"حذف هذه المادة ؟":
+               langueActuelle==='en'?"Delete this subject?":
+               "⚠️ Supprimer cette matière ?";
+  if(!confirm(conf)) return;
+  try {
+    const r = await fetch(`${API_URL}/matieres/${id}`, {method:'DELETE', headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    alert(res.ok ? "✅ Matière supprimée !" : "❌ " + (res.erreur||"Erreur"));
+    chargerListe();
+  } catch { alert("❌ Erreur Réseau"); }
+};
+
+// 🚀 AU CHARGEMENT
+chargerListe();
+</script>
+</body>
+</html>

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Espace Parent — MAMA-ZOUMANA</span>
+    <span class="txt-en">Parent Portal — MAMA-ZOUMANA</span>
+    <span class="txt-ar">مساحة ولي الأمر — ماما زومانا</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --succes: #10b981;
+      --info: #3b82f6;
+      --alerte: #f59e0b;
+      --danger: #ef4444;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --texte-clair: #f8fafc;
+      --texte-dore: #fbbf24;
+    }
+
+    .txt-en,.txt-ar{display:none}
+    body.lang-fr .txt-fr{display:inline}
+    body.lang-fr .txt-en,body.lang-fr .txt-ar{display:none}
+    body.lang-en .txt-en{display:inline}
+    body.lang-en .txt-fr,body.lang-en .txt-ar{display:none}
+    body.lang-ar .txt-ar{display:inline}
+    body.lang-ar .txt-fr,body.lang-ar .txt-en{display:none}
+    body.lang-ar .titre-section,body.lang-ar .text-end-ar{text-align:right}
+
+    body {
+      background: linear-gradient(135deg, var(--sombre), var(--sombre-clair));
+      color: var(--texte-clair);
+      min-height: 100vh;
+    }
+
+    .carte {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      transition: all 0.3s ease;
+    }
+    .carte:hover {
+      border-color: var(--alerte);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.15);
+    }
+
+    .carte-enfant {
+      border-left: 4px solid var(--primaire);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .carte-enfant.active, .carte-enfant:hover {
+      border-left-color: var(--alerte);
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    .btn-primaire { background: linear-gradient(135deg, var(--primaire), #0369a1); border:none; color:white; }
+    .btn-primaire:hover { background: linear-gradient(135deg, #0369a1, var(--primaire)); color:white; }
+    .btn-succes { background: linear-gradient(135deg, var(--succes), #059669); border:none; color:white; }
+    .btn-info { background: linear-gradient(135deg, var(--info), #2563eb); border:none; color:white; }
+    .btn-accent { background: linear-gradient(135deg, var(--alerte), #d97706); border:none; color:#000; font-weight:500; }
+
+    .titre-section { color: var(--texte-dore); font-weight:600; }
+
+    .form-control,.form-select {
+      background: rgba(15,23,42,0.6);
+      border:1px solid rgba(245,158,11,0.25);
+      color:var(--texte-clair);
+      border-radius:10px;
+    }
+    .form-control:focus,.form-select:focus {
+      background:rgba(15,23,42,0.8); border-color:var(--alerte); color:var(--texte-clair);
+      box-shadow:0 0 0 .25rem rgba(245,158,11,.15);
+    }
+
+    .onglet {
+      padding: 10px 20px;
+      border-radius: 10px 10px 0 0;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+    }
+    .onglet:hover { color: white; background: rgba(255,255,255,0.05); }
+    .onglet.active {
+      background: rgba(12, 74, 110, 0.6);
+      color: var(--texte-dore);
+      font-weight: 600;
+      border-bottom: 2px solid var(--alerte);
+    }
+
+    .contenu-onglet { display: none; }
+    .contenu-onglet.actif { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+    .badge-paye { background:#10b981; }
+    .badge-partiel { background:#f59e0b; color:#000; }
+    .badge-impaye { background:#ef4444; }
+
+    .montant { font-family:monospace; font-weight:600; }
+    .text-cfa::after { content:" F CFA"; font-size:.85rem; opacity:.8; margin-left:2px; }
+
+    .btn-lang { width:38px; height:38px; padding:0; font-size:14px; border-radius:50%; border:2px solid; display:flex; align-items:center; justify-content:center; }
+    .btn-lang.active { background:var(--alerte); color:#000; border-color:var(--alerte); }
+
+    .photo-eleve { width:60px; height:60px; border-radius:50%; object-fit:cover; border:3px solid var(--alerte); }
+  </style>
+</head>
+<body>
+
+<div class="container py-4">
+  <!-- 🌐 LANGUE & RETOUR -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="dashboard.html" class="btn btn-outline-light btn-sm">
+      <i class="bi bi-arrow-left-circle"></i>
+      <span class="txt-fr"> Retour</span>
+      <span class="txt-en"> Back</span>
+      <span class="txt-ar"> عودة</span>
+    </a>
+    <div class="d-flex gap-2">
+      <button class="btn btn-lang active" data-lang="fr">FR</button>
+      <button class="btn btn-lang" data-lang="en">EN</button>
+      <button class="btn btn-lang" data-lang="ar">ع</button>
+    </div>
+  </div>
+
+  <!-- 📌 EN-TÊTE -->
+  <div class="text-center mb-4">
+    <h3 class="titre-section mb-2">
+      <i class="bi bi-house-heart me-2"></i>
+      <span class="txt-fr">Mon Espace Parent</span>
+      <span class="txt-en">My Parent Portal</span>
+      <span class="txt-ar">مساحة ولي أمري</span>
+    </h3>
+    <p class="text-muted small">
+      <span class="txt-fr">Suivez la scolarité de vos enfants en temps réel</span>
+      <span class="txt-en">Track your children's education in real time</span>
+      <span class="txt-ar">تابع دراسة أبنائك في الوقت الفعلي</span>
+    </p>
+  </div>
+
+  <!-- 👶 SÉLECTION DE L'ENFANT -->
+  <div class="carte p-3 mb-4">
+    <h5 class="mb-3">
+      <i class="bi bi-people me-2"></i>
+      <span class="txt-fr">Mes Enfants</span>
+      <span class="txt-en">My Children</span>
+      <span class="txt-ar">أبنائي</span>
+    </h5>
+    <div id="listeEnfants" class="row g-3">
+      <div class="col-12 text-center text-muted py-3">
+        <div class="spinner-border text-warning spinner-sm"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📱 ONGLETS — AFFICHÉS APRÈS SÉLECTION -->
+  <div id="blocDetails" class="d-none">
+    <div class="d-flex flex-wrap gap-1 mb-3 border-bottom pb-1">
+      <button class="onglet active" data-onglet="notes">
+        <i class="bi bi-journal-check me-1"></i>
+        <span class="txt-fr">Notes & Bulletins</span>
+        <span class="txt-en">Grades & Reports</span>
+        <span class="txt-ar">الدرجات والشهادات</span>
+      </button>
+      <button class="onglet" data-onglet="edt">
+        <i class="bi bi-calendar-week me-1"></i>
+        <span class="txt-fr">Emploi du Temps</span>
+        <span class="txt-en">Timetable</span>
+        <span class="txt-ar">الجدول الزمني</span>
+      </button>
+      <button class="onglet" data-onglet="paiements">
+        <i class="bi bi-wallet2 me-1"></i>
+        <span class="txt-fr">Frais & Paiements</span>
+        <span class="txt-en">Fees & Payments</span>
+        <span class="txt-ar">الرسوم والمدفوعات</span>
+      </button>
+      <button class="onglet" data-onglet="infos">
+        <i class="bi bi-person-lines-fill me-1"></i>
+        <span class="txt-fr">Informations</span>
+        <span class="txt-en">Information</span>
+        <span class="txt-ar">المعلومات</span>
+      </button>
+    </div>
+
+    <!-- 📝 NOTES & BULLETINS -->
+    <div id="onglet-notes" class="contenu-onglet actif">
+      <div class="carte p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="titre-section mb-0">
+            <span class="txt-fr">Résultats Scolaires</span>
+            <span class="txt-en">Academic Results</span>
+            <span class="txt-ar">النتائج الدراسية</span>
+          </h5>
+          <select id="filtreTrimestre" class="form-select form-select-sm w-auto">
+            <option value="1">1er Trimestre</option>
+            <option value="2">2ème Trimestre</option>
+            <option value="3">3ème Trimestre</option>
+          </select>
+        </div>
+        <div id="listeNotes" class="table-responsive">
+          <table class="table table-dark table-striped table-hover">
+            <thead class="table-warning text-dark">
+              <tr>
+                <th><span class="txt-fr">Matière</span><span class="txt-en">Subject</span><span class="txt-ar">المادة</span></th>
+                <th class="text-center">Note 1</th>
+                <th class="text-center">Note 2</th>
+                <th class="text-center">Note 3</th>
+                <th class="text-center"><span class="txt-fr">Moyenne</span><span class="txt-en">Average</span><span class="txt-ar">المتوسط</span></th>
+              </tr>
+            </thead>
+            <tbody id="corpsNotes"><tr><td colspan="5" class="text-center text-muted">Chargement...</td></tr></tbody>
+          </table>
+        </div>
+        <div id="blocBulletin" class="mt-3 d-none">
+          <div class="alert alert-info">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <strong><span class="txt-fr">Moyenne Générale :</span> <span id="moyenneGen">—</span>/20</strong>
+                <span class="badge bg-success ms-2" id="mentionBulletin">—</span>
+              </div>
+              <button class="btn btn-sm btn-accent" onclick="voirBulletin()">
+                <i class="bi bi-file-earmark-text"></i>
+                <span class="txt-fr"> Voir Bulletin</span>
+                <span class="txt-en"> View Report</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📅 EMPLOI DU TEMPS -->
+    <div id="onglet-edt" class="contenu-onglet">
+      <div class="carte p-3">
+        <h5 class="titre-section mb-3">
+          <span class="txt-fr">Emploi du Temps</span>
+          <span class="txt-en">Weekly Timetable</span>
+          <span class="txt-ar">الجدول الأسبوعي</span>
+        </h5>
+        <div id="contenuEDT" class="table-responsive">
+          <p class="text-center text-muted">Chargement...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 💰 PAIEMENTS -->
+    <div id="onglet-paiements" class="contenu-onglet">
+      <div class="carte p-3">
+        <h5 class="titre-section mb-3">
+          <span class="txt-fr">Frais Scolaires & Paiements</span>
+          <span class="txt-en">School Fees & Payments</span>
+          <span class="txt-ar">الرسوم والمبالغ المدفوعة</span>
+        </h5>
+        <div id="resumePaiement" class="row g-2 mb-3">
+          <div class="col-md-4"><div class="bg-danger bg-opacity-25 p-2 rounded text-center"><span class="small txt-fr">Total Dû</span><h5 class="montant text-danger" id="fraisDu">—</h5></div></div>
+          <div class="col-md-4"><div class="bg-success bg-opacity-25 p-2 rounded text-center"><span class="small txt-fr">Déjà Payé</span><h5 class="montant text-success" id="fraisPaye">—</h5></div></div>
+          <div class="col-md-4"><div class="bg-warning bg-opacity-25 p-2 rounded text-center"><span class="small txt-fr">Restant</span><h5 class="montant text-warning" id="fraisRestant">—</h5></div></div>
+        </div>
+        <div id="listePaiementsParent"></div>
+      </div>
+    </div>
+
+    <!-- ℹ️ INFOS ÉLÈVE -->
+    <div id="onglet-infos" class="contenu-onglet">
+      <div class="carte p-3">
+        <h5 class="titre-section mb-3">
+          <span class="txt-fr">Informations de l'Élève</span>
+          <span class="txt-en">Student Information</span>
+          <span class="txt-ar">معلومات التلميذ</span>
+        </h5>
+        <div id="infosEleve"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+const token = localStorage.getItem('token');
+let idEleveActuel = null;
+let langueActuelle = 'fr';
+
+// 🌐 LANGUE
+document.querySelectorAll('.btn-lang').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.btn-lang').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    langueActuelle = btn.dataset.lang;
+    document.documentElement.className = `lang-${langueActuelle}`;
+    document.body.className = `lang-${langueActuelle}`;
+  });
+});
+
+// 📂 CHANGEMENT D'ONGLET
+document.querySelectorAll('.onglet').forEach(ong => {
+  ong.addEventListener('click', () => {
+    document.querySelectorAll('.onglet').forEach(o => o.classList.remove('active'));
+    ong.classList.add('active');
+    const nom = ong.dataset.onglet;
+    document.querySelectorAll('.contenu-onglet').forEach(c => c.classList.remove('actif'));
+    document.getElementById(`onglet-${nom}`).classList.add('actif');
+    if(nom==='notes') chargerNotes();
+    if(nom==='edt') chargerEDT();
+    if(nom==='paiements') chargerPaiements();
+  });
+});
+
+// 🚀 CHARGER LA LISTE DES ENFANTS
+async function chargerEnfants(){
+  const cont = document.getElementById('listeEnfants');
+  if(!token) { cont.innerHTML=`<div class="col-12 text-center text-danger"><p>Authentification requise</p></div>`; return; }
+  try{
+    const r = await fetch(`${API_URL}/mes-enfants`, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+    if(!res.enfants.length){
+      cont.innerHTML=`<div class="col-12 text-center text-muted py-3"><p>Aucun enfant associé à votre compte</p></div>`;
+      return;
+    }
+    cont.innerHTML = res.enfants.map(e => `
+      <div class="col-md-6 col-lg-4">
+        <div class="carte carte-enfant p-3" data-id="${e.id_utilisateur}" onclick="selectionnerEnfant(${e.id_utilisateur}, this)">
+          <div class="d-flex align-items-center gap-3">
+            <img src="${e.photo_profil||'https://via.placeholder.com/60'}" class="photo-eleve" alt="${e.nom}">
+            <div>
+              <h6 class="mb-1">${e.prenoms} ${e.nom}</h6>
+              <p class="text-muted small mb-0">${e.libelle_classe||'Classe non affectée'}</p>
+            </div>
+          </div>
+        </div>
+      </div>`).join('');
+  }catch(err){ cont.innerHTML=`<div class="col-12 text-center text-danger"><p>${err.message}</p></div>`; }
+}
+
+// 👶 SÉLECTIONNER UN ENFANT
+window.selectionnerEnfant = function(id, bloc){
+  idEleveActuel = id;
+  document.querySelectorAll('.carte-enfant').forEach(c => c.classList.remove('active'));
+  bloc.classList.add('active');
+  document.getElementById('blocDetails').classList.remove('d-none');
+  chargerNotes();
+};
+
+// 📝 CHARGER NOTES
+async function chargerNotes(){
+  if(!idEleveActuel) return;
+  const trim = document.getElementById('filtreTrimestre').value;
+  try{
+    const r = await fetch(`${API_URL}/notes/${idEleveActuel}?trimestre=${trim}`, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+    const tb = document.getElementById('corpsNotes');
+    if(!res.notes.length){ tb.innerHTML=`<tr><td colspan="5" class="text-center text-muted">Aucune note disponible pour ce trimestre</td></tr>`; return; }
+    tb.innerHTML = res.notes.map(n => `
+      <tr>
+        <td><strong>${n.libelle_matiere}</strong></td>
+        <td class="text-center">${n.note1??'—'}</td>
+        <td class="text-center">${n.note2??'—'}</td>
+        <td class="text-center">${n.note3??'—'}</td>
+        <td class="text-center fw-bold text-info">${n.moyenne??'—'}</td>
+      </tr>`).join('');
+    if(res.moyenne_generale){
+      document.getElementById('blocBulletin').classList.remove('d-none');
+      document.getElementById('moyenneGen').textContent = res.moyenne_generale;
+      document.getElementById('mentionBulletin').textContent = res.mention||'—';
+    }
+  }catch(err){ document.getElementById('corpsNotes').innerHTML=`<tr><td colspan="5" class="text-center text-danger">${err.message}</td></tr>`; }
+}
+
+// 📅 CHARGER EDT
+async function chargerEDT(){
+  if(!idEleveActuel) return;
+  try{
+    const r = await fetch(`${API_URL}/edt/${idEleveActuel}`, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+    document.getElementById('contenuEDT').innerHTML = res.html||`<pre>${JSON.stringify(res.seances,null,2)}</pre>`;
+  }catch(err){ document.getElementById('contenuEDT').innerHTML=`<p class="text-center text-danger">${err.message}</p>`; }
+}
+
+// 💰 CHARGER PAIEMENTS
+async function chargerPaiements(){
+  if(!idEleveActuel) return;
+  try{
+    const r = await fetch(`${API_URL}/paiements/${idEleveActuel}`, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur);
+    document.getElementById('fraisDu').textContent = format(res.totale);
+    document.getElementById('fraisPaye').textContent = format(res.paye);
+    document.getElementById('fraisRestant').textContent = format(res.restant);
+  }catch(err){ alert(err.message); }
+}
+
+// 🧾 VOIR BULLETIN
+window.voirBulletin = function(){ alert("📄 Le bulletin complet s'ouvrira ici en PDF/Impression"); };
+
+function format(m){ return new Intl.NumberFormat('fr-FR').format(parseFloat(m)||0)+' F CFA'; }
+
+// 🚀 INIT
+chargerEnfants();
+document.getElementById('filtreTrimestre').addEventListener('change',chargerNotes);
+</script>
+</body>
+</html>

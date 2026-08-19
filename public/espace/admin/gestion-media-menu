@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion Média & Menu — Admin MAMA-ZOUMANA</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b;
+      --fond-dore: #b78628;
+      --fond-dore-clair: #d4a03a;
+      --texte: #f8fafc;
+    }
+    body{background:linear-gradient(160deg,var(--fond-dore),var(--fond-dore-clair));color:var(--texte);min-height:100vh}
+    .entete{background:rgba(15,23,42,0.85);border-bottom:2px solid var(--bord-orange);padding:1.5rem 0}
+    .carte{background:rgba(15,23,42,0.9);border-radius:12px;padding:1.25rem;border-left:3px solid var(--bord-orange)}
+    .form-control,.form-select{background:rgba(15,23,42,0.95);border:1px solid #334155;color:white;border-radius:8px}
+    .barre-langue{display:flex;gap:0.75rem;justify-content:center;margin-bottom:2rem}
+    .nav-tabs .nav-link{background:transparent;color:var(--texte);border:1px solid rgba(245,158,11,0.3)}
+    .nav-tabs .nav-link.active{background:var(--bord-orange);color:var(--sombre);border-color:var(--bord-orange);font-weight:600}
+    [dir="rtl"]{font-family:'Segoe UI Tahoma',sans-serif}
+  </style>
+</head>
+<body>
+<script>
+if(!localStorage.getItem('token') || localStorage.getItem('role')!=='admin'){
+  alert("⛔ Accès réservé à l'Administrateur");
+  location.href='../connexion.html';
+}
+</script>
+
+<div class="entete">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div>
+      <h3 class="mb-1" id="titre-page">📸 Gestion Média & Menu</h3>
+      <p class="mb-0 opacity-80" id="sous-titre">Sorties scolaires, Cours vacances & Liens du menu</p>
+    </div>
+    <a href="dashboard.html" class="btn btn-outline-light">Retour</a>
+  </div>
+</div>
+
+<div class="container py-4">
+  <div class="barre-langue">
+    <button class="btn btn-outline-warning active" onclick="changerLangue('fr')">🇫🇷 Français</button>
+    <button class="btn btn-outline-warning" onclick="changerLangue('ar')">🇸🇦 العربية</button>
+    <button class="btn btn-outline-warning" onclick="changerLangue('en')">🇬🇧 English</button>
+  </div>
+
+  <ul class="nav nav-tabs mb-4" id="onglets">
+    <li class="nav-item"><button class="nav-link active" onclick="afficher('media')">📸 Galerie Média</button></li>
+    <li class="nav-item"><button class="nav-link" onclick="afficher('menu')">🧾 Menu Dynamique</button></li>
+  </ul>
+
+  <!-- 📸 ONGLET GALERIE -->
+  <div id="ong-media">
+    <div class="carte mb-4">
+      <h5 id="titre-ajout-media">Ajouter Image / Vidéo</h5>
+      <form id="formMedia" class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label" id="lbl-categorie">Catégorie</label>
+          <select name="categorie" class="form-select" required>
+            <option value="sortie_scolaire">Sortie Scolaire</option>
+            <option value="cours_vacances">Cours de Vacances</option>
+            <option value="evenement">Événement</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label" id="lbl-titre">Titre</label>
+          <input type="text" name="titre" class="form-control" required>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label" id="lbl-type">Type</label>
+          <select name="type_media" class="form-select" required>
+            <option value="image">Image</option>
+            <option value="video">Vidéo</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" id="lbl-chemin">Chemin du fichier</label>
+          <input type="text" name="chemin_fichier" class="form-control" placeholder="ex: galerie/sortie1.jpg" required>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-success" id="btn-enreg-media">Enregistrer le média</button>
+        </div>
+      </form>
+    </div>
+    <div class="carte">
+      <h5 id="titre-liste-media">Liste des médias enregistrés</h5>
+      <div id="liste-media"></div>
+    </div>
+  </div>
+
+  <!-- 🧾 ONGLET MENU -->
+  <div id="ong-menu" class="d-none">
+    <div class="carte mb-4">
+      <h5 id="titre-ajout-menu">Ajouter / Modifier un lien du menu</h5>
+      <form id="formMenu" class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">Libellé Français</label>
+          <input type="text" name="libelle_fr" class="form-control" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Libellé Arabe</label>
+          <input type="text" name="libelle_ar" class="form-control" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Libellé Anglais</label>
+          <input type="text" name="libelle_en" class="form-control" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Lien / Page</label>
+          <input type="text" name="lien" class="form-control" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Icône Bootstrap</label>
+          <input type="text" name="icone" class="form-control" placeholder="bi-house" value="bi-link-45deg">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Position</label>
+          <input type="number" name="position" class="form-control" value="1" min="1" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Affiché pour quel profil ?</label>
+          <select name="cible" class="form-select" required>
+            <option value="public">Tous / Public</option>
+            <option value="admin">Administrateur</option>
+            <option value="prof">Professeurs</option>
+            <option value="eleve">Élèves</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-success" id="btn-enreg-menu">Enregistrer le lien</button>
+        </div>
+      </form>
+    </div>
+    <div class="carte">
+      <h5 id="titre-liste-menu">Liens du menu actuels</h5>
+      <div id="liste-menu"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const txt = {
+  fr:{
+    titre:"📸 Gestion Média & Menu",
+    sous_titre:"Sorties scolaires, Cours vacances & Liens du menu",
+    ajout_media:"Ajouter Image / Vidéo",
+    categorie:"Catégorie",titre:"Titre",type:"Type",chemin:"Chemin du fichier",
+    enreg_media:"Enregistrer le média",liste_media:"Liste des médias enregistrés",
+    ajout_menu:"Ajouter / Modifier un lien du menu",enreg_menu:"Enregistrer le lien",
+    liste_menu:"Liens du menu actuels",confirmer:"Confirmer la suppression ?",ok:"✅ Enregistré",suppr_ok:"✅ Supprimé"
+  },
+  ar:{
+    titre:"📸 إدارة الوسائط والقائمة",
+    sous_titre:"الرحلات المدرسية ودورات العطلة وروابط القائمة",
+    ajout_media:"إضافة صورة / فيديو",
+    categorie:"التصنيف",titre:"العنوان",type:"النوع",chemin:"مسار الملف",
+    enreg_media:"حفظ الوسائط",liste_media:"قائمة الوسائط المحفوظة",
+    ajout_menu:"إضافة / تعديل رابط القائمة",enreg_menu:"حفظ الرابط",
+    liste_menu:"روابط القائمة الحالية",confirmer:"تأكيد الحذف ؟",ok:"✅ تم الحفظ",suppr_ok:"✅ تم الحذف"
+  },
+  en:{
+    titre:"📸 Media & Menu Management",
+    sous_titre:"School trips, Holiday courses & Menu links",
+    ajout_media:"Add Image / Video",
+    categorie:"Category",titre:"Title",type:"Type",chemin:"File path",
+    enreg_media:"Save media",liste_media:"Saved media list",
+    ajout_menu:"Add / Edit menu link",enreg_menu:"Save link",
+    liste_menu:"Current menu links",confirmer:"Confirm deletion ?",ok:"✅ Saved",suppr_ok:"✅ Deleted"
+  }
+};
+
+let langueActuelle='fr';
+function changerLangue(lg){
+  langueActuelle=lg;
+  document.querySelectorAll('.barre-langue button').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  const t=txt[lg];
+  document.getElementById('titre-page').textContent=t.titre;
+  document.getElementById('sous-titre').textContent=t.sous_titre;
+  document.getElementById('titre-ajout-media').textContent=t.ajout_media;
+  document.getElementById('lbl-categorie').textContent=t.categorie;
+  document.getElementById('lbl-titre').textContent=t.titre;
+  document.getElementById('lbl-type').textContent=t.type;
+  document.getElementById('lbl-chemin').textContent=t.chemin;
+  document.getElementById('btn-enreg-media').textContent=t.enreg_media;
+  document.getElementById('titre-liste-media').textContent=t.liste_media;
+  document.getElementById('titre-ajout-menu').textContent=t.ajout_menu;
+  document.getElementById('btn-enreg-menu').textContent=t.enreg_menu;
+  document.getElementById('titre-liste-menu').textContent=t.liste_menu;
+  document.documentElement.lang=lg;
+  document.body.dir=lg==='ar'?'rtl':'ltr';
+  charger();
+}
+
+function afficher(nom){
+  document.getElementById('ong-media').classList.toggle('d-none',nom!=='media');
+  document.getElementById('ong-menu').classList.toggle('d-none',nom!=='menu');
+  document.querySelectorAll('#onglets button').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  charger();
+}
+
+async function charger(){
+  const t=txt[langueActuelle];
+  // Charger Médias
+  const media = await fetch('/api/auth/media/liste',{headers:{'Authorization':`Bearer ${localStorage.getItem('token')}`}}).then(x=>x.json());
+  document.getElementById('liste-media').innerHTML = media.lignes.length ? media.lignes.map(x=>`
+    <div class="d-flex justify-content-between align-items-center p-2 mb-2 rounded" style="background:rgba(15,23,42,0.7)">
+      <span>${x.titre} · ${x.categorie.replace('_',' ')} · ${x.type_media}</span>
+      <button class="btn btn-danger btn-sm" onclick="supprMedia(${x.id})">✕</button>
+    </div>
+  `).join('') : `<div class="text-center opacity-75 py-3">Aucun média</div>`;
+
+  // Charger Menu
+  const menu = await fetch('/api/auth/menu/public').then(x=>x.json());
+  document.getElementById('liste-menu').innerHTML = menu.lignes.length ? menu.lignes.map(x=>`
+    <div class="d-flex justify-content-between align-items-center p-2 mb-2 rounded" style="background:rgba(15,23,42,0.7)">
+      <span><i class="bi ${x.icone}"></i> ${x.libelle_fr} → ${x.lien}</span>
+      <button class="btn btn-danger btn-sm" onclick="supprMenu(${x.id})">✕</button>
+    </div>
+  `).join('') : `<div class="text-center opacity-75 py-3">Aucun lien</div>`;
+}
+
+// Enregistrer Média
+document.getElementById('formMedia').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const d = Object.fromEntries(new FormData(e.target));
+  await fetch('/api/auth/media/ajouter',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('token')}`},
+    body:JSON.stringify(d)
+  });
+  alert(txt[langueActuelle].ok);
+  e.target.reset();
+  charger();
+});
+
+// Enregistrer Menu
+document.getElementById('formMenu').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const d = Object.fromEntries(new FormData(e.target));
+  await fetch('/api/auth/menu/ajouter',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('token')}`},
+    body:JSON.stringify(d)
+  });
+  alert(txt[langueActuelle].ok);
+  e.target.reset();
+  charger();
+});
+
+// Supprimer
+async function supprMedia(id){
+  if(!confirm(txt[langueActuelle].confirmer))return;
+  await fetch(`/api/auth/media/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${localStorage.getItem('token')}`}});
+  alert(txt[langueActuelle].suppr_ok);
+  charger();
+}
+async function supprMenu(id){
+  if(!confirm(txt[langueActuelle].confirmer))return;
+  await fetch(`/api/auth/menu/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${localStorage.getItem('token')}`}});
+  alert(txt[langueActuelle].suppr_ok);
+  charger();
+}
+
+charger();
+</script>
+</body>
+</html>

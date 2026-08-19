@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Médias & Galerie — Administration</span>
+    <span class="txt-en">Media & Gallery — Administration</span>
+    <span class="txt-ar">الوسائط والمعرض — الإدارة</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --secondaire: #0369a1;
+      --accent: #f59e0b;
+      --succes: #10b981;
+      --alerte: #ef4444;
+      --info: #0dcaf0;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --texte-gris: #94a3b8;
+      --fond-page: #f1f5f9;
+      --blanc: #ffffff;
+      --bord-radius: 16px;
+      --ombre: 0 4px 20px rgba(0,0,0,0.07);
+      --ombre-hover: 0 12px 40px rgba(0,0,0,0.12);
+    }
+
+    /* ===== 🌐 LANGUE ===== */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; direction: rtl; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar .titre-section,
+    body.lang-ar .menu-titre { text-align: right; }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--fond-page); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+    /* ===== ✨ ANIMATIONS ===== */
+    @keyframes monterApparaitre {
+      from { opacity: 0; transform: translateY(25px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fonduEntrer {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .animer-carte {
+      animation: monterApparaitre 0.5s ease-out forwards;
+      opacity: 0;
+    }
+    .retard-1 { animation-delay: 0.08s; }
+    .retard-2 { animation-delay: 0.16s; }
+    .retard-3 { animation-delay: 0.24s; }
+    .retard-4 { animation-delay: 0.32s; }
+
+    /* ===== 🧭 MENU LATÉRAL ===== */
+    .sidebar {
+      background: linear-gradient(180deg, var(--sombre), var(--sombre-clair));
+      min-height: 100vh;
+      width: 270px;
+      position: fixed; left: 0; top: 0;
+      padding: 1.5rem 0; display: flex; flex-direction: column; z-index: 100;
+      box-shadow: 4px 0 25px rgba(0,0,0,0.08);
+    }
+    body.lang-ar .sidebar { left: auto; right: 0; }
+
+    .sidebar-logo { padding: 0 1.5rem; margin-bottom: 2rem; }
+    .logo {
+      color: var(--accent); font-weight: 800; font-size: 1.45rem;
+      display: flex; align-items: center; gap: 10px; text-decoration: none;
+    }
+    .logo i { font-size: 1.8rem; }
+
+    .menu-titre {
+      color: var(--texte-gris); font-size: 0.75rem; text-transform: uppercase;
+      letter-spacing: 1px; padding: 0 1.5rem; margin: 1.8rem 0 0.6rem; font-weight: 600;
+    }
+
+    .menu-item {
+      display: flex; align-items: center; gap: 0.85rem;
+      padding: 0.95rem 1.5rem; margin: 0.2rem 1rem;
+      color: #cbd5e1; text-decoration: none; border-radius: 12px;
+      transition: all 0.3s; position: relative; overflow: hidden;
+    }
+    .menu-item::before {
+      content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 3px; background: transparent; transition: all 0.3s;
+    }
+    body.lang-ar .menu-item::before { left: auto; right: 0; }
+    .menu-item.actif { background: linear-gradient(90deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05)); color: var(--accent); }
+    .menu-item.actif::before { background: var(--accent); }
+    .menu-item:hover { background: rgba(245,158,11,0.12); color: var(--accent); transform: translateX(5px); }
+    body.lang-ar .menu-item:hover { transform: translateX(-5px); }
+    .menu-item i { font-size: 1.15rem; width: 20px; text-align: center; flex-shrink: 0; }
+
+    .contenu { margin-left: 270px; padding: 2rem; min-height: 100vh; }
+    body.lang-ar .contenu { margin-left: 0; margin-right: 270px; }
+
+    .entete-superieur { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    .btn-accueil-page, .btn-deconnexion-page {
+      padding: 0.6rem 1.2rem; border-radius: 12px; display: flex; align-items: center; gap: 0.5rem;
+      font-weight: 600; text-decoration: none; transition: all 0.3s; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .btn-accueil-page { background: linear-gradient(135deg, var(--primaire), var(--secondaire)); color: white; }
+    .btn-accueil-page:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(12,74,110,0.35); color: white; }
+    .btn-deconnexion-page { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; }
+    .btn-deconnexion-page:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,38,38,0.35); color: white; }
+
+    .btn-langue { border-radius: 50px !important; border: 2px solid transparent; margin: 0 2px; padding: 0.35rem 0.9rem; font-weight: 600; transition: all 0.25s; background: white; color: #475569; }
+    .btn-langue.actif { background: var(--accent); color: var(--sombre); border-color: var(--accent); box-shadow: 0 0 12px rgba(245,158,11,0.4); }
+
+    .zone-utilisateur { display: flex; align-items: center; gap: 1rem; background: white; padding: 0.5rem 1rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .nom-utilisateur-affiche { font-weight: 600; color: var(--primaire); }
+
+    .titre-page { font-size: 1.8rem; font-weight: 800; color: var(--primaire); margin-bottom: 1.5rem; }
+    .carte { background: white; border-radius: var(--bord-radius); box-shadow: var(--ombre); transition: all 0.4s cubic-bezier(0.4,0,0.2,1); border: none; overflow: hidden; }
+    .carte:hover { box-shadow: var(--ombre-hover); transform: translateY(-6px); }
+    .btn-primaire { background: linear-gradient(135deg, var(--primaire), var(--secondaire)); border: none; border-radius: 10px; color: white; font-weight: 600; transition: all 0.3s; }
+    .btn-primaire:hover { background: linear-gradient(135deg, #0369a1, #075985); transform: translateY(-2px); color: white; box-shadow: 0 6px 18px rgba(12,74,110,0.25); }
+    .btn-accent { background: linear-gradient(135deg, var(--accent), #d97706); border: none; border-radius: 10px; color: #000; font-weight: 600; transition: all 0.3s; }
+    .btn-accent:hover { background: linear-gradient(135deg, #d97706, #b45309); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245,158,11,0.35); color: white; }
+    .form-control, .form-select { border-radius: 10px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem; transition: all 0.2s; }
+    .form-control:focus, .form-select:focus { box-shadow: 0 0 0 3px rgba(12,74,110,0.15); border-color: var(--primaire); }
+
+    /* 📦 BLOC PAR LANGUE */
+    .bloc-langue {
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1.15rem;
+      margin-bottom: 1rem;
+      background: #fafafa;
+      transition: all 0.3s ease;
+    }
+    .bloc-langue:focus-within { border-color: var(--accent); box-shadow: 0 0 12px rgba(245,158,11,0.1); }
+    .bloc-langue h6 {
+      font-weight: 700;
+      margin-bottom: 0.85rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid;
+    }
+    .bloc-fr h6 { color: #0c4a6e; border-bottom-color: #0c4a6e; }
+    .bloc-en h6 { color: #10b981; border-bottom-color: #10b981; }
+    .bloc-ar h6 { color: #f59e0b; border-bottom-color: #f59e0b; direction: rtl; text-align: right; }
+    .etoile-rouge { color: #ef4444; font-weight: bold; }
+
+    /* 🖼️ CARTE MÉDIA */
+    .carte-media-img {
+      height: 200px;
+      width: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+      background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+    }
+    .carte:hover .carte-media-img { transform: scale(1.08); }
+    .conteneur-image {
+      overflow: hidden;
+      border-radius: 16px 16px 0 0;
+      position: relative;
+    }
+    .badge-type {
+      position: absolute; top: 12px; left: 12px;
+      padding: 5px 12px; border-radius: 20px;
+      font-size: 0.8rem; font-weight: 600;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    body.lang-ar .badge-type { left: auto; right: 12px; }
+    .badge-image { background: rgba(16,185,129,0.9); color: white; }
+    .badge-video { background: rgba(59,130,246,0.9); color: white; }
+    .badge-doc { background: rgba(139,92,246,0.9); color: white; }
+    .badge-categorie { background: rgba(15,23,42,0.7); color: white; }
+
+    /* 📤 ZONE TÉLÉVERSEMENT */
+    .zone-depot {
+      border: 3px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 2.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #fafafa;
+    }
+    .zone-depot:hover, .zone-depot.survol {
+      border-color: var(--accent);
+      background: #fffbeb;
+    }
+    .zone-depot i { font-size: 2.5rem; color: var(--accent); margin-bottom: 0.5rem; }
+    .apercu-img { max-height: 200px; border-radius: 10px; margin-top: 1rem; display: none; }
+
+    .modal-content { border-radius: 18px; border: none; box-shadow: 0 15px 50px rgba(0,0,0,0.15); }
+    .modal-header { border-bottom: 1px solid #e2e8f0; }
+
+    @media (max-width: 991px) {
+      .sidebar { position: relative; width: 100%; min-height: auto; }
+      .contenu { margin: 0 !important; padding: 1rem; }
+      body.lang-ar .contenu { margin-right: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  const nomUtilisateur = localStorage.getItem('nom') || 'Utilisateur';
+  const prenomUtilisateur = localStorage.getItem('prenoms') || '';
+  const nomComplet = (nomUtilisateur + ' ' + prenomUtilisateur).trim();
+  const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+
+  if (!token || !['admin','super_admin'].includes(role)) {
+    alert("⛔ Accès réservé à l'Administrateur");
+    location.href = '../connexion.html';
+  }
+
+  let langue = localStorage.getItem('langue') || 'fr';
+  document.body.classList.add('lang-' + langue);
+
+  window.appliquerLangue = function(lang) {
+    localStorage.setItem('langue', lang);
+    document.body.classList.remove('lang-fr','lang-en','lang-ar');
+    document.body.classList.add('lang-' + lang);
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('actif'));
+    event.currentTarget.classList.add('actif');
+    langue = lang;
+    chargerMedias();
+  };
+
+  window.deconnecter = function() {
+    const msg = { ar: 'هل تريد تسجيل الخروج ؟', en: 'Are you sure you want to log out?', fr: 'Êtes-vous sûr de vouloir vous déconnecter ?' }[langue];
+    if (confirm(msg)) { localStorage.clear(); location.href = '../connexion.html'; }
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('actif', b.dataset.lang === langue));
+    document.getElementById('nom-affiche').textContent = nomComplet;
+    chargerMedias();
+  });
+</script>
+
+<div class="sidebar">
+  <div class="sidebar-logo"><a href="dashboard.html" class="logo"><i class="bi bi-building"></i> MAMA-ZOUMANA</a></div>
+  <a href="dashboard.html" class="menu-item">
+    <i class="bi bi-speedometer2"></i>
+    <span class="txt-fr">Tableau de bord</span><span class="txt-en">Dashboard</span><span class="txt-ar">لوحة التحكم</span>
+  </a>
+  <div class="menu-titre"><span class="txt-fr">Communication</span><span class="txt-en">Communication</span><span class="txt-ar">التواصل</span></div>
+  <a href="annonces.html" class="menu-item">
+    <i class="bi bi-megaphone"></i>
+    <span class="txt-fr">Annonces</span><span class="txt-en">Announcements</span><span class="txt-ar">الإعلانات</span>
+  </a>
+  <a href="evenements.html" class="menu-item">
+    <i class="bi bi-calendar-event"></i>
+    <span class="txt-fr">Événements</span><span class="txt-en">Events</span><span class="txt-ar">الفعاليات</span>
+  </a>
+  <a href="medias.html" class="menu-item actif">
+    <i class="bi bi-images"></i>
+    <span class="txt-fr">Médias & Galerie</span><span class="txt-en">Media & Gallery</span><span class="txt-ar">الوسائط والمعرض</span>
+  </a>
+  <div class="menu-titre"><span class="txt-fr">Configuration</span><span class="txt-en">Settings</span><span class="txt-ar">الإعدادات</span></div>
+  <a href="config-site.html" class="menu-item">
+    <i class="bi bi-gear"></i>
+    <span class="txt-fr">Images du Site</span><span class="txt-en">Site Images</span><span class="txt-ar">صور الموقع</span>
+  </a>
+  <a href="../changer-mot-de-passe.html" class="menu-item">
+    <i class="bi bi-key"></i>
+    <span class="txt-fr">Changer mot de passe</span><span class="txt-en">Change Password</span><span class="txt-ar">تغيير كلمة المرور</span>
+  </a>
+</div>
+
+<div class="contenu">
+  <div class="entete-superieur">
+    <div class="d-flex gap-2">
+      <a href="dashboard.html" class="btn-accueil-page">
+        <i class="bi bi-arrow-left"></i>
+        <span class="txt-fr">Retour</span><span class="txt-en">Back</span><span class="txt-ar">رجوع</span>
+      </a>
+      <a href="#" onclick="deconnecter(); return false;" class="btn-deconnexion-page">
+        <i class="bi bi-box-arrow-right"></i>
+        <span class="txt-fr">Déconnexion</span><span class="txt-en">Log out</span><span class="txt-ar">تسجيل الخروج</span>
+      </a>
+    </div>
+    <div class="zone-utilisateur">
+      <div>
+        <button data-lang="fr" class="btn btn-langue btn-sm" onclick="appliquerLangue('fr')">FR</button>
+        <button data-lang="en" class="btn btn-langue btn-sm" onclick="appliquerLangue('en')">EN</button>
+        <button data-lang="ar" class="btn btn-langue btn-sm" onclick="appliquerLangue('ar')">AR</button>
+      </div>
+      <span class="nom-utilisateur-affiche"><i class="bi bi-person-circle"></i> <span id="nom-affiche">Chargement...</span></span>
+    </div>
+  </div>
+
+  <h2 class="titre-page">🖼️ <span class="txt-fr">Médias & Galerie</span><span class="txt-en">Media & Gallery</span><span class="txt-ar">الوسائط والمعرض</span></h2>
+
+  <!-- ➕ AJOUTER UN MÉDIA -->
+  <div class="carte p-4">
+    <h5 class="mb-4"><i class="bi bi-cloud-upload text-warning me-2"></i> <span class="txt-fr">Ajouter un Média</span><span class="txt-en">Add Media</span><span class="txt-ar">إضافة وسيط</span></h5>
+    <form id="formMedia" class="row g-3">
+
+      <!-- 📤 TÉLÉVERSEMENT DEPUIS L'APPAREIL -->
+      <div class="col-12">
+        <label class="form-label fw-semibold"><span class="txt-fr">📁 Sélectionner un fichier depuis votre ordinateur / téléphone</span><span class="txt-en">📁 Select file from your device</span><span class="txt-ar">📁 اختار ملف من جهازك</span></label>
+        <div class="zone-depot" id="zoneDepot" onclick="document.getElementById('fichier').click()">
+          <i class="bi bi-cloud-arrow-up"></i>
+          <p class="mb-1 fw-semibold">
+            <span class="txt-fr">Cliquez ou glissez une image / vidéo ici</span>
+            <span class="txt-en">Click or drag an image / video here</span>
+            <span class="txt-ar">انقر أو اسحب صورة / فيديو هنا</span>
+          </p>
+          <p class="text-muted small">PNG, JPG, GIF, MP4 — Max 10 Mo</p>
+          <input type="file" id="fichier" accept="image/*,video/*" class="d-none" onchange="traiterFichier(this)">
+          <img id="apercuImage" class="apercu-img" alt="Aperçu">
+        </div>
+      </div>
+
+      <!-- 🔗 OU PAR LIEN URL -->
+      <div class="col-12">
+        <label class="form-label fw-semibold">
+          <span class="txt-fr">🔗 Ou indiquer un lien URL</span>
+          <span class="txt-en">🔗 Or enter a URL link</span>
+          <span class="txt-ar">🔗 أو أدخل رابطًا</span>
+        </label>
+        <input type="url" id="url_fichier" class="form-control" placeholder="https://...">
+      </div>
+
+      <!-- 🇫🇷 FRANÇAIS -->
+      <div class="bloc-langue bloc-fr">
+        <h6>🇫🇷 Français <span class="etoile-rouge">*</span></h6>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Titre <span class="etoile-rouge">*</span></label>
+            <input type="text" id="titre_fr" class="form-control" required placeholder="Titre du média">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Catégorie</label>
+            <select id="categorie" class="form-select">
+              <option value="galerie">📷 Galerie Photos</option>
+              <option value="activite">🏫 Activités</option>
+              <option value="evenement">📅 Événements</option>
+              <option value="video">🎬 Vidéos</option>
+              <option value="logo">🏷️ Logos & Images du Site</option>
+              <option value="divers">📁 Divers</option>
+            </select>
+          </div>
+        </div>
+        <label class="form-label mt-2">Description</label>
+        <textarea id="description_fr" class="form-control" rows="2" placeholder="Description..."></textarea>
+      </div>
+
+      <!-- 🇬🇧 ANGLAIS -->
+      <div class="bloc-langue bloc-en">
+        <h6>🇬🇧 English</h6>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Title</label>
+            <input type="text" id="titre_en" class="form-control" placeholder="Media title">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Type</label>
+            <select id="type_media" class="form-select">
+              <option value="image">🖼️ Image</option>
+              <option value="video">🎬 Vidéo</option>
+            </select>
+          </div>
+        </div>
+        <label class="form-label mt-2">Description</label>
+        <textarea id="description_en" class="form-control" rows="2" placeholder="Description..."></textarea>
+      </div>
+
+      <!-- 🇸🇦 ARABE -->
+      <div class="bloc-langue bloc-ar" dir="rtl">
+        <h6>🇸🇦 العربية</h6>
+        <label class="form-label">العنوان</label>
+        <input type="text" id="titre_ar" class="form-control" placeholder="العنوان">
+        <label class="form-label mt-2">الوصف</label>
+        <textarea id="description_ar" class="form-control" rows="2" placeholder="الوصف..."></textarea>
+      </div>
+
+      <!-- ⚙️ COMPLÉMENTAIRES -->
+      <div class="col-md-4">
+        <label class="form-label fw-semibold"><span class="txt-fr">Date de publication</span><span class="txt-en">Publication date</span><span class="txt-ar">تاريخ النشر</span></label>
+        <input type="date" id="date_publication" class="form-control">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold"><span class="txt-fr">Ordre d'affichage</span><span class="txt-en">Display order</span><span class="txt-ar">ترتيب العرض</span></label>
+        <input type="number" id="ordre_affichage" class="form-control" value="0">
+      </div>
+      <div class="col-md-4 d-flex align-items-end">
+        <div class="form-check form-switch w-100">
+          <input class="form-check-input" type="checkbox" id="est_publie" checked>
+          <label class="form-check-label" for="est_publie">
+            <span class="txt-fr">✅ Publié</span>
+            <span class="txt-en">✅ Published</span>
+            <span class="txt-ar">✅ منشور</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="col-12 d-flex gap-3 mt-2">
+        <button type="submit" class="btn btn-accent">
+          <i class="bi bi-save me-2"></i>
+          <span class="txt-fr">💾 Enregistrer</span>
+          <span class="txt-en">💾 Save</span>
+          <span class="txt-ar">💾 حفظ</span>
+        </button>
+        <button type="reset" class="btn btn-outline-secondary">
+          <i class="bi bi-x-circle me-2"></i>
+          <span class="txt-fr">Effacer</span>
+          <span class="txt-en">Clear</span>
+          <span class="txt-ar">مسح</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 📋 FILTRES -->
+  <div class="carte p-3 my-4">
+    <div class="row g-2">
+      <div class="col-md-5">
+        <label class="form-label small"><span class="txt-fr">Catégorie</span><span class="txt-en">Category</span><span class="txt-ar">الفئة</span></label>
+        <select id="filtreCategorie" class="form-select">
+          <option value=""><span class="txt-fr">Toutes les catégories</span><span class="txt-en">All categories</span><span class="txt-ar">جميع الفئات</span></option>
+          <option value="galerie">📷 Galerie Photos</option>
+          <option value="activite">🏫 Activités</option>
+          <option value="evenement">📅 Événements</option>
+          <option value="video">🎬 Vidéos</option>
+          <option value="logo">🏷️ Logos & Images du Site</option>
+          <option value="divers">📁 Divers</option>
+        </select>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label small"><span class="txt-fr">Type</span><span class="txt-en">Type</span><span class="txt-ar">النوع</span></label>
+        <select id="filtreType" class="form-select">
+          <option value=""><span class="txt-fr">Tous les types</span><span class="txt-en">All types</span><span class="txt-ar">جميع الأنواع</span></option>
+          <option value="image">🖼️ Images</option>
+          <option value="video">🎬 Vidéos</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button id="btnReinitialiser" class="btn btn-primaire w-100">
+          <i class="bi bi-arrow-counterclockwise"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🖼️ GRILLE DES MÉDIAS -->
+  <div id="listeMedias" class="row g-4">
+    <div class="col-12 text-center py-5 text-muted">
+      <div class="spinner-border text-warning mb-3"></div>
+      <p class="txt-fr">Chargement des médias...</p>
+      <p class="txt-en">Loading media...</p>
+      <p class="txt-ar">جار تحميل الوسائط...</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // 📤 TRAITEMENT FICHIER TÉLÉVERSÉ
+  function traiterFichier(input) {
+    const fichier = input.files[0];
+    if (!fichier) return;
+
+    // Détecter le type
+    const type = fichier.type.startsWith('image/') ? 'image' : 
+                 fichier.type.startsWith('video/') ? 'video' : 'autre';
+    document.getElementById('type_media').value = type;
+
+    // Aperçu
+    const apercu = document.getElementById('apercuImage');
+    const lecteur = new FileReader();
+    lecteur.onload = e => {
+      apercu.src = e.target.result;
+      apercu.style.display = 'block';
+      document.getElementById('url_fichier').value = e.target.result;
+    };
+    lecteur.readAsDataURL(fichier);
+  }
+
+  // 📋 CHARGER LA LISTE
+  async function chargerMedias() {
+    const conteneur = document.getElementById('listeMedias');
+    const cat = document.getElementById('filtreCategorie').value;
+    const typ = document.getElementById('filtreType').value;
+
+    try {
+      let url = `${API_URL}/liste?tout=1`;
+      if (cat) url += `&categorie=${encodeURIComponent(cat)}`;
+      if (typ) url += `&type_media=${encodeURIComponent(typ)}`;
+
+      const r = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const res = await r.json();
+
+      if (!res.ok || !res.medias?.length) {
+        conteneur.innerHTML = `<div class="col-12 text-center py-5 text-muted">
+          <i class="bi bi-images fs-1 mb-3 d-block"></i>
+          <p class="txt-fr">Aucun média — Ajoutez des photos, vidéos ou logos !</p>
+          <p class="txt-en">No media — Add photos, videos or logos!</p>
+          <p class="txt-ar">لا توجد وسائط — أضف صورًا أو فيديوهات أو شعارات!</p>
+        </div>`;
+        return;
+      }
+
+      // ✅ TRI : par ordre d'affichage
+      res.medias.sort((a,b) => (a.ordre_affichage||0) - (b.ordre_affichage||0));
+      afficherMedias(res.medias);
+
+    } catch {
+      conteneur.innerHTML = `<div class="col-12 text-center py-5 text-danger">
+        <i class="bi bi-exclamation-triangle fs-1 mb-3 d-block"></i>
+        <p class="txt-fr">Chargement impossible</p>
+        <p class="txt-en">Failed to load</p>
+        <p class="txt-ar">تعذر التحميل</p>
+      </div>`;
+    }
+  }
+
+  // 🎨 AFFICHAGE GRILLE
+  function afficherMedias(medias) {
+    const cont = document.getElementById('listeMedias');
+    const iconeCategorie = {
+      galerie:'📷', activite:'🏫', evenement:'📅', video:'🎬', logo:'🏷️', divers:'📁'
+    };
+
+    cont.innerHTML = medias.map((m, i) => {
+      const titre = m[`titre_${langue}`] || m.titre_fr || '';
+      const desc = m[`description_${langue}`] || m.description_fr || '';
+      const badgeCls = m.type_media==='video'?'badge-video':'badge-image';
+      const icone = m.type_media==='video'?'🎬':'🖼️';
+      const catIcone = iconeCategorie[m.categorie] || '📁';
+
+      return `
+        <div class="col-sm-6 col-md-4 col-lg-3 animer-carte retard-${(i%4)+1}">
+          <div class="carte h-100">
+            <div class="conteneur-image">
+              <span class="badge-type ${badgeCls}">${icone} ${catIcone} ${m.categorie}</span>
+              <img src="${m.url_fichier}" class="carte-media-img" alt="${titre}" loading="lazy"
+                   onerror="this.src='https://via.placeholder.com/400x200/1e293b/f8fafc?text=${encodeURIComponent(titre||'Image')}'">
+            </div>
+            <div class="p-3">
+              <h5 class="mb-1 fw-bold">${titre}</h5>
+              ${desc ? `<p class="text-muted small mb-2">${desc.substring(0,45)}${desc.length>45?'...':''}</p>` : ''}
+              <p class="small text-muted mb-3">
+                📅 ${m.date_publication ? new Date(m.date_publication).toLocaleDateString('fr-FR') : ''}
+                ${m.est_publie ? ' ✅' : ' ⛔'}
+              </p>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-primaire flex-grow-1" title="Modifier">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="supprimerMedia(${m.id_media})" title="Supprimer">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // 💽 ENREGISTRER MÉDIA
+  document.getElementById('formMedia').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const urlFichier = document.getElementById('url_fichier').value.trim();
+    const titreFr = document.getElementById('titre_fr').value.trim();
+    if (!urlFichier || !titreFr) {
+      alert(langue==='ar'?'املأ الرابط والعنوان ⚠️':langue==='en'?'Fill in URL and title ⚠️':'Remplissez le lien et le titre ⚠️');
+      return;
+    }
+
+    const donnees = {
+      titre_fr: titreFr,
+      titre_en: document.getElementById('titre_en').value.trim() || titreFr,
+      titre_ar: document.getElementById('titre_ar').value.trim() || titreFr,
+      description_fr: document.getElementById('description_fr').value.trim(),
+      description_en: document.getElementById('description_en').value.trim(),
+      description_ar: document.getElementById('description_ar').value.trim(),
+      categorie: document.getElementById('categorie').value,
+      type_media: document.getElementById('type_media').value,
+      url_fichier: urlFichier,
+      url_miniature: '',
+      date_publication: document.getElementById('date_publication').value || new Date().toISOString().slice(0,10),
+      ordre_affichage: parseInt(document.getElementById('ordre_affichage').value) || 0,
+      est_publie: document.getElementById('est_publie').checked
+    };
+
+    try {
+      const r = await fetch(`${API_URL}/ajouter`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(donnees)
+      });
+      const res = await r.json();
+
+      if(res.ok){
+        alert(langue==='ar'?'✅ تم الحفظ!':langue==='en'?'✅ Saved!':'✅ Enregistré !');
+        e.target.reset();
+        document.getElementById('apercuImage').style.display = 'none';
+        document.getElementById('date_publication').valueAsDate = new Date();
+        chargerMedias();
+      }else{
+        alert("❌ " + (res.erreur || "Erreur serveur"));
+      }
+    }catch{
+      alert(langue==='ar'?'❌ خطأ في الاتصال':langue==='en'?'❌ Connection error':'❌ Erreur de connexion');
+    }
+  });
+
+  // 🗑️ SUPPRIMER
+  window.supprimerMedia = async function(id) {
+    const confMsg = {
+      fr: "⚠️ Supprimer définitivement ce média ?",
+      en: "⚠️ Delete this media permanently?",
+      ar: "⚠️ حذف هذا الوسيط نهائيًا؟"
+    };
+    if (!confirm(confMsg[langue])) return;
+    try {
+      await fetch(`${API_URL}/${id}`, { 
+        method: 'DELETE', 
+        headers: { 'Authorization': `Bearer ${token}` } 
+      });
+      chargerMedias();
+    } catch { 
+      alert(langue==='ar'?'❌ خطأ في الحذف':langue==='en'?'❌ Delete error':'❌ Erreur de suppression'); 
+    }
+  };
+
+  // 🔄 FILTRES
+  document.getElementById('filtreCategorie').addEventListener('change', chargerMedias);
+  document.getElementById('filtreType').addEventListener('change', chargerMedias);
+  document.getElementById('btnReinitialiser').addEventListener('click', () => {
+    document.getElementById('filtreCategorie').value = '';
+    document.getElementById('filtreType').value = '';
+    chargerMedias();
+  });
+
+  // 🚀 Initialisation
+  document.getElementById('date_publication').valueAsDate = new Date();
+</script>
+
+</body>
+</html>

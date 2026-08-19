@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚙️ Administration — Boutique</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root { --primaire: #0c4a6e; --succes: #10b981; --alerte: #f59e0b; --danger: #ef4444; }
+    body { background: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 100%); min-height: 100vh; }
+    .card-glass { background: rgba(255,255,255,0.92); backdrop-filter: blur(10px); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: none; }
+    .nav-tabs .nav-link.active { background: var(--primaire); color: white !important; border-color: var(--primaire); }
+    .btn-primaire { background: linear-gradient(90deg, var(--primaire), #0369a1); border: none; color: white; }
+    .img-mini { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
+  </style>
+</head>
+<body>
+
+<div class="container py-4">
+  <a href="dashboard.html" class="btn btn-light shadow-sm mb-3"><i class="bi bi-arrow-left-circle me-2"></i> Retour au Tableau de Bord</a>
+
+  <div class="card card-glass mb-4">
+    <div class="card-header text-white" style="background: linear-gradient(90deg, #0c4a6e, #0369a1); border-radius: 16px 16px 0 0;">
+      <h4 class="mb-0"><i class="bi bi-gear-fill me-2"></i> ⚙️ Gestion de la Boutique</h4>
+    </div>
+    <div class="card-body">
+
+      <!-- 📑 Onglets -->
+      <ul class="nav nav-tabs mb-4" id="onglets">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#produits">📦 Produits</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#ajouter">➕ Ajouter/Modifier</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#commandes">🛒 Commandes</button></li>
+      </ul>
+
+      <div class="tab-content">
+        <!-- 📦 LISTE DES PRODUITS -->
+        <div class="tab-pane fade show active" id="produits">
+          <div class="table-responsive">
+            <table class="table table-hover table-bordered">
+              <thead class="table-dark">
+                <tr>
+                  <th>Image</th><th>Nom</th><th>Catégorie</th><th>Prix</th><th>Stock</th><th>Statut</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="corpsProduits"><tr><td colspan="7" class="text-center py-4"><div class="spinner-border"></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ➕ FORMULAIRE AJOUTER/MODIFIER -->
+        <div class="tab-pane fade" id="ajouter">
+          <form id="formProduit" enctype="multipart/form-data">
+            <input type="hidden" id="idProduit">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Catégorie</label>
+                <select id="categorie" class="form-select" required>
+                  <option value="">Choisir...</option>
+                  <option>livres</option><option>stylos</option><option>cahiers</option><option>fournitures</option><option>uniformes</option><option>autres</option>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Nom du produit</label>
+                <input type="text" id="nomProduit" class="form-control" required>
+              </div>
+              <div class="col-12 mb-3">
+                <label class="form-label">Description</label>
+                <textarea id="description" class="form-control" rows="3"></textarea>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">Prix (FCFA)</label>
+                <input type="number" id="prix" class="form-control" min="0" step="5" required>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">Stock disponible</label>
+                <input type="number" id="stock" class="form-control" min="0" required>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">Statut</label>
+                <select id="actif" class="form-select"><option value="true" selected>✅ Actif</option><option value="false">❌ Inactif</option></select>
+              </div>
+              <div class="col-12 mb-3">
+                <label class="form-label">Photo du produit</label>
+                <input type="file" id="imageProduit" class="form-control" accept="image/*">
+                <div id="apercuImage" class="mt-2"></div>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primaire w-100">💾 ENREGISTRER LE PRODUIT</button>
+          </form>
+        </div>
+
+        <!-- 🛒 LISTE DES COMMANDES -->
+        <div class="tab-pane fade" id="commandes">
+          <div class="table-responsive">
+            <table class="table table-hover table-bordered">
+              <thead class="table-dark">
+                <tr><th>N°</th><th>Nom</th><th>Téléphone</th><th>Total</th><th>Statut</th><th>Date</th></tr>
+              </thead>
+              <tbody id="corpsCommandes"><tr><td colspan="6" class="text-center py-4"><div class="spinner-border"></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API_URL = '/api'; // ✅ CORRIGÉ : chemin relatif au lieu de localhost
+const token = localStorage.getItem('token');
+let produits = [];
+
+// ✅ Vérification de sécurité
+if (!token) {
+  alert("⛔ Accès réservé à l'administrateur");
+  location.href = 'connexion.html';
+}
+
+// 📦 Charger produits
+async function chargerProduits() {
+  try {
+    const res = await fetch(`${API_URL}/boutique/produits`, { 
+      headers: { 'Authorization': `Bearer ${token}` } 
+    });
+
+    // ✅ Vérifier que la réponse est bien du JSON
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error("Le serveur n'a pas renvoyé de données JSON — Vérifiez l'URL de l'API");
+    }
+
+    const data = await res.json();
+    produits = data.produits || [];
+    const corps = document.getElementById('corpsProduits');
+    corps.innerHTML = '';
+
+    if (produits.length === 0) {
+      corps.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">Aucun produit enregistré</td></tr>`;
+      return;
+    }
+
+    produits.forEach(p => {
+      const img = p.image_url ? (p.image_url.startsWith('http') ? p.image_url : `${API_URL}/${p.image_url}`) : '';
+      corps.innerHTML += `<tr>
+        <td>${img ? `<img src="${img}" class="img-mini" onerror="this.src='https://via.placeholder.com/60x60'">` : '📦'}</td>
+        <td><strong>${p.nom_produit}</strong><br><small class="text-muted">${p.description||''}</small></td>
+        <td><span class="badge bg-secondary">${p.categorie}</span></td>
+        <td>${Number(p.prix_unitaire).toLocaleString('fr-FR')} FCFA</td>
+        <td class="${Number(p.stock)<=5?'text-danger fw-bold':''}">${p.stock}</td>
+        <td>${p.actif?'✅ Actif':'❌ Inactif'}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary" onclick="editer(${p.id_produit})"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger" onclick="supprimer(${p.id_produit})"><i class="bi bi-trash"></i></button>
+        </td>
+      </tr>`;
+    });
+  } catch (e) { 
+    console.error("Erreur chargement produits:", e);
+    alert("❌ Erreur chargement produits : " + e.message); 
+  }
+}
+
+// ✏️ Éditer produit
+function editer(id) {
+  const p = produits.find(x => x.id_produit === id);
+  if (!p) return alert("Produit introuvable");
+
+  document.getElementById('idProduit').value = id;
+  document.getElementById('categorie').value = p.categorie;
+  document.getElementById('nomProduit').value = p.nom_produit;
+  document.getElementById('description').value = p.description||'';
+  document.getElementById('prix').value = p.prix_unitaire;
+  document.getElementById('stock').value = p.stock;
+  document.getElementById('actif').value = String(p.actif);
+  
+  if (p.image_url) {
+    const imgSrc = p.image_url.startsWith('http') ? p.image_url : `${API_URL}/${p.image_url}`;
+    document.getElementById('apercuImage').innerHTML = `<img src="${imgSrc}" style="max-height:120px;border-radius:8px;" onerror="this.style.display='none'">`;
+  }
+  
+  // Aller à l'onglet édition
+  document.querySelector('[data-bs-target="#ajouter"]').click();
+}
+
+// ❌ Supprimer produit
+async function supprimer(id) {
+  if (!confirm("⚠️ Confirmer la suppression définitive du produit ?")) return;
+  try {
+    const res = await fetch(`${API_URL}/boutique/produits/${id}`, { 
+      method: 'DELETE', 
+      headers: { 'Authorization': `Bearer ${token}` } 
+    });
+
+    if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
+    
+    const contentType = res.headers.get('content-type') || '';
+    const d = contentType.includes('application/json') ? await res.json() : { ok: true };
+
+    if (d.ok !== false) { 
+      alert("✅ Produit supprimé !"); 
+      chargerProduits(); 
+    } else {
+      alert("❌ " + (d.erreur || "Erreur suppression"));
+    }
+  } catch (e) { alert("❌ Erreur : " + e.message); }
+}
+
+// 💾 Enregistrer formulaire
+document.getElementById('formProduit').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = document.getElementById('idProduit').value.trim();
+  const formData = new FormData();
+  
+  formData.append('categorie', document.getElementById('categorie').value);
+  formData.append('nom_produit', document.getElementById('nomProduit').value);
+  formData.append('description', document.getElementById('description').value);
+  formData.append('prix_unitaire', document.getElementById('prix').value);
+  formData.append('stock', document.getElementById('stock').value);
+  formData.append('actif', document.getElementById('actif').value);
+  
+  const fichier = document.getElementById('imageProduit').files[0];
+  if (fichier) formData.append('image', fichier);
+
+  try {
+    const url = id ? `${API_URL}/boutique/produits/${id}` : `${API_URL}/boutique/produits`;
+    const methode = id ? 'PUT' : 'POST';
+    
+    const res = await fetch(url, { 
+      method: methode, 
+      headers: { 'Authorization': `Bearer ${token}` }, 
+      body: formData 
+    });
+
+    if (!res.ok) throw new Error(`Erreur serveur : ${res.status}`);
+
+    const contentType = res.headers.get('content-type') || '';
+    const d = contentType.includes('application/json') ? await res.json() : { ok: true };
+
+    if (d.ok !== false) { 
+      alert("✅ Produit enregistré !"); 
+      e.target.reset(); 
+      document.getElementById('idProduit').value = ''; 
+      document.getElementById('apercuImage').innerHTML = ''; 
+      chargerProduits(); 
+    } else {
+      alert("❌ " + (d.erreur || "Erreur lors de l'enregistrement"));
+    }
+  } catch (err) { alert("❌ Erreur : " + err.message); }
+});
+
+// 🛒 Charger commandes
+async function chargerCommandes() {
+  try {
+    const res = await fetch(`${API_URL}/boutique/commandes`, { 
+      headers: { 'Authorization': `Bearer ${token}` } 
+    });
+
+    if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
+
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error("Réponse non JSON — Route API introuvable");
+    }
+
+    const d = await res.json();
+    const corps = document.getElementById('corpsCommandes');
+    corps.innerHTML = '';
+
+    const commandes = d.commandes || [];
+    if (commandes.length === 0) {
+      corps.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Aucune commande enregistrée</td></tr>`;
+      return;
+    }
+
+    commandes.forEach(c => {
+      corps.innerHTML += `<tr>
+        <td>#${c.id_commande}</td>
+        <td>${c.nom_acheteur || '-'}</td>
+        <td>${c.telephone || '-'}</td>
+        <td>${Number(c.montant_total||0).toLocaleString('fr-FR')} FCFA</td>
+        <td><span class="badge bg-${c.statut_commande==='en_attente'?'warning':'success'}">${c.statut_commande}</span></td>
+        <td>${c.date_commande ? new Date(c.date_commande).toLocaleDateString('fr-FR') : '-'}</td>
+      </tr>`;
+    });
+  } catch (e) { 
+    console.error("Erreur commandes:", e);
+    document.getElementById('corpsCommandes').innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">⚠️ ${e.message}</td></tr>`;
+  }
+}
+
+// Aperçu image
+document.getElementById('imageProduit').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (f) {
+    const reader = new FileReader();
+    reader.onload = ev => document.getElementById('apercuImage').innerHTML = `<img src="${ev.target.result}" style="max-height:120px;border-radius:8px;">`;
+    reader.readAsDataURL(f);
+  }
+});
+
+// Chargement au démarrage
+chargerProduits();
+chargerCommandes();
+</script>
+</body>
+</html>

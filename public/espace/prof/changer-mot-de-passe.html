@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="lang-fr">Changer le Mot de Passe</span>
+    <span class="lang-en">Change Password</span>
+    <span class="lang-ar">تغيير كلمة المرور</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b;
+      --vert: #10b981;
+      --texte: #f8fafc;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--sombre);color:var(--texte);min-height:100vh;font-family:'Segoe UI',sans-serif;}
+    .entete-page{background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.2rem 0}
+    .carte{background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);padding:1.5rem;max-width:500px;margin:0 auto;}
+    .form-control{background:#0f172a;border:1px solid #334155;color:white;border-radius:8px}
+    .form-control:focus{background:#0f172a;border-color:var(--bord-orange);color:white;box-shadow:0 0 0 0.25rem rgba(245,158,11,0.25)}
+    .btn-valide{background:var(--vert);color:white;border-radius:8px;border:none;}
+    .btn-langue.active{background:var(--bord-orange);color:#000;border-color:var(--bord-orange);font-weight:bold;}
+
+    .lang-en, .lang-ar { display: none; }
+    body.lang-fr .lang-fr { display: inline; }
+    body.lang-en { direction: ltr; }
+    body.lang-en .lang-fr, body.lang-en .lang-ar { display: none; }
+    body.lang-en .lang-en { display: inline; }
+    body.lang-ar { direction: rtl; }
+    body.lang-ar .lang-fr, body.lang-ar .lang-en { display: none; }
+    body.lang-ar .lang-ar { display: inline; }
+  </style>
+</head>
+<body class="lang-fr">
+
+<script>
+const token = localStorage.getItem('token');
+if(!token){
+  alert("⛔ Connecte-toi d'abord !");
+  location.href = 'connexion.html';
+}
+</script>
+
+<div class="entete-page">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div>
+      <h3 class="mb-1">
+        <span class="lang-fr">🔐 Changer le Mot de Passe</span>
+        <span class="lang-en">🔐 Change Password</span>
+        <span class="lang-ar">🔐 تغيير كلمة المرور</span>
+      </h3>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-sm btn-outline-light btn-langue active" onclick="changerLangue('fr')" id="btn-fr">FR</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('en')" id="btn-en">EN</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('ar')" id="btn-ar">AR</button>
+      <a href="dashboard-prof.html" class="btn btn-outline-light ms-2">
+        <i class="bi bi-arrow-left"></i>
+        <span class="lang-fr"> Retour</span>
+        <span class="lang-en"> Back</span>
+        <span class="lang-ar"> عودة</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container py-5">
+  <div class="carte">
+    <div class="mb-3">
+      <label class="form-label fw-bold">
+        <span class="lang-fr">🔒 Mot de passe actuel</span>
+        <span class="lang-en">🔒 Current Password</span>
+        <span class="lang-ar">🔒 كلمة المرور الحالية</span>
+      </label>
+      <input type="password" id="mdp_actuel" class="form-control" placeholder="••••••••">
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-bold">
+        <span class="lang-fr">🔑 Nouveau mot de passe</span>
+        <span class="lang-en">🔑 New Password</span>
+        <span class="lang-ar">🔑 كلمة المرور الجديدة</span>
+      </label>
+      <input type="password" id="nouveau_mdp" class="form-control" placeholder="••••••••">
+    </div>
+    <div class="mb-4">
+      <label class="form-label fw-bold">
+        <span class="lang-fr">✅ Confirmer le nouveau mot de passe</span>
+        <span class="lang-en">✅ Confirm New Password</span>
+        <span class="lang-ar">✅ تأكيد كلمة المرور الجديدة</span>
+      </label>
+      <input type="password" id="confirmer_mdp" class="form-control" placeholder="••••••••">
+    </div>
+    <button class="btn btn-valide w-100 fw-bold" onclick="changerMotDePasse()">
+      <i class="bi bi-check-circle me-2"></i>
+      <span class="lang-fr">Mettre à jour</span>
+      <span class="lang-en">Update</span>
+      <span class="lang-ar">تحديث</span>
+    </button>
+  </div>
+</div>
+
+<script>
+async function changerMotDePasse(){
+  const mdp_actuel = document.getElementById('mdp_actuel').value;
+  const nouveau_mdp = document.getElementById('nouveau_mdp').value;
+  const confirmer_mdp = document.getElementById('confirmer_mdp').value;
+
+  if(!mdp_actuel || !nouveau_mdp || !confirmer_mdp){
+    alert("⚠️ Remplis tous les champs !"); return;
+  }
+  if(nouveau_mdp !== confirmer_mdp){
+    alert("⚠️ Les deux nouveaux mots de passe ne correspondent pas !"); return;
+  }
+  if(nouveau_mdp.length < 6){
+    alert("⚠️ Le mot de passe doit faire au moins 6 caractères !"); return;
+  }
+
+  try {
+    const r = await fetch('/api/utilisateur/changer-mot-de-passe', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body: JSON.stringify({ mdp_actuel, nouveau_mdp })
+    });
+    const res = await r.json();
+    if(res.ok){
+      alert("✅ Mot de passe modifié avec succès !\nReconnecte-toi...");
+      localStorage.clear();
+      location.href = 'connexion.html';
+    } else {
+      alert("❌ " + (res.erreur || "Erreur"));
+    }
+  } catch(e) { alert("❌ Erreur Réseau : " + e.message); }
+}
+
+function changerLangue(langue) {
+  document.body.className = 'lang-' + langue;
+  localStorage.setItem('langue', langue);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-'+langue).classList.add('active');
+}
+
+let langue = localStorage.getItem('langue') || 'fr';
+document.body.className = 'lang-' + langue;
+document.getElementById('btn-'+langue).classList.add('active');
+</script>
+</body>
+</html>
