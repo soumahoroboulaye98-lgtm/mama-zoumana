@@ -12,7 +12,6 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
   <script>
-    // ⚙️ CONFIGURATION ADMIN — TOUTES LES IMAGES & TEXTES GÉRÉS PAR L'ADMIN UNIQUEMENT
     let configSite = {
       couleur_primaire: '#0c4a6e',
       couleur_secondaire: '#0369a1',
@@ -20,7 +19,6 @@
       couleur_texte: '#f8fafc',
       couleur_accent: '#f59e0b',
 
-      // 🖼️ IMAGES — MODIFIABLES UNIQUEMENT PAR L'ADMIN
       image_fond: null,
       image_entete: null,
       image_pied: null,
@@ -72,7 +70,6 @@
       document.documentElement.style.setProperty('--police-texte', cfg.police_texte);
     }
 
-    // 🖼️ APPLIQUER LES IMAGES — UNIQUEMENT DEPUIS LA CONFIG ADMIN
     function appliquerFond(cfg) {
       const imageFond = document.getElementById('image-fond-affichee');
       if (cfg.image_fond && imageFond) {
@@ -120,7 +117,10 @@
       document.querySelectorAll('.texte-pied .txt-ar').forEach(el => el.textContent = cfg.texte_pied_ar);
 
       document.querySelectorAll('.lien-facebook').forEach(el => el.href = cfg.lien_facebook || '#');
-      document.querySelectorAll('.lien-whatsapp').forEach(el => el.href = cfg.lien_whatsapp ? 'https://wa.me/' + cfg.lien_whatsapp.replace(/\D/g, '') : '#');
+      document.querySelectorAll('.lien-whatsapp').forEach(el => {
+        el.href = cfg.lien_whatsapp ? 'https://wa.me/' + cfg.lien_whatsapp.replace(/\D/g, '') : '#';
+        if (el.tagName === 'A' && cfg.lien_whatsapp) el.target = '_blank';
+      });
       document.querySelectorAll('.lien-youtube').forEach(el => el.href = cfg.lien_youtube || '#');
       document.querySelectorAll('.lien-tiktok').forEach(el => el.href = cfg.lien_tiktok || '#');
       document.querySelectorAll('.lien-instagram').forEach(el => el.href = cfg.lien_instagram || '#');
@@ -132,7 +132,6 @@
       document.querySelectorAll('.iframe-video-accueil').forEach(el => el.src = cfg.lien_video_accueil || '');
     }
 
-    // 📢 CHARGER LES ANNONCES — AFFICHAGE PERMANENT JUSQU'À SUPPRESSION/REMPLACEMENT ADMIN
     async function chargerAnnonces() {
       const zone = document.getElementById('zone-annonces');
       const bandeau = document.getElementById('texte-bandeau-defilant');
@@ -143,10 +142,8 @@
         const data = await res.json();
 
         if (data.ok && data.annonces?.length > 0) {
-          // ✅ AUCUNE LIMITE DE TEMPS — AFFICHE TOUTES JUSQU'À SUPPRESSION ADMIN
           const annoncesVisibles = data.annonces;
 
-          // Mise à jour du bandeau défilant
           if (bandeau) {
             let texteDefilant = '';
             annoncesVisibles.forEach(ann => {
@@ -156,7 +153,6 @@
             bandeau.innerHTML = texteDefilant;
           }
 
-          // 📢 AFFICHAGE DES ANNONCES DIRECTEMENT SUR LA PAGE
           zone.innerHTML = annoncesVisibles.map(a => {
             const titre = a[`titre_${LANG}`] || a.titre_fr || '';
             const contenu = a[`contenu_${LANG}`] || a.contenu_fr || '';
@@ -309,8 +305,22 @@
           localStorage.setItem('langue_site', btn.dataset.lang);
         });
       });
+
+      document.addEventListener('click', (e) => {
+        const menu = document.getElementById('menu-mobile-deroulant');
+        const bouton = document.getElementById('btn-menu-mobile');
+        if (menu && !menu.contains(e.target) && !bouton.contains(e.target)) {
+          menu.classList.remove('ouvert');
+        }
+      });
     });
+
+    function basculerMenuMobile() {
+      const menu = document.getElementById('menu-mobile-deroulant');
+      menu.classList.toggle('ouvert');
+    }
   </script>
+
 
   <style>
     :root {
@@ -347,18 +357,18 @@
       box-shadow: 0 4px 20px rgba(0,0,0,0.25); backdrop-filter: blur(8px);
     }
     .logo-entete {
-      font-weight: 800; font-size: 1.7rem; display: flex; align-items: center; gap: 12px;
+      font-weight: 800; font-size: 1.4rem; display: flex; align-items: center; gap: 8px;
       transition: transform 0.2s; text-decoration: none; color: white;
     }
     .logo-entete:hover { transform: scale(1.03); }
     .logo-entete-img { height: 40px; width: auto; display: none; }
 
-    .nav-menu { display: flex; gap: 6px; }
+    .nav-menu { display: flex; gap: 4px; }
     .menu-item { position: relative; }
     .menu-bouton {
-      color: rgba(255,255,255,0.9); font-weight: 500; padding: 10px 16px;
+      color: rgba(255,255,255,0.9); font-weight: 500; padding: 8px 12px;
       background: transparent; border: none; border-radius: 8px; cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.3s ease; font-size: 0.95rem;
     }
     .menu-bouton:hover { color: var(--accent); }
     .sous-menu {
@@ -376,17 +386,43 @@
     }
     .sous-menu a:hover { background: rgba(245,158,11,0.18); color: var(--accent); }
 
+    .btn-menu-mobile {
+      display: none; background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25); color: white;
+      padding: 8px 14px; font-size: 1.4rem; border-radius: 8px; cursor: pointer;
+    }
+    .menu-mobile-deroulant {
+      position: absolute; top: 100%; left: 0; right: 0;
+      background: rgba(15,23,42,0.98); box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      padding: 15px 0; z-index: 998;
+      opacity: 0; visibility: hidden; transform: translateY(-10px);
+      transition: all 0.3s ease;
+    }
+    .menu-mobile-deroulant.ouvert {
+      opacity: 1; visibility: visible; transform: translateY(0);
+    }
+    .menu-mobile-deroulant a, .menu-mobile-deroulant button {
+      display: block; width: 100%; text-align: left;
+      padding: 12px 22px; color: rgba(255,255,255,0.88);
+      text-decoration: none; background: transparent; border: none;
+      font-size: 1rem; cursor: pointer;
+    }
+    body.lang-ar .menu-mobile-deroulant a,
+    body.lang-ar .menu-mobile-deroulant button { text-align: right; }
+    .menu-mobile-deroulant a:hover,
+    .menu-mobile-deroulant button:hover { background: rgba(245,158,11,0.18); color: var(--accent); }
+
     .btn-langue {
       background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25);
-      border-radius: 20px; padding: 6px 14px; font-size: 0.9rem; cursor: pointer;
+      border-radius: 20px; padding: 5px 10px; font-size: 0.85rem; cursor: pointer;
       transition: all 0.2s; margin: 0 2px;
     }
     .btn-langue.active { background: var(--accent); color: var(--sombre); border-color: var(--accent); }
     .btn-connexion {
       background: var(--accent); color: var(--sombre); font-weight: 600;
-      border-radius: 10px; padding: 9px 18px; border: none;
+      border-radius: 10px; padding: 7px 12px; border: none; font-size: 0.9rem;
       transition: all 0.2s; box-shadow: 0 0 15px rgba(245,158,11,0.5);
-      text-decoration: none;
+      text-decoration: none; display: inline-block;
     }
     .btn-connexion:hover { transform: translateY(-2px); }
     .btn-connexion.clair { background: rgba(255,255,255,0.2); color: white; }
@@ -406,19 +442,19 @@
       z-index: -1;
     }
     .contenu-banniere { padding: 0 20px; }
-    .contenu-banniere h1 { font-size: clamp(2.5rem, 6vw, 4.2rem); font-weight: 800; margin-bottom: 20px; }
-    .contenu-banniere p { font-size: clamp(1.2rem, 2.8vw, 1.6rem); margin-bottom: 30px; opacity: 0.95; }
+    .contenu-banniere h1 { font-size: clamp(2.2rem, 6vw, 3.8rem); font-weight: 800; margin-bottom: 20px; }
+    .contenu-banniere p { font-size: clamp(1.1rem, 2.8vw, 1.5rem); margin-bottom: 30px; opacity: 0.95; }
     .btn-action {
       background: var(--accent); color: var(--sombre); font-weight: 700;
-      padding: 14px 32px; border-radius: 12px; border: none;
-      font-size: 1.1rem; transition: all 0.3s; text-decoration: none; display: inline-block;
+      padding: 12px 28px; border-radius: 12px; border: none;
+      font-size: 1rem; transition: all 0.3s; text-decoration: none; display: inline-block;
     }
     .btn-action:hover { transform: translateY(-3px); box-shadow: 0 6px 25px rgba(245,158,11,0.5); color: var(--sombre); }
     .btn-action.clair { background: white; color: var(--primaire); }
 
     .bande-info {
       background: var(--accent); color: var(--sombre); font-weight: 600;
-      padding: 10px 0; overflow: hidden; white-space: nowrap;
+      padding: 8px 0; overflow: hidden; white-space: nowrap;
     }
     .defilement { display: inline-block; animation: defile 25s linear infinite; }
     @keyframes defile { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
@@ -426,47 +462,64 @@
     .annonce-affichee { transition: all 0.3s ease; }
     .annonce-affichee:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.08) !important; }
 
-    .section { padding: 60px 20px; }
+    .section { padding: 50px 20px; }
     .titre-section {
-      text-align: center; margin-bottom: 45px; color: var(--primaire);
-      font-weight: 700; font-size: 1.8rem;
+      text-align: center; margin-bottom: 40px; color: var(--primaire);
+      font-weight: 700; font-size: 1.6rem;
     }
     .titre-section.text-start { text-align: left; }
     body.lang-ar .titre-section.text-start { text-align: right; }
     .bg-dark { background-color: var(--sombre) !important; }
     .carte {
-      background: white; border-radius: 16px; padding: 25px;
+      background: white; border-radius: 16px; padding: 20px;
       box-shadow: 0 3px 15px rgba(0,0,0,0.06); transition: transform 0.25s;
     }
     .carte:hover { transform: translateY(-5px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
-    .carte h5 { color: var(--secondaire); font-weight: 600; font-size: 1.3rem; }
+    .carte h5 { color: var(--secondaire); font-weight: 600; font-size: 1.2rem; }
 
-    .pied-page { background: var(--sombre); color: #cbd5e1; padding: 50px 20px 25px; }
-    .pied-page h6 { color: var(--accent); font-weight: 700; margin-bottom: 18px; font-size: 1.1rem; }
+    .pied-page { background: var(--sombre); color: #cbd5e1; padding: 40px 20px 25px; font-size: 0.95rem; }
+    .pied-page h6 { color: var(--accent); font-weight: 700; margin-bottom: 15px; font-size: 1rem; }
     .pied-page a { color: #94a3b8; text-decoration: none; display: block; margin-bottom: 8px; }
     .pied-page a:hover { color: var(--accent); }
     .pied-logo { text-align: center; margin-bottom: 20px; }
     .pied-logo-img { max-height: 60px; width: auto; display: none; margin: 0 auto; }
-    .reseaux { display: flex; gap: 15px; margin-top: 15px; }
+    .reseaux { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
     .reseaux a {
-      width: 42px; height: 42px; border-radius: 50%;
+      width: 40px; height: 40px; border-radius: 50%;
       background: rgba(245,158,11,0.15); display: flex;
-      align-items: center; justify-content: center; font-size: 1.3rem;
+      align-items: center; justify-content: center; font-size: 1.2rem; color: var(--accent);
     }
     .reseaux a:hover { background: var(--accent); color: var(--sombre); transform: translateY(-3px); }
     .copyright {
-      text-align: center; padding-top: 25px; border-top: 1px solid rgba(148,163,184,0.2);
-      margin-top: 35px; color: #64748b; font-size: 0.95rem;
+      text-align: center; padding-top: 20px; border-top: 1px solid rgba(148,163,184,0.2);
+      margin-top: 30px; color: #64748b; font-size: 0.9rem;
     }
+    .pied-page p { margin-bottom: 6px; }
+    .tel1, .tel2 { font-weight: 500; color: #f8fafc; }
 
-    @media (max-width: 991px) { .nav-menu { display: none; } }
+    @media (min-width: 992px) {
+      .menu-mobile-deroulant, .btn-menu-mobile { display: none !important; }
+      .nav-menu { display: flex !important; }
+    }
+    @media (max-width: 991px) {
+      .nav-menu { display: none; }
+      .btn-menu-mobile { display: block; }
+    }
+    @media (max-width: 768px) {
+      .logo-entete { font-size: 1.15rem; }
+      .btn-langue { padding: 4px 8px; font-size: 0.8rem; }
+      .btn-connexion { padding: 6px 10px; font-size: 0.85rem; }
+      .section { padding: 35px 15px; }
+      .contenu-banniere h1 { font-size: clamp(1.8rem, 5vw, 2.5rem); }
+    }
   </style>
 </head>
 <body class="lang-fr">
 
+
 <!-- 🧭 ENTÊTE -->
 <header class="entete-fixe">
-  <div class="container d-flex justify-content-between align-items-center py-3 flex-wrap gap-2">
+  <div class="container d-flex justify-content-between align-items-center py-3 position-relative">
     <a href="#" class="logo-entete text-white">
       <img id="logo-entete-image" class="logo-entete-img" alt="Logo">
       <i class="bi bi-building logo-icone"></i>
@@ -477,7 +530,7 @@
       </span>
     </a>
 
-    <!-- 📋 MENU -->
+    <!-- 📋 MENU GRAND ÉCRAN -->
     <nav class="nav-menu d-none d-lg-flex">
       <div class="menu-item">
         <button class="menu-bouton">
@@ -537,24 +590,45 @@
       </div>
     </nav>
 
+    <!-- 📱 BOUTON MENU MOBILE -->
+    <button class="btn-menu-mobile d-lg-none" id="btn-menu-mobile" onclick="basculerMenuMobile()">
+      <i class="bi bi-list"></i>
+    </button>
+
     <!-- 🌐 LANGUES & BOUTONS -->
-    <div class="d-flex align-items-center">
+    <div class="d-flex align-items-center gap-2">
       <button class="btn-langue active" data-lang="fr">FR</button>
       <button class="btn-langue" data-lang="en">EN</button>
       <button class="btn-langue" data-lang="ar">AR</button>
-      <a href="preinscription.html" class="btn-connexion ms-2">
+      <a href="preinscription.html" class="btn-connexion ms-1 d-none d-sm-inline">
         <span class="txt-fr">S'inscrire</span>
         <span class="txt-en">Register</span>
         <span class="txt-ar">التسجيل</span>
       </a>
-      <a href="connexion.html" class="btn-connexion clair ms-2">
+      <a href="connexion.html" class="btn-connexion clair ms-1 d-none d-md-inline">
         <span class="txt-fr">Connexion</span>
         <span class="txt-en">Login</span>
         <span class="txt-ar">تسجيل الدخول</span>
       </a>
     </div>
   </div>
+
+  <!-- 📱 MENU DÉROULANT MOBILE -->
+  <nav id="menu-mobile-deroulant" class="menu-mobile-deroulant d-lg-none">
+    <a href="#accueil"><span class="txt-fr">🏠 Accueil — Présentation</span><span class="txt-en">🏠 Home — Presentation</span><span class="txt-ar">🏠 الرئيسية — نبذة عنا</span></a>
+    <a href="boutique.html"><span class="txt-fr">🛍️ Boutique Scolaire</span><span class="txt-en">🛍️ School Store</span><span class="txt-ar">🛍️ المتجر المدرسي</span></a>
+    <a href="#apropos"><span class="txt-fr">ℹ️ À Propos</span><span class="txt-en">ℹ️ About Us</span><span class="txt-ar">ℹ️ من نحن</span></a>
+    <a href="#admission"><span class="txt-fr">📝 Admission — Conditions</span><span class="txt-en">📝 Admission — Requirements</span><span class="txt-ar">📝 القبول — الشروط</span></a>
+    <a href="preinscription.html"><span class="txt-fr">📝 Préinscription</span><span class="txt-en">📝 Register</span><span class="txt-ar">📝 التسجيل المسبق</span></a>
+    <a href="#galerie"><span class="txt-fr">📸 Galerie</span><span class="txt-en">📸 Gallery</span><span class="txt-ar">📸 معرض الصور</span></a>
+    <a href="#videos"><span class="txt-fr">🎥 Vidéos</span><span class="txt-en">🎥 Videos</span><span class="txt-ar">🎥 فيديوهات</span></a>
+    <a href="#resultats"><span class="txt-fr">📊 Résultats & Examens</span><span class="txt-en">📊 Results & Exams</span><span class="txt-ar">📊 النتائج والامتحانات</span></a>
+    <a href="#emploi"><span class="txt-fr">📅 Emplois du temps</span><span class="txt-en">📅 Timetables</span><span class="txt-ar">📅 الجداول</span></a>
+    <a href="#contact"><span class="txt-fr">📞 Contact & Localisation</span><span class="txt-en">📞 Contact & Location</span><span class="txt-ar">📞 اتصل بنا والموقع</span></a>
+    <a href="connexion.html"><span class="txt-fr">🔐 Espace Admin</span><span class="txt-en">🔐 Admin Portal</span><span class="txt-ar">🔐 لوحة الإدارة</span></a>
+  </nav>
 </header>
+
 
 <!-- 📢 BANDEAU DÉFILANT -->
 <div class="bande-info">
@@ -567,7 +641,8 @@
   </div>
 </div>
 
-<!-- 📢 SECTION ANNONCES — VISIBLES PAR TOUS, JUSQU'À SUPPRESSION ADMIN -->
+
+<!-- 📢 SECTION ANNONCES -->
 <section class="container mt-4">
   <h3 class="mb-3">📢
     <span class="txt-fr">Annonces & Actualités</span>
@@ -583,6 +658,7 @@
   </div>
 </section>
 
+
 <!-- 📰 ACTUALITÉS -->
 <section class="section">
   <div class="container">
@@ -597,7 +673,8 @@
   </div>
 </section>
 
-<!-- 🎬 BANNIÈRE AVEC FOND IMAGE UNIQUEMENT (MODIFIABLE PAR L'ADMIN) -->
+
+<!-- 🎬 BANNIÈRE -->
 <section class="banniere" id="accueil">
   <img id="image-fond-affichee" class="image-fond" src="" alt="">
   <div class="masque-fond"></div>
@@ -627,6 +704,7 @@
   </div>
 </section>
 
+
 <!-- 🖼️ GALERIE -->
 <section class="section bg-dark text-white" id="galerie">
   <div class="container">
@@ -640,6 +718,7 @@
     </div>
   </div>
 </section>
+
 
 <!-- 🎥 VIDÉOS -->
 <section class="section" id="videos">
@@ -685,6 +764,7 @@
   </div>
 </section>
 
+
 <!-- 📅 CALENDRIER / ÉVÉNEMENTS -->
 <section class="section bg-white" id="calendrier">
   <div class="container">
@@ -698,6 +778,7 @@
     </div>
   </div>
 </section>
+
 
 <!-- 🧭 ADMISSION & À PROPOS -->
 <section class="section" id="admission">
@@ -720,7 +801,7 @@
           <span class="txt-ar">التسجيل المسبق</span>
         </a>
       </div>
-      <div class="col-md-6" id="apropos">
+      <div class="      <div class="col-md-6">
         <h2 class="titre-section text-start ps-0">ℹ️
           <span class="txt-fr">À Propos</span>
           <span class="txt-en">About Us</span>
@@ -731,96 +812,260 @@
           <span class="txt-en">Waiting for description...</span>
           <span class="txt-ar">بانتظار العرض...</span>
         </p>
+        <a href="#accueil" class="btn-action clair mt-3">
+          <span class="txt-fr">En savoir plus</span>
+          <span class="txt-en">Learn More</span>
+          <span class="txt-ar">اعرف المزيد</span>
+        </a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 🦶 PIED DE PAGE (IMAGE MODIFIABLE PAR L'ADMIN) -->
-<footer class="pied-page" id="contact">
+
+<!-- 📞 CONTACT & LOCALISATION -->
+<section class="section bg-dark text-white" id="contact">
   <div class="container">
-    <!-- Logo pied de page — modifiable UNIQUEMENT par l'admin -->
+    <h2 class="titre-section text-white">📍
+      <span class="txt-fr">Contact & Localisation</span>
+      <span class="txt-en">Contact & Location</span>
+      <span class="txt-ar">اتصل بنا والموقع</span>
+    </h2>
+    <div class="row g-4">
+      <div class="col-md-5">
+        <div class="carte bg-white text-dark p-4">
+          <h5 class="mb-3 text-primary">
+            <i class="bi bi-geo-alt-fill"></i>
+            <span class="txt-fr">Nous trouver</span>
+            <span class="txt-en">Find Us</span>
+            <span class="txt-ar">موقعنا</span>
+          </h5>
+          <p class="texte-pied">
+            <span class="txt-fr">Abidjan, Côte d'Ivoire</span>
+            <span class="txt-en">Abidjan, Côte d'Ivoire</span>
+            <span class="txt-ar">أبيدجان، كوت ديفوار</span>
+          </p>
+          <hr>
+          <h5 class="mb-3 text-primary">
+            <i class="bi bi-telephone-fill"></i>
+            <span class="txt-fr">Téléphone</span>
+            <span class="txt-en">Phone</span>
+            <span class="txt-ar">الهاتف</span>
+          </h5>
+          <p>📞 <span class="tel1">---</span></p>
+          <p>📞 <span class="tel2">---</span></p>
+          <hr>
+          <h5 class="mb-3 text-primary">
+            <i class="bi bi-envelope-fill"></i>
+            <span class="txt-fr">Email</span>
+            <span class="txt-en">Email</span>
+            <span class="txt-ar">البريد الإلكتروني</span>
+          </h5>
+          <p>✉️ <a href="" class="lien-email text-decoration-none">---</a></p>
+          
+          <div class="reseaux mt-4">
+            <a href="" class="lien-facebook" target="_blank" title="Facebook"><i class="bi bi-facebook"></i></a>
+            <a href="" class="lien-whatsapp" target="_blank" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+            <a href="" class="lien-youtube" target="_blank" title="YouTube"><i class="bi bi-youtube"></i></a>
+            <a href="" class="lien-instagram" target="_blank" title="Instagram"><i class="bi bi-instagram"></i></a>
+            <a href="" class="lien-tiktok" target="_blank" title="TikTok"><i class="bi bi-tiktok"></i></a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-7">
+        <div class="carte p-0 overflow-hidden h-100">
+          <iframe 
+            class="iframe-maps w-100 h-100" 
+            style="min-height: 400px; border:0;" 
+            src="" 
+            allowfullscreen="" 
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- 📊 RÉSULTATS & EMPLOI DU TEMPS -->
+<section class="section" id="resultats">
+  <div class="container">
+    <h2 class="titre-section">📊
+      <span class="txt-fr">Résultats & Examens</span>
+      <span class="txt-en">Results & Exams</span>
+      <span class="txt-ar">النتائج والامتحانات</span>
+    </h2>
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="carte h-100">
+          <h5 class="mb-3 text-primary">📄
+            <span class="txt-fr">Résultats des Examens</span>
+            <span class="txt-en">Exam Results</span>
+            <span class="txt-ar">نتائج الامتحانات</span>
+          </h5>
+          <p class="text-muted">
+            <span class="txt-fr">En attente de publication...</span>
+            <span class="txt-en">Waiting for publication...</span>
+            <span class="txt-ar">بانتظار النشر...</span>
+          </p>
+          <a href="#" class="btn btn-outline-primary w-100">
+            <span class="txt-fr">Consulter</span>
+            <span class="txt-en">View</span>
+            <span class="txt-ar">عرض</span>
+          </a>
+        </div>
+      </div>
+      <div class="col-md-6" id="emploi">
+        <div class="carte h-100">
+          <h5 class="mb-3 text-primary">📅
+            <span class="txt-fr">Emplois du Temps</span>
+            <span class="txt-en">Timetables</span>
+            <span class="txt-ar">الجداول الدراسية</span>
+          </h5>
+          <p class="text-muted">
+            <span class="txt-fr">En attente de publication...</span>
+            <span class="txt-en">Waiting for publication...</span>
+            <span class="txt-ar">بانتظار النشر...</span>
+          </p>
+          <a href="#" class="btn btn-outline-primary w-100">
+            <span class="txt-fr">Télécharger</span>
+            <span class="txt-en">Download</span>
+            <span class="txt-ar">تحميل</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- 🦶 PIED DE PAGE -->
+<footer class="pied-page">
+  <div class="container">
     <div class="pied-logo">
       <img id="logo-pied-image" class="pied-logo-img" alt="Logo">
+      <h4 class="texte-entete mt-2">
+        <span class="txt-fr">MAMA-ZOUMANA — École & Centre Islamique</span>
+        <span class="txt-en">MAMA-ZOUMANA — School & Islamic Center</span>
+        <span class="txt-ar">ماما زومانا — مدرسة ومركز إسلامي</span>
+      </h4>
     </div>
+
     <div class="row g-4">
       <div class="col-md-4">
-        <h6>📍
-          <span class="txt-fr">Adresse & Localisation</span>
-          <span class="txt-en">Address & Location</span>
-          <span class="txt-ar">العنوان والموقع</span>
-        </h6>
-        <p class="texte-pied">
-          <span class="txt-fr">Abidjan, Côte d'Ivoire</span>
-          <span class="txt-en">Abidjan, Côte d'Ivoire</span>
-          <span class="txt-ar">أبيدجان، كوت ديفوار</span>
-        </p>
-        <p>
-          📞 <span class="tel1">---</span> / <span class="tel2">---</span>
-          <br>📧 <a href="" class="lien-email">---</a>
-        </p>
-        <iframe class="iframe-maps" src="" width="100%" height="140" style="border-radius:8px;border:0;margin-top:10px" allowfullscreen loading="lazy"></iframe>
-      </div>
-      <div class="col-md-2">
         <h6>🔗
           <span class="txt-fr">Liens Rapides</span>
           <span class="txt-en">Quick Links</span>
           <span class="txt-ar">روابط سريعة</span>
         </h6>
         <a href="#accueil"><span class="txt-fr">Accueil</span><span class="txt-en">Home</span><span class="txt-ar">الرئيسية</span></a>
-        <a href="preinscription.html"><span class="txt-fr">Préinscription</span><span class="txt-en">Registration</span><span class="txt-ar">التسجيل</span></a>
-        <a href="connexion.html"><span class="txt-fr">Espace Admin</span><span class="txt-en">Admin Portal</span><span class="txt-ar">لوحة الإدارة</span></a>
+        <a href="preinscription.html"><span class="txt-fr">Préinscription</span><span class="txt-en">Registration</span><span class="txt-ar">التسجيل المسبق</span></a>
+        <a href="#admission"><span class="txt-fr">Admission</span><span class="txt-en">Admission</span><span class="txt-ar">القبول</span></a>
+        <a href="#galerie"><span class="txt-fr">Galerie</span><span class="txt-en">Gallery</span><span class="txt-ar">معرض الصور</span></a>
+        <a href="#contact"><span class="txt-fr">Contact</span><span class="txt-en">Contact</span><span class="txt-ar">اتصل بنا</span></a>
+        <a href="boutique.html"><span class="txt-fr">Boutique Scolaire</span><span class="txt-en">School Store</span><span class="txt-ar">المتجر المدرسي</span></a>
       </div>
-      <div class="col-md-3">
-        <h6>💰
-          <span class="txt-fr">Paiement Frais Scolaires</span>
-          <span class="txt-en">School Fees Payment</span>
-          <span class="txt-ar">دفع الرسوم الدراسية</span>
+
+      <div class="col-md-4">
+        <h6>🏫
+          <span class="txt-fr">Établissement</span>
+          <span class="txt-en">Institution</span>
+          <span class="txt-ar">المؤسسة</span>
         </h6>
-        <p class="mb-1">🟢 Moov Money : <span class="tel1">---</span></p>
-        <p class="mb-1">🟠 MTN Mobile Money : <span class="tel2">---</span></p>
-        <p class="text-muted small mt-2">
-          <span class="txt-fr">Indiquez NOM + CLASSE dans le motif</span>
-          <span class="txt-en">Specify NAME + CLASS in payment note</span>
-          <span class="txt-ar">اذكر الاسم والفصل في الغرض</span>
+        <a href="#apropos"><span class="txt-fr">À Propos</span><span class="txt-en">About Us</span><span class="txt-ar">من نحن</span></a>
+        <a href="#resultats"><span class="txt-fr">Résultats</span><span class="txt-en">Results</span><span class="txt-ar">النتائج</span></a>
+        <a href="#calendrier"><span class="txt-fr">Calendrier Scolaire</span><span class="txt-en">School Calendar</span><span class="txt-ar">التقويم الدراسي</span></a>
+        <a href="connexion.html"><span class="txt-fr">Espace Administratif</span><span class="txt-en">Admin Portal</span><span class="txt-ar">لوحة الإدارة</span></a>
+      </div>
+
+      <div class="col-md-4">
+        <h6>📞
+          <span class="txt-fr">Coordonnées</span>
+          <span class="txt-en">Contact Info</span>
+          <span class="txt-ar">معلومات الاتصال</span>
+        </h6>
+        <p class="texte-pied">
+          <span class="txt-fr">Abidjan, Côte d'Ivoire</span>
+          <span class="txt-en">Abidjan, Côte d'Ivoire</span>
+          <span class="txt-ar">أبيدجان، كوت ديفوار</span>
         </p>
-      </div>
-      <div class="col-md-3">
-        <h6>🌐
-          <span class="txt-fr">Suivez-nous</span>
-          <span class="txt-en">Follow Us</span>
-          <span class="txt-ar">تابعنا</span>
-        </h6>
-        <div class="reseaux">
-          <a href="" class="lien-facebook" target="_blank"><i class="bi bi-facebook"></i></a>
-          <a href="" class="lien-youtube" target="_blank"><i class="bi bi-youtube"></i></a>
-          <a href="" class="lien-tiktok" target="_blank"><i class="bi bi-tiktok"></i></a>
-          <a href="" class="lien-whatsapp" target="_blank"><i class="bi bi-whatsapp"></i></a>
-          <a href="" class="lien-instagram" target="_blank"><i class="bi bi-instagram"></i></a>
+        <p>📞 <span class="tel1">---</span></p>
+        <p>📞 <span class="tel2">---</span></p>
+        <p>✉️ <a href="" class="lien-email text-decoration-none">---</a></p>
+        
+        <div class="reseaux mt-3">
+          <a href="" class="lien-facebook" target="_blank" title="Facebook"><i class="bi bi-facebook"></i></a>
+          <a href="" class="lien-whatsapp" target="_blank" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+          <a href="" class="lien-youtube" target="_blank" title="YouTube"><i class="bi bi-youtube"></i></a>
+          <a href="" class="lien-instagram" target="_blank" title="Instagram"><i class="bi bi-instagram"></i></a>
+          <a href="" class="lien-tiktok" target="_blank" title="TikTok"><i class="bi bi-tiktok"></i></a>
         </div>
       </div>
     </div>
+
     <div class="copyright">
-      © 2026 MAMA-ZOUMANA —
-      <span class="txt-fr">Tous droits réservés</span>
-      <span class="txt-en">All rights reserved</span>
-      <span class="txt-ar">جميع الحقوق محفوظة</span      </div>
+      <p>© 2026 MAMA-ZOUMANA — 
+        <span class="txt-fr">École & Centre Islamique. Tous droits réservés.</span>
+        <span class="txt-en">School & Islamic Center. All rights reserved.</span>
+        <span class="txt-ar">مدرسة ومركز إسلامي. جميع الحقوق محفوظة.</span>
+      </p>
     </div>
   </div>
 </footer>
 
+
 <!-- ⬆️ BOUTON RETOUR EN HAUT -->
-<button onclick="window.scrollTo({top:0,behavior:'smooth'})" id="btn-haut" style="position:fixed;bottom:30px;right:30px;width:50px;height:50px;border-radius:50%;background:var(--accent);color:var(--sombre);border:none;font-size:1.3rem;z-index:999;box-shadow:0 4px 15px rgba(245,158,11,0.4);transition:all 0.3s;display:flex;align-items:center;justify-content:center;">
+<a href="#haut" id="btn-retour-haut" class="btn-retour-haut" title="Retour en haut">
   <i class="bi bi-chevron-up"></i>
-</button>
+</a>
+
+<style>
+  .btn-retour-haut {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 50px;
+    height: 50px;
+    background: var(--accent);
+    color: var(--sombre);
+    border-radius: 50% !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(245,158,11,0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+  body.lang-ar .btn-retour-haut { right: auto; left: 25px; }
+  .btn-retour-haut.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+  .btn-retour-haut:hover {
+    transform: translateY(-4px);
+    color: var(--sombre);
+  }
+</style>
 
 <script>
-  // Afficher / cacher bouton retour en haut
+  // Afficher / cacher le bouton retour en haut
   window.addEventListener('scroll', () => {
-    const btn = document.getElementById('btn-haut');
-    if (btn) btn.style.opacity = window.scrollY > 400 ? '1' : '0';
+    const btn = document.getElementById('btn-retour-haut');
+    if (window.scrollY > 300) {
+      btn.classList.add('visible');
+    } else {
+      btn.classList.remove('visible');
+    }
   });
 </script>
 
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
