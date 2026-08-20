@@ -1,8 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const verifadmin = require('../middleware/verifadmin');
-const verifprof = require('../middleware/verifprof');
+const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté systématiquement
+const verifadmin = require('../middleware/verifadmin');   // ✅ Administrateur seul
+const verifprof = require('../middleware/verifprof');     // ✅ Professeur seul
+
+// ✅ Protections groupées uniformes
+const protegerAdminOuProf = [veriftoken, verifprof];
+
 
 // ==================================================
 // 🏷️ FONCTIONS UTILITAIRES
@@ -76,21 +81,21 @@ async function calculerMoyenneEleve(id_eleve, id_classe, trimestre, annee) {
   };
 }
 
+
 // ==================================================
 // 📊 CALCULER BULLETINS, MOYENNES, CLASSEMENT
 // ✅ ADMIN ou PROFESSEUR autorisé
 // ==================================================
-router.post('/calculer', verifprof, async (req, res) => {
+router.post('/calculer', protegerAdminOuProf, async (req, res) => {
   try {
     const { id_classe, trimestre, annee_scolaire } = req.body;
     const annee = annee_scolaire || '2026-2027';
-    const id_prof = req.user?.id_utilisateur;
 
     if (!id_classe || !trimestre) {
-      return res.json({ ok: false, erreur: "Classe et Trimestre sont obligatoires" });
+      return res.json({ ok: false, erreur: "⚠️ Classe et Trimestre sont obligatoires" });
     }
 
-    // ✅ Récupérer les élèves — DEPUIS utilisateurs (PAS table eleves)
+    // ✅ Récupérer les élèves depuis utilisateurs
     const resultatsEleves = await pool.query(`
       SELECT DISTINCT 
         n.id_eleve,
@@ -111,7 +116,7 @@ router.post('/calculer', verifprof, async (req, res) => {
     `, [id_classe, trimestre, annee]);
 
     if (resultatsEleves.rows.length === 0) {
-      return res.json({ ok: false, erreur: "Aucune note trouvée pour cette classe / ce trimestre" });
+      return res.json({ ok: false, erreur: "⚠️ Aucune note trouvée pour cette classe / ce trimestre" });
     }
 
     // ✅ Calculer pour chaque élève
@@ -175,6 +180,7 @@ router.post('/calculer', verifprof, async (req, res) => {
       ]);
     }
 
+    console.log(`✅ Calcul bulletins terminé — Classe ${id_classe}, Trimestre ${trimestre}, ${resultatsFinaux.length} élève(s)`);
     res.json({ 
       ok: true, 
       effectif: resultatsFinaux.length,
@@ -183,10 +189,11 @@ router.post('/calculer', verifprof, async (req, res) => {
     });
 
   } catch (e) {
-    console.log("❌ ERREUR BULLETIN :", e.message);
+    console.error("❌ ERREUR CALCUL BULLETINS :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 // ==================================================
 // 📋 VOIR LE BULLETIN D'UN ÉLÈVE
@@ -199,7 +206,7 @@ router.get('/voir/:id_eleve', async (req, res) => {
     const { id_eleve } = req.params;
 
     if (!id_classe || !trimestre) {
-      return res.json({ ok: false, erreur: "Classe et Trimestre sont obligatoires" });
+      return res.json({ ok: false, erreur: "⚠️ Classe et Trimestre sont obligatoires" });
     }
 
     // ✅ Infos élève complètes depuis utilisateurs
@@ -214,7 +221,7 @@ router.get('/voir/:id_eleve', async (req, res) => {
     `, [id_eleve]);
 
     if (eleve.rows.length === 0) {
-      return res.json({ ok: false, erreur: "Élève introuvable" });
+      return res.json({ ok: false, erreur: "⚠️ Élève introuvable" });
     }
 
     // ✅ Notes détaillées
@@ -235,29 +242,32 @@ router.get('/voir/:id_eleve', async (req, res) => {
         AND trimestre = $3 AND annee_scolaire = $4
     `, [id_eleve, id_classe, trimestre, annee]);
 
+    console.log(`✅ Consultation bulletin — Élève ${id_eleve}, T${trimestre} ${annee}`);
     res.json({ 
       ok: true, 
       eleve: eleve.rows[0],
       notes: notes.rows,
       bulletin: bulletin.rows[0] || null
     });
+
   } catch (e) {
-    console.error("❌ ERREUR BULLETIN ÉLÈVE :", e.message);
+    console.error("❌ ERREUR CONSULTATION BULLETIN :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
 // 🏆 CLASSEMENT DE LA CLASSE
-// ✅ ADMIN / PROF autorisé
+// ✅ ADMIN / PROFESSEUR autorisé
 // ==================================================
-router.get('/classement', verifprof, async (req, res) => {
+router.get('/classement', protegerAdminOuProf, async (req, res) => {
   try {
     const { id_classe, trimestre, annee_scolaire } = req.query;
     const annee = annee_scolaire || '2026-2027';
 
     if (!id_classe || !trimestre) {
-      return res.json({ ok: false, erreur: "Classe et Trimestre sont obligatoires" });
+      return res.json({ ok: false, erreur: "⚠️ Classe et Trimestre sont obligatoires" });
     }
 
     const r = await pool.query(`
@@ -270,11 +280,14 @@ router.get('/classement', verifprof, async (req, res) => {
       ORDER BY b.moyenne_generale DESC
     `, [id_classe, trimestre, annee]);
 
+    console.log(`✅ Consultation classement — Classe ${id_classe}, Trimestre ${trimestre}, ${r.rows.length} élève(s)`);
     res.json({ ok: true, classement: r.rows });
+
   } catch (e) {
-    console.error("❌ ERREUR CLASSEMENT :", e.message);
+    console.error("❌ ERREUR CHARGEMENT CLASSEMENT :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 module.exports = router;
