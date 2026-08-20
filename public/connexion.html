@@ -320,6 +320,12 @@
 </div>
 
 <script>
+// ==================================================
+// ⚙️ CONFIGURATION — 100% HARMONISÉE ✅
+// ==================================================
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+
+
 // 🗣️ CHANGEMENT DE LANGUE
 document.querySelectorAll('.btn-langue').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -332,6 +338,7 @@ document.querySelectorAll('.btn-langue').forEach(btn => {
     btn.classList.add('active');
   });
 });
+
 
 // 🔄 CHANGER LE CHAMP IDENTIFIANT SELON LE RÔLE
 function changerChampIdentifiant() {
@@ -361,6 +368,7 @@ function changerChampIdentifiant() {
   }
 }
 
+
 // 👁️ VOIR / CACHER MOT DE PASSE
 let mdpVisible = false;
 function voirOuCacherMdp(){
@@ -371,7 +379,8 @@ function voirOuCacherMdp(){
   btn.textContent = mdpVisible ? '🙈' : '👁️';
 }
 
-// ✅ SOUMISSION FORMULAIRE — CONNEXION HARMONISÉE
+
+// ✅ SOUMISSION FORMULAIRE — API_URL + ROUTE CORRIGÉES ✅
 document.getElementById('formConnexion').addEventListener('submit', async e => {
   e.preventDefault();
   const msgErreur = document.getElementById('msgErreur');
@@ -401,7 +410,8 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
   }
 
   try {
-    const res = await fetch('https://mama-zoumana-api.onrender.com/api', {
+    // ✅ URL CORRIGÉE : API_URL + /connexion
+    const res = await fetch(`${API_URL}/connexion`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(donnees)
@@ -410,7 +420,7 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
     const data = await res.json();
 
     if(data.ok){
-      // ✅ SESSION UNIFIÉE — Transmet est_admin pour la page Finances
+      // ✅ SESSION UNIFIÉE
       const estAdmin = (data.role === 'admin' || data.role === 'super_admin');
       localStorage.setItem('token', data.token || '');
       localStorage.setItem('id_utilisateur', data.id_utilisateur || '');
@@ -418,43 +428,43 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
       localStorage.setItem('nom', data.nom || 'Utilisateur');
       localStorage.setItem('prenoms', data.prenoms || '');
       localStorage.setItem('role', data.role || role);
-      localStorage.setItem('est_admin', estAdmin ? 'true' : 'false'); // ✅ Clé pour Finances
+      localStorage.setItem('est_admin', estAdmin ? 'true' : 'false');
 
-      // ✅ REDIRECTIONS CORRIGÉES — Chacun sa page
-switch(data.role || role){
-  case 'admin': 
-  case 'super_admin':
-    location.href = 'espace/admin/dashboard.html';  // 🧑‍💻 Page Admin
-    break;
-  case 'comptable':
-    location.href = 'espace/comptable/dashboard.html';  // 💰 SA PROPRE PAGE Comptable
-    break;
-  case 'directeur':
-    location.href = 'espace/directeur/dashboard.html';
-    break;
-  case 'prof':
-    location.href = 'espace/prof/dashboard.html';
-    break;
-  case 'eleve':
-    location.href = 'espace/eleve/dashboard.html';
-    break;
-  case 'parent':
-    location.href = 'espace/parent/dashboard.html';
-    break;
-  case 'secretaire':
-    location.href = 'espace/secretaire/dashboard.html';
-    break;
-  default:
-    msgErreur.textContent = "⚠️ Profil inconnu : " + (data.role || role);
-    msgErreur.classList.remove('d-none');
-    localStorage.clear();
-}
+      // ✅ REDIRECTIONS PAR PROFIL — harmonisées
+      switch(data.role || role){
+        case 'admin':
+        case 'super_admin':
+          location.href = 'espace/admin/dashboard.html';
+          break;
+        case 'comptable':
+          location.href = 'espace/comptable/dashboard.html';
+          break;
+        case 'directeur':
+          location.href = 'espace/directeur/dashboard.html';
+          break;
+        case 'prof':
+          location.href = 'espace/prof/dashboard.html';
+          break;
+        case 'eleve':
+          location.href = 'espace/eleve/dashboard.html';
+          break;
+        case 'parent':
+          location.href = 'espace/parent/dashboard.html';
+          break;
+        case 'secretaire':
+          location.href = 'espace/secretaire/dashboard.html';
+          break;
+        default:
+          msgErreur.textContent = "⚠️ Profil inconnu : " + (data.role || role);
+          msgErreur.classList.remove('d-none');
+          localStorage.clear();
+      }
     }else{
       msgErreur.textContent = "❌ " + (data.erreur || "Échec de la connexion");
       msgErreur.classList.remove('d-none');
     }
   } catch(err) {
-    msgErreur.textContent = "⛔ Serveur injoignable — Démarrez le serveur !";
+    msgErreur.textContent = "⛔ Serveur injoignable — Réessayez plus tard.";
     msgErreur.classList.remove('d-none');
     console.error("Erreur :", err);
   } finally {
@@ -463,10 +473,12 @@ switch(data.role || role){
   }
 });
 
+
 // ✅ Affichage en temps réel du mot de passe
 document.getElementById('mdp').addEventListener('input', function(){
   document.getElementById('voirMdp').textContent = this.value;
 });
+
 
 // ✅ Restaurer langue sauvegardée
 const langueSauvegardee = localStorage.getItem('langue') || 'fr';
