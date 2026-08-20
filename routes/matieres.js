@@ -1,13 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
+const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté systématiquement
 const verifadmin = require('../middleware/verifadmin');
 const verifprof = require('../middleware/verifprof');
 
+// ✅ Protections groupées uniformes
+const protegerAdmin = [veriftoken, verifadmin];
+const protegerProf = [veriftoken, verifprof];
+
+
 // ==================================================
-// ➕ AJOUTER / METTRE À JOUR UNE MATIÈRE
+// ➕ AJOUTER / METTRE À JOUR UNE MATIÈRE — Admin seul
 // ==================================================
-router.post('/ajouter', verifadmin, async (req, res) => {
+router.post('/ajouter', protegerAdmin, async (req, res) => {
   try {
     const { libelle_matiere, coefficient, volume_horaire, langue_ens } = req.body;
 
@@ -33,6 +39,7 @@ router.post('/ajouter', verifadmin, async (req, res) => {
         langue_ens = EXCLUDED.langue_ens
     `, [nomNettoye, coef, vol, langue]);
 
+    console.log(`✅ Matière ajoutée/mise à jour : ${nomNettoye}`);
     res.json({ ok: true, message: "✅ Matière enregistrée / mise à jour" });
   } catch (e) {
     console.error("❌ ERREUR AJOUT MATIÈRE :", e.message);
@@ -40,38 +47,38 @@ router.post('/ajouter', verifadmin, async (req, res) => {
   }
 });
 
+
 // ==================================================
-// 📋 LISTE TOUTES LES MATIÈRES (Admin)
+// 📋 LISTE TOUTES LES MATIÈRES — Admin seul
 // ==================================================
-router.get('/', verifadmin, async (req, res) => {
+router.get('/', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
-      SELECT id_matiere, libelle_matiere, coefficient, volume_horaire, langue_ens 
-      FROM matieres 
+      SELECT id_matiere, libelle_matiere, coefficient, volume_horaire, langue_ens
+      FROM matieres
       ORDER BY libelle_matiere
     `);
-    console.log("📦 MATIÈRES CHARGÉES :", r.rows.length, "matières");
-    res.json({ ok: true, lignes: r.rows });
+    console.log("📦 Matières chargées :", r.rows.length);
+    res.json({ ok: true, matieres: r.rows });
   } catch (e) {
     console.error("❌ ERREUR LISTE MATIÈRES :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
-// 📚 MATIÈRES PAR CLASSE (pour la saisie des notes)
-// ✅ CETTE ROUTE EST APPELÉE PAR TA PAGE HTML
+// 📚 MATIÈRES PAR CLASSE — Professeur connecté
 // ==================================================
-router.get('/mes-matieres', verifprof, async (req, res) => {
+router.get('/mes-matieres', protegerProf, async (req, res) => {
   try {
     const id_prof = req.user.id_utilisateur;
-    const id_classe = req.query.classe; // ← Reçoit ?classe=XXX depuis la page
+    const id_classe = req.query.classe;
 
     console.log("🔍 Chargement matières — id_prof:", id_prof, "| id_classe:", id_classe);
 
     let r;
     if (id_classe) {
-      // ✅ Matières enseignées par ce prof DANS cette classe
       r = await pool.query(`
         SELECT DISTINCT m.id_matiere, m.libelle_matiere, m.coefficient, m.volume_horaire, m.langue_ens
         FROM matieres m
@@ -80,7 +87,6 @@ router.get('/mes-matieres', verifprof, async (req, res) => {
         ORDER BY m.libelle_matiere
       `, [id_prof, id_classe]);
     } else {
-      // ✅ Toutes les matières de ce prof (toutes classes confondues)
       r = await pool.query(`
         SELECT DISTINCT m.id_matiere, m.libelle_matiere, m.coefficient, m.volume_horaire, m.langue_ens
         FROM matieres m
@@ -90,18 +96,19 @@ router.get('/mes-matieres', verifprof, async (req, res) => {
       `, [id_prof]);
     }
 
-    console.log("✅ Matières trouvées :", r.rows.length, r.rows);
-    res.json({ ok: true, matieres: r.rows, lignes: r.rows });
+    console.log("✅ Matières trouvées :", r.rows.length);
+    res.json({ ok: true, matieres: r.rows });
   } catch (e) {
     console.error("❌ ERREUR MATIÈRES PROF :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
-// 📋 MATIÈRES DU PROFESSEUR CONNECTÉ (ancienne / compatibilité)
+// 📋 MATIÈRES DU PROFESSEUR CONNECTÉ — Compatibilité
 // ==================================================
-router.get('/prof', verifprof, async (req, res) => {
+router.get('/prof', protegerProf, async (req, res) => {
   try {
     const r = await pool.query(`
       SELECT DISTINCT m.id_matiere, m.libelle_matiere, m.coefficient, m.volume_horaire, m.langue_ens
@@ -110,17 +117,19 @@ router.get('/prof', verifprof, async (req, res) => {
       WHERE a.id_prof = $1
       ORDER BY m.libelle_matiere
     `, [req.user.id_utilisateur]);
-    res.json({ ok: true, lignes: r.rows });
+    console.log("✅ Matières du professeur chargées :", r.rows.length);
+    res.json({ ok: true, matieres: r.rows });
   } catch (e) {
     console.error("❌ ERREUR MATIÈRES PROF :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
-// ✏️ MODIFIER UNE MATIÈRE
+// ✏️ MODIFIER UNE MATIÈRE — Admin seul
 // ==================================================
-router.put('/:id', verifadmin, async (req, res) => {
+router.put('/:id', protegerAdmin, async (req, res) => {
   try {
     const { libelle_matiere, coefficient, volume_horaire, langue_ens } = req.body;
 
@@ -137,7 +146,7 @@ router.put('/:id', verifadmin, async (req, res) => {
     }
 
     const r = await pool.query(`
-      UPDATE matieres 
+      UPDATE matieres
       SET libelle_matiere = $1, coefficient = $2, volume_horaire = $3, langue_ens = $4
       WHERE id_matiere = $5
       RETURNING id_matiere
@@ -147,6 +156,7 @@ router.put('/:id', verifadmin, async (req, res) => {
       return res.json({ ok: false, erreur: "Matière introuvable" });
     }
 
+    console.log(`✅ Matière mise à jour — ID: ${req.params.id}`);
     res.json({ ok: true, message: "✅ Matière mise à jour" });
   } catch (e) {
     console.error("❌ ERREUR MODIFICATION MATIÈRE :", e.message);
@@ -154,17 +164,21 @@ router.put('/:id', verifadmin, async (req, res) => {
   }
 });
 
+
 // ==================================================
-// ❌ SUPPRIMER UNE MATIÈRE
+// ❌ SUPPRIMER UNE MATIÈRE — Admin seul
 // ==================================================
-router.delete('/:id', verifadmin, async (req, res) => {
+router.delete('/:id', protegerAdmin, async (req, res) => {
   try {
-    const r = await pool.query(`DELETE FROM matieres WHERE id_matiere = $1 RETURNING id_matiere`, [req.params.id]);
-    
+    const r = await pool.query(`
+      DELETE FROM matieres WHERE id_matiere = $1 RETURNING id_matiere
+    `, [req.params.id]);
+
     if (r.rowCount === 0) {
       return res.json({ ok: false, erreur: "Matière introuvable" });
     }
 
+    console.log(`🗑️ Matière supprimée — ID: ${req.params.id}`);
     res.json({ ok: true, message: "✅ Matière supprimée" });
   } catch (e) {
     console.error("❌ ERREUR SUPPRESSION MATIÈRE :", e.message);
@@ -174,5 +188,6 @@ router.delete('/:id', verifadmin, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 module.exports = router;
