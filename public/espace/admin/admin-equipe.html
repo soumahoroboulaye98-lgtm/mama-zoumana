@@ -3,81 +3,305 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Administration — Équipe pédagogique</title>
+  <title>
+    <span class="lang-fr">Administration — Équipe Pédagogique</span>
+    <span class="lang-en">Administration — Teaching Staff</span>
+    <span class="lang-ar">الإدارة — الفريق التربوي</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-    body { background: #f0f4f8; padding: 20px; }
-    .container { max-width: 1200px; margin: 0 auto; }
-    h1 { color: #1e40af; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
-    .barre { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    button { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
-    .btn-ajouter { background: #16a34a; color: white; }
-    .btn-ajouter:hover { background: #15803d; }
-    .btn-modif { background: #f59e0b; color: white; padding: 6px 12px; font-size: 14px; margin-right: 5px; }
-    .btn-suppr { background: #ef4444; color: white; padding: 6px 12px; font-size: 14px; }
-    .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    .card h3 { color: #1e293b; margin-bottom: 6px; }
-    .card p { color: #64748b; font-size: 14px; margin-bottom: 4px; }
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 100; }
-    .modal.active { display: flex; }
-    .modal-contenu { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
-    .modal-contenu h2 { margin-bottom: 20px; color: #1e40af; }
-    input, textarea, select { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
-    .ligne { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
-    .btn-fermer { background: #e2e8f0; color: #334155; }
-    .btn-valider { background: #1e40af; color: white; }
-    .message { margin-top: 15px; padding: 10px; border-radius: 6px; display: none; }
-    .message.succes { background: #dcfce7; color: #166534; display: block; }
-    .message.erreur { background: #fee2e2; color: #991b1b; display: block; }
+    :root {
+      --sombre: #0f172a; --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b; --vert: #10b981;
+      --rouge: #ef4444; --bleu: #3b82f6;
+      --texte: #f8fafc;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;transition:all 0.2s ease}
+    body{background:var(--sombre);color:var(--texte);min-height:100vh;font-family:'Segoe UI',sans-serif;}
+    .entete-page{background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.2rem 0}
+    .carte{background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);padding:1.5rem;margin-bottom:1.5rem}
+    .form-control,.form-select{background:#0f172a;border:1px solid #334155;color:white;border-radius:8px}
+    .form-control:focus,.form-select:focus{background:#0f172a;border-color:var(--bord-orange);color:white;box-shadow:0 0 0 0.25rem rgba(245,158,11,0.25)}
+    .btn-valide{background:var(--vert);color:white;border-radius:8px;border:none;padding:0.5rem 1rem;}
+    .btn-valide:hover{box-shadow:0 0 15px rgba(16,185,129,0.4);transform:translateY(-1px)}
+    .btn-modif{background:var(--bord-orange);color:white;padding:6px 12px;font-size:14px;border-radius:6px;border:none;}
+    .btn-modif:hover{background:#d97706;}
+    .btn-suppr{background:var(--rouge);color:white;padding:6px 12px;font-size:14px;border-radius:6px;border:none;}
+    .btn-suppr:hover{background:#dc2626;}
+    .badge-actif{background:rgba(16,185,129,0.15);color:#34d399;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;}
+    .badge-inactif{background:rgba(148,163,184,0.2);color:#94a3b8;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;}
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;z-index:1050}
+    .modal.active{display:flex}
+    .modal-contenu{background:var(--sombre-clair);padding:1.8rem;border-radius:12px;width:92%;max-width:680px;max-height:92vh;overflow-y:auto;border:1px solid #334155}
+    .modal-contenu h2{color:var(--bord-orange);margin-bottom:1.2rem}
+    .ligne{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:1rem}
+    .btn-fermer{background:#475569;color:white;border-radius:6px;border:none;padding:0.5rem 1rem;}
+    .btn-enregistrer{background:var(--bleu);color:white;border-radius:6px;border:none;padding:0.5rem 1rem;}
+    .btn-enregistrer:hover{background:#2563eb;color:white}
+    .message{margin-top:1rem;padding:0.75rem;border-radius:6px;display:none}
+    .message.succes{background:rgba(16,185,129,0.1);color:#34d399;display:block}
+    .message.erreur{background:rgba(239,68,68,0.1);color:#fca5a5;display:block}
+    .alerte-api{border-left:3px solid var(--rouge);background:rgba(239,68,68,0.1);border-radius:8px;padding:0.75rem 1rem;margin-bottom:1rem;}
+    .btn-langue.active{background:var(--bord-orange);color:#000;border-color:var(--bord-orange);font-weight:bold;}
+    .info-ligne{color:#cbd5e1;font-size:14px;margin:4px 0}
+    .photo-mini{width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--bord-orange);margin-right:12px}
+
+    /* 🗣️ GESTION DES LANGUES */
+    .lang-en, .lang-ar { display: none; }
+    body.lang-fr .lang-fr { display: inline; }
+    body.lang-en { direction: ltr; }
+    body.lang-en .lang-fr, body.lang-en .lang-ar { display: none; }
+    body.lang-en .lang-en { display: inline; }
+    body.lang-ar { direction: rtl; }
+    body.lang-ar .lang-fr, body.lang-ar .lang-en { display: none; }
+    body.lang-ar .lang-ar { display: inline; }
   </style>
 </head>
-<body>
-<div class="container">
-  <h1>👨‍🏫 Gestion de l'Équipe Pédagogique</h1>
-  <div class="barre">
-    <p id="compteur"></p>
-    <button class="btn-ajouter" onclick="ouvrirFormulaire()">➕ Ajouter un membre</button>
+<body class="lang-fr">
+
+<!-- 🔗 CONFIGURATION API & SÉCURITÉ -->
+<script>
+  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api/equipe'
+    : 'https://mama-zoumana-api.onrender.com/api/equipe';
+
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  let langue = localStorage.getItem('langue') || 'fr';
+  let modeLocal = false;
+
+  // 💾 STOCKAGE LOCAL
+  function obtenirMembresLocaux() { return JSON.parse(localStorage.getItem('equipe_membres') || '[]'); }
+  function sauvegarderMembresLocaux(liste) { localStorage.setItem('equipe_membres', JSON.stringify(liste)); }
+
+  // 🗣️ TRADUCTIONS
+  const MSG = {
+    fr: {
+      accesReserve: "⛔ Accès réservé à l'Administrateur",
+      serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
+      compteur: "membre(s)",
+      ajouterTitre: "Ajouter un membre",
+      modifierTitre: "Modifier un membre",
+      nom: "Nom *",
+      prenoms: "Prénoms *",
+      posteFR: "Poste (FR) *",
+      posteEN: "Poste (EN)",
+      posteAR: "Poste (AR)",
+      matiereFR: "Matière (FR)",
+      matiereEN: "Matière (EN)",
+      matiereAR: "Matière (AR)",
+      presFR: "Présentation (FR)",
+      presEN: "Présentation (EN)",
+      presAR: "Présentation (AR)",
+      photo: "URL Photo",
+      email: "Adresse Email",
+      ordre: "Ordre d'affichage",
+      actif: "Membre actif",
+      oui: "✅ Actif",
+      non: "❌ Inactif",
+      annuler: "Annuler",
+      enregistrer: "Enregistrer",
+      ajouterOk: "✅ Membre ajouté !",
+      modifierOk: "✅ Membre modifié !",
+      confirmerSuppr: "Confirmer la suppression ?",
+      supprOk: "✅ Membre supprimé !",
+      ajouterBtn: "➕ Ajouter un membre",
+      modifierBtn: "✏️ Modifier",
+      supprimerBtn: "🗑️ Supprimer",
+      retour: "Retour",
+      aucunMembre: "Aucun membre enregistré",
+      poste: "Poste",
+      matiere: "Matière"
+    },
+    en: {
+      accesReserve: "⛔ Access restricted to Administrator",
+      serveurIndispo: "⚠️ Server offline — Local mode active",
+      compteur: "member(s)",
+      ajouterTitre: "Add a member",
+      modifierTitre: "Edit member",
+      nom: "Last name *",
+      prenoms: "First name(s) *",
+      posteFR: "Position (FR) *",
+      posteEN: "Position (EN)",
+      posteAR: "Position (AR)",
+      matiereFR: "Subject (FR)",
+      matiereEN: "Subject (EN)",
+      matiereAR: "Subject (AR)",
+      presFR: "Presentation (FR)",
+      presEN: "Presentation (EN)",
+      presAR: "Presentation (AR)",
+      photo: "Photo URL",
+      email: "Email address",
+      ordre: "Display order",
+      actif: "Active member",
+      oui: "✅ Active",
+      non: "❌ Inactive",
+      annuler: "Cancel",
+      enregistrer: "Save",
+      ajouterOk: "✅ Member added!",
+      modifierOk: "✅ Member updated!",
+      confirmerSuppr: "Confirm deletion?",
+      supprOk: "✅ Member deleted!",
+      ajouterBtn: "➕ Add member",
+      modifierBtn: "✏️ Edit",
+      supprimerBtn: "🗑️ Delete",
+      retour: "Back",
+      aucunMembre: "No member registered",
+      poste: "Position",
+      matiere: "Subject"
+    },
+    ar: {
+      accesReserve: "⛔ الوصول مقصور على المدير",
+      serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
+      compteur: "عضو",
+      ajouterTitre: "إضافة عضو",
+      modifierTitre: "تعديل بيانات العضو",
+      nom: "اللقب *",
+      prenoms: "الاسم *",
+      posteFR: "المنصب (فرنسي) *",
+      posteEN: "المنصب (إنجليزي)",
+      posteAR: "المنصب (عربي)",
+      matiereFR: "المادة (فرنسي)",
+      matiereEN: "المادة (إنجليزي)",
+      matiereAR: "المادة (عربي)",
+      presFR: "نبذة تعريفية (فرنسي)",
+      presEN: "نبذة تعريفية (إنجليزي)",
+      presAR: "نبذة تعريفية (عربي)",
+      photo: "رابط الصورة",
+      email: "البريد الإلكتروني",
+      ordre: "ترتيب العرض",
+      actif: "عضو نشط",
+      oui: "✅ نشط",
+      non: "❌ غير نشط",
+      annuler: "إلغاء",
+      enregistrer: "حفظ",
+      ajouterOk: "✅ تمت إضافة العضو!",
+      modifierOk: "✅ تم تعديل بيانات العضو!",
+      confirmerSuppr: "تأكيد الحذف؟",
+      supprOk: "✅ تم حذف العضو!",
+      ajouterBtn: "➕ إضافة عضو",
+      modifierBtn: "✏️ تعديل",
+      supprimerBtn: "🗑️ حذف",
+      retour: "عودة",
+      aucunMembre: "لا يوجد أعضاء مسجلين",
+      poste: "المنصب",
+      matiere: "المادة"
+    }
+  };
+  function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
+
+  // 🔒 SÉCURITÉ
+  if(!token || !['admin','super_admin'].includes(role)){
+    alert(m('accesReserve'));
+    localStorage.clear();
+    location.href = 'connexion.html';
+  }
+
+  document.body.classList.add('lang-' + langue);
+</script>
+
+<!-- 📌 EN-TÊTE -->
+<div class="entete-page">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div>
+      <h3 class="mb-1">
+        <i class="bi bi-people-fill me-2" style="color:var(--bord-orange)"></i>
+        <span class="lang-fr">Gestion de l'Équipe Pédagogique</span>
+        <span class="lang-en">Teaching Staff Management</span>
+        <span class="lang-ar">إدارة الفريق التربوي</span>
+      </h3>
+      <p class="mb-0 opacity-75 small">
+        <span class="lang-fr">Ajouter et organiser les membres de l'équipe</span>
+        <span class="lang-en">Add and organize team members</span>
+        <span class="lang-ar">إضافة وتنظيم أعضاء الفريق</span>
+      </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('fr')" id="btn-fr">FR</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('en')" id="btn-en">EN</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('ar')" id="btn-ar">AR</button>
+      <a href="dashboard.html" class="btn btn-outline-light btn-sm ms-2">
+        <i class="bi bi-arrow-left"></i>
+        <span class="lang-fr"> Retour</span>
+        <span class="lang-en"> Back</span>
+        <span class="lang-ar"> عودة</span>
+      </a>
+    </div>
   </div>
+</div>
+
+<div class="container py-4">
+
+  <!-- ⚠️ ALERTE MODE LOCAL -->
+  <div id="alerteApi" class="alerte-api d-none">
+    <i class="bi bi-wifi-off me-2"></i>
+    <span id="texteAlerteApi"></span>
+  </div>
+
+  <!-- BARRE D'ACTION -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <p class="mb-0 fw-bold"><span id="compteur">0</span> <span class="lang-fr">membre(s)</span><span class="lang-en">member(s)</span><span class="lang-ar">عضو</span></p>
+    <button class="btn btn-valide" onclick="ouvrirFormulaire()">
+      <i class="bi bi-plus-lg"></i>
+      <span class="lang-fr"> Ajouter un membre</span>
+      <span class="lang-en"> Add member</span>
+      <span class="lang-ar"> إضافة عضو</span>
+    </button>
+  </div>
+
+  <!-- 📋 LISTE DES MEMBRES -->
   <div id="liste"></div>
 </div>
 
-<!-- MODAL FORMULAIRE -->
+<!-- 📝 MODAL FORMULAIRE -->
 <div class="modal" id="formModal">
   <div class="modal-contenu">
-    <h2 id="titreForm">Ajouter un membre</h2>
+    <h2 id="titreForm">...</h2>
     <form id="formMembre">
       <input type="hidden" id="id">
       <div class="ligne">
-        <input type="text" id="nom" placeholder="Nom *" required>
-        <input type="text" id="prenoms" placeholder="Prénoms *" required>
+        <input type="text" id="nom" class="form-control" placeholder="Nom *" required>
+        <input type="text" id="prenoms" class="form-control" placeholder="Prénoms *" required>
       </div>
       <div class="ligne">
-        <input type="text" id="poste_fr" placeholder="Poste (FR) *" required>
-        <input type="text" id="poste_en" placeholder="Poste (EN)">
+        <input type="text" id="poste_fr" class="form-control" placeholder="Poste (FR) *" required>
+        <input type="text" id="poste_en" class="form-control" placeholder="Poste (EN)">
       </div>
-      <input type="text" id="poste_ar" placeholder="Poste (AR)">
+      <input type="text" id="poste_ar" class="form-control" placeholder="Poste (AR)">
       <div class="ligne">
-        <input type="text" id="matiere_fr" placeholder="Matière (FR)">
-        <input type="text" id="matiere_en" placeholder="Matière (EN)">
+        <input type="text" id="matiere_fr" class="form-control" placeholder="Matière (FR)">
+        <input type="text" id="matiere_en" class="form-control" placeholder="Matière (EN)">
       </div>
-      <input type="text" id="matiere_ar" placeholder="Matière (AR)">
-      <textarea id="presentation_fr" rows="3" placeholder="Présentation (FR)"></textarea>
-      <textarea id="presentation_en" rows="3" placeholder="Présentation (EN)"></textarea>
-      <textarea id="presentation_ar" rows="3" placeholder="Présentation (AR)"></textarea>
+      <input type="text" id="matiere_ar" class="form-control" placeholder="Matière (AR)">
+      <textarea id="presentation_fr" class="form-control" rows="3" placeholder="Présentation (FR)"></textarea>
+      <textarea id="presentation_en" class="form-control" rows="3" placeholder="Présentation (EN)"></textarea>
+      <textarea id="presentation_ar" class="form-control" rows="3" placeholder="Présentation (AR)"></textarea>
       <div class="ligne">
-        <input type="text" id="photo_url" placeholder="URL Photo">
-        <input type="email" id="email" placeholder="Email">
+        <input type="text" id="photo_url" class="form-control" placeholder="URL Photo">
+        <input type="email" id="email" class="form-control" placeholder="Email">
       </div>
-      <div class="ligne">
-        <input type="number" id="ordre" placeholder="Ordre" value="1">
-        <label style="display:flex;align-items:center;gap:6px;margin-top:8px;">
-          <input type="checkbox" id="est_actif" checked> Actif
+      <div class="ligne align-items-center">
+        <input type="number" id="ordre" class="form-control" placeholder="Ordre" value="1">
+        <label style="display:flex;align-items:center;gap:8px;margin-bottom:0;color:var(--texte)">
+          <input type="checkbox" id="est_actif" checked>
+          <span class="lang-fr"> Actif</span>
+          <span class="lang-en"> Active</span>
+          <span class="lang-ar"> نشط</span>
         </label>
       </div>
       <div class="actions">
-        <button type="button" class="btn-fermer" onclick="fermerFormulaire()">Annuler</button>
-        <button type="submit" class="btn-valider">Enregistrer</button>
+        <button type="button" class="btn-fermer" onclick="fermerFormulaire()">
+          <span class="lang-fr">Annuler</span>
+          <span class="lang-en">Cancel</span>
+          <span class="lang-ar">إلغاء</span>
+        </button>
+        <button type="submit" class="btn-enregistrer">
+          <span class="lang-fr">Enregistrer</span>
+          <span class="lang-en">Save</span>
+          <span class="lang-ar">حفظ</span>
+        </button>
       </div>
       <div class="message" id="message"></div>
     </form>
@@ -85,64 +309,112 @@
 </div>
 
 <script>
-const API = '/api/equipe';
 let listeMembres = [];
 
-async function chargerListe() {
-  const res = await fetch(`${API}/liste?tout=1`);
-  const data = await res.json();
-  listeMembres = data.membres || [];
-  document.getElementById('compteur').textContent = `${listeMembres.length} membre(s)`;
+// 📡 ALERTE MODE LOCAL
+function basculerModeLocal(actif) {
+  modeLocal = actif;
+  const alerte = document.getElementById('alerteApi');
+  document.getElementById('texteAlerteApi').textContent = m('serveurIndispo');
+  alerte.classList.toggle('d-none', !actif);
+}
+
+// 🗣️ CHANGEMENT DE LANGUE
+function changerLangue(nouvelleLangue) {
+  langue = nouvelleLangue;
+  localStorage.setItem('langue', langue);
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + langue);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + langue).classList.add('active');
   afficherListe();
 }
 
+// 📋 CHARGER LA LISTE
+async function chargerListe(forcerLocal = false) {
+  let liste = [];
+  if (!forcerLocal) {
+    try {
+      const res = await fetch(`${API_URL}/liste?tout=1`, { headers:{'Authorization':`Bearer ${token}`} });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      liste = data.membres || [];
+      sauvegarderMembresLocaux(liste);
+      basculerModeLocal(false);
+    } catch {
+      forcerLocal = true;
+    }
+  }
+  if (forcerLocal) {
+    basculerModeLocal(true);
+    liste = obtenirMembresLocaux();
+  }
+  listeMembres = liste;
+  document.getElementById('compteur').textContent = liste.length;
+  afficherListe();
+}
+
+// 🖥️ AFFICHER LA LISTE
 function afficherListe() {
   const conteneur = document.getElementById('liste');
+  if (!listeMembres.length) {
+    conteneur.innerHTML = `<div class="carte text-center py-4 text-muted">${m('aucunMembre')}</div>`;
+    return;
+  }
   conteneur.innerHTML = '';
-  listeMembres.forEach(m => {
+  listeMembres.sort((a,b) => a.ordre - b.ordre).forEach(m => {
+    const photo = m.photo_url ? `<img src="${m.photo_url}" alt="" class="photo-mini" onerror="this.style.display='none'">` : '';
+    const statut = m.est_actif ? `<span class="badge-actif">${m('oui')}</span>` : `<span class="badge-inactif">${m('non')}</span>`;
     conteneur.innerHTML += `
-      <div class="card">
-        <h3>${m.prenoms} ${m.nom}</h3>
-        <p><strong>Poste :</strong> ${m.poste_fr}</p>
-        ${m.matiere_fr ? `<p><strong>Matière :</strong> ${m.matiere_fr}</p>` : ''}
-        ${m.email ? `<p><strong>Email :</strong> ${m.email}</p>` : ''}
-        <p><strong>Ordre :</strong> ${m.ordre} — ${m.est_actif ? '✅ Actif' : '❌ Inactif'}</p>
-        <div style="margin-top:10px">
-          <button class="btn-modif" onclick="modifier(${m.id})">✏️ Modifier</button>
-          <button class="btn-suppr" onclick="supprimer(${m.id})">🗑️ Supprimer</button>
+      <div class="carte">
+        <div class="d-flex align-items-start">
+          ${photo}
+          <div style="flex:1">
+            <h5 class="fw-bold mb-1">${m.prenoms || ''} ${m.nom || ''} ${statut}</h5>
+            <div class="info-ligne"><strong>${m('poste')} :</strong> ${m.poste_fr || ''}</div>
+            ${m.matiere_fr ? `<div class="info-ligne"><strong>${m('matiere')} :</strong> ${m.matiere_fr}</div>` : ''}
+            ${m.email ? `<div class="info-ligne"><i class="bi bi-envelope me-1"></i> ${m.email}</div>` : ''}
+            <div class="info-ligne text-muted small">Ordre : ${m.ordre || 1}</div>
+          </div>
         </div>
-      </div>
-    `;
+        <div class="mt-3">
+          <button class="btn-modif" onclick="modifier(${m.id})">✏️ ${m('modifierBtn')}</button>
+          <button class="btn-suppr" onclick="supprimer(${m.id})">🗑️ ${m('supprimerBtn')}</button>
+        </div>
+      </div>`;
   });
 }
 
+// 📝 OUVRIR FORMULAIRE
 function ouvrirFormulaire() {
   document.getElementById('formMembre').reset();
   document.getElementById('id').value = '';
-  document.getElementById('titreForm').textContent = 'Ajouter un membre';
+  document.getElementById('titreForm').textContent = m('ajouterTitre');
   document.getElementById('est_actif').checked = true;
   document.getElementById('formModal').classList.add('active');
 }
 
+// ✏️ MODIFIER MEMBRE
 function modifier(id) {
-  const m = listeMembres.find(x => x.id === id);
-  Object.keys(m).forEach(k => {
+  const m = listeMembres.find(x => Number(x.id) === Number(id));
+  if(!m) return;
+  ['id','nom','prenoms','poste_fr','poste_en','poste_ar','matiere_fr','matiere_en','matiere_ar','presentation_fr','presentation_en','presentation_ar','photo_url','email','ordre'].forEach(k => {
     const el = document.getElementById(k);
-    if (el) {
-      if (el.type === 'checkbox') el.checked = m[k];
-      else el.value = m[k] || '';
-    }
+    if(el) el.value = m[k] || '';
   });
-  document.getElementById('titreForm').textContent = 'Modifier un membre';
+  document.getElementById('est_actif').checked = Boolean(m.est_actif);
+  document.getElementById('titreForm').textContent = m('modifierTitre');
   document.getElementById('formModal').classList.add('active');
 }
 
+// ❌ FERMER FORMULAIRE
 function fermerFormulaire() {
   document.getElementById('formModal').classList.remove('active');
   document.getElementById('message').className = 'message';
   document.getElementById('message').textContent = '';
 }
 
+// 💾 ENREGISTRER MEMBRE
 document.getElementById('formMembre').addEventListener('submit', async e => {
   e.preventDefault();
   const id = document.getElementById('id').value;
@@ -160,38 +432,74 @@ document.getElementById('formMembre').addEventListener('submit', async e => {
     presentation_ar: document.getElementById('presentation_ar').value,
     photo_url: document.getElementById('photo_url').value,
     email: document.getElementById('email').value,
-    ordre: parseInt(document.getElementById('ordre').value),
+    ordre: parseInt(document.getElementById('ordre').value) || 1,
     est_actif: document.getElementById('est_actif').checked
   };
 
-  const url = id ? `${API}/${id}` : `${API}/ajouter`;
-  const methode = id ? 'PUT' : 'POST';
-  const res = await fetch(url, {
-    method: methode,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(donnees)
-  });
-  const rep = await res.json();
-
   const msg = document.getElementById('message');
-  if (rep.ok) {
+  try {
+    const url = id ? `${API_URL}/${id}` : `${API_URL}/ajouter`;
+    const methode = id ? 'PUT' : 'POST';
+    const res = await fetch(url, {
+      method: methode,
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(donnees)
+    });
+    const rep = await res.json();
+    if (rep.ok) {
+      msg.className = 'message succes';
+      msg.textContent = id ? m('modifierOk') : m('ajouterOk');
+      await chargerListe();
+      setTimeout(fermerFormulaire, 1200);
+    } else {
+      throw new Error(rep.erreur || 'Erreur serveur');
+    }
+  } catch (err) {
+    // 📴 Mode local
+    let liste = obtenirMembresLocaux();
+    donnees.id = id ? Number(id) : Date.now();
+    if (id) {
+      liste = liste.map(m => Number(m.id) === Number(id) ? {...m, ...donnees} : m);
+    } else {
+      liste.push(donnees);
+    }
+    sauvegarderMembresLocaux(liste);
+    listeMembres = liste;
+    basculerModeLocal(true);
     msg.className = 'message succes';
-    msg.textContent = id ? '✅ Membre modifié !' : '✅ Membre ajouté !';
-    await chargerListe();
+    msg.textContent = (id ? m('modifierOk') : m('ajouterOk')) + " (local)";
+    afficherListe();
     setTimeout(fermerFormulaire, 1200);
-  } else {
-    msg.className = 'message erreur';
-    msg.textContent = `❌ ${rep.erreur}`;
   }
 });
 
+// 🗑️ SUPPRIMER MEMBRE
 async function supprimer(id) {
-  if (!confirm('Confirmer la suppression ?')) return;
-  await fetch(`${API}/${id}`, { method: 'DELETE' });
-  await chargerListe();
+  if (!confirm(m('confirmerSuppr'))) return;
+  try {
+    const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers:{'Authorization':`Bearer ${token}`} });
+    const rep = await res.json();
+    if (rep.ok) {
+      await chargerListe();
+      alert(m('supprOk'));
+    } else {
+      throw new Error(rep.erreur);
+    }
+  } catch {
+    let liste = obtenirMembresLocaux().filter(m => Number(m.id) !== Number(id));
+    sauvegarderMembresLocaux(liste);
+    listeMembres = liste;
+    basculerModeLocal(true);
+    afficherListe();
+    alert(m('supprOk') + " (local)");
+  }
 }
 
-chargerListe();
+// 🚀 INITIALISATION
+window.onload = async function() {
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('active', b.id === 'btn-' + langue));
+  await chargerListe();
+};
 </script>
 </body>
 </html>
