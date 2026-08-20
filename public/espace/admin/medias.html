@@ -34,8 +34,9 @@
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
     body.lang-en .txt-en { display: inline; }
     body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
-    body.lang-ar .txt-ar { display: inline; direction: rtl; }
+    body.lang-ar .txt-ar { display: inline; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar { direction: rtl; }
     body.lang-ar .titre-section,
     body.lang-ar .menu-titre { text-align: right; }
 
@@ -46,10 +47,6 @@
     @keyframes monterApparaitre {
       from { opacity: 0; transform: translateY(25px); }
       to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes fonduEntrer {
-      from { opacity: 0; }
-      to { opacity: 1; }
     }
     .animer-carte {
       animation: monterApparaitre 0.5s ease-out forwards;
@@ -146,7 +143,7 @@
     }
     .bloc-fr h6 { color: #0c4a6e; border-bottom-color: #0c4a6e; }
     .bloc-en h6 { color: #10b981; border-bottom-color: #10b981; }
-    .bloc-ar h6 { color: #f59e0b; border-bottom-color: #f59e0b; direction: rtl; text-align: right; }
+    .bloc-ar h6 { color: #f59e0b; border-bottom-color: #f59e0b; text-align: right; }
     .etoile-rouge { color: #ef4444; font-weight: bold; }
 
     /* 🖼️ CARTE MÉDIA */
@@ -206,18 +203,32 @@
 <body>
 
 <script>
+  // 🔐 SÉCURITÉ
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
   const nomUtilisateur = localStorage.getItem('nom') || 'Utilisateur';
   const prenomUtilisateur = localStorage.getItem('prenoms') || '';
   const nomComplet = (nomUtilisateur + ' ' + prenomUtilisateur).trim();
-  const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+
+  // 🔗 DÉTECTION AUTOMATIQUE DE L'API
+  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:10000/api'
+    : '/api';
 
   if (!token || !['admin','super_admin'].includes(role)) {
     alert("⛔ Accès réservé à l'Administrateur");
     location.href = '../connexion.html';
   }
 
+  // 💾 STOCKAGE LOCAL (FALLBACK SI API INDISPONIBLE)
+  function obtenirMediasLocaux() {
+    return JSON.parse(localStorage.getItem('medias') || '[]');
+  }
+  function sauvegarderMediasLocaux(liste) {
+    localStorage.setItem('medias', JSON.stringify(liste));
+  }
+
+  // 🌍 GESTION DE LA LANGUE
   let langue = localStorage.getItem('langue') || 'fr';
   document.body.classList.add('lang-' + langue);
 
@@ -467,12 +478,19 @@
     const fichier = input.files[0];
     if (!fichier) return;
 
+    // Vérification taille (10 Mo max)
+    if (fichier.size > 10 * 1024 * 1024) {
+      alert(langue==='ar'?'❌ الملف كبير جدًا (أقصى 10 ميغابايت)':langue==='en'?'❌ File too large (max 10 MB)':'❌ Fichier trop volumineux (max 10 Mo)');
+      input.value = '';
+      return;
+    }
+
     // Détecter le type
     const type = fichier.type.startsWith('image/') ? 'image' : 
                  fichier.type.startsWith('video/') ? 'video' : 'autre';
     document.getElementById('type_media').value = type;
 
-    // Aperçu
+    // Aperçu + conversion Base64
     const apercu = document.getElementById('apercuImage');
     const lecteur = new FileReader();
     lecteur.onload = e => {
@@ -490,37 +508,39 @@
     const typ = document.getElementById('filtreType').value;
 
     try {
-      let url = `${API_URL}/liste?tout=1`;
+      let url = `${API_URL}/medias/liste?tout=1`;
       if (cat) url += `&categorie=${encodeURIComponent(cat)}`;
       if (typ) url += `&type_media=${encodeURIComponent(typ)}`;
 
-      const r = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const r = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
       const res = await r.json();
 
-      if (!res.ok || !res.medias?.length) {
-        conteneur.innerHTML = `<div class="col-12 text-center py-5 text-muted">
-          <i class="bi bi-images fs-1 mb-3 d-block"></i>
-          <p class="txt-fr">Aucun média — Ajoutez des photos, vidéos ou logos !</p>
-          <p class="txt-en">No media — Add photos, videos or logos!</p>
-          <p class="txt-ar">لا توجد وسائط — أضف صورًا أو فيديوهات أو شعارات!</p>
-        </div>`;
+      if (res.ok && res.medias?.length) {
+        sauvegarderMediasLocaux(res.medias);
+        res.medias.sort((a,b) => (a.ordre_affichage||0) - (b.ordre_affichage||0));
+        afficherMedias(res.medias);
         return;
       }
-
-      // ✅ TRI : par ordre d'affichage
-      res.medias.sort((a,b) => (a.ordre_affichage||0) - (b.ordre_affichage||0));
-      afficherMedias(res.medias);
-
-    } catch {
-      conteneur.innerHTML = `<div class="col-12 text-center py-5 text-danger">
-        <i class="bi bi-exclamation-triangle fs-1 mb-3 d-block"></i>
-        <p class="txt-fr">Chargement impossible</p>
-        <p class="txt-en">Failed to load</p>
-        <p class="txt-ar">تعذر التحميل</p>
-      </div>`;
+    } catch(e) {
+      console.warn("⚠️ API indisponible → Mode hors-ligne");
     }
+
+    // ⚠️ Mode hors-ligne
+    let liste = obtenirMediasLocaux();
+    if (cat) liste = liste.filter(m => m.categorie === cat);
+    if (typ) liste = liste.filter(m => m.type_media === typ);
+    liste.sort((a,b) => (a.ordre_affichage||0) - (b.ordre_affichage||0));
+
+    if (!liste.length) {
+      conteneur.innerHTML = `<div class="col-12 text-center py-5 text-muted">
+        <i class="bi bi-images fs-1 mb-3 d-block"></i>
+        <p class="txt-fr">Aucun média — Ajoutez des photos, vidéos ou logos !</p>
+        <p class="txt-en">No media — Add photos, videos or logos!</p>
+        <p class="txt-ar">لا توجد وسائط — أضف صورًا أو فيديوهات أو شعارات!</p>
+      </div>`;
+      return;
+    }
+    afficherMedias(liste);
   }
 
   // 🎨 AFFICHAGE GRILLE
@@ -536,14 +556,15 @@
       const badgeCls = m.type_media==='video'?'badge-video':'badge-image';
       const icone = m.type_media==='video'?'🎬':'🖼️';
       const catIcone = iconeCategorie[m.categorie] || '📁';
+      const urlImg = m.url_fichier || '';
 
       return `
         <div class="col-sm-6 col-md-4 col-lg-3 animer-carte retard-${(i%4)+1}">
           <div class="carte h-100">
             <div class="conteneur-image">
-              <span class="badge-type ${badgeCls}">${icone} ${catIcone} ${m.categorie}</span>
-              <img src="${m.url_fichier}" class="carte-media-img" alt="${titre}" loading="lazy"
-                   onerror="this.src='https://via.placeholder.com/400x200/1e293b/f8fafc?text=${encodeURIComponent(titre||'Image')}'">
+              <span class="badge-type ${badgeCls}">${icone} ${catIcone}</span>
+              <img src="${urlImg}" class="carte-media-img" alt="${titre}" loading="lazy"
+                   onerror="this.style.display='none';">
             </div>
             <div class="p-3">
               <h5 class="mb-1 fw-bold">${titre}</h5>
@@ -573,11 +594,12 @@
     const urlFichier = document.getElementById('url_fichier').value.trim();
     const titreFr = document.getElementById('titre_fr').value.trim();
     if (!urlFichier || !titreFr) {
-      alert(langue==='ar'?'املأ الرابط والعنوان ⚠️':langue==='en'?'Fill in URL and title ⚠️':'Remplissez le lien et le titre ⚠️');
+      alert(langue==='ar'?'املأ الرابط والعنوان ⚠️':langue==='en'?'Fill in URL and title ⚠️':'⚠️ Remplissez le lien et le titre');
       return;
     }
 
-    const donnees = {
+    const nouveauMedia = {
+      id_media: Date.now(),
       titre_fr: titreFr,
       titre_en: document.getElementById('titre_en').value.trim() || titreFr,
       titre_ar: document.getElementById('titre_ar').value.trim() || titreFr,
@@ -593,26 +615,25 @@
       est_publie: document.getElementById('est_publie').checked
     };
 
+    // 1. Sauvegarde immédiate locale
+    const liste = obtenirMediasLocaux();
+    liste.unshift(nouveauMedia);
+    sauvegarderMediasLocaux(liste);
+
+    // 2. Envoyer à l'API en arrière-plan
     try {
-      const r = await fetch(`${API_URL}/ajouter`, {
+      await fetch(`${API_URL}/medias/ajouter`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(donnees)
+        body: JSON.stringify(nouveauMedia)
       });
-      const res = await r.json();
+    } catch {}
 
-      if(res.ok){
-        alert(langue==='ar'?'✅ تم الحفظ!':langue==='en'?'✅ Saved!':'✅ Enregistré !');
-        e.target.reset();
-        document.getElementById('apercuImage').style.display = 'none';
-        document.getElementById('date_publication').valueAsDate = new Date();
-        chargerMedias();
-      }else{
-        alert("❌ " + (res.erreur || "Erreur serveur"));
-      }
-    }catch{
-      alert(langue==='ar'?'❌ خطأ في الاتصال':langue==='en'?'❌ Connection error':'❌ Erreur de connexion');
-    }
+    alert(langue==='ar'?'✅ تم الحفظ!':langue==='en'?'✅ Saved!':'✅ Enregistré !');
+    e.target.reset();
+    document.getElementById('apercuImage').style.display = 'none';
+    document.getElementById('date_publication').valueAsDate = new Date();
+    chargerMedias();
   });
 
   // 🗑️ SUPPRIMER
@@ -623,15 +644,20 @@
       ar: "⚠️ حذف هذا الوسيط نهائيًا؟"
     };
     if (!confirm(confMsg[langue])) return;
+
+    // Supprimer localement
+    let liste = obtenirMediasLocaux().filter(m => m.id_media !== id);
+    sauvegarderMediasLocaux(liste);
+
+    // Notifier l'API
     try {
-      await fetch(`${API_URL}/${id}`, { 
+      await fetch(`${API_URL}/medias/${id}`, { 
         method: 'DELETE', 
         headers: { 'Authorization': `Bearer ${token}` } 
       });
-      chargerMedias();
-    } catch { 
-      alert(langue==='ar'?'❌ خطأ في الحذف':langue==='en'?'❌ Delete error':'❌ Erreur de suppression'); 
-    }
+    } catch {}
+
+    chargerMedias();
   };
 
   // 🔄 FILTRES
