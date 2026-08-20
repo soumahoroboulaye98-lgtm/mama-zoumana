@@ -1,19 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
+const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté systématiquement
 const verifadmin = require('../middleware/verifadmin');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
+// ✅ Protection groupée uniforme pour les routes d'administration
+const protegerAdmin = [veriftoken, verifadmin];
+
 
 // ==================================================
-// 📧 CONFIGURATION EMAIL — PRÉSERVÉE
+// 📧 CONFIGURATION E-MAIL — PRÉSERVÉE
 // ==================================================
 const transport = nodemailer.createTransport({
   service: 'gmail',
-  auth: { 
-    user: process.env.MAIL_USER, 
-    pass: process.env.MAIL_PASS 
+  auth: {
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASS
   }
 });
 
@@ -34,32 +38,31 @@ function calculJoursRestants(dateEvenement) {
 // 🔔 NIVEAU D'AVERTISSEMENT — TRILINGUE
 // ==================================================
 function getAvertissement(jours) {
-  if (jours === 5) return { niveau: "J-5", couleur: "#f59e0b", texte: { fr:"🟡 Dans 5 jours", en:"🟡 In 5 days", ar:"🟡 خلال 5 أيام" } };
-  if (jours === 4) return { niveau: "J-4", couleur: "#fb923c", texte: { fr:"🟠 Dans 4 jours", en:"🟠 In 4 days", ar:"🟠 خلال 4 أيام" } };
-  if (jours === 3) return { niveau: "J-3", couleur: "#f97316", texte: { fr:"🟠 Dans 3 jours", en:"🟠 In 3 days", ar:"🟠 خلال 3 أيام" } };
-  if (jours === 2) return { niveau: "J-2", couleur: "#ef4444", texte: { fr:"🔴 Dans 2 jours", en:"🔴 In 2 days", ar:"🔴 خلال يومين" } };
-  if (jours === 1) return { niveau: "J-1", couleur: "#dc2626", texte: { fr:"🔴 Demain", en:"🔴 Tomorrow", ar:"🔴 غداً" } };
-  if (jours === 0) return { niveau: "JOUR J", couleur: "#b91c1c", texte: { fr:"⚠️ AUJOURD'HUI", en:"⚠️ TODAY", ar:"⚠️ اليوم" } };
-  if (jours < 0) return { niveau: "Passé", couleur: "#94a3b8", texte: { fr:"✅ Terminé", en:"✅ Past", ar:"✅ انتهى" } };
-  return { niveau: `${jours}j`, couleur: "#6b7280", texte: { fr:`📅 Dans ${jours} jours`, en:`📅 In ${jours} days`, ar:`📅 خلال ${jours} يوماً` } };
+  if (jours === 5) return { niveau: "J-5", couleur: "#f59e0b", texte: { fr: "🟡 Dans 5 jours", en: "🟡 In 5 days", ar: "🟡 خلال 5 أيام" } };
+  if (jours === 4) return { niveau: "J-4", couleur: "#fb923c", texte: { fr: "🟠 Dans 4 jours", en: "🟠 In 4 days", ar: "🟠 خلال 4 أيام" } };
+  if (jours === 3) return { niveau: "J-3", couleur: "#f97316", texte: { fr: "🟠 Dans 3 jours", en: "🟠 In 3 days", ar: "🟠 خلال 3 أيام" } };
+  if (jours === 2) return { niveau: "J-2", couleur: "#ef4444", texte: { fr: "🔴 Dans 2 jours", en: "🔴 In 2 days", ar: "🔴 خلال يومين" } };
+  if (jours === 1) return { niveau: "J-1", couleur: "#dc2626", texte: { fr: "🔴 Demain", en: "🔴 Tomorrow", ar: "🔴 غداً" } };
+  if (jours === 0) return { niveau: "JOUR J", couleur: "#b91c1c", texte: { fr: "⚠️ AUJOURD'HUI", en: "⚠️ TODAY", ar: "⚠️ اليوم" } };
+  if (jours < 0) return { niveau: "Passé", couleur: "#94a3b8", texte: { fr: "✅ Terminé", en: "✅ Past", ar: "✅ انتهى" } };
+  return { niveau: `${jours}j`, couleur: "#6b7280", texte: { fr: `📅 Dans ${jours} jours`, en: `📅 In ${jours} days`, ar: `📅 خلال ${jours} يوماً` } };
 }
 
 
 // ==================================================
-// 📧 ENVOIE NOTIFICATIONS PAR EMAIL — TRILINGUE
+// 📧 ENVOIE NOTIFICATIONS PAR E-MAIL — TRILINGUE
 // ==================================================
 async function notifierDestinataires(evt, avertissement) {
-  const { 
+  const {
     date_evenement, heure_evenement, lieu,
     titre_fr, titre_en, titre_ar,
     description_fr, description_en, description_ar
   } = evt;
 
-  let listeUsers = [];
   const r = await pool.query(
     "SELECT email, nom, COALESCE(langue, 'fr') AS langue FROM utilisateurs WHERE statut_compte = 'valide'"
   );
-  listeUsers = r.rows;
+  const listeUsers = r.rows;
 
   for (const u of listeUsers) {
     try {
@@ -84,18 +87,19 @@ async function notifierDestinataires(evt, avertissement) {
           </div>
         `
       });
-      console.log(`✅ Email envoyé à : ${u.email} [${langueUser}]`);
+      console.log(`✅ E-mail envoyé à : ${u.email} [${langueUser}]`);
     } catch (e) {
-      console.log(`❌ Email non envoyé à ${u.email} :`, e.message);
+      console.log(`❌ Échec envoi e-mail à ${u.email} : ${e.message}`);
     }
   }
 }
 
 
 // ==================================================
-// 🔔 VÉRIFIER & ENVOYER LES NOTIFICATIONS — PRÉSERVÉE
+// 🔔 VÉRIFIER & ENVOYER LES NOTIFICATIONS
+// 🔒 Réservé : Administrateur uniquement
 // ==================================================
-router.get('/verifier-notifications', verifadmin, async (req, res) => {
+router.get('/verifier-notifications', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query('SELECT * FROM evenements ORDER BY date_evenement');
     const traites = [];
@@ -124,41 +128,40 @@ router.get('/verifier-notifications', verifadmin, async (req, res) => {
       }
     }
 
+    console.log(`✅ Vérification notifications terminée — ${traites.length} notification(s) envoyée(s)`);
     res.json({ ok: true, traites });
+
   } catch (e) {
-    console.error("❌ ERREUR NOTIFICATIONS :", e.message);
+    console.error("❌ ERREUR TRAITEMENT NOTIFICATIONS :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 
 // ==================================================
-// 📋 LISTER LES ÉVÉNEMENTS — Publiques ou complètes (Admin)
+// 📋 LISTER LES ÉVÉNEMENTS — Publique
 // ==================================================
 router.get('/liste', async (req, res) => {
   try {
     const { tout, type_fr, rentree, annee_scolaire } = req.query;
-
     let conditions = [];
     let valeurs = [];
 
+    // Par défaut : seulement publiés et à venir
     if (tout !== '1') {
       conditions.push('est_publie = true');
       conditions.push('date_evenement >= CURRENT_DATE');
     }
 
-    // Filtre par type
     if (type_fr) {
       valeurs.push(type_fr);
       conditions.push(`type_fr = $${valeurs.length}`);
     }
 
-    // ✅ Filtre rentrée
     if (rentree === '1' || rentree === 'true') {
       conditions.push('rentree = true');
     }
 
-    // ✅ Filtre année scolaire
     if (annee_scolaire) {
       valeurs.push(annee_scolaire);
       conditions.push(`annee_scolaire = $${valeurs.length}`);
@@ -174,14 +177,16 @@ router.get('/liste', async (req, res) => {
 
     const liste = r.rows.map(evt => {
       const jours = calculJoursRestants(evt.date_evenement);
-      return { 
-        ...evt, 
-        jours_restants: jours, 
-        avertissement: getAvertissement(jours) 
+      return {
+        ...evt,
+        jours_restants: jours,
+        avertissement: getAvertissement(jours)
       };
     });
 
+    console.log(`✅ Liste événements renvoyée — ${liste.length} élément(s)`);
     res.json({ ok: true, evenements: liste });
+
   } catch (e) {
     console.error("❌ ERREUR LISTE ÉVÉNEMENTS :", e.message);
     res.json({ ok: false, erreur: e.message });
@@ -190,9 +195,10 @@ router.get('/liste', async (req, res) => {
 
 
 // ==================================================
-// ➕ AJOUTER UN ÉVÉNEMENT — Admin seul
+// ➕ AJOUTER UN ÉVÉNEMENT
+// 🔒 Réservé : Administrateur uniquement
 // ==================================================
-router.post('/ajouter', verifadmin, async (req, res) => {
+router.post('/ajouter', protegerAdmin, async (req, res) => {
   try {
     const id_utilisateur = req.user?.id_utilisateur;
     const {
@@ -205,9 +211,9 @@ router.post('/ajouter', verifadmin, async (req, res) => {
     } = req.body;
 
     if (!titre_fr || !date_evenement) {
-      return res.json({ 
-        ok: false, 
-        erreur: "Le titre en français et la date sont obligatoires" 
+      return res.json({
+        ok: false,
+        erreur: "Le titre en français et la date sont obligatoires"
       });
     }
 
@@ -231,18 +237,21 @@ router.post('/ajouter', verifadmin, async (req, res) => {
       rentree === true, annee_scolaire || null, id_utilisateur
     ]);
 
+    console.log(`✅ Événement créé — ID: ${r.rows[0].id_evenement}, ${titre_fr}`);
     res.json({ ok: true, evenement: r.rows[0] });
+
   } catch (e) {
-    console.error("❌ ERREUR AJOUT ÉVÉNEMENT :", e.message);
+    console.error("❌ ERREUR CRÉATION ÉVÉNEMENT :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 
 // ==================================================
-// ✏️ MODIFIER UN ÉVÉNEMENT — Admin seul
+// ✏️ MODIFIER UN ÉVÉNEMENT
+// 🔒 Réservé : Administrateur uniquement
 // ==================================================
-router.put('/:id_evenement', verifadmin, async (req, res) => {
+router.put('/:id_evenement', protegerAdmin, async (req, res) => {
   try {
     const id_evenement = parseInt(req.params.id_evenement);
     if (isNaN(id_evenement)) {
@@ -259,9 +268,9 @@ router.put('/:id_evenement', verifadmin, async (req, res) => {
     } = req.body;
 
     if (!titre_fr || !date_evenement) {
-      return res.json({ 
-        ok: false, 
-        erreur: "Le titre en français et la date sont obligatoires" 
+      return res.json({
+        ok: false,
+        erreur: "Le titre en français et la date sont obligatoires"
       });
     }
 
@@ -284,11 +293,13 @@ router.put('/:id_evenement', verifadmin, async (req, res) => {
       rentree === true, annee_scolaire || null
     ]);
 
-    res.json(
-      r.rows.length 
-        ? { ok: true, evenement: r.rows[0] } 
-        : { ok: false, erreur: "Événement introuvable" }
-    );
+    if (r.rows.length) {
+      console.log(`✅ Événement modifié — ID: ${id_evenement}`);
+      res.json({ ok: true, evenement: r.rows[0] });
+    } else {
+      res.json({ ok: false, erreur: "Événement introuvable" });
+    }
+
   } catch (e) {
     console.error("❌ ERREUR MODIFICATION ÉVÉNEMENT :", e.message);
     res.json({ ok: false, erreur: e.message });
@@ -297,9 +308,10 @@ router.put('/:id_evenement', verifadmin, async (req, res) => {
 
 
 // ==================================================
-// ❌ SUPPRIMER UN ÉVÉNEMENT — Admin seul
+// ❌ SUPPRIMER UN ÉVÉNEMENT
+// 🔒 Réservé : Administrateur uniquement
 // ==================================================
-router.delete('/:id_evenement', verifadmin, async (req, res) => {
+router.delete('/:id_evenement', protegerAdmin, async (req, res) => {
   try {
     const id_evenement = parseInt(req.params.id_evenement);
     if (isNaN(id_evenement)) {
@@ -307,18 +319,20 @@ router.delete('/:id_evenement', verifadmin, async (req, res) => {
     }
 
     const r = await pool.query(
-      'DELETE FROM evenements WHERE id_evenement=$1 RETURNING *', 
+      'DELETE FROM evenements WHERE id_evenement=$1 RETURNING *',
       [id_evenement]
     );
 
-    res.json(
-      r.rows.length 
-        ? { ok: true } 
-        : { ok: false, erreur: "Événement introuvable" }
-    );
+    if (r.rows.length) {
+      console.log(`🗑️ Événement supprimé — ID: ${id_evenement}`);
+      res.json({ ok: true });
+    } else {
+      res.json({ ok: false, erreur: "Événement introuvable" });
+    }
+
   } catch (e) {
     console.error("❌ ERREUR SUPPRESSION ÉVÉNEMENT :", e.message);
-    res.json({ ok: false, erreur: "Événement introuvable" });
+    res.json({ ok: false, erreur: e.message });
   }
 });
 
