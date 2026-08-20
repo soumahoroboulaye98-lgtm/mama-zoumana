@@ -17,12 +17,21 @@
       --sombre: #0f172a; --sombre-clair: #1e293b;
       --texte-gris: #94a3b8; --fond-page: #f1f5f9; --blanc: #ffffff;
       --bord-radius: 16px; --ombre: 0 4px 20px rgba(0,0,0,0.07);
+      --ombre-hover: 0 8px 30px rgba(0,0,0,0.12);
     }
+
+    /* ===== TRADUCTIONS ===== */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en { direction: ltr; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
     body.lang-en .txt-en { display: inline; }
+    body.lang-ar { direction: rtl; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
     body.lang-ar .txt-ar { display: inline; }
     body.lang-ar .titre-section { text-align: right; }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: var(--fond-page); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
 
@@ -69,9 +78,11 @@
     .config-item { padding: 1.25rem; border-bottom: 1px solid #e2e8f0; }
     .config-item:last-child { border-bottom: none; }
     .form-switch .form-check-input { width: 48px; height: 24px; border-radius: 12px; }
+    .alerte-api { border-left: 4px solid var(--alerte); background: rgba(239,68,68,0.1); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
     .alerte-succes { display: none; }
     .alerte-succes.montre { display: block; animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+
     @media (max-width: 991px) {
       .sidebar { position: relative; width: 100%; min-height: auto; }
       .contenu { margin: 0 !important; padding: 1rem; }
@@ -81,40 +92,49 @@
 <body>
 
 <script>
+  // 🔗 URL adaptative
+  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'
+    : 'https://mama-zoumana-api.onrender.com/api';
+
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
   const nomUtilisateur = localStorage.getItem('nom') || 'Utilisateur';
   const prenomUtilisateur = localStorage.getItem('prenoms') || '';
   const nomComplet = (nomUtilisateur + ' ' + prenomUtilisateur).trim();
-  const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+  let langueActuelle = localStorage.getItem('langue') || 'fr';
 
+  // 🗣️ Messages
+  const MSG = {
+    fr: {
+      accesReserve: "⛔ Accès réservé à l'Administrateur",
+      serveurIndispo: "⚠️ Serveur indisponible — Paramètres sauvegardés localement",
+      sauvegardeOk: "✅ Paramètres sauvegardés avec succès !",
+      confirmerDeconnexion: "Êtes-vous sûr de vouloir vous déconnecter ?"
+    },
+    en: {
+      accesReserve: "⛔ Access restricted to Administrator",
+      serveurIndispo: "⚠️ Server offline — Settings saved locally",
+      sauvegardeOk: "✅ Settings saved successfully!",
+      confirmerDeconnexion: "Are you sure you want to log out?"
+    },
+    ar: {
+      accesReserve: "⛔ الوصول مقصور على المدير",
+      serveurIndispo: "⚠️ الخادم غير متاح — تم حفظ الإعدادات محلياً",
+      sauvegardeOk: "✅ تم حفظ الإعدادات بنجاح !",
+      confirmerDeconnexion: "هل تريد تسجيل الخروج ؟"
+    }
+  };
+  function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
+
+  // 🔒 SÉCURITÉ
   if (!token || !['admin','super_admin'].includes(role)) {
-    alert("⛔ Accès réservé à l'Administrateur");
-    location.href = '../connexion.html';
+    alert(m('accesReserve'));
+    localStorage.clear();
+    location.href = 'dashboard.html';
   }
 
-  let langue = localStorage.getItem('langue') || 'fr';
-  document.body.classList.add('lang-' + langue);
-
-  window.appliquerLangue = function(lang) {
-    localStorage.setItem('langue', lang);
-    document.body.classList.remove('lang-fr','lang-en','lang-ar');
-    document.body.classList.add('lang-' + lang);
-    document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('actif'));
-    event.currentTarget.classList.add('actif');
-    langue = lang;
-  };
-
-  window.deconnecter = function() {
-    const msg = { ar: 'هل تريد تسجيل الخروج ؟', en: 'Are you sure you want to log out?', fr: 'Êtes-vous sûr de vouloir vous déconnecter ?' }[langue];
-    if (confirm(msg)) { localStorage.clear(); location.href = '../connexion.html'; }
-  };
-
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('actif', b.dataset.lang === langue));
-    document.getElementById('nom-affiche').textContent = nomComplet;
-    chargerParametres();
-  });
+  document.body.classList.add('lang-' + langueActuelle);
 </script>
 
 <div class="sidebar">
@@ -132,7 +152,7 @@
     <i class="bi bi-megaphone"></i>
     <span class="txt-fr">Annonces & Actualités</span><span class="txt-en">Announcements</span><span class="txt-ar">الإعلانات والأخبار</span>
   </a>
-  <a href="../changer-mot-de-passe.html" class="menu-item">
+  <a href="changer-mot-de-passe.html" class="menu-item">
     <i class="bi bi-key"></i>
     <span class="txt-fr">Changer mot de passe</span><span class="txt-en">Change Password</span><span class="txt-ar">تغيير كلمة المرور</span>
   </a>
@@ -152,12 +172,18 @@
     </div>
     <div class="zone-utilisateur">
       <div>
-        <button data-lang="fr" class="btn btn-langue btn-sm" onclick="appliquerLangue('fr')">FR</button>
-        <button data-lang="en" class="btn btn-langue btn-sm" onclick="appliquerLangue('en')">EN</button>
-        <button data-lang="ar" class="btn btn-langue btn-sm" onclick="appliquerLangue('ar')">AR</button>
+        <button data-lang="fr" class="btn btn-langue btn-sm" onclick="changerLangue('fr')">FR</button>
+        <button data-lang="en" class="btn btn-langue btn-sm" onclick="changerLangue('en')">EN</button>
+        <button data-lang="ar" class="btn btn-langue btn-sm" onclick="changerLangue('ar')">AR</button>
       </div>
       <span class="nom-utilisateur-affiche"><i class="bi bi-person-circle"></i> <span id="nom-affiche">Chargement...</span></span>
     </div>
+  </div>
+
+  <!-- ⚠️ ALERTE API -->
+  <div id="alerteApi" class="alerte-api d-none">
+    <i class="bi bi-wifi-off me-2"></i>
+    <span id="texteAlerteApi"></span>
   </div>
 
   <h2 class="titre-page">⚙️ <span class="txt-fr">Paramètres Généraux du Site</span><span class="txt-en">General Site Settings</span><span class="txt-ar">الإعدادات العامة للموقع</span></h2>
@@ -251,7 +277,25 @@
 </div>
 
 <script>
-  // Charger paramètres depuis localStorage (en attendant la route)
+  // 🗣️ CHANGEMENT DE LANGUE
+  function changerLangue(lang){
+    langueActuelle = lang;
+    localStorage.setItem('langue', lang);
+    document.body.classList.remove('lang-fr','lang-en','lang-ar');
+    document.body.classList.add('lang-' + lang);
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('actif'));
+    document.getElementById('btn-'+lang).classList.add('actif');
+  }
+
+  // 🔐 DÉCONNEXION
+  window.deconnecter = function() {
+    if (confirm(m('confirmerDeconnexion'))) {
+      localStorage.clear();
+      location.href = 'connexion.html';
+    }
+  };
+
+  // ✅ CHARGER PARAMÈTRES
   function chargerParametres() {
     const params = JSON.parse(localStorage.getItem('parametres_site') || '{}');
     if (params.nomEtablissement) document.getElementById('nom-etab').value = params.nomEtablissement;
@@ -264,7 +308,11 @@
     if (typeof params.modeMaintenance === 'boolean') document.getElementById('mode-maintenance').checked = params.modeMaintenance;
   }
 
-  function sauvegarderParametres() {
+  // 💾 SAUVEGARDER
+  async function sauvegarderParametres() {
+    const alerteApi = document.getElementById('alerteApi');
+    const texteAlerteApi = document.getElementById('texteAlerteApi');
+
     const parametres = {
       nomEtablissement: document.getElementById('nom-etab').value,
       anneeScolaire: document.getElementById('annee-scolaire').value,
@@ -276,20 +324,34 @@
       modeMaintenance: document.getElementById('mode-maintenance').checked
     };
 
+    // Sauvegarde locale systématique
     localStorage.setItem('parametres_site', JSON.stringify(parametres));
-    
-    // Afficher message de succès
+
+    try {
+      await fetch(`${API_URL}/admin/parametres`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(parametres)
+      });
+      alerteApi.classList.add('d-none');
+    } catch {
+      texteAlerteApi.textContent = m('serveurIndispo');
+      alerteApi.classList.remove('d-none');
+    }
+
+    // Message de succès
     const msg = document.getElementById('msg-succes');
     msg.classList.add('montre');
     setTimeout(() => msg.classList.remove('montre'), 4000);
-
-    // Envoyer au serveur si besoin
-    /* fetch(API_URL + '/admin/parametres', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(parametres)
-    }); */
   }
+
+  // 🚀 AU CHARGEMENT
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('actif', b.dataset.lang === langueActuelle));
+    document.getElementById('nom-affiche').textContent = nomComplet;
+    chargerParametres();
+  });
 </script>
+
 </body>
 </html>
