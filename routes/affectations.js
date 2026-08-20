@@ -1,10 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
+const veriftoken = require('../middleware/veriftoken');
 const verifadmin = require('../middleware/verifadmin');
 
+// ✅ Protection groupée uniforme
+const protegerAdmin = [veriftoken, verifadmin];
+
+
+// ==================================================
 // 📋 LISTE DES AFFECTATIONS
-router.get('/liste', verifadmin, async (req, res) => {
+// ==================================================
+router.get('/liste', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
       SELECT a.id_affectation,
@@ -17,48 +24,84 @@ router.get('/liste', verifadmin, async (req, res) => {
       JOIN matieres m ON a.id_matiere = m.id_matiere
       ORDER BY u.nom, c.libelle_classe, m.libelle_matiere
     `);
+
+    console.log(`✅ Liste affectations consultée — ${r.rows.length} affectation(s)`);
     res.json({ ok: true, lignes: r.rows });
   } catch (e) {
-    console.log("❌ ERREUR LISTE AFFECTATIONS :", e.message);
-    res.json({ ok: false, erreur: e.message });
+    console.error("❌ ERREUR LISTE AFFECTATIONS :", e.message);
+    res.json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
 
+
+// ==================================================
 // ➕ AJOUTER UNE AFFECTATION
-router.post('/ajouter', verifadmin, async (req, res) => {
+// ==================================================
+router.post('/ajouter', protegerAdmin, async (req, res) => {
   try {
     const { id_prof, id_classe, id_matiere } = req.body;
-    
-    if(!id_prof || !id_classe || !id_matiere){
-      return res.json({ ok: false, erreur: "Tous les champs sont obligatoires" });
+
+    // ✅ Validation des champs
+    if (!id_prof || !id_classe || !id_matiere) {
+      return res.json({ ok: false, erreur: "⚠️ Tous les champs sont obligatoires" });
+    }
+
+    // ✅ Validation des identifiants
+    const profId = parseInt(id_prof);
+    const classeId = parseInt(id_classe);
+    const matiereId = parseInt(id_matiere);
+
+    if (isNaN(profId) || isNaN(classeId) || isNaN(matiereId)) {
+      return res.json({ ok: false, erreur: "⚠️ Identifiants invalides" });
     }
 
     const r = await pool.query(`
       INSERT INTO affectations_ens (id_prof, id_classe, id_matiere)
       VALUES ($1, $2, $3)
       RETURNING *
-    `, [id_prof, id_classe, id_matiere]);
+    `, [profId, classeId, matiereId]);
 
-    res.json({ ok: true, message: "Affectation enregistrée !", donnee: r.rows[0] });
+    console.log(`✅ Affectation créée — Prof ${profId} → Classe ${classeId}, Matière ${matiereId}`);
+    res.json({ ok: true, message: "✅ Affectation enregistrée !", donnee: r.rows[0] });
   } catch (e) {
-    console.log("❌ ERREUR AJOUT AFFECTATION :", e.message);
-    if(e.code === '23505'){
-      return res.json({ ok: false, erreur: "Cette affectation existe déjà !" });
+    console.error("❌ ERREUR AJOUT AFFECTATION :", e.message);
+    if (e.code === '23505') {
+      return res.json({ ok: false, erreur: "⚠️ Cette affectation existe déjà !" });
     }
-    res.json({ ok: false, erreur: e.message });
+    if (e.code === '23503') {
+      return res.json({ ok: false, erreur: "⚠️ Un des éléments référencés n'existe pas" });
+    }
+    res.json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
 
+
+// ==================================================
 // 🗑️ SUPPRIMER UNE AFFECTATION
-router.delete('/supprimer/:id', verifadmin, async (req, res) => {
+// ==================================================
+router.delete('/supprimer/:id', protegerAdmin, async (req, res) => {
   try {
-    const { id } = req.params;
-    await pool.query('DELETE FROM affectations_ens WHERE id_affectation = $1', [id]);
-    res.json({ ok: true, message: "Supprimé !" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
+    }
+
+    const r = await pool.query(
+      'DELETE FROM affectations_ens WHERE id_affectation = $1 RETURNING *',
+      [id]
+    );
+
+    if (r.rows.length === 0) {
+      return res.json({ ok: false, erreur: "⚠️ Affectation introuvable" });
+    }
+
+    console.log(`✅ Affectation supprimée — ID: ${id}`);
+    res.json({ ok: true, message: "✅ Affectation supprimée !" });
   } catch (e) {
-    console.log("❌ ERREUR SUPPRESSION :", e.message);
-    res.json({ ok: false, erreur: e.message });
+    console.error("❌ ERREUR SUPPRESSION AFFECTATION :", e.message);
+    res.json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
+
 
 module.exports = router;
