@@ -1,24 +1,27 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const verifadmin = require('../middleware/verifadmin');
+const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté systématiquement
+const verifadmin = require('../middleware/verifadmin');   // ✅ Administrateur seul
+
+// ✅ Protection groupée uniforme
+const protegerAdmin = [veriftoken, verifadmin];
 
 
 // ==================================================
-// 📋 LISTER LE CALENDRIER — Publiques ou complet (Admin)
+// 📋 LISTER LE CALENDRIER — Publique (tous les utilisateurs)
 // ==================================================
 router.get('/liste', async (req, res) => {
   try {
-    const { tout, type_periode, annee_scolaire } = req.query;
+    const { type_periode, annee_scolaire } = req.query;
 
-    let conditions = [];
-    let valeurs = [];
+    const conditions = [];
+    const valeurs = [];
 
     if (type_periode) {
       valeurs.push(type_periode);
       conditions.push(`type_periode = $${valeurs.length}`);
     }
-
     if (annee_scolaire) {
       valeurs.push(annee_scolaire);
       conditions.push(`annee_scolaire = $${valeurs.length}`);
@@ -32,18 +35,20 @@ router.get('/liste', async (req, res) => {
       ORDER BY date_debut ASC
     `, valeurs);
 
+    console.log(`✅ Calendrier consulté — ${r.rows.length} période(s)`);
     res.json({ ok: true, calendrier: r.rows });
+
   } catch (e) {
-    console.log("❌ ERREUR LISTE CALENDRIER :", e.message);
-    res.json({ ok: false, erreur: e.message });
+    console.error("❌ ERREUR LISTE CALENDRIER :", e.message);
+    res.json({ ok: false, erreur: "⚠️ Impossible de charger le calendrier" });
   }
 });
 
 
 // ==================================================
-// ➕ AJOUTER UNE PÉRIODE — Admin seul
+// ➕ AJOUTER UNE PÉRIODE — Administrateur seul
 // ==================================================
-router.post('/ajouter', verifadmin, async (req, res) => {
+router.post('/ajouter', protegerAdmin, async (req, res) => {
   try {
     const {
       periode, date_debut, date_fin, type_periode,
@@ -51,10 +56,19 @@ router.post('/ajouter', verifadmin, async (req, res) => {
       annee_scolaire
     } = req.body;
 
+    // Validations
     if (!periode || !date_debut || !date_fin || !type_periode) {
       return res.json({
         ok: false,
-        erreur: "La période, les dates et le type sont obligatoires"
+        erreur: "⚠️ La période, les dates et le type sont obligatoires"
+      });
+    }
+
+    // Vérification de la cohérence des dates
+    if (new Date(date_debut) > new Date(date_fin)) {
+      return res.json({
+        ok: false,
+        erreur: "⚠️ La date de fin doit être postérieure à la date de début"
       });
     }
 
@@ -63,7 +77,7 @@ router.post('/ajouter', verifadmin, async (req, res) => {
         periode, date_debut, date_fin, type_periode,
         description_fr, description_en, description_ar,
         annee_scolaire, date_creation
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
       RETURNING *
     `, [
       periode, date_debut, date_fin, type_periode,
@@ -71,22 +85,24 @@ router.post('/ajouter', verifadmin, async (req, res) => {
       annee_scolaire || '2026-2027'
     ]);
 
-    res.json({ ok: true, periode: r.rows[0] });
+    console.log(`✅ Période créée — ${periode} (${annee_scolaire || '2026-2027'})`);
+    res.json({ ok: true, periode: r.rows[0], message: "✅ Période ajoutée avec succès !" });
+
   } catch (e) {
-    console.log("❌ ERREUR AJOUT PÉRIODE :", e.message);
+    console.error("❌ ERREUR AJOUT PÉRIODE :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 
 // ==================================================
-// ✏️ MODIFIER UNE PÉRIODE — Admin seul
+// ✏️ MODIFIER UNE PÉRIODE — Administrateur seul
 // ==================================================
-router.put('/:id', verifadmin, async (req, res) => {
+router.put('/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      return res.json({ ok: false, erreur: "Identifiant invalide" });
+      return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
     }
 
     const {
@@ -98,56 +114,72 @@ router.put('/:id', verifadmin, async (req, res) => {
     if (!periode || !date_debut || !date_fin || !type_periode) {
       return res.json({
         ok: false,
-        erreur: "La période, les dates et le type sont obligatoires"
+        erreur: "⚠️ La période, les dates et le type sont obligatoires"
+      });
+    }
+
+    // Vérification de la cohérence des dates
+    if (new Date(date_debut) > new Date(date_fin)) {
+      return res.json({
+        ok: false,
+        erreur: "⚠️ La date de fin doit être postérieure à la date de début"
       });
     }
 
     const r = await pool.query(`
       UPDATE calendrier_scolaire SET
-        periode=$2, date_debut=$3, date_fin=$4, type_periode=$5,
-        description_fr=$6, description_en=$7, description_ar=$8,
-        annee_scolaire=$9
-      WHERE id=$1 RETURNING *
+        periode = $2, date_debut = $3, date_fin = $4, type_periode = $5,
+        description_fr = $6, description_en = $7, description_ar = $8,
+        annee_scolaire = $9
+      WHERE id = $1
+      RETURNING *
     `, [
       id, periode, date_debut, date_fin, type_periode,
       description_fr || null, description_en || null, description_ar || null,
       annee_scolaire || '2026-2027'
     ]);
 
-    res.json(
-      r.rows.length
-        ? { ok: true, periode: r.rows[0] }
-        : { ok: false, erreur: "Période introuvable" }
-    );
+    if (r.rows.length === 0) {
+      return res.json({ ok: false, erreur: "⚠️ Période introuvable" });
+    }
+
+    console.log(`✅ Période mise à jour — ID: ${id}`);
+    res.json({ ok: true, periode: r.rows[0], message: "✅ Période mise à jour !" });
+
   } catch (e) {
-    console.log("❌ ERREUR MODIFICATION PÉRIODE :", e.message);
+    console.error("❌ ERREUR MODIFICATION PÉRIODE :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 
 // ==================================================
-// ❌ SUPPRIMER UNE PÉRIODE — Admin seul
+// ❌ SUPPRIMER UNE PÉRIODE — Administrateur seul
 // ==================================================
-router.delete('/:id', verifadmin, async (req, res) => {
+router.delete('/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      return res.json({ ok: false, erreur: "Identifiant invalide" });
+      return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
     }
 
     const r = await pool.query(
-      'DELETE FROM calendrier_scolaire WHERE id=$1 RETURNING *',
+      'DELETE FROM calendrier_scolaire WHERE id = $1 RETURNING periode',
       [id]
     );
 
-    res.json(
-      r.rows.length
-        ? { ok: true }
-        : { ok: false, erreur: "Période introuvable" }
-    );
+    if (r.rows.length === 0) {
+      return res.json({ ok: false, erreur: "⚠️ Période introuvable" });
+    }
+
+    console.log(`✅ Période supprimée — ID: ${id}, Nom: ${r.rows[0].periode}`);
+    res.json({ ok: true, message: "✅ Période supprimée avec succès !" });
+
   } catch (e) {
-    console.log("❌ ERREUR SUPPRESSION PÉRIODE :", e.message);
+    console.error("❌ ERREUR SUPPRESSION PÉRIODE :", e.message);
+    if (e.code === '23503') {
+      return res.json({ ok: false, erreur: "⚠️ Impossible : cette période est utilisée dans d'autres modules" });
+    }
     res.json({ ok: false, erreur: e.message });
   }
 });
