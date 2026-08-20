@@ -5,20 +5,24 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const nodemailer = require('nodemailer');
+const path = require('path');  // ✅ DÉPLACÉ EN HAUT
+const fs = require('fs');
 require('dotenv').config();
+
 
 // ✅ Middlewares importés selon la convention du projet
 const veriftoken = require('../middleware/veriftoken');
 const verifadmin = require('../middleware/verifadmin');
 
+
 // ✅ Protection groupée uniforme
 const protegerAdmin = [veriftoken, verifadmin];
 
+
 // 📁 CONFIGURATION UPLOAD FICHIERS
 const dossierUpload = path.join(__dirname, '../public/uploads');
-const path = require('path');
-const fs = require('fs');
 if (!fs.existsSync(dossierUpload)) fs.mkdirSync(dossierUpload, { recursive: true });
+
 
 const stockage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, dossierUpload),
@@ -29,6 +33,7 @@ const stockage = multer.diskStorage({
 });
 const upload = multer({ storage: stockage, limits: { fileSize: 10 * 1024 * 1024 } });
 
+
 // 📧 CONFIGURATION EMAIL
 const transport = nodemailer.createTransport({
   service: 'gmail',
@@ -37,6 +42,7 @@ const transport = nodemailer.createTransport({
     pass: process.env.MAIL_PASS
   }
 });
+
 
 
 // ==================================================
@@ -72,6 +78,7 @@ async function genererMatricule(profil, id_classe = null) {
   const numero = String(parseInt(compte.rows[0].count) + 1).padStart(4, '0');
   return `${codeEcole}-${annee}-${codeClasse}-${numero}`;
 }
+
 
 
 // ==================================================
@@ -196,6 +203,7 @@ router.post('/connexion', async (req, res) => {
 });
 
 
+
 // ==================================================
 // 📝 PRÉINSCRIPTION — AVEC NOUVEAU MATRICULE
 // ==================================================
@@ -243,6 +251,7 @@ router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }
     res.json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
+
 
 
 // ==================================================
@@ -297,6 +306,7 @@ router.post('/mot-de-passe-oublie', async (req, res) => {
 });
 
 
+
 // ==================================================
 // 🔐 CHANGEMENT DE MOT DE PASSE
 // ==================================================
@@ -340,6 +350,7 @@ router.post('/changer-mot-de-passe', async (req, res) => {
     res.json({ ok: false, erreur: "Erreur serveur" });
   }
 });
+
 
 
 // ==================================================
@@ -411,6 +422,7 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
 });
 
 
+
 // ==================================================
 // ❌ REFUSER UNE PRÉINSCRIPTION
 // ==================================================
@@ -441,6 +453,7 @@ router.put('/preinscription/refuser/:id', protegerAdmin, async (req, res) => {
 });
 
 
+
 // ==================================================
 // 📋 LISTER LES PRÉINSCRIPTIONS EN ATTENTE
 // ==================================================
@@ -464,6 +477,7 @@ router.get('/preinscription/liste', protegerAdmin, async (req, res) => {
 });
 
 
+
 // ==================================================
 // 📋 LISTE TOUS LES UTILISATEURS
 // ==================================================
@@ -482,6 +496,7 @@ router.get('/utilisateurs', protegerAdmin, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 
 // ==================================================
@@ -511,6 +526,7 @@ router.get('/utilisateur/:id', protegerAdmin, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 
 // ==================================================
@@ -566,6 +582,7 @@ router.put('/utilisateur/:id', protegerAdmin, async (req, res) => {
 });
 
 
+
 // ==================================================
 // 🗑️ SUPPRIMER UN UTILISATEUR
 // ==================================================
@@ -596,6 +613,7 @@ router.delete('/utilisateur/:id', protegerAdmin, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 
 module.exports = router;
