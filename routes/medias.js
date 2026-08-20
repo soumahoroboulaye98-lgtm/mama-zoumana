@@ -1,7 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
+const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté systématiquement
 const verifadmin = require('../middleware/verifadmin');
+
+// ✅ Protection groupée uniforme
+const protegerAdmin = [veriftoken, verifadmin];
+
 
 // ==================================================
 // 📋 LISTER LES MÉDIAS — Publiques ou complètes (Admin)
@@ -32,6 +37,7 @@ router.get('/liste', async (req, res) => {
       ORDER BY ordre_affichage ASC, date_creation DESC
     `, valeurs);
 
+    console.log(`✅ Liste médias renvoyée : ${r.rows.length} élément(s)`);
     res.json({ ok: true, medias: r.rows });
   } catch (e) {
     console.log("❌ ERREUR LISTE MÉDIAS :", e.message);
@@ -39,10 +45,11 @@ router.get('/liste', async (req, res) => {
   }
 });
 
+
 // ==================================================
-// ➕ AJOUTER UN MÉDIA — Admin seul
+// ➕ AJOUTER UN MÉDIA — Administrateur seul
 // ==================================================
-router.post('/ajouter', verifadmin, async (req, res) => {
+router.post('/ajouter', protegerAdmin, async (req, res) => {
   try {
     const id_utilisateur = req.user?.id_utilisateur;
     const {
@@ -54,9 +61,9 @@ router.post('/ajouter', verifadmin, async (req, res) => {
 
     // ✅ Validation
     if (!type_media || !url_fichier) {
-      return res.json({ 
-        ok: false, 
-        erreur: "Le type de média et le fichier sont obligatoires" 
+      return res.json({
+        ok: false,
+        erreur: "Le type de média et le fichier sont obligatoires"
       });
     }
 
@@ -77,6 +84,7 @@ router.post('/ajouter', verifadmin, async (req, res) => {
       id_utilisateur
     ]);
 
+    console.log(`✅ Média ajouté — ID: ${r.rows[0].id_media}`);
     res.json({ ok: true, media: r.rows[0] });
   } catch (e) {
     console.log("❌ ERREUR AJOUT MÉDIA :", e.message);
@@ -84,10 +92,11 @@ router.post('/ajouter', verifadmin, async (req, res) => {
   }
 });
 
+
 // ==================================================
-// ✏️ MODIFIER UN MÉDIA — Admin seul
+// ✏️ MODIFIER UN MÉDIA — Administrateur seul
 // ==================================================
-router.put('/:id', verifadmin, async (req, res) => {
+router.put('/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -102,9 +111,9 @@ router.put('/:id', verifadmin, async (req, res) => {
     } = req.body;
 
     if (!type_media || !url_fichier) {
-      return res.json({ 
-        ok: false, 
-        erreur: "Le type de média et le fichier sont obligatoires" 
+      return res.json({
+        ok: false,
+        erreur: "Le type de média et le fichier sont obligatoires"
       });
     }
 
@@ -122,21 +131,23 @@ router.put('/:id', verifadmin, async (req, res) => {
       date_publication || null, ordre_affichage || 0, est_publie !== false
     ]);
 
-    res.json(
-      r.rows.length 
-        ? { ok: true, media: r.rows[0] } 
-        : { ok: false, erreur: "Média introuvable" }
-    );
+    if (r.rows.length) {
+      console.log(`✅ Média modifié — ID: ${id}`);
+      res.json({ ok: true, media: r.rows[0] });
+    } else {
+      res.json({ ok: false, erreur: "Média introuvable" });
+    }
   } catch (e) {
     console.log("❌ ERREUR MODIFICATION MÉDIA :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
-// ❌ SUPPRIMER UN MÉDIA — Admin seul
+// ❌ SUPPRIMER UN MÉDIA — Administrateur seul
 // ==================================================
-router.delete('/:id', verifadmin, async (req, res) => {
+router.delete('/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -144,19 +155,21 @@ router.delete('/:id', verifadmin, async (req, res) => {
     }
 
     const r = await pool.query(
-      'DELETE FROM medias WHERE id_media=$1 RETURNING *', 
+      'DELETE FROM medias WHERE id_media=$1 RETURNING *',
       [id]
     );
 
-    res.json(
-      r.rows.length 
-        ? { ok: true } 
-        : { ok: false, erreur: "Média introuvable" }
-    );
+    if (r.rows.length) {
+      console.log(`🗑️ Média supprimé — ID: ${id}`);
+      res.json({ ok: true });
+    } else {
+      res.json({ ok: false, erreur: "Média introuvable" });
+    }
   } catch (e) {
     console.log("❌ ERREUR SUPPRESSION MÉDIA :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 module.exports = router;
