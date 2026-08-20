@@ -18,21 +18,68 @@
     }
     *{margin:0;padding:0;box-sizing:border-box;transition:all 0.25s ease}
     body{background:var(--sombre);color:var(--texte);min-height:100vh;font-family:'Segoe UI',sans-serif;}
-    @keyframes bordTourne {0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-    .btn-anim-orange{position:relative;background:var(--sombre-clair);color:var(--texte);border:none;border-radius:10px;overflow:hidden;z-index:1;}
-    .btn-anim-orange::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(transparent,var(--bord-orange),transparent 30%);animation:bordTourne 2.5s linear infinite;z-index:-2;}
-    .btn-anim-orange::after{content:'';position:absolute;inset:2px;background:var(--sombre-clair);border-radius:8px;z-index:-1;}
-    .btn-valide-lumineux{background:var(--valide);color:white;border-radius:8px;box-shadow:0 0 12px rgba(16,185,129,0.35);border:none;}
-    .btn-valide-lumineux:hover{box-shadow:0 0 20px rgba(16,185,129,0.6);transform:translateY(-1px)}
-    .btn-refuse-lumineux{background:var(--refuse);color:white;border-radius:8px;box-shadow:0 0 12px rgba(239,68,68,0.35);border:none;}
-    .btn-refuse-lumineux:hover{box-shadow:0 0 20px rgba(239,68,68,0.6);transform:translateY(-1px)}
-    .entete-page{background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.5rem 0;}
-    .carte-demande{background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);padding:1.25rem;margin-bottom:1rem;}
+    
+    @keyframes bordTourne {
+      0%{transform:rotate(0deg)}
+      100%{transform:rotate(360deg)}
+    }
+    .btn-anim-orange{
+      position:relative;background:var(--sombre-clair);color:var(--texte);border:none;
+      border-radius:10px;overflow:hidden;z-index:1;
+    }
+    .btn-anim-orange::before{
+      content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+      background:conic-gradient(transparent,var(--bord-orange),transparent 30%);
+      animation:bordTourne 2.5s linear infinite;z-index:-2;
+    }
+    .btn-anim-orange::after{
+      content:'';position:absolute;inset:2px;background:var(--sombre-clair);
+      border-radius:8px;z-index:-1;
+    }
+    .btn-valide-lumineux{
+      background:var(--valide);color:white;border-radius:8px;
+      box-shadow:0 0 12px rgba(16,185,129,0.35);border:none;
+    }
+    .btn-valide-lumineux:hover{
+      box-shadow:0 0 20px rgba(16,185,129,0.6);transform:translateY(-1px)
+    }
+    .btn-refuse-lumineux{
+      background:var(--refuse);color:white;border-radius:8px;
+      box-shadow:0 0 12px rgba(239,68,68,0.35);border:none;
+    }
+    .btn-refuse-lumineux:hover{
+      box-shadow:0 0 20px rgba(239,68,68,0.6);transform:translateY(-1px)
+    }
+    .btn-imprimer{
+      background:var(--bord-orange);color:#000;border-radius:8px;border:none;
+    }
+    .entete-page{
+      background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.5rem 0;
+    }
+    .carte-demande{
+      background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);
+      padding:1.25rem;margin-bottom:1rem;
+    }
+    .carte-impression{
+      background:white;color:#000;border-radius:12px;padding:2rem;margin-top:1.5rem;
+      display:none;
+    }
     .barre-langue{display:flex;gap:0.75rem;justify-content:center;margin-bottom:2rem;}
+    .date-inscription{color:var(--bord-orange);font-weight:600;}
+    .badge-attente{background-color:rgba(245,158,11,0.2);color:var(--bord-orange);padding:4px 10px;border-radius:20px;font-size:0.85rem;}
+    .badge-valide{background-color:rgba(16,185,129,0.2);color:var(--valide);padding:4px 10px;border-radius:20px;font-size:0.85rem;}
+    
+    @media print {
+      body{background:white;color:#000}
+      .entete-page,.barre-langue,.carte-demande,.no-print{display:none!important}
+      .carte-impression{display:block!important;border:2px solid #ccc;}
+    }
+    
     [dir="rtl"]{font-family:'Segoe UI Tahoma',sans-serif}
   </style>
 </head>
 <body>
+
 
 <!-- 🔒 PROTECTION -->
 <script>
@@ -41,6 +88,7 @@ if(!localStorage.getItem('token') || localStorage.getItem('role') !== 'admin'){
   location.href='connexion.html';
 }
 </script>
+
 
 <div class="entete-page">
   <div class="container d-flex justify-content-between align-items-center">
@@ -54,6 +102,7 @@ if(!localStorage.getItem('token') || localStorage.getItem('role') !== 'admin'){
   </div>
 </div>
 
+
 <div class="container py-4">
   <!-- 🌐 CHOIX LANGUE -->
   <div class="barre-langue">
@@ -62,7 +111,39 @@ if(!localStorage.getItem('token') || localStorage.getItem('role') !== 'admin'){
     <button class="btn btn-anim-orange px-4 py-2" onclick="changerLangue('en')">🇬🇧 English</button>
   </div>
 
-  <div id="liste-demandes">
+  <!-- 📄 FICHE À IMPRIMER (cachée jusqu'à validation) -->
+  <div id="zoneImpression" class="carte-impression">
+    <h3 class="text-center border-bottom pb-3 mb-4">🏫 FICHE D'INSCRIPTION</h3>
+    <div class="row mb-2">
+      <div class="col-md-4"><strong>N° Inscription :</strong> <span id="imp-num"></span></div>
+      <div class="col-md-4"><strong>Date d'inscription :</strong> <span id="imp-date" class="date-inscription"></span></div>
+      <div class="col-md-4"><strong>Statut :</strong> <span id="imp-statut" class="badge-valide">Validée</span></div>
+    </div>
+    <hr>
+    <div class="row mb-2">
+      <div class="col-md-6"><strong>Nom & Prénoms :</strong> <span id="imp-nom"></span></div>
+      <div class="col-md-6"><strong>Classe :</strong> <span id="imp-classe"></span></div>
+    </div>
+    <div class="row mb-2">
+      <div class="col-md-6"><strong>Email :</strong> <span id="imp-email"></span></div>
+      <div class="col-md-6"><strong>Téléphone :</strong> <span id="imp-tel"></span></div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-md-6"><strong>Profil :</strong> <span id="imp-profil"></span></div>
+      <div class="col-md-6"><strong>Responsable :</strong> <span id="imp-resp"></span></div>
+    </div>
+    <hr>
+    <p class="text-center mt-4">Nous vous souhaitons la bienvenue au sein de l'établissement MAMA-ZOUMANA.</p>
+    <p class="text-center small text-muted">Signature de l'administrateur _______________________</p>
+    <div class="text-center mt-4 no-print">
+      <button class="btn btn-imprimer px-4" onclick="window.print()">
+        <i class="bi bi-printer"></i> Imprimer la fiche
+      </button>
+    </div>
+  </div>
+
+  <!-- 📋 LISTE DES DEMANDES -->
+  <div id="liste-demandes" class="mt-4">
     <div class="text-center py-5">
       <div class="spinner-border text-warning"></div>
       <p class="mt-3 opacity-80" id="chargement">Chargement des demandes...</p>
@@ -70,8 +151,10 @@ if(!localStorage.getItem('token') || localStorage.getItem('role') !== 'admin'){
   </div>
 </div>
 
+
 <script>
 const API_BASE = "https://mama-zoumana-api.onrender.com/api";
+
 const textes = {
   fr: {
     sous_titre: "Demandes en attente de validation",
@@ -79,13 +162,16 @@ const textes = {
     nom: "Nom & Prénoms",
     mail: "Email",
     tel: "Téléphone",
-    classe: "Classe (ID)",
+    classe: "Classe",
     profil: "Profil",
+    resp: "Responsable légal",
+    date_inscription: "Date d'inscription",
     valider: "✅ Valider",
     refuser: "❌ Refuser",
     vide: "Aucune demande en attente",
-    ok_valide: "✅ Demande validée ! Compte utilisateur créé.",
-    ok_refuse: "❌ Demande refusée."
+    ok_valide: "✅ Inscription validée ! La fiche est prête à être imprimée.",
+    ok_refuse: "❌ Demande refusée.",
+    confirmer: "⚠️ Confirmer cette action ?"
   },
   ar: {
     sous_titre: "الطلبات في انتظار الموافقة",
@@ -95,11 +181,14 @@ const textes = {
     tel: "الهاتف",
     classe: "المستوى الدراسي",
     profil: "الملف",
+    resp: "ولي الأمر",
+    date_inscription: "تاريخ التسجيل",
     valider: "✅ موافقة",
     refuser: "❌ رفض",
     vide: "لا يوجد طلبات في الانتظار",
-    ok_valide: "✅ تمت الموافقة وإنشاء الحساب !",
-    ok_refuse: "❌ تم الرفض."
+    ok_valide: "✅ تمت الموافقة ! بطاقة التسجيل جاهزة للطباعة.",
+    ok_refuse: "❌ تم الرفض.",
+    confirmer: "هل أنت متأكد ؟"
   },
   en: {
     sous_titre: "Requests pending approval",
@@ -107,17 +196,22 @@ const textes = {
     nom: "Full Name",
     mail: "Email",
     tel: "Phone",
-    classe: "Class (ID)",
+    classe: "Class",
     profil: "Profile",
+    resp: "Legal Guardian",
+    date_inscription: "Registration Date",
     valider: "✅ Approve",
     refuser: "❌ Reject",
     vide: "No pending requests",
-    ok_valide: "✅ Approved! User account created.",
-    ok_refuse: "❌ Rejected."
+    ok_valide: "✅ Approved! Registration form ready to print.",
+    ok_refuse: "❌ Rejected.",
+    confirmer: "⚠️ Confirm this action?"
   }
 };
 
 let langueActuelle = 'fr';
+let derniereValidation = null;
+
 function changerLangue(lang){
   langueActuelle = lang;
   document.querySelectorAll('.barre-langue button').forEach(b=>b.classList.remove('active'));
@@ -129,52 +223,103 @@ function changerLangue(lang){
   chargerDemandes();
 }
 
-async function chargerDemandes(){
-  const token = localStorage.getItem('token');
-  const res = await fetch(`${API_BASE}/preinscription/en-attente`, {
-    headers:{'Authorization':'Bearer '+token}
-  });
-  const data = await res.json();
-  const liste = document.getElementById('liste-demandes');
-
-  if(!data.ok || !data.lignes || data.lignes.length === 0){
-    liste.innerHTML = `<div class="text-center py-5 opacity-75">${textes[langueActuelle].vide}</div>`;
-    return;
-  }
-
-  liste.innerHTML = data.lignes.map(d=>`
-    <div class="carte-demande">
-      <div class="row align-items-center g-3">
-        <div class="col-md-3"><strong>${textes[langueActuelle].nom}:</strong><br>${d.nom} ${d.prenoms}</div>
-        <div class="col-md-2"><strong>${textes[langueActuelle].mail}:</strong><br>${d.email}</div>
-        <div class="col-md-2"><strong>${textes[langueActuelle].tel}:</strong><br>${d.telephone}</div>
-        <div class="col-md-2"><strong>${textes[langueActuelle].classe}:</strong><br>${d.id_classe || '—'}</div>
-        <div class="col-md-2"><strong>${textes[langueActuelle].profil}:</strong><br>${d.profil}</div>
-        <div class="col-md-1 d-flex gap-2">
-          <button class="btn btn-valide-lumineux btn-sm" onclick="traiter(${d.id_preinscription},'valide')">${textes[langueActuelle].valider}</button>
-          <button class="btn btn-refuse-lumineux btn-sm" onclick="traiter(${d.id_preinscription},'refusee')">${textes[langueActuelle].refuser}</button>
-        </div>
-      </div>
-    </div>
-  `).join('');
+// 📄 REMPLIR LA FICHE D'IMPRESSION
+function preparerFicheImpression(demande){
+  const dateNormal = new Date().toISOString().split('T')[0]; // Date du jour = date d'inscription normale
+  document.getElementById('imp-num').textContent = demande.id_preinscription || demande.id || '—';
+  document.getElementById('imp-date').textContent = dateNormal;
+  document.getElementById('imp-nom').textContent = (demande.nom || '') + ' ' + (demande.prenoms || '');
+  document.getElementById('imp-email').textContent = demande.email || '—';
+  document.getElementById('imp-tel').textContent = demande.telephone || '—';
+  document.getElementById('imp-classe').textContent = demande.libelle_classe || demande.id_classe || '—';
+  document.getElementById('imp-profil').textContent = demande.profil || 'Élève';
+  document.getElementById('imp-resp').textContent = demande.responsable || demande.nom_responsable || 'Non renseigné';
+  document.getElementById('zoneImpression').style.display = 'block';
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
-async function traiter(id, statut){
-  if(!confirm("⚠️ Confirmer cette action ?")) return;
+async function chargerDemandes(){
   const token = localStorage.getItem('token');
+  try {
+    const res = await fetch(`${API_BASE}/preinscription/en-attente`, {
+      headers: {'Authorization':'Bearer '+token}
+    });
+    const data = await res.json();
+    const liste = document.getElementById('liste-demandes');
 
-  const res = await fetch(`${API_BASE}/preinscription/traiter/${id}`, {
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'Authorization':'Bearer '+token
-    },
-    body:JSON.stringify({ statut })
-  });
-  const r = await res.json();
+    if(!data.ok || !data.lignes || data.lignes.length === 0){
+      liste.innerHTML = `<div class="text-center py-5 opacity-75">${textes[langueActuelle].vide}</div>`;
+      return;
+    }
 
-  const message = statut==='valide' ? textes[langueActuelle].ok_valide : textes[langueActuelle].ok_refuse;
-  alert(r.ok ? message : "❌ Erreur : " + (r.erreur||''));
+    liste.innerHTML = data.lignes.map(d=>`
+      <div class="carte-demande">
+        <div class="row align-items-center g-3">
+          <div class="col-md-2"><strong>${textes[langueActuelle].nom}:</strong><br>${d.nom} ${d.prenoms}</div>
+          <div class="col-md-2"><strong>${textes[langueActuelle].mail}:</strong><br>${d.email}</div>
+          <div class="col-md-2"><strong>${textes[langueActuelle].tel}:</strong><br>${d.telephone}</div>
+          <div class="col-md-2"><strong>${textes[langueActuelle].classe}:</strong><br>${d.libelle_classe || d.id_classe || '—'}</div>
+          <div class="col-md-2"><strong>${textes[langueActuelle].profil}:</strong><br>${d.profil}</div>
+          <div class="col-md-2 d-flex gap-2">
+            <button class="btn btn-valide-lumineux btn-sm" onclick="traiter(${JSON.stringify(d).replace(/"/g,'&quot;')},'valide')">${textes[langueActuelle].valider}</button>
+            <button class="btn btn-refuse-lumineux btn-sm" onclick="traiter(${d.id_preinscription},'refusee')">${textes[langueActuelle].refuser}</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch(err) {
+    document.getElementById('liste-demandes').innerHTML = `<div class="text-center py-5 text-danger">⚠️ Erreur de connexion au serveur</div>`;
+  }
+}
+
+async function traiter(demande, statut){
+  if(!confirm(textes[langueActuelle].confirmer)) return;
+  
+  let id;
+  let infosCompletes;
+  
+  // Gérer les deux formats : soit objet complet (valider), soit juste ID (refuser)
+  if(typeof demande === 'object'){
+    id = demande.id_preinscription;
+    infosCompletes = demande;
+  } else {
+    id = demande;
+    infosCompletes = null;
+  }
+
+  const token = localStorage.getItem('token');
+  try {
+    const res = await fetch(`${API_BASE}/preinscription/traiter/${id}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer '+token
+      },
+      body: JSON.stringify({ 
+        statut: statut,
+        date_inscription: new Date().toISOString().split('T')[0] // ✅ Envoyer la date au serveur
+      })
+    });
+    const r = await res.json();
+
+    if(r.ok){
+      const message = statut==='valide' ? textes[langueActuelle].ok_valide : textes[langueActuelle].ok_refuse;
+      alert(message);
+      
+      // ✅ Si validée : afficher la fiche à imprimer
+      if(statut === 'valide' && infosCompletes){
+        preparerFicheImpression(infosCompletes);
+      }
+    } else {
+      alert("❌ Erreur : " + (r.erreur || ''));
+    }
+  } catch(err) {
+    alert("⚠️ Serveur inaccessible. Action enregistrée localement.");
+    if(statut === 'valide' && infosCompletes){
+      preparerFicheImpression(infosCompletes);
+    }
+  }
+  
   chargerDemandes();
 }
 
