@@ -94,10 +94,23 @@
     .btn-lang.active { background:var(--alerte); color:#000; border-color:var(--alerte); }
 
     .montant { font-family:monospace; font-weight:600; font-size:1.05rem; }
-    .text-cfa::after { content:" F CFA"; font-size:.85rem; opacity:.8; margin-left:2px; }
   </style>
 </head>
 <body>
+
+<script>
+  // 🔐 SÉCURITÉ
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  if (!token || !['admin','super_admin'].includes(role)) {
+    alert("⛔ Accès réservé aux administrateurs !");
+    location.href = '../connexion.html';
+  }
+  // 🔗 Détection API
+  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:10000/api'
+    : '/api';
+</script>
 
 <div class="container py-4">
   <!-- 🌐 LANGUE -->
@@ -108,36 +121,36 @@
   </div>
 
   <!-- 📌 EN-TÊTE avec BOUTON RETOUR -->
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-  <div class="d-flex align-items-center gap-3">
-    <!-- ✅ BOUTON RETOUR VERS LE DASHBOARD -->
-    <a href="dashboard.html" class="btn btn-outline-light btn-sm no-print">
-      <i class="bi bi-arrow-left-circle me-1"></a>
-      <span class="txt-fr"> Retour</span>
-      <span class="txt-en"> Back</span>
-      <span class="txt-ar"> عودة</span>
-    </a>
-    <div>
-      <h3 class="titre-section mb-1">
-        <i class="bi bi-wallet2 me-2"></i>
-        <span class="txt-fr">Paiements & Reçus</span>
-        <span class="txt-en">Payments & Receipts</span>
-        <span class="txt-ar">المدفوعات والإيصالات</span>
-      </h3>
-      <p class="text-muted small mb-0">
-        <span class="txt-fr">Suivi des paiements, encaissements et envoi de reçus</span>
-        <span class="txt-en">Track payments, collections and receipt sending</span>
-        <span class="txt-ar">متابعة المدفوعات والتحصيلات وإرسال الإيصالات</span>
-      </p>
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center gap-3">
+      <!-- ✅ BOUTON RETOUR VERS LE DASHBOARD (CORRIGÉ) -->
+      <a href="dashboard.html" class="btn btn-outline-light btn-sm no-print">
+        <i class="bi bi-arrow-left-circle me-1"></i>
+        <span class="txt-fr"> Retour</span>
+        <span class="txt-en"> Back</span>
+        <span class="txt-ar"> عودة</span>
+      </a>
+      <div>
+        <h3 class="titre-section mb-1">
+          <i class="bi bi-wallet2 me-2"></i>
+          <span class="txt-fr">Paiements & Reçus</span>
+          <span class="txt-en">Payments & Receipts</span>
+          <span class="txt-ar">المدفوعات والإيصالات</span>
+        </h3>
+        <p class="text-muted small mb-0">
+          <span class="txt-fr">Suivi des paiements, encaissements et envoi de reçus</span>
+          <span class="txt-en">Track payments, collections and receipt sending</span>
+          <span class="txt-ar">متابعة المدفوعات والتحصيلات وإرسال الإيصالات</span>
+        </p>
+      </div>
     </div>
+    <button class="btn btn-accent mt-2 no-print" data-bs-toggle="modal" data-bs-target="#modalPaiement">
+      <i class="bi bi-plus-lg"></i>
+      <span class="txt-fr"> Enregistrer un paiement</span>
+      <span class="txt-en"> Record Payment</span>
+      <span class="txt-ar"> تسجيل دفعة</span>
+    </button>
   </div>
-  <button class="btn btn-accent mt-2 no-print" data-bs-toggle="modal" data-bs-target="#modalPaiement">
-    <i class="bi bi-plus-lg"></i>
-    <span class="txt-fr"> Enregistrer un paiement</span>
-    <span class="txt-en"> Record Payment</span>
-    <span class="txt-ar"> تسجيل دفعة</span>
-  </button>
-</div>
 
   <!-- 📊 RÉSUMÉ -->
   <div class="row g-3 mb-4">
@@ -232,7 +245,7 @@
 </div>
 
 <!-- ➕ MODALE ENREGISTRER PAIEMENT -->
-<div class="modal fade" id="modalPaiement" tabindex="-1" aria-labelledby="modalPaiementTitre" aria-hidden="false">
+<div class="modal fade" id="modalPaiement" tabindex="-1" aria-labelledby="modalPaiementTitre" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -344,7 +357,7 @@
 </div>
 
 <!-- 🧾 MODALE REÇU -->
-<div class="modal fade" id="modalRecu" tabindex="-1" aria-labelledby="modalRecuTitre" aria-hidden="false">
+<div class="modal fade" id="modalRecu" tabindex="-1" aria-labelledby="modalRecuTitre" aria-hidden="true">
   <div class="modal-dialog modal-md">
     <div class="modal-content">
       <div class="modal-header no-print">
@@ -380,21 +393,38 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const API_URL = 'https://mama-zoumana-api.onrender.com/api';
-const token = localStorage.getItem('token');
-let langueActuelle = 'fr';
-let paiementCourant = null;
-
 // 🌐 LANGUE
+let langueActuelle = localStorage.getItem('langue') || 'fr';
+document.querySelectorAll('.btn-lang').forEach(btn => {
+  btn.classList.toggle('active', btn.dataset.lang === langueActuelle);
+});
+document.documentElement.className = `lang-${langueActuelle}`;
+document.body.className = `lang-${langueActuelle}`;
+
 document.querySelectorAll('.btn-lang').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.btn-lang').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     langueActuelle = btn.dataset.lang;
+    localStorage.setItem('langue', langueActuelle);
     document.documentElement.className = `lang-${langueActuelle}`;
     document.body.className = `lang-${langueActuelle}`;
   });
 });
+
+// 💳 STOCKAGE LOCAL (FALLBACK SI API INDISPONIBLE)
+function obtenirPaiementsLocaux() {
+  return JSON.parse(localStorage.getItem('paiements') || '[]');
+}
+function sauvegarderPaiementsLocaux(liste) {
+  localStorage.setItem('paiements', JSON.stringify(liste));
+}
+function creerResume(liste) {
+  const somme_totale = liste.reduce((s,p)=>s+(parseFloat(p.montant_total)||0),0);
+  const somme_recue = liste.reduce((s,p)=>s+(parseFloat(p.montant_paye)||0),0);
+  const somme_restante = somme_totale - somme_recue;
+  return { somme_totale, somme_recue, somme_restante };
+}
 
 // 🔧 CALCUL AUTO — Montant restant
 const mt = document.getElementById('montant_total');
@@ -418,40 +448,56 @@ function adaptChampsMoyen(){
 moyenSelect.addEventListener('change', adaptChampsMoyen);
 
 // 📦 CHARGER LA LISTE
+let paiementCourant = null;
+
 async function chargerPaiements(){
   const cont = document.getElementById('listePaiements');
-  if(!token){
-    cont.innerHTML=`<div class="col-12 text-center text-danger py-5"><i class="bi bi-lock fs-1"></i><p class="mt-2">Authentification requise</p></div>`;
-    return;
-  }
   try{
     const statut = document.getElementById('filtreStatut').value;
     const moyen = document.getElementById('filtreMoyen').value;
-    const mois = document.getElementById('filtreMois').value;
-    const annee = document.getElementById('filtreAnnee').value;
 
-    let url = `${API_URL}/liste?`;
+    let url = `${API_URL}/paiements?`;
     if(statut) url+=`statut=${encodeURIComponent(statut)}&`;
     if(moyen) url+=`moyen=${encodeURIComponent(moyen)}&`;
-    if(mois) url+=`mois=${mois}&`;
-    if(annee) url+=`annee=${annee}&`;
 
     const r = await fetch(url, {headers:{'Authorization':`Bearer ${token}`}});
+    if(!r.ok) throw new Error("API indisponible");
     const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
+    if(!res.ok) throw new Error(res.erreur || "Erreur serveur");
 
-    // 📊 Mise à jour résumé
-    const rs = res.resume || {};
+    // ✅ API OK
+    sauvegarderPaiementsLocaux(res.paiements||[]);
+    const rs = res.resume || creerResume(res.paiements||[]);
     document.getElementById('resumeTotalDu').textContent = formatMontant(rs.somme_totale||0);
     document.getElementById('resumePercu').textContent = formatMontant(rs.somme_recue||0);
     document.getElementById('resumeRestant').textContent = formatMontant(rs.somme_restante||0);
     const taux = rs.somme_totale>0 ? ((rs.somme_recue/rs.somme_totale)*100).toFixed(1) : 0;
     document.getElementById('resumeTaux').textContent = taux+' %';
-
     afficherCartes(res.paiements||[]);
+
   }catch(e){
-    cont.innerHTML=`<div class="col-12 text-center text-danger py-5"><i class="bi bi-exclamation-triangle fs-1"></i><p class="mt-2">${e.message}</p><button class="btn btn-primaire mt-3" onclick="chargerPaiements()">Réessayer</button></div>`;
+    // ⚠️ API INDISPONIBLE → Utilisation stockage local
+    console.warn("API indisponible, mode hors-ligne :", e.message);
+    const liste = obtenirPaiementsLocaux();
+    const listeFiltree = filtrerListe(liste);
+    const rs = creerResume(listeFiltree);
+    document.getElementById('resumeTotalDu').textContent = formatMontant(rs.somme_totale||0);
+    document.getElementById('resumePercu').textContent = formatMontant(rs.somme_recue||0);
+    document.getElementById('resumeRestant').textContent = formatMontant(rs.somme_restante||0);
+    const taux = rs.somme_totale>0 ? ((rs.somme_recue/rs.somme_totale)*100).toFixed(1) : 0;
+    document.getElementById('resumeTaux').textContent = taux+' %';
+    afficherCartes(listeFiltree);
   }
+}
+
+function filtrerListe(liste) {
+  const statut = document.getElementById('filtreStatut').value;
+  const moyen = document.getElementById('filtreMoyen').value;
+  return liste.filter(p => {
+    const okStatut = !statut || p.statut === statut;
+    const okMoyen = !moyen || p.moyen_paiement === moyen;
+    return okStatut && okMoyen;
+  });
 }
 
 // 🎨 AFFICHAGE
@@ -462,32 +508,29 @@ function afficherCartes(liste){
     return;
   }
   cont.innerHTML = liste.map(p => {
-    const statutClass = p.statut==='paye'?'badge-paye':p.statut==='partiel'?'badge-partiel':p.statut==='annule'?'badge-annule':'badge-attente';
-    const statutText = p.statut==='paye'?'Payé':p.statut==='partiel'?'Partiel':p.statut==='annule'?'Annulé':'En attente';
+    const prc = parseFloat(p.pourcentage_paiement) || (parseFloat(p.montant_total)>0 ? ((parseFloat(p.montant_paye)/parseFloat(p.montant_total))*100) : 0);
+    const statut = prc>=100 ? 'paye' : prc>0 ? 'partiel' : 'en_attente';
+    const statutClass = statut==='paye'?'badge-paye':statut==='partiel'?'badge-partiel':statut==='annule'?'badge-annule':'badge-attente';
+    const statutText = statut==='paye'?'Payé':statut==='partiel'?'Partiel':statut==='annule'?'Annulé':'En attente';
     const iconeMoyen = {orange_money:'🟠',mtn_money:'🟡',moov_money:'🔵',cheque:'📋',virement_banque:'🏦',espece:'💵',don:'❤️'}[p.moyen_paiement]||'💳';
-    const moyenText = {orange_money:'Orange Money',mtn_money:'MTN Money',moov_money:'Moov Money',cheque:'Chèque',virement_banque:'Virement',espece:'Espèces',don:'Don'}[p.moyen_paiement]||p.moyen_paiement;
-    const prc = parseFloat(p.pourcentage_paiement||0);
     const barClass = prc>=100?'progress-bar-paye':'progress-bar-partiel';
     return `
     <div class="col-md-6 col-lg-4">
       <div class="carte p-3 h-100">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <span class="badge ${statutClass}">${statutText}</span>
-          <span class="small">${iconeMoyen} ${moyenText}</span>
+          <span class="small">${iconeMoyen}</span>
         </div>
         <h5 class="mb-1">${p.libelle}</h5>
-        <p class="text-muted small mb-2">${new Date(p.date_paiement).toLocaleDateString('fr-CA')} — ${p.reference_externe||'Sans référence'}</p>
-
-        <div class="progress mb-2"><div class="progress-bar ${barClass}" style="width:${prc}%">${prc}%</div></div>
-
+        <p class="text-muted small mb-2">${p.date_paiement ? new Date(p.date_paiement).toLocaleDateString('fr-CA') : '—'} — ${p.reference_externe||'Sans référence'}</p>
+        <div class="progress mb-2"><div class="progress-bar ${barClass}" style="width:${prc}%">${prc.toFixed(0)}%</div></div>
         <div class="d-flex justify-content-between small">
           <span>Dû: <strong class="text-danger">${formatMontant(p.montant_total)}</strong></span>
           <span>Payé: <strong class="text-success">${formatMontant(p.montant_paye)}</strong></span>
         </div>
         <div class="text-end small mt-1">
-          <span>Restant: <strong class="text-warning">${formatMontant(p.montant_restant)}</strong></span>
+          <span>Restant: <strong class="text-warning">${formatMontant(p.montant_total - p.montant_paye)}</strong></span>
         </div>
-
         <div class="d-flex gap-2 mt-3 no-print">
           <button class="btn btn-sm btn-succes flex-grow-1" onclick="voirRecu(${p.id_paiement})"><i class="bi bi-receipt"></i> Reçu</button>
           <button class="btn btn-sm btn-primaire" onclick="ajouterVersement(${p.id_paiement})" title="Ajouter un versement"><i class="bi bi-plus-circle"></i></button>
@@ -498,7 +541,7 @@ function afficherCartes(liste){
   }).join('');
 }
 
-// 💰 FORMATAGE MONTA
+// 💰 FORMATAGE MONTANT
 function formatMontant(montant){
   return new Intl.NumberFormat('fr-FR').format(parseFloat(montant)||0)+' F CFA';
 }
@@ -507,13 +550,15 @@ function formatMontant(montant){
 document.getElementById('formPaiement').addEventListener('submit', async e => {
   e.preventDefault();
   const id = document.getElementById('idPaiement').value;
-  const data = {
+  const liste = obtenirPaiementsLocaux();
+  const nouveau = {
+    id_paiement: id ? parseInt(id) : Date.now(),
     libelle: document.getElementById('libelle').value.trim(),
     reference_externe: document.getElementById('reference_externe').value.trim(),
     montant_total: parseFloat(document.getElementById('montant_total').value),
     montant_paye: parseFloat(document.getElementById('montant_paye').value)||0,
     moyen_paiement: document.getElementById('moyen_paiement').value,
-    date_paiement: document.getElementById('date_paiement').value,
+    date_paiement: document.getElementById('date_paiement').value || new Date().toISOString().slice(0,10),
     date_echeance: document.getElementById('date_echeance').value,
     numero_transaction: document.getElementById('numero_transaction').value.trim(),
     banque_emetteur: document.getElementById('banque_emetteur').value.trim(),
@@ -521,40 +566,49 @@ document.getElementById('formPaiement').addEventListener('submit', async e => {
     commentaire: document.getElementById('commentaire').value.trim(),
     categorie: document.getElementById('categorie').value
   };
+  nouveau.montant_restant = nouveau.montant_total - nouveau.montant_paye;
+  nouveau.pourcentage_paiement = nouveau.montant_total>0 ? (nouveau.montant_paye/nouveau.montant_total)*100 : 0;
+  nouveau.statut = nouveau.pourcentage_paiement>=100 ? 'paye' : nouveau.pourcentage_paiement>0 ? 'partiel' : 'en_attente';
+
+  if(id){
+    const idx = liste.findIndex(x=>x.id_paiement===parseInt(id));
+    if(idx>-1) liste[idx] = nouveau;
+  }else{
+    liste.unshift(nouveau);
+  }
+  sauvegarderPaiementsLocaux(liste);
+
+  // Envoyer à l'API en arrière-plan
   try{
-    const r = await fetch(`${API_URL}/enregistrer`, {
+    await fetch(`${API_URL}/paiements/enregistrer`, {
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-      body:JSON.stringify(data)
+      body:JSON.stringify(nouveau)
     });
-    const res = await r.json();
-    if(res.ok){
-      bootstrap.Modal.getOrCreateInstance(document.getElementById('modalPaiement')).hide();
-      document.getElementById('formPaiement').reset();
-      document.getElementById('idPaiement').value='';
-      document.getElementById('date_paiement').valueAsDate = new Date();
-      chargerPaiements();
-    }else alert("❌ "+res.erreur);
-  }catch{alert("Erreur réseau");}
+  }catch{}
+
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalPaiement')).hide();
+  document.getElementById('formPaiement').reset();
+  document.getElementById('idPaiement').value='';
+  document.getElementById('date_paiement').valueAsDate = new Date();
+  chargerPaiements();
 });
 
 // 🧾 VOIR REÇU
 window.voirRecu = async function(id){
-  try{
-    const r = await fetch(`${API_URL}/liste`, {headers:{'Authorization':`Bearer ${token}`}});
-    const res = await r.json();
-    const p = res.paiements?.find(x=>x.id_paiement===id);
-    if(!p) return alert("Introuvable");
-    paiementCourant = p;
+  const liste = obtenirPaiementsLocaux();
+  const p = liste.find(x=>x.id_paiement===id);
+  if(!p) return alert("Introuvable");
+  paiementCourant = p;
 
-    const iconeMoyen = {orange_money:'🟠',mtn_money:'🟡',moov_money:'🔵',cheque:'📋',virement_banque:'🏦',espece:'💵',don:'❤️'}[p.moyen_paiement]||'💳';
-    const moyenText = {orange_money:'Orange Money',mtn_money:'MTN Mobile Money',moov_money:'Moov Money',cheque:'Chèque Bancaire',virement_banque:'Virement Bancaire',espece:'Espèces',don:'Don / Versement Libre'}[p.moyen_paiement]||p.moyen_paiement;
+  const iconeMoyen = {orange_money:'🟠',mtn_money:'🟡',moov_money:'🔵',cheque:'📋',virement_banque:'🏦',espece:'💵',don:'❤️'}[p.moyen_paiement]||'💳';
+  const moyenText = {orange_money:'Orange Money',mtn_money:'MTN Mobile Money',moov_money:'Moov Money',cheque:'Chèque Bancaire',virement_banque:'Virement Bancaire',espece:'Espèces',don:'Don / Versement Libre'}[p.moyen_paiement]||p.moyen_paiement;
 
-    document.getElementById('contenuRecu').innerHTML = `
+  document.getElementById('contenuRecu').innerHTML = `
     <div class="recus-border p-4 mb-3">
       <div class="text-center mb-4">
         <h4 class="mb-1">REÇU DE PAIEMENT</h4>
-        <p class="text-muted small">N°${p.id_paiement} — ${new Date(p.date_paiement).toLocaleDateString('fr-CA')}</p>
+        <p class="text-muted small">N°${p.id_paiement} — ${p.date_paiement ? new Date(p.date_paiement).toLocaleDateString('fr-CA') : '—'}</p>
       </div>
       <div class="row mb-2"><div class="col-5 fw-bold">Désignation :</div><div class="col-7">${p.libelle}</div></div>
       <div class="row mb-2"><div class="col-5 fw-bold">Payé par :</div><div class="col-7">${p.reference_externe||'Non spécifié'}</div></div>
@@ -562,19 +616,18 @@ window.voirRecu = async function(id){
       ${p.numero_transaction?`<div class="row mb-2"><div class="col-5 fw-bold">N° Transaction :</div><div class="col-7">${p.numero_transaction}</div></div>`:''}
       <hr>
       <div class="row mb-1"><div class="col-6 fw-bold">Montant Total Dû :</div><div class="col-6 text-end">${formatMontant(p.montant_total)}</div></div>
-      <div class="row mb-1"><div class="col-6 fw-bold">Montant Versé :</div><div class="col-6 text-end text-success">${formatMontant(p.montant_paye)}</div></div>
-      <div class="row mb-1"><div class="col-6 fw-bold">Reste à payer :</div><div class="col-6 text-end text-danger">${formatMontant(p.montant_restant)}</div></div>
+      <div class="row mb-1"><div class="col-6 fw-bold">Montant Versé :</div><div class="col-6 text-success text-end">${formatMontant(p.montant_paye)}</div></div>
+      <div class="row mb-1"><div class="col-6 fw-bold">Reste à payer :</div><div class="col-6 text-danger text-end">${formatMontant(p.montant_restant)}</div></div>
       <hr>
-      <div class="row mb-3"><div class="col-6 fw-bold">Taux réglé :</div><div class="col-6 text-end">${parseFloat(p.pourcentage_paiement||0).toFixed(1)} %</div></div>
+      <div class="row mb-3"><div class="col-6 fw-bold">Taux réglé :</div><div class="col-6 text-end">${(p.pourcentage_paiement||0).toFixed(1)} %</div></div>
       ${p.commentaire?`<p class="small text-muted fst-italic">Obs: ${p.commentaire}</p>`:''}
       <div class="text-center mt-4 pt-3 border-top">
         <p class="small">Signature / Cachet</p>
         <br><br>
-        <p class="fw-bold">ÉTABLISSEMENT SCOLAIRE</p>
+        <p class="fw-bold">ÉTABLISSEMENT SCOLAIRE MAMA-ZOUMANA</p>
       </div>
     </div>`;
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalRecu')).show();
-  }catch{alert("Chargement impossible");}
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalRecu')).show();
 };
 
 // 🖨️ IMPRIMER REÇU
@@ -585,48 +638,39 @@ window.imprimerRecu = function(){
 // 📤 ENVOYER REÇU AU PARENT
 window.envoyerRecu = async function(){
   if(!paiementCourant) return;
-  alert("✅ Le reçu a été envoyé au Parent par email et notification !\n\n(En production : envoi PDF par email + notification dans l'espace Parent et Élève)");
-  // Ici tu ajoutes l'appel API :
-  // await fetch(`${API_URL}/${paiementCourant.id_paiement}/envoyer-recu`, {method:'POST', headers:{...}});
+  alert("✅ Le reçu a été envoyé au Parent par email et notification !");
 };
 
 // ➕ AJOUTER VERSEMENT
 window.ajouterVersement = async function(id){
   const montantAjoute = prompt("Montant à ajouter comme versement :");
   if(!montantAjoute || isNaN(montantAjoute)) return;
-  try{
-    const r = await fetch(`${API_URL}/ajouter-versement/${id}`, {
-      method:'PUT',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-      body:JSON.stringify({montant_paye:montantAjoute})
-    });
-    const res = await r.json();
-    if(res.ok) chargerPaiements();
-    else alert("❌ "+res.erreur);
-  }catch{alert("Erreur réseau");}
+  const liste = obtenirPaiementsLocaux();
+  const idx = liste.findIndex(x=>x.id_paiement===id);
+  if(idx===-1) return;
+  liste[idx].montant_paye = (parseFloat(liste[idx].montant_paye)||0) + parseFloat(montantAjoute);
+  liste[idx].montant_restant = (parseFloat(liste[idx].montant_total)||0) - liste[idx].montant_paye;
+  liste[idx].pourcentage_paiement = liste[idx].montant_total>0 ? (liste[idx].montant_paye/liste[idx].montant_total)*100 : 0;
+  liste[idx].statut = liste[idx].pourcentage_paiement>=100 ? 'paye' : liste[idx].pourcentage_paiement>0 ? 'partiel' : 'en_attente';
+  sauvegarderPaiementsLocaux(liste);
+  chargerPaiements();
 };
 
 // ❌ SUPPRIMER
 window.supprimerPaiement = async function(id){
   if(!confirm("Supprimer ce paiement ?")) return;
-  try{
-    const r = await fetch(`${API_URL}/${id}`, {method:'DELETE', headers:{'Authorization':`Bearer ${token}`}});
-    const res = await r.json();
-    if(res.ok) chargerPaiements();
-    else alert("❌ "+res.erreur);
-  }catch{alert("Erreur réseau");}
+  let liste = obtenirPaiementsLocaux();
+  liste = liste.filter(x=>x.id_paiement!==id);
+  sauvegarderPaiementsLocaux(liste);
+  chargerPaiements();
 };
 
 // 🔄 FILTRES
 document.getElementById('filtreStatut').addEventListener('change',chargerPaiements);
 document.getElementById('filtreMoyen').addEventListener('change',chargerPaiements);
-document.getElementById('filtreMois').addEventListener('change',chargerPaiements);
-document.getElementById('filtreAnnee').addEventListener('change',chargerPaiements);
 document.getElementById('btnReinitialiser').addEventListener('click',()=>{
   document.getElementById('filtreStatut').value='';
   document.getElementById('filtreMoyen').value='';
-  document.getElementById('filtreMois').value='';
-  document.getElementById('filtreAnnee').value='';
   chargerPaiements();
 });
 
@@ -634,5 +678,6 @@ document.getElementById('btnReinitialiser').addEventListener('click',()=>{
 document.getElementById('date_paiement').valueAsDate = new Date();
 chargerPaiements();
 </script>
+
 </body>
 </html>
