@@ -23,10 +23,12 @@
     .table th{border-top:none;color:#64748b;font-size:0.85rem;text-transform:uppercase}
     .badge-payé{background:#dcfce7;color:#166534;padding:4px 10px;border-radius:20px;font-size:0.8rem}
     .badge-impayé{background:#fee2e2;color:#991b1b;padding:4px 10px;border-radius:20px;font-size:0.8rem}
-    .lien-menu{text-decoration:none;color:inherit}
+    .lien-menu{text-decoration:none;color:inherit;display:block}
+    .lien-menu:hover{color:inherit}
   </style>
 </head>
 <body>
+
 
 <script>
 // 🔒 SÉCURITÉ
@@ -35,6 +37,7 @@ if(!localStorage.getItem('token') || localStorage.getItem('role')!=='comptable')
   location.href='../connexion.html';
 }
 </script>
+
 
 <!-- 📌 EN-TÊTE -->
 <div class="entete">
@@ -45,6 +48,7 @@ if(!localStorage.getItem('token') || localStorage.getItem('role')!=='comptable')
         <p class="mb-0 opacity-75">Suivi des paiements, frais scolaires et reçus</p>
       </div>
       <div class="d-flex gap-2">
+        <a href="../comptable/comptabilite.html" class="btn btn-outline-light btn-sm">📒 Comptabilité</a>
         <a href="../changer-mot-de-passe.html" class="btn btn-outline-light btn-sm">🔐 Changer MDP</a>
         <button class="btn btn-outline-light btn-sm" onclick="deconnexion()">🚪 Déconnexion</button>
       </div>
@@ -52,7 +56,9 @@ if(!localStorage.getItem('token') || localStorage.getItem('role')!=='comptable')
   </div>
 </div>
 
+
 <div class="container py-4">
+
 
   <!-- 📊 CARTES FINANCIÈRES -->
   <div class="row g-4 mb-4">
@@ -76,6 +82,7 @@ if(!localStorage.getItem('token') || localStorage.getItem('role')!=='comptable')
     </div>
   </div>
 
+
   <!-- 📋 ENREGISTRER PAIEMENT & DERNIERS RÈGLEMENTS -->
   <div class="row g-4">
     <div class="col-lg-5">
@@ -94,10 +101,10 @@ if(!localStorage.getItem('token') || localStorage.getItem('role')!=='comptable')
                 <label class="form-label">Type de Frais</label>
                 <select id="typeFrais" class="form-select" required>
                   <option value="">— Choisir —</option>
-                  <option>Inscription</option>
-                  <option>Scolarité</option>
-                  <option>Examen</option>
-                  <option>Divers</option>
+                  <option value="Inscription">Inscription</option>
+                  <option value="Scolarité">Scolarité</option>
+                  <option value="Examen">Examen</option>
+                  <option value="Divers">Divers</option>
                 </select>
               </div>
               <div class="col-6">
@@ -108,10 +115,10 @@ if(!localStorage.getItem('token') || localStorage.getItem('role')!=='comptable')
             <div class="mb-3">
               <label class="form-label">Période / Trimestre</label>
               <select id="periode" class="form-select">
-                <option>Trimestre 1</option>
-                <option>Trimestre 2</option>
-                <option>Trimestre 3</option>
-                <option>Annuel</option>
+                <option value="Trimestre 1">Trimestre 1</option>
+                <option value="Trimestre 2">Trimestre 2</option>
+                <option value="Trimestre 3">Trimestre 3</option>
+                <option value="Annuel">Annuel</option>
               </select>
             </div>
             <button type="submit" class="btn w-100 text-white" style="background:var(--bord-orange)">💾 Enregistrer & Générer Reçu</button>
@@ -120,11 +127,12 @@ if(!localStorage.getItem('token') || localStorage.getItem('role')!=='comptable')
       </div>
     </div>
 
+
     <div class="col-lg-7">
       <div class="card shadow-sm border-0">
         <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
           <h5 class="mb-0">📑 Derniers Paiements</h5>
-          <a href="#" class="btn btn-sm btn-outline-light">Exporter PDF</a>
+          <button class="btn btn-sm btn-outline-light" onclick="exporterPDF()">📄 Exporter PDF</button>
         </div>
         <div class="card-body p-0">
           <div class="table-responsive p-3">
@@ -134,11 +142,12 @@ if(!localStorage.getItem('token') || localStorage.getItem('role')!=='comptable')
                   <th>Élève</th>
                   <th>Type</th>
                   <th>Montant</th>
+                  <th>Date</th>
                   <th>Statut</th>
                 </tr>
               </thead>
               <tbody id="listePaiements">
-                <tr><td colspan="4" class="text-center text-muted py-3">Chargement...</td></tr>
+                <tr><td colspan="5" class="text-center text-muted py-3">Chargement...</td></tr>
               </tbody>
             </table>
           </div>
@@ -146,6 +155,7 @@ if(!localStorage.getItem('token') || localStorage.getItem('role')!=='comptable')
       </div>
     </div>
   </div>
+
 
   <!-- 🧭 ACCÈS RAPIDE -->
   <div class="row mt-4">
@@ -186,24 +196,150 @@ if(!localStorage.getItem('token') || localStorage.getItem('role')!=='comptable')
     </div>
   </div>
 
+
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-function deconnexion(){ localStorage.clear(); location.href='../connexion.html'; }
+// ==================================================
+// 🔧 CONFIGURATION
+// ==================================================
+const API_URL = "http://localhost:8000/api";
+let paiements = [];
 
+function formatMontant(m) {
+  return new Intl.NumberFormat("fr-FR").format(parseFloat(m) || 0) + " F CFA";
+}
+
+function deconnexion(){ localStorage.clear(); location.href="../connexion.html"; }
+
+function sauvegarderLocal() {
+  localStorage.setItem("paiements", JSON.stringify(paiements));
+}
+
+function chargerLocal() {
+  const s = localStorage.getItem("paiements");
+  if (s) paiements = JSON.parse(s);
+}
+
+// ==================================================
+// 🔌 COUCHE API
+// ==================================================
+const Api = {
+  async getPaiements() {
+    try {
+      const res = await fetch(API_URL + "/finances/paiement", {
+        headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
+      });
+      return await res.json();
+    } catch { return null; }
+  },
+  async creerPaiement(data) {
+    try {
+      const res = await fetch(API_URL + "/finances/paiement", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + localStorage.getItem("token")
+        },
+        body: JSON.stringify(data)
+      });
+      return await res.json();
+    } catch { return null; }
+  }
+};
+
+// ==================================================
 // 💾 ENREGISTRER UN PAIEMENT
-document.getElementById('formPaiement').addEventListener('submit', async e => {
+// ==================================================
+document.getElementById("formPaiement").addEventListener("submit", async function(e) {
   e.preventDefault();
-  alert("✅ Paiement enregistré !\nLe reçu sera généré.\n\n(Connecté à la route /api/finances/paiement)");
+  const form = e.target;
+
+  const nouveau = {
+    id: Date.now(),
+    eleve: document.getElementById("rechercheEleve").value,
+    type_frais: document.getElementById("typeFrais").value,
+    montant: parseFloat(document.getElementById("montant").value),
+    periode: document.getElementById("periode").value,
+    date_paiement: new Date().toISOString().split("T")[0],
+    statut: "Payé"
+  };
+
+  const depuisServeur = await Api.creerPaiement(nouveau);
+  if (depuisServeur) {
+    await charger();
+    alert("✅ Paiement enregistré sur le serveur !");
+  } else {
+    paiements.unshift(nouveau);
+    sauvegarderLocal();
+    afficherPaiements();
+    calculerStatistiques();
+    alert("✅ Paiement enregistré localement !\n(Le serveur est indisponible)");
+  }
+
+  form.reset();
 });
 
-// 📊 CHARGER LES DONNÉES
-async function charger(){
-  document.getElementById('totalPerçu').textContent = '— F CFA';
-  document.getElementById('totalImpaye').textContent = '— F CFA';
-  document.getElementById('ceMois').textContent = '— F CFA';
+// ==================================================
+// 📄 EXPORTER PDF (impression)
+// ==================================================
+function exporterPDF() {
+  window.print();
 }
+
+// ==================================================
+// 🖥️ AFFICHER LA LISTE
+// ==================================================
+function afficherPaiements() {
+  document.getElementById("listePaiements").innerHTML = paiements.length ? paiements.map(function(p) {
+    const badgeClasse = p.statut === "Payé" ? "badge-payé" : "badge-impayé";
+    return "<tr>" +
+      "<td>" + p.eleve + "</td>" +
+      "<td>" + p.type_frais + "</td>" +
+      "<td class='fw-bold'>" + formatMontant(p.montant) + "</td>" +
+      "<td>" + new Date(p.date_paiement).toLocaleDateString("fr-CA") + "</td>" +
+      "<td><span class='" + badgeClasse + "'>" + p.statut + "</span></td>" +
+      "</tr>";
+  }).join("") : "<tr><td colspan='5' class='text-center text-muted py-3'>Aucun paiement enregistré</td></tr>";
+}
+
+// ==================================================
+// 📊 CALCULER LES STATISTIQUES
+// ==================================================
+function calculerStatistiques() {
+  const totalPerçu = paiements.reduce(function(s, p) { return s + (p.statut === "Payé" ? p.montant : 0); }, 0);
+  const totalImpaye = paiements.reduce(function(s, p) { return s + (p.statut !== "Payé" ? p.montant : 0); }, 0);
+  
+  const aujourdhui = new Date();
+  const ceMois = paiements.reduce(function(s, p) {
+    const d = new Date(p.date_paiement);
+    if (d.getMonth() === aujourdhui.getMonth() && d.getFullYear() === aujourdhui.getFullYear() && p.statut === "Payé") {
+      return s + p.montant;
+    }
+    return s;
+  }, 0);
+
+  document.getElementById("totalPerçu").textContent = formatMontant(totalPerçu);
+  document.getElementById("totalImpaye").textContent = formatMontant(totalImpaye);
+  document.getElementById("ceMois").textContent = formatMontant(ceMois);
+}
+
+// ==================================================
+// 🚀 CHARGER TOUT AU DÉMARRAGE
+// ==================================================
+async function charger() {
+  const depuisServeur = await Api.getPaiements();
+  if (depuisServeur) {
+    paiements = depuisServeur;
+  } else {
+    chargerLocal();
+  }
+  afficherPaiements();
+  calculerStatistiques();
+}
+
 charger();
 </script>
 </body>
