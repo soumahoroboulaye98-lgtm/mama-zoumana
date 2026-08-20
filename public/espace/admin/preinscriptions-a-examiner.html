@@ -94,23 +94,29 @@
       border: 2px solid transparent;
     }
     .lang-btn.active {
-      border-color: white;
-      background: rgba(255,255,255,0.25);
+      border-color: var(--primaire);
+      background: var(--primaire);
+      color: white;
     }
     .txt-en, .txt-ar { display: none; }
-    .lang-fr .txt-fr { display: inline; }
-    .lang-fr .txt-en, .lang-fr .txt-ar { display: none; }
-    .lang-en .txt-en { display: inline; }
-    .lang-en .txt-fr, .lang-en .txt-ar { display: none; }
-    .lang-ar .txt-ar { display: inline; direction: rtl; }
-    .lang-ar .txt-fr, .lang-ar .txt-en { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; direction: rtl; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    .alert-info-box {
+      background: rgba(59,130,246,0.1);
+      border: 1px solid #3b82f6;
+      border-radius: 10px;
+      padding: 0.75rem;
+      margin-top: 1rem;
+    }
   </style>
 </head>
 <body>
 
-
 <div class="container py-4">
-
 
   <!-- 🌐 SÉLECTEUR DE LANGUE -->
   <div class="d-flex justify-content-end mb-3 gap-2">
@@ -119,17 +125,15 @@
     <button class="btn lang-btn btn-light border-0" data-lang="ar">🇸🇦</button>
   </div>
 
-
   <!-- 📍 FIL D'ARIANE -->
   <div class="mb-4">
-    <a href="dashboard.html" class="btn btn-light btn-sm shadow-sm">
+    <a href="dashboard-admin.html" class="btn btn-light btn-sm shadow-sm">
       <i class="bi bi-arrow-left-circle me-2"></i>
       <span class="txt-fr">Retour au Tableau de bord</span>
       <span class="txt-en">Back to Dashboard</span>
       <span class="txt-ar">العودة إلى لوحة التحكم</span>
     </a>
   </div>
-
 
   <!-- 📅 EN-TÊTE -->
   <div class="card-glass">
@@ -149,9 +153,16 @@
     </div>
     <div class="card-body">
 
+      <!-- ⚙️ INFO -->
+      <div class="alert alert-info-box">
+        <i class="bi bi-envelope-paper me-2 text-primary"></i>
+        <span class="txt-fr">ℹ️ Lorsque tu valides une demande, un compte est créé et un email automatique est envoyé à l'élève avec ses identifiants de connexion.</span>
+        <span class="txt-en">ℹ️ When you validate a request, an account is created and an automatic email with login credentials is sent to the student.</span>
+        <span class="txt-ar">ℹ️ عند الموافقة، يتم إنشاء حساب وإرسال بريد إلكتروني تلقائي ببيانات الدخول إلى التلميذ.</span>
+      </div>
 
       <!-- 📋 LISTE DES DEMANDES EN ATTENTE -->
-      <h5 class="mb-3">
+      <h5 class="mb-3 mt-3">
         <span class="txt-fr">📋 Demandes en attente de validation</span>
         <span class="txt-en">📋 Pending validation requests</span>
         <span class="txt-ar">📋 الطلبات بانتظار الموافقة</span>
@@ -163,13 +174,12 @@
               <th><span class="txt-fr">Nom & Prénoms</span><span class="txt-en">Full Name</span><span class="txt-ar">الاسم الكامل</span></th>
               <th><span class="txt-fr">Email / Téléphone</span><span class="txt-en">Email / Phone</span><span class="txt-ar">البريد الإلكتروني / الهاتف</span></th>
               <th><span class="txt-fr">Profil / Classe</span><span class="txt-en">Role / Class</span><span class="txt-ar">الدور / الفصل</span></th>
-              <th><span class="txt-fr">Matricule</span><span class="txt-en">Student ID</span><span class="txt-ar">الرقم التعريفي</span></th>
               <th><span class="txt-fr">Date</span><span class="txt-en">Date</span><span class="txt-ar">التاريخ</span></th>
               <th><span class="txt-fr">Actions</span><span class="txt-en">Actions</span><span class="txt-ar">الإجراءات</span></th>
             </tr>
           </thead>
           <tbody id="corpsListe">
-            <tr><td colspan="6" class="text-center py-4">
+            <tr><td colspan="5" class="text-center py-4">
               <div class="spinner-border text-primary"></div><br>
               <span class="txt-fr">Chargement...</span>
               <span class="txt-en">Loading...</span>
@@ -179,9 +189,7 @@
         </table>
       </div>
 
-
       <hr class="my-4">
-
 
       <!-- 🔍 ZONE D'EXAMEN -->
       <h5 class="mb-3">
@@ -198,13 +206,10 @@
         </p>
       </div>
 
-
     </div>
   </div>
 
-
 </div>
-
 
 <!-- 🪟 MODALE : Voir la photo en grand -->
 <div class="modal fade" id="modalePhoto" tabindex="-1">
@@ -225,7 +230,6 @@
   </div>
 </div>
 
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 const API_URL = 'https://mama-zoumana-api.onrender.com/api';
@@ -235,8 +239,13 @@ let demandeSelectionnee = null;
 let listeDemandes = [];
 const modalePhoto = new bootstrap.Modal('#modalePhoto');
 
+if (!token) {
+  alert("⛔ Accès réservé à l'administrateur !");
+  localStorage.clear();
+  location.href = 'connexion.html';
+}
 
-// 🌐 GESTION DES LANGUES
+// 🌐 TRADUCTIONS
 const traductions = {
   fr: {
     aucunDemande: "Aucune demande en attente ✅",
@@ -247,11 +256,12 @@ const traductions = {
     nom: "Nom", prenoms: "Prénoms", email: "Email", tel: "Téléphone",
     profil: "Profil", classe: "Classe", matriculeGenere: "Matricule généré",
     docsFournis: "Documents fournis", infosDemandeur: "Informations du demandeur",
-    validerConfirm: "Confirmez-vous la validation de cette inscription ?\\nUn compte sera créé et les identifiants envoyés par email.",
-    validerSucces: "✅ Inscription validée ! Email envoyé avec les identifiants.",
-    refuserConfirm: "Confirmez-vous le refus de cette demande ?",
+    validerConfirm: "✅ Confirmer la validation ?\\nUn compte sera créé et un email sera envoyé avec les identifiants.",
+    validerSucces: "✅ Inscription validée !\\n📧 Email envoyé à l'élève avec ses identifiants.",
+    refuserConfirm: "❌ Confirmer le refus de cette demande ?",
     refuserSucces: "✅ Demande refusée.",
-    erreur: "❌ Erreur", errReseau: "❌ Erreur réseau"
+    erreur: "❌ Erreur", errReseau: "❌ Erreur réseau",
+    dateInscription: "Date d'inscription", envoyerEmail: "📧 Renvoyer l'email"
   },
   en: {
     aucunDemande: "No pending requests ✅",
@@ -260,13 +270,14 @@ const traductions = {
     aucunDoc: "No documents provided",
     aucunPhoto: "No photo provided",
     nom: "Last name", prenoms: "First name", email: "Email", tel: "Phone",
-    profil: "Role", classe: "Class", matriculeGenere: "Generated ID",
+    profil: "Profile", classe: "Class", matriculeGenere: "Generated ID",
     docsFournis: "Provided documents", infosDemandeur: "Applicant information",
-    validerConfirm: "Confirm validation of this registration ?\\nAn account will be created and credentials sent by email.",
-    validerSucces: "✅ Registration validated ! Email sent with credentials.",
-    refuserConfirm: "Confirm refusal of this request ?",
+    validerConfirm: "✅ Confirm validation?\\nAn account will be created and an email with credentials will be sent.",
+    validerSucces: "✅ Registration validated!\\n📧 Email sent to the student with credentials.",
+    refuserConfirm: "❌ Confirm refusal of this request?",
     refuserSucces: "✅ Request refused.",
-    erreur: "❌ Error", errReseau: "❌ Network error"
+    erreur: "❌ Error", errReseau: "❌ Network error",
+    dateInscription: "Registration Date", envoyerEmail: "📧 Resend Email"
   },
   ar: {
     aucunDemande: "لا توجد طلبات بانتظار الموافقة ✅",
@@ -277,56 +288,52 @@ const traductions = {
     nom: "الاسم العائلي", prenoms: "الاسم الشخصي", email: "البريد الإلكتروني", tel: "الهاتف",
     profil: "الدور", classe: "الفصل", matriculeGenere: "الرقم التعريفي المولد",
     docsFournis: "المستندات المرفقة", infosDemandeur: "معلومات مقدم الطلب",
-    validerConfirm: "هل تؤكد الموافقة على هذا التسجيل؟\\nسيتم إنشاء حساب وإرسال بيانات الدخول عبر البريد الإلكتروني.",
-    validerSucces: "✅ تمت الموافقة! تم إرسال بيانات الدخول بالبريد.",
-    refuserConfirm: "هل تؤكد رفض هذا الطلب؟",
+    validerConfirm: "✅ هل تؤكد الموافقة؟\\nسيتم إنشاء حساب وإرسال بريد إلكتروني ببيانات الدخول.",
+    validerSucces: "✅ تمت الموافقة!\\n📧 تم إرسال بيانات الدخول بالبريد الإلكتروني.",
+    refuserConfirm: "❌ هل تؤكد رفض هذا الطلب؟",
     refuserSucces: "✅ تم رفض الطلب.",
-    erreur: "❌ خطأ", errReseau: "❌ خطأ في الشبكة"
+    erreur: "❌ خطأ", errReseau: "❌ خطأ في الشبكة",
+    dateInscription: "تاريخ التسجيل", envoyerEmail: "📧 إعادة إرسال البريد"
   }
 };
 
-
-let langueActuelle = 'fr';
+let langueActuelle = localStorage.getItem('langue') || 'fr';
 function t(cle) { return traductions[langueActuelle][cle] || cle; }
-
 
 // 🌐 CHANGER DE LANGUE
 document.querySelectorAll('.lang-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     langueActuelle = btn.dataset.lang;
-    document.documentElement.className = `lang-${langueActuelle}`;
+    localStorage.setItem('langue', langueActuelle);
+    document.body.classList.remove('lang-fr','lang-en','lang-ar');
+    document.body.classList.add('lang-'+langueActuelle);
     document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    chargerListe();
   });
 });
-
+document.body.classList.add('lang-'+langueActuelle);
+document.querySelector(`.lang-btn[data-lang="${langueActuelle}"]`)?.classList.add('active');
 
 // 📋 CHARGER LA LISTE DES DEMANDES EN ATTENTE
 async function chargerListe() {
   const corps = document.getElementById('corpsListe');
-  corps.innerHTML = `<tr><td colspan="6" class="text-center py-4"><div class="spinner-border text-primary"></div><br><span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جار التحميل...</span></td></tr>`;
-
+  corps.innerHTML = `<tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-primary"></div><br><span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جار التحميل...</span></td></tr>`;
 
   try {
-    const res = await fetch(`${API_URL}/preinscription/liste`, {
+    const res = await fetch(`${API_URL}/preinscription/en-attente`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const data = await res.json();
 
-
-    if (!data.ok) throw new Error(data.erreur);
-
-
-    listeDemandes = data.liste || [];
-
+    listeDemandes = data.lignes || data.demandes || [];
 
     if (listeDemandes.length === 0) {
-      corps.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">
+      corps.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">
         <i class="bi bi-check-circle fs-1 text-success"></i><br>${t('aucunDemande')}
       </td></tr>`;
       return;
     }
-
 
     corps.innerHTML = '';
     listeDemandes.forEach((dem, index) => {
@@ -334,17 +341,18 @@ async function chargerListe() {
       tr.className = 'ligne-demande';
       tr.dataset.index = index;
       tr.onclick = function() { afficherDetailsParIndex(parseInt(this.dataset.index)); };
-      
-      // ✅ Affiche libellé de la classe ou numéro si introuvable
-      const afficherClasse = dem.classe || (dem.id_classe ? `Classe #${dem.id_classe}` : '-');
-      
+
+      const afficherClasse = dem.libelle_classe || dem.classe || (dem.id_classe ? `Classe #${dem.id_classe}` : '-');
+      const dateAffichage = dem.date_preinscription 
+        ? new Date(dem.date_preinscription).toLocaleDateString(langueActuelle === 'ar' ? 'ar-MA' : 'fr-FR') 
+        : '-';
+
       tr.innerHTML = `
-        <td><strong>${dem.nom}</strong><br>${dem.prenoms}</td>
-        <td>${dem.email}<br>${dem.telephone || '-'}</td>
-        <td><span class="badge bg-info text-white">${dem.profil}</span><br>${afficherClasse}</td>
-        <td><code>${dem.matricule || '-'}</code></td>
-        <td>${new Date(dem.date_preinscription).toLocaleDateString(langueActuelle === 'ar' ? 'ar-MA' : 'fr-FR')}</td>
-        <td>
+        <td><strong>${dem.nom || ''}</strong><br>${dem.prenoms || ''}</td>
+        <td>${dem.email || '-'}<br>${dem.telephone || '-'}</td>
+        <td><span class="badge bg-info text-white">${dem.profil || '-'}</span><br>${afficherClasse}</td>
+        <td>${dateAffichage}</td>
+        <td class="text-center">
           <button class="btn btn-sm btn-outline-primary" title="${langueActuelle==='fr'?'Voir détails':langueActuelle==='en'?'View details':'عرض التفاصيل'}">
             <i class="bi bi-eye"></i>
           </button>
@@ -353,38 +361,46 @@ async function chargerListe() {
       corps.appendChild(tr);
     });
 
-
   } catch (e) {
-    corps.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">${t('erreur')} : ${e.message}</td></tr>`;
+    corps.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">${t('erreur')} : ${e.message}</td></tr>`;
   }
 }
-
 
 // 🔍 AFFICHER LES DÉTAILS
 function afficherDetailsParIndex(index) {
   afficherDetails(listeDemandes[index]);
 }
 
-
 async function afficherDetails(dem) {
   demandeSelectionnee = dem;
   const zone = document.getElementById('zoneExamen');
 
-
-  // ✅ CORRIGÉ : URL SANS /api/
-  const docsHTML = dem.documents 
-    ? dem.documents.split('|').map(d => `
-        <a href="https://mama-zoumana-api.onrender.com/api/${d}" target="_blank" class="document-link">
+  // 📄 CONSTRUIRE LIENS DOCUMENTS
+  let docsHTML = '';
+  if (dem.documents) {
+    const listeDocs = dem.documents.split('|').filter(d => d.trim());
+    if (listeDocs.length > 0) {
+      docsHTML = listeDocs.map(d => {
+        const urlComplet = d.startsWith('http') ? d : `${API_URL}/${d}`;
+        return `<a href="${urlComplet}" target="_blank" class="document-link">
           <i class="bi bi-file-earmark-text me-2"></i> ${d.split('/').pop()}
-        </a>`).join('')
-    : `<div class="empty-box py-2">${t('aucunDoc')}</div>`;
+        </a>`;
+      }).join('');
+    } else {
+      docsHTML = `<div class="empty-box py-2">${t('aucunDoc')}</div>`;
+    }
+  } else {
+    docsHTML = `<div class="empty-box py-2">${t('aucunDoc')}</div>`;
+  }
 
+  // 📷 PHOTO
+  let photoUrl = dem.photo_identite;
+  if (photoUrl && !photoUrl.startsWith('http')) {
+    photoUrl = `${API_URL}/${photoUrl}`;
+  }
 
-  const afficherClasse = dem.classe || (dem.id_classe ? `Classe #${dem.id_classe}` : '-');
-
-  // ✅ CORRIGÉ : URL PHOTO SANS /api/
-  const photoUrl = dem.photo_identite ? `https://mama-zoumana-api.onrender.com/api/${dem.photo_identite}` : null;
-
+  const afficherClasse = dem.libelle_classe || dem.classe || (dem.id_classe ? `Classe #${dem.id_classe}` : '-');
+  const dateInscription = new Date().toISOString().split('T')[0]; // Date du jour = date d'inscription
 
   zone.innerHTML = `
     <div class="row g-4">
@@ -399,22 +415,21 @@ async function afficherDetails(dem) {
         }
       </div>
 
-
       <!-- 📄 INFOS & DOCUMENTS -->
       <div class="col-md-8">
         <h6 class="mb-3">👤 ${t('infosDemandeur')}</h6>
         <div class="mb-3 p-3 bg-light rounded-3">
           <div class="row">
-            <div class="col-sm-6"><strong>${t('nom')} :</strong> ${dem.nom}</div>
-            <div class="col-sm-6"><strong>${t('prenoms')} :</strong> ${dem.prenoms}</div>
-            <div class="col-sm-6"><strong>${t('email')} :</strong> ${dem.email}</div>
+            <div class="col-sm-6"><strong>${t('nom')} :</strong> ${dem.nom || ''}</div>
+            <div class="col-sm-6"><strong>${t('prenoms')} :</strong> ${dem.prenoms || ''}</div>
+            <div class="col-sm-6"><strong>${t('email')} :</strong> ${dem.email || ''}</div>
             <div class="col-sm-6"><strong>${t('tel')} :</strong> ${dem.telephone || '-'}</div>
-            <div class="col-sm-6"><strong>${t('profil')} :</strong> ${dem.profil}</div>
+            <div class="col-sm-6"><strong>${t('profil')} :</strong> ${dem.profil || '-'}</div>
             <div class="col-sm-6"><strong>${t('classe')} :</strong> ${afficherClasse}</div>
-            <div class="col-sm-12"><strong>${t('matriculeGenere')} :</strong> <code class="fs-6">${dem.matricule || '-'}</code></div>
+            <div class="col-sm-6"><strong>${t('dateInscription')} :</strong> <span class="text-primary fw-bold">${dateInscription}</span></div>
+            <div class="col-sm-6"><strong>${t('matriculeGenere')} :</strong> <code class="fs-6">${dem.matricule || 'Généré à la validation'}</code></div>
           </div>
         </div>
-
 
         <h6 class="mb-3">📄 ${t('docsFournis')}</h6>
         ${docsHTML}
@@ -422,13 +437,13 @@ async function afficherDetails(dem) {
     </div>
     <hr class="my-4">
     <div class="d-flex gap-3 justify-content-center flex-wrap">
-      <button class="btn btn-valider btn-lg text-white px-5" onclick="validerDemande(${dem.id_preinscription})">
+      <button class="btn btn-valider btn-lg text-white px-5" onclick="validerDemande(${dem.id_preinscription || dem.id})">
         <i class="bi bi-check-circle me-2"></i>
         <span class="txt-fr">✅ VALIDER L'INSCRIPTION</span>
         <span class="txt-en">✅ VALIDATE REGISTRATION</span>
         <span class="txt-ar">✅ الموافقة على التسجيل</span>
       </button>
-      <button class="btn btn-refuser btn-lg text-white px-5" onclick="refuserDemande(${dem.id_preinscription})">
+      <button class="btn btn-refuser btn-lg text-white px-5" onclick="refuserDemande(${dem.id_preinscription || dem.id})">
         <i class="bi bi-x-circle me-2"></i>
         <span class="txt-fr">❌ REFUSER LA DEMANDE</span>
         <span class="txt-en">❌ REJECT REQUEST</span>
@@ -438,46 +453,58 @@ async function afficherDetails(dem) {
   `;
 }
 
-
 // ✅ VALIDER LA DEMANDE
 async function validerDemande(id) {
   if (!confirm(t('validerConfirm'))) return;
+
+  const dateInscription = new Date().toISOString().split('T')[0]; // Date du jour normale
+
   try {
     const res = await fetch(`${API_URL}/preinscription/valider/${id}`, {
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+      method: 'POST',
+      headers: { 
+        'Authorization': `Bearer ${token}`, 
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify({ 
+        statut: 'valide',
+        date_inscription: dateInscription // ✅ Envoyer la date au serveur
+      })
     });
     const data = await res.json();
+
     if (data.ok) {
       alert(t('validerSucces'));
       chargerListe();
-      document.getElementById('zoneExamen').innerHTML = `<div class="empty-box"><span class="txt-fr">Demande traitée — Sélectionnez une autre demande</span><span class="txt-en">Request processed — Select another request</span><span class="txt-ar">تمت المعالجة — حدد طلباً آخر</span></div>`;
+      document.getElementById('zoneExamen').innerHTML = `<div class="empty-box"><span class="txt-fr">Demande validée ✅</span><span class="txt-en">Request validated ✅</span><span class="txt-ar">تمت الموافقة ✅</span></div>`;
     } else {
-      alert(`${t('erreur')} : ${data.erreur}`);
+      alert(`${t('erreur')} : ${data.erreur || 'Erreur inconnue'}`);
     }
-  } catch (e) { alert(t('errReseau') + ' : ' + e.message); }
+  } catch (e) { 
+    alert(t('errReseau') + ' : ' + e.message); 
+  }
 }
-
 
 // ❌ REFUSER LA DEMANDE
 async function refuserDemande(id) {
   if (!confirm(t('refuserConfirm'))) return;
   try {
     const res = await fetch(`${API_URL}/preinscription/refuser/${id}`, {
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${token}` }
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ statut: 'refusee' })
     });
     const data = await res.json();
+
     if (data.ok) {
       alert(t('refuserSucces'));
       chargerListe();
-      document.getElementById('zoneExamen').innerHTML = `<div class="empty-box"><span class="txt-fr">Demande refusée — Sélectionnez une autre demande</span><span class="txt-en">Request refused — Select another request</span><span class="txt-ar">تم الرفض — حدد طلباً آخر</span></div>`;
-    } else {
-      alert(`${t('erreur')} : ${data.erreur}`);
+      document.getElementById('zoneExamen').innerHTML = `<div class="empty-box"><span class="txt-fr">Demande refusée ❌</span><span class="txt-en">Request rejected ❌</span><span class="txt-ar">تم الرفض ❌</span></div>`;
+  } else {
+      alert(`${t('erreur')} : ${data.erreur || ''}`);
     }
-  } catch (e) { alert(t('errReseau') + ' : ' + e.message); }
+  } catch (e) { alert(t('errReseau')); }
 }
-
 
 chargerListe();
 </script>
