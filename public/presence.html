@@ -24,6 +24,7 @@
     *{margin:0;padding:0;box-sizing:border-box}
     body{background:#f1f5f9;font-family:'Segoe UI','Roboto',sans-serif;min-height:100vh}
 
+
     .menu-gauche{background:linear-gradient(180deg,var(--sombre),var(--primaire));min-height:100vh;width:260px;position:fixed;padding:0;overflow-y:auto}
     .entete-menu{padding:25px 20px;border-bottom:1px solid rgba(245,158,11,0.15)}
     .logo-menu{color:var(--accent);font-weight:800;font-size:1.3rem;text-decoration:none;display:flex;align-items:center;gap:10px}
@@ -32,12 +33,14 @@
     .lien-nav{display:flex;align-items:center;gap:12px;padding:12px 15px;margin-bottom:6px;color:#cbd5e1;text-decoration:none;border-radius:10px;transition:all 0.25s ease}
     .lien-nav:hover,.lien-nav.actif{background:rgba(245,158,11,0.08);color:var(--accent)}
 
+
     .contenu-principal{margin-left:260px;padding:25px 30px;min-height:100vh}
     .barre-haut{background:white;padding:15px 25px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:25px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px}
     .btn-langue{background:rgba(12,74,110,0.08);border:1px solid var(--primaire);border-radius:20px;padding:5px 12px;font-size:0.85rem;cursor:pointer;margin:0 2px;color:var(--primaire);font-weight:600}
     .btn-langue.active{background:var(--accent);color:#000;border-color:var(--accent)}
     .btn-deco{background:transparent;border:1px solid var(--accent);color:var(--accent);padding:6px 12px;border-radius:8px;transition:all 0.2s}
     .btn-deco:hover{background:var(--accent);color:#000}
+
 
     .carte{background:white;border-radius:14px;padding:22px;box-shadow:0 4px 12px rgba(0,0,0,0.05);margin-bottom:25px}
     .titre-section{font-weight:700;color:var(--primaire);margin-bottom:1.5rem}
@@ -52,6 +55,13 @@
     .btn-re:hover{background:#d97706;color:#fff}
     .statut-eleve{width:90px}
 
+    /* ✅ BOUTONS MANQUANTS AJOUTÉS */
+    .btn-orange{background:linear-gradient(135deg,var(--accent),#f97316);color:#000;border:none;font-weight:600}
+    .btn-orange:hover{background:#d97706;color:#000}
+    .btn-vert{background:var(--vert);color:#fff;border:none;font-weight:600}
+    .btn-vert:hover{background:#059669;color:#fff}
+
+
     /* ✅ MODÈLE TRILINGUE */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
@@ -64,7 +74,8 @@
     body.lang-ar { direction: rtl; }
   </style>
 </head>
-<body>
+<body class="lang-fr">
+
 
 <div class="d-flex">
   <aside class="menu-gauche">
@@ -74,7 +85,7 @@
       </a>
     </div>
     <nav class="nav-menu">
-      <a href="presence.html" class="lien-nav">
+      <a href="dashboard.html" class="lien-nav">
         <i class="bi bi-speedometer2"></i>
         <span class="txt-fr">Tableau de bord</span>
         <span class="txt-en">Dashboard</span>
@@ -86,7 +97,7 @@
         <span class="txt-en">My Classes</span>
         <span class="txt-ar">فصولي</span>
       </a>
-      <a href="#" class="lien-nav actif">
+      <a href="presence.html" class="lien-nav actif">
         <i class="bi bi-check2-square"></i>
         <span class="txt-fr">Présences & Retards</span>
         <span class="txt-en">Attendance & Lateness</span>
@@ -112,6 +123,7 @@
       </a>
     </nav>
   </aside>
+
 
   <main class="contenu-principal">
     <div class="barre-haut">
@@ -141,6 +153,7 @@
         </button>
       </div>
     </div>
+
 
     <!-- 🔽 FILTRES -->
     <div class="carte">
@@ -184,12 +197,14 @@
       </div>
     </div>
 
+
     <!-- 📊 LÉGENDE -->
     <div class="alert alert-info py-2">
       <span class="txt-fr">✅ Présent · ❌ Absent · ⚠️ En retard</span>
       <span class="txt-en">✅ Present · ❌ Absent · ⚠️ Late</span>
       <span class="txt-ar">✅ حاضر · ❌ غائب · ⚠️ متأخر</span>
     </div>
+
 
     <!-- 📋 TABLEAU PRÉSENCES -->
     <div class="carte">
@@ -234,6 +249,7 @@
       </div>
     </div>
 
+
     <!-- 📊 STATISTIQUES DU JOUR -->
     <div class="row g-4">
       <div class="col-md-4">
@@ -270,19 +286,25 @@
   </main>
 </div>
 
+
 <script>
-// ✅ SÉCURITÉ
+// ==================================================
+// ⚙️ CONFIGURATION — 100% HARMONISÉE ✅
+// ==================================================
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
-const API_BASE = "/api";
 
+// ✅ SÉCURITÉ
 if(!token || role !== 'prof'){
   alert("⛔ Accès réservé aux Enseignants — Reconnecte-toi");
   localStorage.clear();
-  location.href = '/connexion.html';
+  location.href = 'connexion.html';
 }
 
-document.getElementById('nom-prof').textContent = localStorage.getItem('nom') || 'Enseignant';
+document.getElementById('nom-prof').textContent = 
+  (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || '');
+
 
 // 🗣️ GESTION DE LA LANGUE
 function appliquerLangue(lang) {
@@ -300,18 +322,21 @@ document.querySelectorAll('.btn-langue').forEach(btn => {
   btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
 });
 
+
 // ✅ Date du jour par défaut
 document.getElementById('date-presence').valueAsDate = new Date();
 
 let listeEleves = [];
 
+
 // 🚀 AU CHARGEMENT → charger mes classes
 window.onload = chargerMesClasses;
+
 
 // 📥 CHARGER MES CLASSES
 async function chargerMesClasses() {
   try {
-    const r = await fetch(`${API_BASE}/notes/mes-classes-matieres`, {
+    const r = await fetch(`${API_URL}/notes/mes-classes-matieres`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     const res = await r.json();
@@ -329,6 +354,7 @@ async function chargerMesClasses() {
   }
 }
 
+
 // 📥 CHARGER LA LISTE DES ÉLÈVES DE LA CLASSE SÉLECTIONNÉE
 async function chargerListeEleves() {
   const id_classe = document.getElementById('id_classe').value;
@@ -345,7 +371,7 @@ async function chargerListeEleves() {
   }
 
   try {
-    const r = await fetch(`${API_BASE}/notes/eleves-classe/${id_classe}`, {
+    const r = await fetch(`${API_URL}/notes/eleves-classe/${id_classe}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     const res = await r.json();
@@ -367,6 +393,7 @@ async function chargerListeEleves() {
     console.error("❌ Erreur chargement élèves :", e);
   }
 }
+
 
 // 📄 AFFICHER LE TABLEAU
 function afficherTableau() {
@@ -393,6 +420,7 @@ function afficherTableau() {
     </tr>`).join('');
   reinitialiserStats();
 }
+
 
 // 🔄 CHANGER LE STATUT
 function changerStatut(idEleve, statut) {
@@ -423,6 +451,7 @@ function changerStatut(idEleve, statut) {
   mettreAJourStats();
 }
 
+
 // 📊 METTRE À JOUR LES STATISTIQUES
 function mettreAJourStats() {
   const pres = listeEleves.filter(e => e.statut === 'P').length;
@@ -440,6 +469,7 @@ function reinitialiserStats() {
   document.getElementById('stat-retard').textContent = '0';
 }
 
+
 // 📖 CHARGER LES PRÉSENCES DÉJÀ ENREGISTRÉES
 async function chargerPresences() {
   const id_classe = document.getElementById('id_classe').value;
@@ -451,7 +481,7 @@ async function chargerPresences() {
   }
 
   try {
-    const r = await fetch(`${API_BASE}/presence/lire`, {
+    const r = await fetch(`${API_URL}/presence/lire`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ id_classe, date })
@@ -470,6 +500,7 @@ async function chargerPresences() {
   }
 }
 
+
 // 💾 ENREGISTRER TOUTES LES PRÉSENCES
 async function enregistrerTout() {
   const id_classe = document.getElementById('id_classe').value;
@@ -487,7 +518,7 @@ async function enregistrerTout() {
     const observation = document.getElementById(`obs-${el.id_utilisateur}`)?.value || '';
 
     try {
-      const r = await fetch(`${API_BASE}/presence/enregistrer`, {
+      const r = await fetch(`${API_URL}/presence/enregistrer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -513,10 +544,11 @@ async function enregistrerTout() {
   alert(`✅ ${okCount}/${listeEleves.length} présences enregistrées !`);
 }
 
+
 // ✅ DÉCONNEXION
 function deconnexion(){
   localStorage.clear();
-  location.href = '/connexion.html';
+  location.href = 'connexion.html';
 }
 </script>
 

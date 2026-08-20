@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="lang-fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vérification Code — MAMA-ZOUMANA</title>
+  <title>
+    <span class="txt-fr">Vérification Code — MAMA-ZOUMANA</span>
+    <span class="txt-en">Code Verification — MAMA-ZOUMANA</span>
+    <span class="txt-ar">التحقق من الرمز — ماما زومانا</span>
+  </title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
@@ -14,6 +18,16 @@
       --clair: #f8fafc;
       --sombre: #0f172a;
     }
+
+    /* ✅ TRADUCTIONS HARMONISÉES */
+    .txt-en, .txt-ar { display: none !important; }
+    body.lang-fr .txt-fr { display: inline !important; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none !important; }
+    body.lang-en .txt-en { display: inline !important; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none !important; }
+    body.lang-ar .txt-ar { display: inline !important; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none !important; }
+    body.lang-ar { direction: rtl; }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -32,6 +46,7 @@
       max-width: 460px; width: 100%;
       overflow: hidden;
       box-shadow: 0 0 25px rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.2);
     }
 
     .cadre-lumineux::before {
@@ -66,6 +81,24 @@
     .titre-form { color: var(--accent); font-weight: 700; text-align: center; margin-bottom: 20px; }
     .sous-titre { color: #cbd5e1; text-align: center; margin-bottom: 30px; font-size: 0.95rem; }
 
+    .btn-langue {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid var(--accent);
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin: 0 2px;
+      color: var(--accent);
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-langue.active {
+      background: var(--accent);
+      color: var(--sombre);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+    }
+
     .form-control {
       background: rgba(30, 41, 59, 0.7);
       border: 1px solid rgba(245, 158, 11, 0.25);
@@ -83,6 +116,7 @@
       border-color: var(--accent);
       box-shadow: 0 0 0 0.25rem rgba(245, 158, 11, 0.25);
       color: white;
+      outline: none;
     }
 
     .btn-envoi {
@@ -114,45 +148,177 @@
 
     .lien-reno { color: var(--accent); text-decoration: none; font-size: 0.9rem; display: block; text-align: center; margin-top: 15px; }
     .lien-reno:hover { color: #fbbf24; }
+
+    .msg-erreur { color: #ef4444; text-align: center; margin-top: 15px; display: none; }
+    .msg-succes { color: #10b981; text-align: center; margin-top: 15px; display: none; }
   </style>
 </head>
-<body>
+<body class="lang-fr">
 
 <div class="cadre-lumineux">
   <div class="contenu-form">
-    <h3 class="titre-form"><i class="bi bi-shield-lock"></i> VÉRIFICATION COMPTE</h3>
-    <p class="sous-titre">Entrez le code à 6 chiffres reçu par email</p>
+    <!-- 🌐 LANGUE -->
+    <div class="d-flex justify-content-end mb-3">
+      <button class="btn-langue active" data-lang="fr">FR</button>
+      <button class="btn-langue" data-lang="en">EN</button>
+      <button class="btn-langue" data-lang="ar">AR</button>
+    </div>
+
+    <h3 class="titre-form">
+      <i class="bi bi-shield-lock"></i>
+      <span class="txt-fr"> VÉRIFICATION COMPTE</span>
+      <span class="txt-en"> ACCOUNT VERIFICATION</span>
+      <span class="txt-ar"> التحقق من الحساب</span>
+    </h3>
+    <p class="sous-titre">
+      <span class="txt-fr">Entrez le code à 6 chiffres reçu par email</span>
+      <span class="txt-en">Enter the 6-digit code received by email</span>
+      <span class="txt-ar">أدخل الرمز المكون من 6 أرقام المستلم عبر البريد الإلكتروني</span>
+    </p>
 
     <form id="form-verif">
-      <input type="text" id="code" class="form-control" maxlength="6" placeholder="0 0 0 0 0 0" required inputmode="numeric">
+      <input type="text" id="code" class="form-control" maxlength="6" placeholder="000000" required inputmode="numeric">
+      <div id="msg-erreur" class="msg-erreur"></div>
+      <div id="msg-succes" class="msg-succes"></div>
       <button type="submit" class="btn-envoi mt-4">
-        <i class="bi bi-check-circle"></i> VALIDER MON COMPTE
+        <i class="bi bi-check-circle"></i>
+        <span class="txt-fr"> VALIDER MON COMPTE</span>
+        <span class="txt-en"> VERIFY MY ACCOUNT</span>
+        <span class="txt-ar"> تأكيد حسابي</span>
       </button>
-      <a href="#" class="lien-reno" id="renvoyer">Renvoyer le code</a>
+      <a href="#" class="lien-reno" id="renvoyer">
+        <span class="txt-fr">🔄 Renvoyer le code</span>
+        <span class="txt-en">🔄 Resend code</span>
+        <span class="txt-ar">🔄 إعادة إرسال الرمز</span>
+      </a>
     </form>
   </div>
 </div>
 
 <script>
+// ==================================================
+// ⚙️ CONFIGURATION — 100% HARMONISÉE ✅
+// ==================================================
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+let langue = localStorage.getItem('langue') || 'fr';
+
+const msg = {
+  codeIncorrect: {
+    fr: "❌ Code incorrect ou expiré",
+    en: "❌ Incorrect or expired code",
+    ar: "❌ رمز غير صحيح أو منتهي الصلاحية"
+  },
+  verifSucces: {
+    fr: "✅ Compte vérifié — En attente de validation par l'administrateur",
+    en: "✅ Account verified — Waiting for admin validation",
+    ar: "✅ تم التحقق من الحساب — بانتظار موافقة المدير"
+  },
+  erreurServeur: {
+    fr: "❌ Erreur de connexion au serveur",
+    en: "❌ Server connection error",
+    ar: "❌ خطأ في الاتصال بالخادم"
+  },
+  codeRenvoye: {
+    fr: "✅ Code renvoyé ! Vérifiez votre email",
+    en: "✅ Code resent! Check your email",
+    ar: "✅ تم إعادة إرسال الرمز! تحقق من بريدك الإلكتروني"
+  }
+};
+
+// ==================================================
+// 🌐 GESTION DES LANGUES ✅
+// ==================================================
+function appliquerLangue(lang) {
+  langue = lang;
+  localStorage.setItem('langue', lang);
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + lang);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+}
+
+document.querySelectorAll('.btn-langue').forEach(btn => {
+  btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
+});
+
+// Restaurer langue sauvegardée
+document.addEventListener('DOMContentLoaded', () => {
+  appliquerLangue(localStorage.getItem('langue') || 'fr');
+});
+
+// ==================================================
+// ✅ SOUMISSION — URL ET ROUTE CORRIGÉES ✅
+// ==================================================
 document.getElementById('form-verif').addEventListener('submit', async e => {
   e.preventDefault();
   const code = document.getElementById('code').value.trim();
-  
+  const msgErreur = document.getElementById('msg-erreur');
+  const msgSucces = document.getElementById('msg-succes');
+
+  msgErreur.style.display = 'none';
+  msgSucces.style.display = 'none';
+
+  if (!code || code.length !== 6) {
+    msgErreur.textContent = "⚠️ " + { fr: "6 chiffres requis", en: "6 digits required", ar: "مطلوب 6 أرقام" }[langue];
+    msgErreur.style.display = 'block';
+    return;
+  }
+
   try {
-    const res = await fetch('/api/inscription/verifier', {
+    // ✅ URL HARMONISÉE : API_URL + /inscription/verifier
+    const res = await fetch(`${API_URL}/inscription/verifier`, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code })
     });
+
     const data = await res.json();
+
     if (data.ok) {
-      alert('✅ Compte vérifié — En attente validation admin');
-      window.location.href = 'connexion.html';
+      msgSucces.textContent = msg.verifSucces[langue];
+      msgSucces.style.display = 'block';
+      setTimeout(() => {
+        window.location.href = 'connexion.html';
+      }, 2500);
     } else {
-      alert('❌ Code incorrect ou expiré');
+      msgErreur.textContent = msg.codeIncorrect[langue];
+      msgErreur.style.display = 'block';
     }
   } catch {
-    alert('❌ Erreur de connexion');
+    msgErreur.textContent = msg.erreurServeur[langue];
+    msgErreur.style.display = 'block';
+  }
+});
+
+// ==================================================
+// ✅ RENVOYER LE CODE — ROUTE CORRIGÉE ✅
+// ==================================================
+document.getElementById('renvoyer').addEventListener('click', async e => {
+  e.preventDefault();
+  const msgErreur = document.getElementById('msg-erreur');
+  const msgSucces = document.getElementById('msg-succes');
+
+  msgErreur.style.display = 'none';
+  msgSucces.style.display = 'none';
+
+  try {
+    // ✅ URL HARMONISÉE : API_URL + /inscription/renvoyer
+    const res = await fetch(`${API_URL}/inscription/renvoyer`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await res.json();
+
+    if (data.ok) {
+      msgSucces.textContent = msg.codeRenvoye[langue];
+      msgSucces.style.display = 'block';
+    } else {
+      msgErreur.textContent = (data.erreur || msg.erreurServeur[langue]);
+      msgErreur.style.display = 'block';
+    }
+  } catch {
+    msgErreur.textContent = msg.erreurServeur[langue];
+    msgErreur.style.display = 'block';
   }
 });
 </script>
