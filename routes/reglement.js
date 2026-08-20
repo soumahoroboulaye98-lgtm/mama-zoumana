@@ -1,11 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const verifadmin = require('../middleware/verifadmin');
+const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté
+const verifadmin = require('../middleware/verifadmin');    // ✅ Après le token
+
+// ✅ Protection groupée : Token + Admin
+const protegerAdmin = [veriftoken, verifadmin];
 
 
 // ==================================================
-// 📋 LISTER LE RÈGLEMENT — Publiques ou complet (Admin)
+// 📋 LISTER LE RÈGLEMENT — Publique (sans connexion)
 // ==================================================
 router.get('/liste', async (req, res) => {
   try {
@@ -26,6 +30,7 @@ router.get('/liste', async (req, res) => {
       ORDER BY ordre ASC, id ASC
     `, valeurs);
 
+    console.log(`📋 RÈGLEMENT CHARGÉ : ${r.rows.length} articles`);
     res.json({ ok: true, articles: r.rows });
   } catch (e) {
     console.log("❌ ERREUR LISTE RÈGLEMENT :", e.message);
@@ -35,9 +40,9 @@ router.get('/liste', async (req, res) => {
 
 
 // ==================================================
-// ➕ AJOUTER UN ARTICLE — Admin seul
+// ➕ AJOUTER UN ARTICLE — Admin seul (sécurisé)
 // ==================================================
-router.post('/ajouter', verifadmin, async (req, res) => {
+router.post('/ajouter', protegerAdmin, async (req, res) => {
   try {
     const {
       titre_fr, titre_en, titre_ar,
@@ -65,6 +70,7 @@ router.post('/ajouter', verifadmin, async (req, res) => {
       ordre || 1, est_publie !== false
     ]);
 
+    console.log("✅ ARTICLE CRÉÉ : ID", r.rows[0].id);
     res.json({ ok: true, article: r.rows[0] });
   } catch (e) {
     console.log("❌ ERREUR AJOUT ARTICLE :", e.message);
@@ -74,9 +80,9 @@ router.post('/ajouter', verifadmin, async (req, res) => {
 
 
 // ==================================================
-// ✏️ MODIFIER UN ARTICLE — Admin seul
+// ✏️ MODIFIER UN ARTICLE — Admin seul (sécurisé)
 // ==================================================
-router.put('/:id', verifadmin, async (req, res) => {
+router.put('/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -105,9 +111,10 @@ router.put('/:id', verifadmin, async (req, res) => {
     `, [
       id, titre_fr, titre_en || null, titre_ar || null,
       contenu_fr, contenu_en || null, contenu_ar || null,
-      ordre || 1, est_publie
+      ordre || 1, est_publie !== false
     ]);
 
+    console.log("✅ ARTICLE MODIFIÉ : ID", id);
     res.json(
       r.rows.length
         ? { ok: true, article: r.rows[0] }
@@ -121,9 +128,9 @@ router.put('/:id', verifadmin, async (req, res) => {
 
 
 // ==================================================
-// ❌ SUPPRIMER UN ARTICLE — Admin seul
+// ❌ SUPPRIMER UN ARTICLE — Admin seul (sécurisé)
 // ==================================================
-router.delete('/:id', verifadmin, async (req, res) => {
+router.delete('/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -135,6 +142,7 @@ router.delete('/:id', verifadmin, async (req, res) => {
       [id]
     );
 
+    console.log("🗑️ ARTICLE SUPPRIMÉ : ID", id);
     res.json(
       r.rows.length
         ? { ok: true }
