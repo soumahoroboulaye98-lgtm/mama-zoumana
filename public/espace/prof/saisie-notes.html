@@ -4,12 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>
-    <span class="txt-fr">Saisie des Notes — Enseignant</span>
-    <span class="txt-en">Grade Entry — Teacher</span>
-    <span class="txt-ar">إدخال الدرجات — المعلم</span>
+    <span class="txt-fr">Saisie des Notes — Enseignant — MAMA-ZOUMANA</span>
+    <span class="txt-en">Grade Entry — Teacher — MAMA-ZOUMANA</span>
+    <span class="txt-ar">إدخال الدرجات — المعلم — ماما زومانا</span>
   </title>
+
+  <!-- URLs vérifiées et harmonisées -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
   <style>
     :root {
       --sombre: #0f172a;
@@ -20,19 +23,28 @@
       --bleu: #3b82f6;
       --texte: #f8fafc;
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.25s ease; }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: all 0.25s ease;
+    }
+
     body {
       background: var(--sombre);
       color: var(--texte);
       min-height: 100vh;
       font-family: 'Segoe UI', system-ui, sans-serif;
     }
+
     .entete-page {
       background: var(--sombre-clair);
       border-bottom: 3px solid var(--bord-orange);
       padding: 1.2rem 0;
       margin-bottom: 2rem;
     }
+
     .carte {
       background: var(--sombre-clair);
       border-radius: 14px;
@@ -41,18 +53,22 @@
       margin-bottom: 1.5rem;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
+
     .form-control, .form-select {
       background: #0f172a;
       border: 1px solid #334155;
       color: white;
       border-radius: 10px;
     }
+
     .form-control:focus, .form-select:focus {
       background: #0f172a;
       border-color: var(--bord-orange);
       color: white;
       box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.25);
+      outline: none;
     }
+
     .btn-valide {
       background: var(--vert);
       color: white;
@@ -60,11 +76,14 @@
       border: none;
       font-weight: 600;
     }
+
     .btn-valide:hover {
       background: #059669;
       box-shadow: 0 0 15px rgba(16,185,129,0.4);
       color: white;
+      transform: translateY(-1px);
     }
+
     .btn-langue { border-radius: 8px; }
     .btn-langue.active {
       background: var(--bord-orange);
@@ -72,12 +91,14 @@
       border-color: var(--bord-orange);
       font-weight: 700;
     }
+
     .note-input {
       width: 70px;
       text-align: center;
       font-weight: bold;
       border-radius: 6px;
     }
+
     .photo-eleve {
       width: 45px;
       height: 45px;
@@ -85,13 +106,16 @@
       border-radius: 50%;
       border: 2px solid var(--bord-orange);
     }
+
     .ligne-eleve {
       border-bottom: 1px solid #334155;
       padding: 0.8rem 0.75rem;
       border-radius: 8px;
       transition: background 0.2s;
     }
+
     .ligne-eleve:hover { background: rgba(245,158,11,0.06); }
+
     .moyenne-badge {
       background: var(--bleu);
       color: white;
@@ -100,11 +124,13 @@
       font-weight: 700;
       font-size: 0.95rem;
     }
+
     .mention-badge {
       font-weight: 700;
       font-size: 0.9rem;
       white-space: nowrap;
     }
+
     .rang-badge {
       background: linear-gradient(135deg, #f59e0b, #d97706);
       color: #000;
@@ -113,13 +139,14 @@
       font-weight: 700;
       font-size: 0.85rem;
     }
+
     .appreciation-texte {
       font-size: 0.85rem;
       opacity: 0.85;
       line-height: 1.3;
     }
 
-    /* ✅ GESTION DES LANGUES */
+    /* ✅ GESTION DES LANGUES — CONFORME AU STANDARD DU PROJET */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
@@ -142,8 +169,11 @@ const nom = localStorage.getItem('nom') || 'Enseignant';
 const prenoms = localStorage.getItem('prenoms') || '';
 
 if (!token || role !== 'prof') {
-  alert("⛔ Accès réservé aux Enseignants — Reconnecte-toi !");
-  localStorage.clear();
+  alert("⛔ Accès réservé aux Enseignants. Veuillez vous reconnecter.");
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
   location.href = 'connexion.html';
 }
 
@@ -152,7 +182,7 @@ const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 
 <!-- 📌 EN-TÊTE -->
 <div class="entete-page">
-  <div class="container d-flex justify-content-between align-items-center">
+  <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
     <div>
       <h3 class="mb-1 fw-bold">
         <i class="bi bi-pencil-square" style="color:var(--bord-orange)"></i>
@@ -250,7 +280,7 @@ const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 
   <!-- 📋 LISTE DES ÉLÈVES + NOTES + MENTION + CLASSEMENT -->
   <div id="zone-eleves" class="d-none">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
       <h5 class="mb-0 fw-bold">
         <span class="txt-fr">👥 Saisie des Notes — Élèves</span>
         <span class="txt-en">👥 Grade Entry — Students</span>
@@ -314,14 +344,15 @@ const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 let listeEleves = [];
 let resultatsCalculs = {};
 
-// 🗣️ GESTION DE LA LANGUE
+// 🗣️ GESTION DE LA LANGUE — Conforme au standard du projet
 function changerLangue(langue) {
   document.body.classList.remove('lang-fr','lang-en','lang-ar');
   document.body.classList.add('lang-' + langue);
   localStorage.setItem('langue', langue);
   document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-' + langue).classList.add('active');
+  document.getElementById('btn-' + langue)?.classList.add('active');
 }
+
 const langueSauvegardee = localStorage.getItem('langue') || 'fr';
 changerLangue(langueSauvegardee);
 
@@ -335,40 +366,36 @@ function afficherMessage(texte, type = 'info') {
   setTimeout(() => zone.innerHTML = '', 8000);
 }
 
-// 📥 CHARGER MES CLASSES DU PROF — ✅ HARMONISÉ AVEC TA ROUTE
+// 📥 CHARGER MES CLASSES DU PROF — Conforme aux routes existantes
 async function chargerClasses() {
   try {
     console.log("🔄 Chargement des classes...");
-    const r = await fetch(`${API_URL}/presences/mes-classes`, {
+    const reponse = await fetch(`${API_URL}/presences/mes-classes`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const res = await r.json();
-    console.log("📦 RÉPONSE CLASSES :", res);
+    const res = await reponse.json();
+    console.log("📦 Classes récupérées :", res);
 
-    const sel = document.getElementById('id_classe');
+    const selecteur = document.getElementById('id_classe');
     let listeClasses = [];
-    
-    if (res.classes && Array.isArray(res.classes)) {
-      listeClasses = res.classes;
-    } else if (res.lignes && Array.isArray(res.lignes)) {
-      listeClasses = res.lignes;
-    }
+    if (res.classes && Array.isArray(res.classes)) listeClasses = res.classes;
+    else if (res.lignes && Array.isArray(res.lignes)) listeClasses = res.lignes;
 
     if (listeClasses.length > 0) {
-      sel.innerHTML = '<option value="">-- Sélectionner une Classe --</option>' +
+      selecteur.innerHTML = '<option value="">-- Sélectionner une Classe --</option>' +
         listeClasses.map(c => `<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('');
       afficherMessage(`✅ ${listeClasses.length} classes chargées`, 'succes');
     } else {
-      sel.innerHTML = '<option value="">-- Aucune Classe trouvée --</option>';
-      afficherMessage("⚠️ Aucune classe affectée. Contacter l'administrateur.", 'info');
+      selecteur.innerHTML = '<option value="">-- Aucune Classe trouvée --</option>';
+      afficherMessage("⚠️ Aucune classe affectée. Veuillez contacter l'administrateur.", 'info');
     }
-  } catch (e) {
-    console.error("❌ Erreur chargement classes :", e);
-    afficherMessage("❌ Erreur réseau : " + e.message, 'erreur');
+  } catch (erreur) {
+    console.error("❌ Erreur chargement classes :", erreur);
+    afficherMessage("❌ Erreur lors du chargement des classes.", 'erreur');
   }
 }
 
-// 🔄 QUAND ON CHOISIT UNE CLASSE → CHARGE MATIÈRES + ÉLÈVES
+// 🔄 QUAND ON CHOISIT UNE CLASSE → charge matières puis élèves
 async function quandClasseChange(id_classe) {
   if (!id_classe) {
     document.getElementById('zone-eleves').classList.add('d-none');
@@ -379,36 +406,33 @@ async function quandClasseChange(id_classe) {
   await chargerEleves(id_classe);
 }
 
-// 📚 CHARGER MATIÈRES — ✅ HARMONISÉ AVEC TA ROUTE
+// 📚 CHARGER MATIÈRES
 async function chargerMatieresPourClasse(id_classe) {
-  const sel = document.getElementById('id_matiere');
-  sel.innerHTML = '<option value="">-- Chargement... --</option>';
+  const selecteur = document.getElementById('id_matiere');
+  selecteur.innerHTML = '<option value="">-- Chargement... --</option>';
 
   try {
-    const r = await fetch(`${API_URL}/notes/mes-matieres/${id_classe}`, {
+    const reponse = await fetch(`${API_URL}/notes/mes-matieres/${id_classe}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const res = await r.json();
-    console.log("📦 MATIÈRES :", res);
+    const res = await reponse.json();
+    console.log("📦 Matières récupérées :", res);
 
     let matieres = [];
-    if (res.matieres && Array.isArray(res.matieres)) {
-      matieres = res.matieres;
-    } else if (res.lignes && Array.isArray(res.lignes)) {
-      matieres = res.lignes;
-    }
+    if (res.matieres && Array.isArray(res.matieres)) matieres = res.matieres;
+    else if (res.lignes && Array.isArray(res.lignes)) matieres = res.lignes;
 
     if (matieres.length > 0) {
-      sel.innerHTML = '<option value="">-- Choisir une matière --</option>' +
+      selecteur.innerHTML = '<option value="">-- Choisir une matière --</option>' +
         matieres.map(m => `<option value="${m.id_matiere}">${m.libelle_matiere}</option>`).join('');
       afficherMessage(`✅ ${matieres.length} matières chargées`, 'succes');
     } else {
-      sel.innerHTML = '<option value="">-- Aucune matière trouvée --</option>';
-      afficherMessage("⚠️ Aucune matière affectée pour cette classe", 'info');
+      selecteur.innerHTML = '<option value="">-- Aucune matière trouvée --</option>';
+      afficherMessage("⚠️ Aucune matière affectée pour cette classe.", 'info');
     }
-  } catch (e) {
-    console.error("❌ Erreur matières :", e);
-    sel.innerHTML = '<option value="">-- Erreur chargement --</option>';
+  } catch (erreur) {
+    console.error("❌ Erreur chargement matières :", erreur);
+    selecteur.innerHTML = '<option value="">-- Erreur de chargement --</option>';
   }
 }
 
@@ -416,11 +440,11 @@ async function chargerMatieresPourClasse(id_classe) {
 async function chargerEleves(id_classe) {
   const zone = document.getElementById('zone-eleves');
   try {
-    const r = await fetch(`${API_URL}/presences/eleves-classe/${id_classe}`, {
+    const reponse = await fetch(`${API_URL}/presences/eleves-classe/${id_classe}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const res = await r.json();
-    console.log("📦 ÉLÈVES :", res);
+    const res = await reponse.json();
+    console.log("📦 Élèves récupérés :", res);
 
     let eleves = [];
     if (res.eleves && Array.isArray(res.eleves)) eleves = res.eleves;
@@ -439,31 +463,32 @@ async function chargerEleves(id_classe) {
         </div>`;
       zone.classList.remove('d-none');
     }
-  } catch (e) {
-    console.error("❌ Erreur élèves :", e);
+  } catch (erreur) {
+    console.error("❌ Erreur chargement élèves :", erreur);
   }
 }
 
-// 📄 AFFICHER LA LISTE DES ÉLÈVES — ✅ 5 NOTES CONFORME À TA TABLE
+// 📄 GÉNÉRER LA LISTE DES ÉLÈVES avec photos et 5 champs de notes
 function afficherListeEleves() {
+  const urlDefautPhotoBase = 'https://ui-avatars.com/api/?background=0f172a&color=f59e0b&size=80&name=';
+
   document.getElementById('corps-liste').innerHTML = listeEleves.map(el => {
     const id = el.id_utilisateur || el.id_eleve;
     const nomEleve = el.nom || el.nom_utilisateur || '';
     const prenomEleve = el.prenoms || el.prenom || '';
     const matricule = el.matricule || '---';
 
-    let photoUrl = el.photo_profil ? `https://mama-zoumana-api.onrender.com/api/${el.photo_profil}` : null;
+    let photoUrl = el.photo_profil ? `${API_URL}/${el.photo_profil}` : null;
     if (!photoUrl) {
-      const nomPrenom = encodeURIComponent(`${nomEleve} ${prenomEleve}`);
-      photoUrl = `https://ui-avatars.com/api/?name=${nomPrenom}&background=0f172a&color=f59e0b&size=80`;
+      photoUrl = `${urlDefautPhotoBase}${encodeURIComponent(`${nomEleve} ${prenomEleve}`)}`;
     }
 
     return `
     <div class="ligne-eleve row align-items-center" data-id="${id}">
       <div class="col-md-2 text-start">
         <div class="d-flex align-items-center gap-2">
-          <img src="${photoUrl}" alt="Photo" class="photo-eleve"
-               onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(nomEleve)}&background=0f172a&color=f59e0b&size=80'">
+          <img src="${photoUrl}" alt="Photo de ${nomEleve}" class="photo-eleve"
+               onerror="this.src='${urlDefautPhotoBase}${encodeURIComponent(nomEleve)}'">
           <div>
             <div class="fw-bold small">${nomEleve} ${prenomEleve}</div>
             <div class="small opacity-50">📋 ${matricule}</div>
@@ -510,7 +535,7 @@ function afficherListeEleves() {
   }).join('');
 }
 
-// 📊 ATTRIBUER MENTION & APPRÉCIATION
+// 📊 ATTRIBUER MENTION ET APPRÉCIATION SELON LA MOYENNE
 function attribuerMentionEtAppreciation(moyenne) {
   const m = parseFloat(moyenne);
   if (isNaN(m)) return { mention: '--', tableau_honneur: false, appreciation: '--', couleur: '#888' };
@@ -523,9 +548,11 @@ function attribuerMentionEtAppreciation(moyenne) {
   return { mention: '❌ MÉDIOCRE', tableau_honneur: false, appreciation: 'Résultats très préoccupants — Travail indispensable.', couleur: '#ef4444' };
 }
 
-// 🏆 CALCULER MOYENNE + CLASSEMENT — ✅ 5 NOTES PRISES EN COMPTE
+// 🏆 CALCULER MOYENNE + CLASSEMENT EN TEMPS RÉEL
 function calculerMoyenneEtClasser() {
   resultatsCalculs = {};
+
+  // Calcul des moyennes
   listeEleves.forEach(el => {
     const id = el.id_utilisateur || el.id_eleve;
     const n1 = parseFloat(document.querySelector(`.note1[data-id="${id}"]`)?.value) || null;
@@ -534,57 +561,68 @@ function calculerMoyenneEtClasser() {
     const n4 = parseFloat(document.querySelector(`.note4[data-id="${id}"]`)?.value) || null;
     const n5 = parseFloat(document.querySelector(`.note5[data-id="${id}"]`)?.value) || null;
     const notes = [n1, n2, n3, n4, n5].filter(n => n !== null);
-    const moyenne = notes.length > 0 ? parseFloat((notes.reduce((a,b)=>a+b,0)/notes.length).toFixed(2)) : null;
+    const moyenne = notes.length > 0 ? parseFloat((notes.reduce((a,b) => a + b, 0) / notes.length).toFixed(2)) : null;
     resultatsCalculs[id] = { moyenne };
   });
 
+  // Classement décroissant
   const classements = Object.entries(resultatsCalculs)
-    .filter(([_,d]) => d.moyenne !== null)
-    .sort((a,b) => b[1].moyenne - a[1].moyenne);
+    .filter(([_, donnees]) => donnees.moyenne !== null)
+    .sort((a, b) => b[1].moyenne - a[1].moyenne);
 
-  classements.forEach(([id, data], index) => { data.rang = index + 1; });
+  // Affectation des rangs
+  classements.forEach(([id, donnees], index) => {
+    donnees.rang = index + 1;
+  });
 
+  // Mise à jour de l'affichage
   listeEleves.forEach(el => {
     const id = el.id_utilisateur || el.id_eleve;
-    const data = resultatsCalculs[id];
-    const moyenne = data?.moyenne;
+    const donnees = resultatsCalculs[id];
+    const moyenne = donnees?.moyenne;
+
     document.getElementById(`moyenne-${id}`).textContent = moyenne !== null ? moyenne.toFixed(2) : '--';
-    
-    const rangEl = document.getElementById(`rang-${id}`);
-    rangEl.textContent = data?.rang ? `#${data.rang}` : '#';
-    rangEl.style.background = data?.rang === 1 ? 'linear-gradient(135deg, #ffd700, #ffb300)' :
-                              data?.rang === 2 ? 'linear-gradient(135deg, #c0c0c0, #a0a0a0)' :
-                              data?.rang === 3 ? 'linear-gradient(135deg, #cd7f32, #b87333)' : '';
+
+    const rangElement = document.getElementById(`rang-${id}`);
+    rangElement.textContent = donnees?.rang ? `#${donnees.rang}` : '#';
+    rangElement.style.background = donnees?.rang === 1 ? 'linear-gradient(135deg, #ffd700, #ffb300)' :
+                                   donnees?.rang === 2 ? 'linear-gradient(135deg, #c0c0c0, #a0a0a0)' :
+                                   donnees?.rang === 3 ? 'linear-gradient(135deg, #cd7f32, #b87333)' : '';
 
     const { mention, tableau_honneur, appreciation, couleur } = attribuerMentionEtAppreciation(moyenne);
     document.getElementById(`mention-${id}`).textContent = mention;
     document.getElementById(`mention-${id}`).style.color = couleur;
-    document.getElementById(`tableau-honneur-${id}`).innerHTML = tableau_honneur ? '<span class="badge bg-warning text-dark small">📋 Tableau d\'honneur</span>' : '';
+    document.getElementById(`tableau-honneur-${id}`).innerHTML = tableau_honneur 
+      ? '<span class="badge bg-warning text-dark small">📋 Tableau d\'honneur</span>' : '';
     document.getElementById(`appreciation-${id}`).textContent = appreciation;
   });
 }
 
-// 📄 QUAND MATIÈRE CHOISIE → CHARGE LES NOTES EXISTANTES
+// 📄 CHARGER LES NOTES DÉJÀ SAISIES QUAND LA MATIÈRE CHANGE
 async function quandMatiereChange() {
   await chargerNotesExistantes();
 }
 
-// 📥 CHARGER LES NOTES DÉJÀ ENREGISTRÉES
+// 📥 RÉCUPÉRER LES NOTES DÉJÀ ENREGISTRÉES
 async function chargerNotesExistantes() {
   const id_classe = document.getElementById('id_classe').value;
   const id_matiere = document.getElementById('id_matiere').value;
   const trimestre = document.getElementById('trimestre').value;
   const annee = document.getElementById('annee_scolaire').value;
+
   if (!id_classe || !id_matiere) return;
 
   try {
-    const r = await fetch(`${API_URL}/notes/consulter`, {
+    const reponse = await fetch(`${API_URL}/notes/consulter`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 
+        'Content-Type': 'application/json', 
+        'Authorization': `Bearer ${token}` 
+      },
       body: JSON.stringify({ id_classe, id_matiere, trimestre, annee_scolaire: annee })
     });
-    const res = await r.json();
-    console.log("📦 NOTES EXISTANTES :", res);
+    const res = await reponse.json();
+    console.log("📦 Notes existantes récupérées :", res);
 
     let notes = [];
     if (res.notes && Array.isArray(res.notes)) notes = res.notes;
@@ -593,41 +631,37 @@ async function chargerNotesExistantes() {
     if (notes.length > 0) {
       notes.forEach(n => {
         const id = n.id_eleve;
-        const c1 = document.querySelector(`.note1[data-id="${id}"]`);
-        const c2 = document.querySelector(`.note2[data-id="${id}"]`);
-        const c3 = document.querySelector(`.note3[data-id="${id}"]`);
-        const c4 = document.querySelector(`.note4[data-id="${id}"]`);
-        const c5 = document.querySelector(`.note5[data-id="${id}"]`);
-        if (c1) c1.value = n.note1 ?? '';
-        if (c2) c2.value = n.note2 ?? '';
-        if (c3) c3.value = n.note3 ?? '';
-        if (c4) c4.value = n.note4 ?? '';
-        if (c5) c5.value = n.note5 ?? '';
+        document.querySelector(`.note1[data-id="${id}"]`).value = n.note1 ?? '';
+        document.querySelector(`.note2[data-id="${id}"]`).value = n.note2 ?? '';
+        document.querySelector(`.note3[data-id="${id}"]`).value = n.note3 ?? '';
+        document.querySelector(`.note4[data-id="${id}"]`).value = n.note4 ?? '';
+        document.querySelector(`.note5[data-id="${id}"]`).value = n.note5 ?? '';
       });
       calculerMoyenneEtClasser();
       afficherMessage(`📋 ${notes.length} notes chargées`, 'info');
     }
-  } catch (e) {
-    console.log("ℹ️ Aucune note existante :", e.message);
+  } catch {
+    console.log("ℹ️ Aucune note existante pour ces critères.");
   }
 }
 
-// 🔄 REMPLIR / VIDER LES NOTES
+// 🔄 OUTILS : Remplir / vider toutes les notes
 function remplirNotes(valeur) {
-  document.querySelectorAll('.note-input').forEach(i => i.value = valeur);
+  document.querySelectorAll('.note-input').forEach(champ => champ.value = valeur);
   calculerMoyenneEtClasser();
 }
+
 function viderNotes() {
-  document.querySelectorAll('.note-input').forEach(i => i.value = '');
-  document.querySelectorAll('.moyenne-badge').forEach(b => b.textContent = '--');
-  document.querySelectorAll('.rang-badge').forEach(b => { b.textContent = '#'; b.style.background = ''; });
-  document.querySelectorAll('.mention-badge').forEach(b => { b.textContent = '--'; b.style.color = ''; });
-  document.querySelectorAll('.appreciation-texte').forEach(b => b.textContent = '--');
-  document.querySelectorAll('[id^="tableau-honneur-"]').forEach(b => b.innerHTML = '');
+  document.querySelectorAll('.note-input').forEach(champ => champ.value = '');
+  document.querySelectorAll('.moyenne-badge').forEach(el => el.textContent = '--');
+  document.querySelectorAll('.rang-badge').forEach(el => { el.textContent = '#'; el.style.background = ''; });
+  document.querySelectorAll('.mention-badge').forEach(el => { el.textContent = '--'; el.style.color = ''; });
+  document.querySelectorAll('.appreciation-texte').forEach(el => el.textContent = '--');
+  document.querySelectorAll('[id^="tableau-honneur-"]').forEach(el => el.innerHTML = '');
   resultatsCalculs = {};
 }
 
-// 💾 ENREGISTRER TOUT — ✅ 5 NOTES + CHAMPS COMPLETS
+// 💾 ENREGISTRER TOUTES LES NOTES ET CALCULS
 async function enregistrerTout() {
   const id_classe = document.getElementById('id_classe').value;
   const id_matiere = document.getElementById('id_matiere').value;
@@ -635,7 +669,7 @@ async function enregistrerTout() {
   const annee_scolaire = document.getElementById('annee_scolaire').value;
 
   if (!id_classe || !id_matiere) {
-    alert("⚠️ Sélectionne une Classe et une Matière d'abord !");
+    afficherMessage("⚠️ Veuillez sélectionner une Classe et une Matière d'abord !", 'erreur');
     return;
   }
 
@@ -646,8 +680,8 @@ async function enregistrerTout() {
     const n3 = parseFloat(document.querySelector(`.note3[data-id="${id}"]`)?.value) || null;
     const n4 = parseFloat(document.querySelector(`.note4[data-id="${id}"]`)?.value) || null;
     const n5 = parseFloat(document.querySelector(`.note5[data-id="${id}"]`)?.value) || null;
-    const calc = resultatsCalculs[id] || {};
-    const { mention, tableau_honneur, appreciation } = attribuerMentionEtAppreciation(calc.moyenne);
+    const calculs = resultatsCalculs[id] || {};
+    const { mention, tableau_honneur, appreciation } = attribuerMentionEtAppreciation(calculs.moyenne);
 
     return { 
       id_eleve: id, 
@@ -660,8 +694,8 @@ async function enregistrerTout() {
       note3: n3,
       note4: n4,
       note5: n5,
-      moyenne_matiere: calc.moyenne, 
-      rang: calc.rang || null, 
+      moyenne_matiere: calculs.moyenne, 
+      rang: calculs.rang || null, 
       mention, 
       tableau_honneur, 
       appreciation,
@@ -670,21 +704,29 @@ async function enregistrerTout() {
   });
 
   try {
-    const r = await fetch(`${API_URL}/notes/saisir`, {
+    const reponse = await fetch(`${API_URL}/notes/saisir`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 
+        'Content-Type': 'application/json', 
+        'Authorization': `Bearer ${token}` 
+      },
       body: JSON.stringify({ notes: notesCompletes })
     });
-    const res = await r.json();
+    const res = await reponse.json();
 
-    afficherMessage(res.ok ? "✅ ENREGISTRÉ ! Notes + Moyennes + Mentions sauvegardées !" : "❌ Erreur : " + (res.erreur || "Erreur inconnue"), res.ok ? 'succes' : 'erreur');
-  } catch (e) {
-    afficherMessage("❌ Erreur Réseau : " + e.message, 'erreur');
+    afficherMessage(
+      res.ok 
+        ? "✅ Enregistré ! Notes, moyennes et mentions sauvegardées avec succès !" 
+        : "❌ " + (res.erreur || "Erreur lors de l'enregistrement"), 
+      res.ok ? 'succes' : 'erreur'
+    );
+  } catch (erreur) {
+    afficherMessage("❌ Erreur réseau. Vérifiez votre connexion.", 'erreur');
   }
 }
 
-// 🚀 AU CHARGEMENT
-chargerClasses();
+// 🚀 INITIALISATION AU CHARGEMENT
+document.addEventListener('DOMContentLoaded', chargerClasses);
 </script>
 
 </body>
