@@ -4,12 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>
-    <span class="txt-fr">Gestion Présences — Enseignant</span>
-    <span class="txt-en">Attendance Management — Teacher</span>
-    <span class="txt-ar">إدارة الحضور — المعلم</span>
+    <span class="txt-fr">Gestion Présences — Enseignant — MAMA-ZOUMANA</span>
+    <span class="txt-en">Attendance Management — Teacher — MAMA-ZOUMANA</span>
+    <span class="txt-ar">إدارة الحضور — المعلم — ماما زومانا</span>
   </title>
+
+  <!-- URLs vérifiées et harmonisées -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
   <style>
     :root {
       --sombre: #0f172a;
@@ -20,19 +23,28 @@
       --bleu: #3b82f6;
       --texte: #f8fafc;
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.25s ease; }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: all 0.25s ease;
+    }
+
     body {
       background: var(--sombre);
       color: var(--texte);
       min-height: 100vh;
       font-family: 'Segoe UI', system-ui, sans-serif;
     }
+
     .entete-page {
       background: var(--sombre-clair);
       border-bottom: 3px solid var(--bord-orange);
       padding: 1.2rem 0;
       margin-bottom: 2rem;
     }
+
     .carte {
       background: var(--sombre-clair);
       border-radius: 14px;
@@ -41,18 +53,22 @@
       margin-bottom: 1.5rem;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
+
     .form-control, .form-select {
       background: #0f172a;
       border: 1px solid #334155;
       color: white;
       border-radius: 10px;
     }
+
     .form-control:focus, .form-select:focus {
       background: #0f172a;
       border-color: var(--bord-orange);
       color: white;
       box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.25);
+      outline: none;
     }
+
     .btn-valide {
       background: var(--vert);
       color: white;
@@ -60,35 +76,43 @@
       border: none;
       font-weight: 600;
     }
+
     .btn-valide:hover {
       background: #059669;
       box-shadow: 0 0 15px rgba(16,185,129,0.4);
       color: white;
+      transform: translateY(-1px);
     }
+
     .btn-present { background: var(--vert); color: white; border-radius: 8px; border: none; }
     .btn-absent { background: var(--rouge); color: white; border-radius: 8px; border: none; }
     .btn-retard { background: var(--bleu); color: white; border-radius: 8px; border: none; }
+
     .ligne-eleve {
       border-bottom: 1px solid #334155;
       padding: 1rem 0.8rem;
       border-radius: 8px;
       margin-bottom: 0.3rem;
     }
+
     .ligne-eleve:hover { background: rgba(245,158,11,0.08); }
+
     .photo-eleve {
       width: 55px; height: 55px; border-radius: 50%;
       object-fit: cover; border: 2px solid var(--bord-orange);
       background: #334155;
     }
+
     .infos-eleve { display: flex; align-items: center; gap: 12px; }
     .infos-supp { font-size: 0.8rem; opacity: 0.75; }
+
     .btn-langue { border-radius: 8px; }
     .btn-langue.active {
       background: var(--bord-orange); color: #000;
       border-color: var(--bord-orange); font-weight: 700;
     }
 
-    /* ✅ GESTION DES LANGUES — CONFORME AU STANDARD */
+    /* ✅ GESTION DES LANGUES — CONFORME AU STANDARD DU PROJET */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
@@ -109,16 +133,20 @@ const role = localStorage.getItem('role');
 const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 
 if (!token || role !== 'prof') {
-  alert("⛔ Accès réservé aux Enseignants — Reconnecte-toi !");
-  localStorage.clear();
+  alert("⛔ Accès réservé aux Enseignants. Veuillez vous reconnecter.");
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
   location.href = 'connexion.html';
 }
+
 const aujourdhui = new Date().toISOString().split('T')[0];
 </script>
 
 <!-- 📌 EN-TÊTE -->
 <div class="entete-page">
-  <div class="container d-flex justify-content-between align-items-center">
+  <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
     <div>
       <h3 class="mb-1 fw-bold">
         <i class="bi bi-calendar-check me-2" style="color:var(--bord-orange)"></i>
@@ -188,7 +216,7 @@ const aujourdhui = new Date().toISOString().split('T')[0];
 
   <!-- 📋 LISTE DES ÉLÈVES -->
   <div id="zoneListe" class="d-none">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
       <h5 class="mb-0 fw-bold">
         <i class="bi bi-people me-2"></i>
         <span class="txt-fr">📋 Liste des Élèves</span>
@@ -238,14 +266,15 @@ const aujourdhui = new Date().toISOString().split('T')[0];
 </div>
 
 <script>
-// 🗣️ GESTION DE LA LANGUE
+// 🗣️ GESTION DE LA LANGUE — Conforme au standard du projet
 function changerLangue(langue) {
   document.body.classList.remove('lang-fr','lang-en','lang-ar');
   document.body.classList.add('lang-' + langue);
   localStorage.setItem('langue', langue);
   document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-' + langue).classList.add('active');
+  document.getElementById('btn-' + langue)?.classList.add('active');
 }
+
 const langueSauvegardee = localStorage.getItem('langue') || 'fr';
 changerLangue(langueSauvegardee);
 
@@ -264,28 +293,28 @@ let eleves = [];
 // 📥 CHARGER MES CLASSES DU PROF
 async function chargerClasses() {
   try {
-    console.log("🔄 Chargement classes...");
-    const r = await fetch(`${API_URL}/presences/mes-classes`, {
+    console.log("🔄 Chargement des classes...");
+    const reponse = await fetch(`${API_URL}/presences/mes-classes`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const res = await r.json();
-    console.log("📦 CLASSES :", res);
+    const res = await reponse.json();
+    console.log("📦 Classes récupérées :", res);
 
-    const sel = document.getElementById('id_classe');
+    const selecteur = document.getElementById('id_classe');
     let listeClasses = [];
     if (res.classes && Array.isArray(res.classes)) listeClasses = res.classes;
     else if (res.lignes && Array.isArray(res.lignes)) listeClasses = res.lignes;
 
     if (listeClasses.length > 0) {
-      sel.innerHTML = '<option value="">-- Sélectionner une Classe --</option>' +
+      selecteur.innerHTML = '<option value="">-- Sélectionner une Classe --</option>' +
         listeClasses.map(c => `<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('');
     } else {
-      sel.innerHTML = '<option value="">-- Aucune Classe --</option>';
-      afficherMessage("⚠️ Aucune classe affectée. Contacter l'administrateur.", 'info');
+      selecteur.innerHTML = '<option value="">-- Aucune Classe --</option>';
+      afficherMessage("⚠️ Aucune classe affectée. Veuillez contacter l'administrateur.", 'info');
     }
-  } catch (e) {
-    console.error("❌ Erreur classes :", e);
-    afficherMessage("❌ Erreur chargement classes", 'erreur');
+  } catch (erreur) {
+    console.error("❌ Erreur chargement classes :", erreur);
+    afficherMessage("❌ Erreur lors du chargement des classes.", 'erreur');
   }
 }
 
@@ -293,7 +322,7 @@ async function chargerClasses() {
 async function chargerEleves() {
   const id_classe = document.getElementById('id_classe').value;
   const zone = document.getElementById('zoneListe');
-  
+
   if (!id_classe) {
     zone.classList.add('d-none');
     return;
@@ -308,32 +337,32 @@ async function chargerEleves() {
   </div>`;
 
   try {
-    const r = await fetch(`${API_URL}/presences/eleves-classe/${id_classe}`, {
+    const reponse = await fetch(`${API_URL}/presences/eleves-classe/${id_classe}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const res = await r.json();
-    console.log("📦 ÉLÈVES :", res);
+    const res = await reponse.json();
+    console.log("📦 Élèves récupérés :", res);
 
     eleves = res.eleves || res.lignes || [];
     genererLignes();
     chargerPresences();
-  } catch (e) {
-    console.error("❌ Erreur élèves :", e);
+  } catch (erreur) {
+    console.error("❌ Erreur chargement élèves :", erreur);
     document.getElementById('listeEleves').innerHTML = `<div class="text-center py-4 text-danger">
-      ❌ Erreur chargement élèves
+      ❌ Erreur lors du chargement des élèves.
     </div>`;
   }
 }
 
 // 📊 GÉNÉRER LIGNES ÉLÈVES
 function genererLignes() {
+  const urlDefautPhoto = 'https://via.placeholder.com/55/0f172a/f59e0b?text=👤';
   document.getElementById('listeEleves').innerHTML = eleves.map(e => {
     const id = e.id_utilisateur || e.id_eleve;
-    const photo = e.photo_identite ? `/uploads/${e.photo_identite}` 
-      : 'https://via.placeholder.com/55/0f172a/f59e0b?text=👤';
-    const nomComplet = `${e.nom} ${e.prenoms || e.prenom}`;
+    const photo = e.photo_identite ? `/uploads/${e.photo_identite}` : urlDefautPhoto;
+    const nomComplet = `${e.nom} ${e.prenoms || e.prenom || ''}`;
     const matricule = e.matricule || '---';
-    const classe = e.libelle_classe || '---';
+    const libelleClasse = e.libelle_classe || '---';
 
     return `
     <div class="ligne-eleve row" data-id="${id}">
@@ -341,9 +370,7 @@ function genererLignes() {
         <img src="${photo}" alt="${nomComplet}" class="photo-eleve" loading="lazy">
         <div>
           <div class="fw-bold">${nomComplet}</div>
-          <div class="infos-supp">
-            📇 ${matricule} ｜ 🏫 ${classe}
-          </div>
+          <div class="infos-supp">📇 ${matricule} ｜ 🏫 ${libelleClasse}</div>
         </div>
       </div>
       <div class="col-md-3 text-center">
@@ -354,8 +381,7 @@ function genererLignes() {
         </select>
       </div>
       <div class="col-md-4">
-        <input type="text" class="form-control justification-input" data-id="${id}" 
-               placeholder="Justification...">
+        <input type="text" class="form-control justification-input" data-id="${id}" placeholder="Justification...">
       </div>
     </div>`;
   }).join('');
@@ -368,11 +394,11 @@ async function chargerPresences() {
   if (!id_classe || !date_jour) return;
 
   try {
-    const r = await fetch(`${API_URL}/presences/liste?id_classe=${id_classe}&date_jour=${date_jour}`, {
+    const reponse = await fetch(`${API_URL}/presences/liste?id_classe=${id_classe}&date_jour=${date_jour}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const res = await r.json();
-    console.log("📦 PRÉSENCES :", res);
+    const res = await reponse.json();
+    console.log("📦 Présences récupérées :", res);
 
     let listePresences = [];
     if (res.lignes && Array.isArray(res.lignes)) listePresences = res.lignes;
@@ -384,14 +410,14 @@ async function chargerPresences() {
       if (select) select.value = p.statut;
       if (justif) justif.value = p.justification || '';
     });
-  } catch (e) {
-    console.log("ℹ️ Aucune présence enregistrée pour ce jour");
+  } catch {
+    console.log("ℹ️ Aucune présence enregistrée pour ce jour.");
   }
 }
 
-// ✅ MARQUER TOUS LES ÉLÈVES D'UN STATUT
+// ✅ MARQUER TOUS LES ÉLÈVES D'UN MÊME STATUT
 function marquerTout(statut) {
-  document.querySelectorAll('.statut-select').forEach(s => s.value = statut);
+  document.querySelectorAll('.statut-select').forEach(select => select.value = statut);
 }
 
 // 💾 ENREGISTRER TOUTES LES PRÉSENCES
@@ -400,7 +426,7 @@ async function enregistrerTout() {
   const date_jour = document.getElementById('date_jour').value;
 
   if (!id_classe || !date_jour) {
-    afficherMessage("⚠️ Sélectionne une Classe et une Date d'abord !", 'erreur');
+    afficherMessage("⚠️ Veuillez sélectionner une Classe et une Date d'abord !", 'erreur');
     return;
   }
 
@@ -414,7 +440,7 @@ async function enregistrerTout() {
   });
 
   try {
-    const r = await fetch(`${API_URL}/presences/marquer`, {
+    const reponse = await fetch(`${API_URL}/presences/marquer`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -422,23 +448,25 @@ async function enregistrerTout() {
       },
       body: JSON.stringify({ id_classe, date_jour, presences })
     });
-    const res = await r.json();
-    console.log("📦 RÉPONSE ENREGISTREMENT :", res);
+    const res = await reponse.json();
+    console.log("📦 Réponse enregistrement :", res);
 
     if (res.ok) {
       afficherMessage("✅ Présences enregistrées avec succès !", 'succes');
     } else {
-      afficherMessage("❌ " + (res.erreur || "Erreur lors de l'enregistrement"), 'erreur');
+      afficherMessage("❌ " + (res.erreur || "Erreur lors de l'enregistrement."), 'erreur');
     }
-  } catch (e) {
-    console.error("❌ Erreur Réseau :", e);
-    afficherMessage("❌ Erreur Réseau : " + e.message, 'erreur');
+  } catch (erreur) {
+    console.error("❌ Erreur réseau :", erreur);
+    afficherMessage("❌ Erreur réseau. Vérifiez votre connexion.", 'erreur');
   }
 }
 
-// 🚀 AU CHARGEMENT
-document.getElementById('date_jour').value = aujourdhui;
-chargerClasses();
+// 🚀 INITIALISATION AU CHARGEMENT
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('date_jour').value = aujourdhui;
+  chargerClasses();
+});
 </script>
 
 </body>
