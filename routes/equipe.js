@@ -1,16 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
+const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté systématiquement
 const verifadmin = require('../middleware/verifadmin');
+
+// ✅ Protection groupée uniforme pour les routes d'administration
+const protegerAdmin = [veriftoken, verifadmin];
 
 
 // ==================================================
-// 📋 LISTER L'ÉQUIPE — Publiques ou complète (Admin)
+// 📋 LISTER L'ÉQUIPE — Publique
 // ==================================================
 router.get('/liste', async (req, res) => {
   try {
     const { tout } = req.query;
-
     let conditions = [];
     let valeurs = [];
 
@@ -26,7 +29,9 @@ router.get('/liste', async (req, res) => {
       ORDER BY ordre ASC, nom ASC
     `, valeurs);
 
+    console.log(`✅ Liste équipe renvoyée — ${r.rows.length} membre(s)`);
     res.json({ ok: true, membres: r.rows });
+
   } catch (e) {
     console.log("❌ ERREUR LISTE ÉQUIPE :", e.message);
     res.json({ ok: false, erreur: e.message });
@@ -35,9 +40,10 @@ router.get('/liste', async (req, res) => {
 
 
 // ==================================================
-// ➕ AJOUTER UN MEMBRE — Admin seul
+// ➕ AJOUTER UN MEMBRE
+// 🔒 Réservé : Administrateur uniquement
 // ==================================================
-router.post('/ajouter', verifadmin, async (req, res) => {
+router.post('/ajouter', protegerAdmin, async (req, res) => {
   try {
     const {
       nom, prenoms,
@@ -71,7 +77,9 @@ router.post('/ajouter', verifadmin, async (req, res) => {
       photo_url || null, email || null, ordre || 1, est_actif !== false
     ]);
 
+    console.log(`✅ Membre ajouté — ${nom} ${prenoms}`);
     res.json({ ok: true, membre: r.rows[0] });
+
   } catch (e) {
     console.log("❌ ERREUR AJOUT MEMBRE :", e.message);
     res.json({ ok: false, erreur: e.message });
@@ -80,9 +88,10 @@ router.post('/ajouter', verifadmin, async (req, res) => {
 
 
 // ==================================================
-// ✏️ MODIFIER UN MEMBRE — Admin seul
+// ✏️ MODIFIER UN MEMBRE
+// 🔒 Réservé : Administrateur uniquement
 // ==================================================
-router.put('/:id', verifadmin, async (req, res) => {
+router.put('/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -120,11 +129,13 @@ router.put('/:id', verifadmin, async (req, res) => {
       photo_url || null, email || null, ordre || 1, est_actif
     ]);
 
-    res.json(
-      r.rows.length
-        ? { ok: true, membre: r.rows[0] }
-        : { ok: false, erreur: "Membre introuvable" }
-    );
+    if (r.rows.length) {
+      console.log(`✅ Membre modifié — ID: ${id}`);
+      res.json({ ok: true, membre: r.rows[0] });
+    } else {
+      res.json({ ok: false, erreur: "Membre introuvable" });
+    }
+
   } catch (e) {
     console.log("❌ ERREUR MODIFICATION MEMBRE :", e.message);
     res.json({ ok: false, erreur: e.message });
@@ -133,9 +144,10 @@ router.put('/:id', verifadmin, async (req, res) => {
 
 
 // ==================================================
-// ❌ SUPPRIMER UN MEMBRE — Admin seul
+// ❌ SUPPRIMER UN MEMBRE
+// 🔒 Réservé : Administrateur uniquement
 // ==================================================
-router.delete('/:id', verifadmin, async (req, res) => {
+router.delete('/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -147,11 +159,13 @@ router.delete('/:id', verifadmin, async (req, res) => {
       [id]
     );
 
-    res.json(
-      r.rows.length
-        ? { ok: true }
-        : { ok: false, erreur: "Membre introuvable" }
-    );
+    if (r.rows.length) {
+      console.log(`🗑️ Membre supprimé — ID: ${id}`);
+      res.json({ ok: true });
+    } else {
+      res.json({ ok: false, erreur: "Membre introuvable" });
+    }
+
   } catch (e) {
     console.log("❌ ERREUR SUPPRESSION MEMBRE :", e.message);
     res.json({ ok: false, erreur: e.message });
