@@ -4,12 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>
-    <span class="txt-fr">Mes Classes — Enseignant</span>
-    <span class="txt-en">My Classes — Teacher</span>
-    <span class="txt-ar">فصولي — المعلم</span>
+    <span class="txt-fr">Mes Classes — Enseignant — MAMA-ZOUMANA</span>
+    <span class="txt-en">My Classes — Teacher — MAMA-ZOUMANA</span>
+    <span class="txt-ar">فصولي — المعلم — ماما زومانا</span>
   </title>
+
+  <!-- URLs vérifiées et harmonisées -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
   <style>
     :root {
       --primaire: #0c4a6e;
@@ -18,61 +21,182 @@
       --sombre-clair: #1e293b;
       --bord-orange: #f59e0b;
     }
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{background:#f1f5f9;font-family:'Segoe UI','Roboto',sans-serif;min-height:100vh}
 
-    .menu-gauche{background:linear-gradient(180deg,var(--sombre),var(--primaire));min-height:100vh;width:260px;position:fixed;padding:0;overflow-y:auto}
-    .entete-menu{padding:25px 20px;border-bottom:1px solid rgba(245,158,11,0.15)}
-    .logo-menu{color:var(--accent);font-weight:800;font-size:1.3rem;text-decoration:none;display:flex;align-items:center;gap:10px}
-    .logo-menu i{font-size:1.6rem}
-    .nav-menu{padding:20px 12px}
-    .lien-nav{display:flex;align-items:center;gap:12px;padding:12px 15px;margin-bottom:6px;color:#cbd5e1;text-decoration:none;border-radius:10px;transition:all 0.25s ease}
-    .lien-nav:hover,.lien-nav.actif{background:rgba(245,158,11,0.08);color:var(--accent)}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: all 0.25s ease;
+    }
 
-    .contenu-principal{margin-left:260px;padding:25px 30px;min-height:100vh}
-    .barre-haut{background:white;padding:15px 25px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:25px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px}
-    .btn-langue{background:rgba(12,74,110,0.08);border:1px solid var(--primaire);border-radius:20px;padding:5px 12px;font-size:0.85rem;cursor:pointer;margin:0 2px;color:var(--primaire);font-weight:600}
-    .btn-langue.active{background:var(--accent);color:#000;border-color:var(--accent)}
-    .btn-deco{background:transparent;border:1px solid var(--accent);color:var(--accent);padding:6px 12px;border-radius:8px;transition:all 0.2s}
-    .btn-deco:hover{background:var(--accent);color:#000}
+    body {
+      background: #f1f5f9;
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
+      min-height: 100vh;
+    }
 
-    .carte-classe{background:white;border-radius:14px;padding:20px;box-shadow:0 4px 12px rgba(0,0,0,0.05);border-left:4px solid var(--accent);transition:all 0.25s ease;height:100%}
-    .carte-classe:hover{transform:translateY(-4px);box-shadow:0 6px 16px rgba(0,0,0,0.08)}
-    .nom-classe{font-size:1.25rem;font-weight:700;color:var(--primaire)}
-    .badge-info{background:rgba(12,74,110,0.08);color:var(--primaire);font-weight:600}
-    .btn-action{background:var(--primaire);color:white;border-radius:8px;padding:6px 12px;text-decoration:none;font-weight:500;transition:all 0.2s}
-    .btn-action:hover{background:var(--accent);color:#000}
+    /* ✅ MENU LATÉRAL */
+    .menu-gauche {
+      background: linear-gradient(180deg, var(--sombre), var(--primaire));
+      min-height: 100vh;
+      width: 260px;
+      position: fixed;
+      padding: 0;
+      overflow-y: auto;
+    }
 
-    /* ✅ MODÈLE DE LANGUE UNIFORME */
+    .entete-menu {
+      padding: 25px 20px;
+      border-bottom: 1px solid rgba(245,158,11,0.15);
+    }
+
+    .logo-menu {
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 1.3rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-menu i { font-size: 1.6rem; }
+
+    .nav-menu { padding: 20px 12px; }
+
+    .lien-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 15px;
+      margin-bottom: 6px;
+      color: #cbd5e1;
+      text-decoration: none;
+      border-radius: 10px;
+    }
+
+    .lien-nav:hover, .lien-nav.actif {
+      background: rgba(245,158,11,0.08);
+      color: var(--accent);
+    }
+
+    /* ✅ CONTENU PRINCIPAL */
+    .contenu-principal {
+      margin-left: 260px;
+      padding: 25px 30px;
+      min-height: 100vh;
+    }
+
+    .barre-haut {
+      background: white;
+      padding: 15px 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .btn-langue {
+      background: rgba(12,74,110,0.08);
+      border: 1px solid var(--primaire);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin: 0 2px;
+      color: var(--primaire);
+      font-weight: 600;
+    }
+
+    .btn-langue.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    .btn-deco {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 6px 12px;
+      border-radius: 8px;
+    }
+
+    .btn-deco:hover {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .carte-classe {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border-left: 4px solid var(--accent);
+      height: 100%;
+    }
+
+    .carte-classe:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    }
+
+    .nom-classe {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primaire);
+    }
+
+    .btn-action {
+      background: var(--primaire);
+      color: white;
+      border-radius: 8px;
+      padding: 6px 12px;
+      text-decoration: none;
+      font-weight: 500;
+      text-align: center;
+      border: none;
+    }
+
+    .btn-action:hover {
+      background: var(--accent);
+      color: #000;
+    }
+
+    /* ✅ GESTION DES LANGUES — CONFORME AU STANDARD DU PROJET */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
     body.lang-en .txt-en { display: inline; }
     body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-en { direction: ltr; }
     body.lang-ar .txt-ar { display: inline; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
-    body.lang-ar .titre-section { text-align: right; }
     body.lang-ar { direction: rtl; }
   </style>
 </head>
 <body>
 
 <div class="d-flex">
+  <!-- ✅ MENU LATÉRAL -->
   <aside class="menu-gauche">
     <div class="entete-menu">
-      <!-- ✅ LIEN CORRIGÉ : dashboard.html -->
-      <a href="dashboard.html" class="logo-menu">
+      <a href="dashboard-prof.html" class="logo-menu">
         <i class="bi bi-building"></i> MAMA-ZOUMANA
       </a>
     </div>
     <nav class="nav-menu">
-      <a href="dashboard.html" class="lien-nav">
+      <a href="dashboard-prof.html" class="lien-nav">
         <i class="bi bi-speedometer2"></i>
         <span class="txt-fr">Tableau de bord</span>
         <span class="txt-en">Dashboard</span>
         <span class="txt-ar">لوحة التحكم</span>
       </a>
-      <a href="#" class="lien-nav actif">
+      <a href="mes-classes.html" class="lien-nav actif">
         <i class="bi bi-grid"></i>
         <span class="txt-fr">Mes Classes</span>
         <span class="txt-en">My Classes</span>
@@ -105,6 +229,7 @@
     </nav>
   </aside>
 
+  <!-- ✅ CONTENU PRINCIPAL -->
   <main class="contenu-principal">
     <div class="barre-haut">
       <div class="titre-section">
@@ -127,20 +252,23 @@
         <span id="nom-prof"></span>
         <button class="btn btn-deco ms-2" onclick="deconnexion()">
           <i class="bi bi-box-arrow-right"></i>
-          <span class="txt-fr">Déconnexion</span>
-          <span class="txt-en">Logout</span>
-          <span class="txt-ar">تسجيل الخروج</span>
+          <span class="txt-fr"> Déconnexion</span>
+          <span class="txt-en"> Logout</span>
+          <span class="txt-ar"> تسجيل الخروج</span>
         </button>
       </div>
     </div>
 
-    <!-- ✅ LIEN RETOUR CORRIGÉ : dashboard.html -->
-    <a href="dashboard.html" class="btn btn-outline-secondary mb-4">
+    <!-- ✅ LIEN RETOUR -->
+    <a href="dashboard-prof.html" class="btn btn-outline-secondary mb-4">
       <i class="bi bi-arrow-left"></i>
-      <span class="txt-fr">Retour au Tableau de Bord</span>
-      <span class="txt-en">Back to Dashboard</span>
-      <span class="txt-ar">الرجوع إلى لوحة التحكم</span>
+      <span class="txt-fr"> Retour au Tableau de Bord</span>
+      <span class="txt-en"> Back to Dashboard</span>
+      <span class="txt-ar"> الرجوع إلى لوحة التحكم</span>
     </a>
+
+    <!-- ⚠️ ZONE DE MESSAGES -->
+    <div id="zone-message"></div>
 
     <!-- ✅ ZONE D'AFFICHAGE DES CLASSES -->
     <div id="contenu-classes">
@@ -158,32 +286,36 @@
 
 <script>
 // ==================================================
-// ✅ SÉCURITÉ
+// ✅ CONFIGURATION & SÉCURITÉ
 // ==================================================
 const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
-const id_utilisateur = localStorage.getItem('id_utilisateur'); // ✅ Récupéré !
+const id_utilisateur = localStorage.getItem('id_utilisateur');
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 
 console.log("🔑 Token :", token ? "PRÉSENT ✅" : "MANQUANT ❌");
 console.log("👤 Rôle :", role);
-console.log("🆔 ID Prof :", id_utilisateur);
+console.log("🆔 ID Enseignant :", id_utilisateur);
 
-if(!token || role !== 'prof'){
-  alert("⛔ Accès réservé aux Enseignants — Reconnecte-toi");
-  localStorage.clear();
-  location.href = '/connexion.html';
+if (!token || role !== 'prof') {
+  alert("⛔ Accès réservé aux Enseignants. Veuillez vous reconnecter.");
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  location.href = 'connexion.html';
 }
 
-// ✅ AFFICHER NOM DE L'ENSEIGNANT
+// ✅ Afficher nom de l'enseignant
 document.getElementById('nom-prof').textContent = 
   (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || 'Enseignant');
 
 // ==================================================
-// 🗣️ GESTION DE LA LANGUE
+// 🗣️ GESTION DE LA LANGUE — Conforme au standard
 // ==================================================
 function appliquerLangue(lang) {
   document.body.classList.remove('lang-fr','lang-en','lang-ar');
-  document.body.classList.add('lang-'+lang);
+  document.body.classList.add('lang-' + lang);
   localStorage.setItem('langue', lang);
   document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
   document.querySelector(`[data-lang="${lang}"]`)?.classList.add('active');
@@ -194,35 +326,46 @@ appliquerLangue(langueSauvegardee);
 document.querySelectorAll('.btn-langue').forEach(btn => {
   btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
 });
-// ==================================================
-// 📚 CHARGER MES CLASSES — CORRIGÉE SANS ERREUR 401 ✅
-// ==================================================
-async function chargerMesClasses(){
-  try {
-    const API_URL = 'https://mama-zoumana-api.onrender.com/api';
-    console.log("📡 Appel API :", API_URL);
-    console.log("🆔 ID Prof :", id_utilisateur);
-    console.log("🔑 Token présent :", token ? "✅ OUI" : "❌ NON");
 
-    const res = await fetch(API_URL, {
-      headers: { 
-        'Authorization': `Bearer ${token}` // ✅ SEUL le token est nécessaire !
-      }
+// ==================================================
+// 💬 AFFICHAGE DES MESSAGES
+// ==================================================
+function afficherMessage(texte, type = 'info') {
+  const zone = document.getElementById('zone-message');
+  const style = type === 'succes' ? 'border-success bg-success bg-opacity-10 text-success' :
+                type === 'erreur' ? 'border-danger bg-danger bg-opacity-10 text-danger' :
+                'border-info bg-info bg-opacity-10 text-info';
+  zone.innerHTML = `<div class="alert ${style} border-2">${texte}</div>`;
+  setTimeout(() => zone.innerHTML = '', 10000);
+}
+
+// ==================================================
+// 📚 CHARGER MES CLASSES — Route corrigée
+// ==================================================
+async function chargerMesClasses() {
+  try {
+    console.log("📡 Appel API :", API_URL + "/presences/mes-classes");
+
+    const reponse = await fetch(`${API_URL}/presences/mes-classes`, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
 
-    console.log("📡 Statut HTTP :", res.status);
-    
-    if (res.status === 401) {
-      throw new Error("⛔ Autorisation refusée — Token invalide ou manquant. Déconnecte-toi et reconnecte-toi !");
+    console.log("📡 Statut HTTP :", reponse.status);
+
+    if (reponse.status === 401) {
+      throw new Error("⛔ Autorisation refusée. Votre session a peut-être expiré. Veuillez vous reconnecter.");
     }
 
-    const data = await res.json();
+    const data = await reponse.json();
     console.log("📊 Données reçues :", data);
 
     const conteneur = document.getElementById('contenu-classes');
+    let listeClasses = [];
+    if (data.classes && Array.isArray(data.classes)) listeClasses = data.classes;
+    else if (data.lignes && Array.isArray(data.lignes)) listeClasses = data.lignes;
 
     // ✅ Si AUCUNE CLASSE AFFECTÉE
-    if(!data.ok || !data.classes || data.classes.length === 0){
+    if (listeClasses.length === 0) {
       conteneur.innerHTML = `
         <div class="text-center py-5">
           <i class="bi bi-inbox fs-1 text-muted"></i>
@@ -232,9 +375,9 @@ async function chargerMesClasses(){
             <span class="txt-ar">لم يتم تعيين أي فصل لك بعد</span>
           </h5>
           <p class="text-muted small">
-            <span class="txt-fr">L'administrateur doit vous affecter des classes. Contactez-le !</span>
-            <span class="txt-en">The administrator must assign your classes. Contact them!</span>
-            <span class="txt-ar">يجب على المدير تعيين الفصول لك. تواصل معه!</span>
+            <span class="txt-fr">L'administrateur doit vous affecter des classes. Veuillez le contacter.</span>
+            <span class="txt-en">The administrator must assign your classes. Please contact them.</span>
+            <span class="txt-ar">يجب على المدير تعيين الفصول لك. تواصل معه من فضلك.</span>
           </p>
         </div>`;
       return;
@@ -243,7 +386,7 @@ async function chargerMesClasses(){
     // ✅ AFFICHAGE EN CARTES
     conteneur.innerHTML = `
       <div class="row g-4">
-        ${data.classes.map(classe => `
+        ${listeClasses.map(classe => `
           <div class="col-md-4 col-sm-6">
             <div class="carte-classe">
               <h5 class="nom-classe mb-3">
@@ -264,13 +407,13 @@ async function chargerMesClasses(){
                 <span class="txt-ar">معيّن من قبل الإدارة</span>
               </div>
               <div class="d-flex gap-2 mt-3">
-                <a href="saisie-notes.html?id_classe=${classe.id_classe}" class="btn-action flex-grow-1 text-center">
+                <a href="saisie-notes.html?id_classe=${classe.id_classe}" class="btn-action flex-grow-1">
                   <i class="bi bi-pencil-square me-1"></i>
                   <span class="txt-fr">Notes</span>
                   <span class="txt-en">Grades</span>
                   <span class="txt-ar">الدرجات</span>
                 </a>
-                <a href="presences.html?id_classe=${classe.id_classe}" class="btn-action flex-grow-1 text-center" style="background:var(--accent);color:#000">
+                <a href="presences.html?id_classe=${classe.id_classe}" class="btn-action flex-grow-1" style="background:var(--accent);color:#000">
                   <i class="bi bi-check2-square me-1"></i>
                   <span class="txt-fr">Présences</span>
                   <span class="txt-en">Attendance</span>
@@ -280,41 +423,49 @@ async function chargerMesClasses(){
             </div>
           </div>
         `).join('')}
-      </div>
-    `;
+      </div>`;
 
-  } catch (e) {
-    console.error("❌ ERREUR :", e.message);
+      afficherMessage(`✅ ${listeClasses.length} classe(s) chargée(s)`, 'succes');
+
+  } catch (erreur) {
+    console.error("❌ ERREUR :", erreur.message);
     document.getElementById('contenu-classes').innerHTML = `
       <div class="alert alert-danger text-center">
         <i class="bi bi-exclamation-triangle me-2"></i>
-        ${e.message}
+        ${erreur.message}
         <br>
         <button class="btn btn-warning mt-3" onclick="reconnecter()">
           <i class="bi bi-box-arrow-in-right"></i>
-          <span class="txt-fr">Se reconnecter</span>
-          <span class="txt-en">Reconnect</span>
-          <span class="txt-ar">إعادة الاتصال</span>
+          <span class="txt-fr"> Se reconnecter</span>
+          <span class="txt-en"> Reconnect</span>
+          <span class="txt-ar"> إعادة الاتصال</span>
         </button>
       </div>`;
   }
 }
 
-// ✅ Fonction de reconnexion rapide
-function reconnecter(){
-  localStorage.clear();
-  location.href = '/connexion.html';
+// ✅ Reconnexion rapide
+function reconnecter() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  localStorage.removeItem('prenoms');
+  location.href = 'connexion.html';
 }
 
-
-// ✅ DÉCONNEXION
-function deconnexion(){
-  localStorage.clear();
-  location.href = '/connexion.html';
+// ✅ DÉCONNEXION SÉCURISÉE
+function deconnexion() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  localStorage.removeItem('prenoms');
+  location.href = 'connexion.html';
 }
 
 // ✅ LANCER AU CHARGEMENT
-chargerMesClasses();
+document.addEventListener('DOMContentLoaded', chargerMesClasses);
 </script>
 
 </body>
