@@ -4,280 +4,477 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>
-    <span class="txt-fr">Ajouter un Devoir</span>
-    <span class="txt-en">Add Assignment</span>
-    <span class="txt-ar">إضافة واجب</span>
+    <span class="txt-fr">Ajouter un Devoir — Enseignant — MAMA-ZOUMANA</span>
+    <span class="txt-en">Add Assignment — Teacher — MAMA-ZOUMANA</span>
+    <span class="txt-ar">إضافة واجب — المعلم — ماما زومانا</span>
   </title>
+
+  <!-- URLs vérifiées et harmonisées -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
   <style>
     :root {
+      --primaire: #0c4a6e;
+      --accent: #f59e0b;
       --sombre: #0f172a;
-      --sombre-clair: #1e293b;
-      --bord-orange: #f59e0b;
       --vert: #10b981;
-      --texte: #f8fafc;
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.25s ease; }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: all 0.25s ease;
+    }
+
     body {
-      background: var(--sombre);
-      color: var(--texte);
+      background: #f1f5f9;
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
       min-height: 100vh;
-      font-family: 'Segoe UI', system-ui, sans-serif;
     }
-    .entete-page {
-      background: var(--sombre-clair);
-      border-bottom: 3px solid var(--bord-orange);
-      padding: 1.2rem 0;
-      margin-bottom: 2rem;
+
+    /* ✅ MENU LATÉRAL */
+    .menu-gauche {
+      background: linear-gradient(180deg, var(--sombre), var(--primaire));
+      min-height: 100vh;
+      width: 260px;
+      position: fixed;
+      padding: 0;
+      overflow-y: auto;
+      z-index: 100;
     }
-    .carte {
-      background: var(--sombre-clair);
-      border-radius: 14px;
-      border-left: 4px solid var(--bord-orange);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+
+    .entete-menu {
+      padding: 25px 20px;
+      border-bottom: 1px solid rgba(245,158,11,0.15);
+      background: rgba(0,0,0,0.08);
     }
-    .form-control, .form-select, textarea.form-control {
-      background: #0f172a;
-      border: 1px solid #334155;
-      color: white;
+
+    .logo-menu {
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 1.3rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-menu i { font-size: 1.6rem; }
+
+    .nav-menu { padding: 20px 12px; }
+
+    .lien-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 15px;
+      margin-bottom: 6px;
+      color: #cbd5e1;
+      text-decoration: none;
       border-radius: 10px;
     }
-    .form-control:focus, .form-select:focus {
-      background: #0f172a;
-      border-color: var(--bord-orange);
-      color: white;
-      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.25);
+
+    .lien-nav:hover, .lien-nav.actif {
+      background: rgba(245,158,11,0.12);
+      color: var(--accent);
     }
+
+    /* ✅ CONTENU PRINCIPAL */
+    .contenu-principal {
+      margin-left: 260px;
+      padding: 25px 30px;
+      min-height: 100vh;
+    }
+
+    .barre-haut {
+      background: white;
+      padding: 18px 28px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+      margin-bottom: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .btn-langue {
+      background: rgba(12,74,110,0.06);
+      border: 1px solid transparent;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin: 0 2px;
+      color: var(--primaire);
+      font-weight: 600;
+    }
+
+    .btn-langue.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    .btn-deco {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 7px 14px;
+      border-radius: 10px;
+    }
+
+    .btn-deco:hover {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .carte {
+      background: white;
+      border-radius: 16px;
+      padding: 1.8rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+      border-left: 4px solid var(--accent);
+      max-width: 850px;
+      margin: 0 auto;
+    }
+
+    .form-control, .form-select, textarea.form-control {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+      border-radius: 10px;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
+      outline: none;
+    }
+
     .btn-valide {
       background: var(--vert);
       color: white;
       border-radius: 10px;
       border: none;
       font-weight: 600;
-    }
-    .btn-valide:hover {
-      background: #059669;
-      box-shadow: 0 0 15px rgba(16,185,129,0.4);
-      color: white;
-    }
-    .btn-langue { border-radius: 8px; }
-    .btn-langue.active {
-      background: var(--bord-orange);
-      color: #000;
-      border-color: var(--bord-orange);
-      font-weight: 700;
+      padding: 10px 20px;
     }
 
-    /* ✅ GESTION DES LANGUES — CONFORME AU STANDARD */
+    .btn-valide:hover {
+      background: #059669;
+      color: white;
+    }
+
+    /* ✅ TRILINGUE */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
     body.lang-en { direction: ltr; }
-    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
     body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
     body.lang-ar { direction: rtl; }
-    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
     body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
   </style>
 </head>
-<body class="lang-fr">
+<body>
 
-<!-- 🔐 SÉCURITÉ & CONFIGURATION -->
-<script>
-const token = localStorage.getItem('token');
-const role = localStorage.getItem('role');
-const API_URL = 'https://mama-zoumana-api.onrender.com/api';
-
-if (!token || role !== 'prof') {
-  alert("⛔ Accès réservé aux Enseignants — Reconnecte-toi !");
-  localStorage.clear();
-  location.href = '../connexion.html';
-}
-</script>
-
-<!-- 📌 EN-TÊTE -->
-<div class="entete-page">
-  <div class="container d-flex justify-content-between align-items-center">
-    <div>
-      <h3 class="mb-1 fw-bold">
-        <i class="bi bi-file-earmark-text me-2" style="color:var(--bord-orange)"></i>
-        <span class="txt-fr">➕ Ajouter un Devoir / Examen</span>
-        <span class="txt-en">➕ Add Assignment / Exam</span>
-        <span class="txt-ar">➕ إضافة واجب أو امتحان</span>
-      </h3>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('ar')" id="btn-ar">🇸🇦 AR</button>
-      <a href="devoirs.html" class="btn btn-outline-light ms-2">
-        <i class="bi bi-arrow-left-circle"></i>
-        <span class="txt-fr"> Retour</span>
-        <span class="txt-en"> Back</span>
-        <span class="txt-ar"> عودة</span>
+<div class="d-flex">
+  <!-- ✅ MENU LATÉRAL -->
+  <aside class="menu-gauche">
+    <div class="entete-menu">
+      <a href="dashboard-prof.html" class="logo-menu">
+        <i class="bi bi-building"></i> MAMA-ZOUMANA
       </a>
     </div>
-  </div>
-</div>
+    <nav class="nav-menu">
+      <a href="dashboard-prof.html" class="lien-nav">
+        <i class="bi bi-speedometer2"></i>
+        <span class="txt-fr">Tableau de bord</span>
+        <span class="txt-en">Dashboard</span>
+        <span class="txt-ar">لوحة التحكم</span>
+      </a>
+      <a href="mes-classes.html" class="lien-nav">
+        <i class="bi bi-grid"></i>
+        <span class="txt-fr">Mes Classes</span>
+        <span class="txt-en">My Classes</span>
+        <span class="txt-ar">فصولي</span>
+      </a>
+      <a href="presences.html" class="lien-nav">
+        <i class="bi bi-check2-square"></i>
+        <span class="txt-fr">Présences & Retards</span>
+        <span class="txt-en">Attendance & Lateness</span>
+        <span class="txt-ar">الحضور والتأخير</span>
+      </a>
+      <a href="saisie-notes.html" class="lien-nav">
+        <i class="bi bi-pencil-square"></i>
+        <span class="txt-fr">Saisie des Notes</span>
+        <span class="txt-en">Enter Grades</span>
+        <span class="txt-ar">إدخال الدرجات</span>
+      </a>
+      <a href="bulletins.html" class="lien-nav">
+        <i class="bi bi-file-earmark-text"></i>
+        <span class="txt-fr">Bulletins Scolaires</span>
+        <span class="txt-en">Report Cards</span>
+        <span class="txt-ar">الشهادات المدرسية</span>
+      </a>
+      <a href="devoirs.html" class="lien-nav actif">
+        <i class="bi bi-journal-text"></i>
+        <span class="txt-fr">Devoirs & Examens</span>
+        <span class="txt-en">Homework & Exams</span>
+        <span class="txt-ar">الواجبات والامتحانات</span>
+      </a>
+      <a href="emploi-temps.html" class="lien-nav">
+        <i class="bi bi-calendar-week"></i>
+        <span class="txt-fr">Emploi du Temps</span>
+        <span class="txt-en">Timetable</span>
+        <span class="txt-ar">الجدول الزمني</span>
+      </a>
+      <a href="contacter-parents.html" class="lien-nav">
+        <i class="bi bi-people"></i>
+        <span class="txt-fr">Contacter Parents</span>
+        <span class="txt-en">Contact Parents</span>
+        <span class="txt-ar">التواصل مع الأولياء</span>
+      </a>
+      <a href="messages.html" class="lien-nav">
+        <i class="bi bi-chat-dots"></i>
+        <span class="txt-fr">Messages</span>
+        <span class="txt-en">Messages</span>
+        <span class="txt-ar">الرسائل</span>
+      </a>
+    </nav>
+  </aside>
 
-<div class="container py-2">
-  <!-- ⚠️ ZONE MESSAGES -->
-  <div id="zone-message"></div>
-
-  <!-- 📋 FORMULAIRE DEVOIR -->
-  <div class="carte">
-    <div class="row g-3 mb-3">
-      <div class="col-md-4">
-        <label class="form-label fw-bold">
-          <span class="txt-fr">🏫 Classe</span>
-          <span class="txt-en">🏫 Class</span>
-          <span class="txt-ar">🏫 الفصل</span>
-        </label>
-        <select id="id_classe" class="form-select" onchange="chargerMatieresPourClasse(this.value)">
-          <option value="">
-            <span class="txt-fr">-- Chargement... --</span>
-            <span class="txt-en">-- Loading... --</span>
-            <span class="txt-ar">-- جار التحميل... --</span>
-          </option>
-        </select>
+  <!-- ✅ CONTENU PRINCIPAL -->
+  <main class="contenu-principal">
+    <div class="barre-haut">
+      <div class="titre-section">
+        <h4 class="mb-0 text-uppercase fw-bold text-primary">
+          <i class="bi bi-journal-plus me-2" style="color:var(--accent)"></i>
+          <span class="txt-fr">Ajouter un Devoir / Examen</span>
+          <span class="txt-en">Add Assignment / Exam</span>
+          <span class="txt-ar">إضافة واجب أو امتحان</span>
+        </h4>
+        <small class="text-muted">
+          <span class="txt-fr">Créez un nouveau devoir ou examen pour une classe et une matière</span>
+          <span class="txt-en">Create a new assignment or exam for a class and subject</span>
+          <span class="txt-ar">أنشئ واجباً أو امتحاناً جديداً لفصل ومادة معينين</span>
+        </small>
       </div>
-      <div class="col-md-4">
-        <label class="form-label fw-bold">
-          <span class="txt-fr">📚 Matière</span>
-          <span class="txt-en">📚 Subject</span>
-          <span class="txt-ar">📚 المادة</span>
-        </label>
-        <select id="id_matiere" class="form-select">
-          <option value="">
-            <span class="txt-fr">-- Choisir une Classe d'abord --</span>
-            <span class="txt-en">-- Choose Class First --</span>
-            <span class="txt-ar">-- اختر الفصل أولاً --</span>
-          </option>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label fw-bold">
-          <span class="txt-fr">📌 Type</span>
-          <span class="txt-en">📌 Type</span>
-          <span class="txt-ar">📌 النوع</span>
-        </label>
-        <select id="type_devoir" class="form-select">
-          <option value="devoir">
-            <span class="txt-fr">📝 Devoir</span>
-            <span class="txt-en">📝 Homework</span>
-            <span class="txt-ar">📝 واجب</span>
-          </option>
-          <option value="examen">
-            <span class="txt-fr">📋 Examen</span>
-            <span class="txt-en">📋 Exam</span>
-            <span class="txt-ar">📋 امتحان</span>
-          </option>
-        </select>
+      <div class="utilisateur d-flex align-items-center gap-2">
+        <button class="btn-langue" data-lang="fr">FR</button>
+        <button class="btn-langue" data-lang="en">EN</button>
+        <button class="btn-langue" data-lang="ar">AR</button>
+        <i class="bi bi-person-circle fs-4 ms-2"></i>
+        <span id="nom-prof"></span>
+        <button class="btn btn-deco ms-2" onclick="deconnexion()">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="txt-fr"> Déconnexion</span>
+          <span class="txt-en"> Logout</span>
+          <span class="txt-ar"> تسجيل الخروج</span>
+        </button>
       </div>
     </div>
 
-    <div class="mb-3">
-      <label class="form-label fw-bold">
-        <span class="txt-fr">📝 Titre / Sujet</span>
-        <span class="txt-en">📝 Title / Subject</span>
-        <span class="txt-ar">📝 العنوان / الموضوع</span>
-      </label>
-      <input type="text" id="titre" class="form-control" placeholder="Ex: Devoir de Mathématiques — Chapitre 3">
-    </div>
+    <!-- ✅ LIEN RETOUR -->
+    <a href="devoirs.html" class="btn btn-outline-secondary mb-4">
+      <i class="bi bi-arrow-left"></i>
+      <span class="txt-fr"> Retour à la liste des Devoirs</span>
+      <span class="txt-en"> Back to Assignments List</span>
+      <span class="txt-ar"> الرجوع إلى قائمة الواجبات</span>
+    </a>
 
-    <div class="row g-3 mb-3">
-      <div class="col-md-6">
-        <label class="form-label fw-bold">
-          <span class="txt-fr">📅 Date de publication</span>
-          <span class="txt-en">📅 Publish Date</span>
-          <span class="txt-ar">📅 تاريخ النشر</span>
-        </label>
-        <input type="date" id="date_publication" class="form-control">
+    <!-- ⚠️ ZONE MESSAGES -->
+    <div id="zone-message"></div>
+
+    <!-- 📋 FORMULAIRE -->
+    <div class="carte">
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">🏫 Classe</span>
+            <span class="txt-en">🏫 Class</span>
+            <span class="txt-ar">🏫 الفصل</span>
+          </label>
+          <select id="id_classe" class="form-select" onchange="chargerMatieresPourClasse(this.value)">
+            <option value="">
+              <span class="txt-fr">-- Chargement... --</span>
+              <span class="txt-en">-- Loading... --</span>
+              <span class="txt-ar">-- جار التحميل... --</span>
+            </option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">📚 Matière</span>
+            <span class="txt-en">📚 Subject</span>
+            <span class="txt-ar">📚 المادة</span>
+          </label>
+          <select id="id_matiere" class="form-select">
+            <option value="">
+              <span class="txt-fr">-- Choisir une Classe d'abord --</span>
+              <span class="txt-en">-- Choose Class First --</span>
+              <span class="txt-ar">-- اختر الفصل أولاً --</span>
+            </option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">📌 Type</span>
+            <span class="txt-en">📌 Type</span>
+            <span class="txt-ar">📌 النوع</span>
+          </label>
+          <select id="type_devoir" class="form-select">
+            <option value="devoir"><span class="txt-fr">📝 Devoir</span><span class="txt-en">📝 Homework</span><span class="txt-ar">📝 واجب</span></option>
+            <option value="examen"><span class="txt-fr">📋 Examen</span><span class="txt-en">📋 Exam</span><span class="txt-ar">📋 امتحان</span></option>
+          </select>
+        </div>
       </div>
-      <div class="col-md-6">
+
+      <div class="mb-3">
         <label class="form-label fw-bold">
-          <span class="txt-fr">⏰ Date limite de remise</span>
-          <span class="txt-en">⏰ Submission Deadline</span>
-          <span class="txt-ar">⏰ الموعد النهائي للتسليم</span>
+          <span class="txt-fr">📝 Titre / Sujet *</span>
+          <span class="txt-en">📝 Title / Subject *</span>
+          <span class="txt-ar">📝 العنوان / الموضوع *</span>
         </label>
-        <input type="date" id="date_echeance" class="form-control">
+        <input type="text" id="titre" class="form-control" required placeholder="Ex: Devoir de Mathématiques — Chapitre 3">
       </div>
-    </div>
 
-    <div class="mb-4">
-      <label class="form-label fw-bold">
-        <span class="txt-fr">📄 Description / Consignes</span>
-        <span class="txt-en">📄 Description / Instructions</span>
-        <span class="txt-ar">📄 الوصف / التعليمات</span>
-      </label>
-      <textarea id="description" class="form-control" rows="4" placeholder="Saisis les consignes, la matière à étudier, ou joins un document..."></textarea>
-    </div>
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">📅 Date de publication</span>
+            <span class="txt-en">📅 Publish Date</span>
+            <span class="txt-ar">📅 تاريخ النشر</span>
+          </label>
+          <input type="date" id="date_publication" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">⏰ Date limite de remise</span>
+            <span class="txt-en">⏰ Submission Deadline</span>
+            <span class="txt-ar">⏰ الموعد النهائي للتسليم</span>
+          </label>
+          <input type="date" id="date_echeance" class="form-control">
+        </div>
+      </div>
 
-    <button class="btn btn-valide w-100 py-2" onclick="enregistrerDevoir()">
-      <i class="bi bi-save2 me-2"></i>
-      <span class="txt-fr">💾 Enregistrer le Devoir</span>
-      <span class="txt-en">💾 Save Assignment</span>
-      <span class="txt-ar">💾 حفظ الواجب</span>
-    </button>
-  </div>
+      <div class="mb-4">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">📄 Description / Consignes</span>
+          <span class="txt-en">📄 Description / Instructions</span>
+          <span class="txt-ar">📄 الوصف / التعليمات</span>
+        </label>
+        <textarea id="description" class="form-control" rows="4" placeholder="Saisissez les consignes, la matière à étudier..."></textarea>
+      </div>
+
+      <div class="text-muted small mb-3">
+        <span class="txt-fr">Les champs marqués d'un astérisque (*) sont obligatoires.</span>
+        <span class="txt-en">Fields marked with an asterisk (*) are required.</span>
+        <span class="txt-ar">الحقول المشار إليها بنجمة (*) إلزامية.</span>
+      </div>
+
+      <button class="btn btn-valide w-100 py-2" onclick="enregistrerDevoir()">
+        <i class="bi bi-save2 me-2"></i>
+        <span class="txt-fr">💾 Enregistrer le Devoir</span>
+        <span class="txt-en">💾 Save Assignment</span>
+        <span class="txt-ar">💾 حفظ الواجب</span>
+      </button>
+    </div>
+  </main>
 </div>
 
 <script>
-// 🗣️ GESTION DE LA LANGUE
-function changerLangue(langue) {
-  document.body.classList.remove('lang-fr','lang-en','lang-ar');
-  document.body.classList.add('lang-' + langue);
-  localStorage.setItem('langue', langue);
-  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-' + langue).classList.add('active');
-}
-const langueSauvegardee = localStorage.getItem('langue') || 'fr';
-changerLangue(langueSauvegardee);
+// ==================================================
+// ✅ CONFIGURATION & SÉCURITÉ
+// ==================================================
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+const id_utilisateur = localStorage.getItem('id_utilisateur');
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 
+console.log("🔑 Token :", token ? "PRÉSENT ✅" : "MANQUANT ❌");
+console.log("👤 Rôle :", role);
+
+if (!token || role !== 'prof') {
+  alert("⛔ Accès réservé aux Enseignants. Veuillez vous reconnecter.");
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  location.href = 'connexion.html';
+}
+
+// ✅ Afficher nom de l'enseignant
+document.getElementById('nom-prof').textContent = 
+  (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || 'Enseignant');
+
+// ==================================================
+// 🗣️ GESTION DE LA LANGUE — Conforme au standard
+// ==================================================
+function appliquerLangue(lang) {
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + lang);
+  localStorage.setItem('langue', lang);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-lang="${lang}"]`)?.classList.add('active');
+}
+
+const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+appliquerLangue(langueSauvegardee);
+document.querySelectorAll('.btn-langue').forEach(btn => {
+  btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
+});
+
+// ==================================================
 // 💬 AFFICHAGE DES MESSAGES
+// ==================================================
 function afficherMessage(texte, type = 'info') {
   const zone = document.getElementById('zone-message');
   const style = type === 'succes' ? 'border-success bg-success bg-opacity-10 text-success' :
                 type === 'erreur' ? 'border-danger bg-danger bg-opacity-10 text-danger' :
                 'border-info bg-info bg-opacity-10 text-info';
   zone.innerHTML = `<div class="alert ${style} border-2">${texte}</div>`;
-  setTimeout(() => zone.innerHTML = '', 8000);
+  setTimeout(() => zone.innerHTML = '', 10000);
 }
 
-// 📥 CHARGER MES CLASSES DU PROF
+// ==================================================
+// 📥 CHARGER LES CLASSES
+// ==================================================
 async function chargerClasses() {
   try {
-    console.log("🔄 Chargement classes...");
-    const r = await fetch(`${API_URL}/notes/mes-classes`, {
+    console.log("🔄 Chargement des classes...");
+    const reponse = await fetch(`${API_URL}/notes/mes-classes`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const res = await r.json();
-    console.log("📦 CLASSES :", res);
+
+    if (reponse.status === 401) throw new Error("⛔ Session expirée.");
+
+    const res = await reponse.json();
+    console.log("📦 Classes récupérées :", res);
 
     const sel = document.getElementById('id_classe');
-    let listeClasses = [];
-    if (res.classes && Array.isArray(res.classes)) listeClasses = res.classes;
-    else if (res.lignes && Array.isArray(res.lignes)) listeClasses = res.lignes;
+    const listeClasses = res.classes || res.lignes || [];
 
-    if (listeClasses.length > 0) {
-      sel.innerHTML = '<option value="">-- Sélectionner une Classe --</option>' +
-        listeClasses.map(c => `<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('');
-    } else {
-      sel.innerHTML = '<option value="">-- Aucune Classe --</option>';
-      afficherMessage("⚠️ Aucune classe affectée. Contacter l'administrateur.", 'info');
-    }
-  } catch (e) {
-    console.error("❌ Erreur classes :", e);
-    afficherMessage("❌ Erreur chargement classes", 'erreur');
+    sel.innerHTML = listeClasses.length
+      ? '<option value="">-- Sélectionner une Classe --</option>' + listeClasses.map(c => `<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('')
+      : '<option value="">-- Aucune Classe trouvée --</option>';
+  } catch (erreur) {
+    console.error("❌ Erreur chargement classes :", erreur);
+    afficherMessage("❌ Erreur chargement des classes.", 'erreur');
   }
 }
 
-// 📚 CHARGER MATIÈRES D'UNE CLASSE
+// ==================================================
+// 📚 CHARGER LES MATIÈRES D'UNE CLASSE
+// ==================================================
 async function chargerMatieresPourClasse(id_classe) {
   const sel = document.getElementById('id_matiere');
+
   if (!id_classe) {
     sel.innerHTML = '<option value="">-- Choisir une Classe d\'abord --</option>';
     return;
@@ -285,30 +482,29 @@ async function chargerMatieresPourClasse(id_classe) {
 
   sel.innerHTML = '<option value="">-- Chargement... --</option>';
   try {
-    const r = await fetch(`${API_URL}/matieres/mes-matieres?classe=${id_classe}`, {
+    const reponse = await fetch(`${API_URL}/matieres/mes-matieres?classe=${id_classe}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const res = await r.json();
-    console.log("📦 MATIÈRES :", res);
 
-    let matieres = [];
-    if (res.matieres && Array.isArray(res.matieres)) matieres = res.matieres;
-    else if (res.lignes && Array.isArray(res.lignes)) matieres = res.lignes;
+    if (reponse.status === 401) throw new Error("⛔ Session expirée.");
 
-    if (matieres.length > 0) {
-      sel.innerHTML = '<option value="">-- Choisir une Matière --</option>' +
-        matieres.map(m => `<option value="${m.id_matiere}">${m.libelle_matiere}</option>`).join('');
-    } else {
-      sel.innerHTML = '<option value="">-- Aucune matière --</option>';
-      afficherMessage("⚠️ Aucune matière pour cette classe", 'info');
-    }
-  } catch (e) {
-    console.error("❌ Erreur matières :", e);
+    const res = await reponse.json();
+    console.log("📦 Matières récupérées :", res);
+
+    const matieres = res.matieres || res.lignes || [];
+    sel.innerHTML = matieres.length
+      ? '<option value="">-- Choisir une Matière --</option>' + matieres.map(m => `<option value="${m.id_matiere}">${m.libelle_matiere}</option>`).join('')
+      : '<option value="">-- Aucune matière trouvée --</option>';
+  } catch (erreur) {
+    console.error("❌ Erreur chargement matières :", erreur);
     sel.innerHTML = '<option value="">-- Erreur --</option>';
+    afficherMessage("❌ Erreur chargement des matières.", 'erreur');
   }
 }
 
+// ==================================================
 // 💾 ENREGISTRER LE DEVOIR
+// ==================================================
 async function enregistrerDevoir() {
   const id_classe = document.getElementById('id_classe').value;
   const id_matiere = document.getElementById('id_matiere').value;
@@ -318,14 +514,14 @@ async function enregistrerDevoir() {
   const date_echeance = document.getElementById('date_echeance').value;
   const description = document.getElementById('description').value.trim();
 
-  // ✅ Validation
+  // ✅ Validation complète
   if (!id_classe || !id_matiere || !titre) {
-    afficherMessage("⚠️ Remplis Classe, Matière et Titre obligatoires !", 'erreur');
+    afficherMessage("⚠️ Veuillez renseigner la Classe, la Matière et le Titre (champs obligatoires).", 'erreur');
     return;
   }
 
   try {
-    const r = await fetch(`${API_URL}/devoirs/creer`, {
+    const reponse = await fetch(`${API_URL}/devoirs/creer`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -336,28 +532,44 @@ async function enregistrerDevoir() {
         date_publication, date_echeance, description
       })
     });
-    const res = await r.json();
-    console.log("📦 RÉPONSE DEVOIR :", res);
+
+    if (reponse.status === 401) throw new Error("⛔ Session expirée.");
+
+    const res = await reponse.json();
+    console.log("📦 Réponse création devoir :", res);
 
     if (res.ok) {
-      afficherMessage("✅ Devoir enregistré avec succès !", 'succes');
-      // Réinitialise le formulaire
-      document.getElementById('titre').value = '';
-      document.getElementById('description').value = '';
-      document.getElementById('date_publication').value = new Date().toISOString().split('T')[0];
-      document.getElementById('date_echeance').value = '';
+      afficherMessage("✅ Devoir enregistré avec succès ! Redirection en cours...", 'succes');
+      // ⏳ Rediriger après 2 secondes vers la liste des devoirs
+      setTimeout(() => {
+        location.href = 'devoirs.html';
+      }, 2000);
     } else {
-      afficherMessage("❌ Erreur : " + (res.erreur || "Erreur inconnue"), 'erreur');
+      afficherMessage("❌ " + (res.erreur || "Erreur lors de l'enregistrement."), 'erreur');
     }
-  } catch (e) {
-    console.error("❌ Erreur Réseau :", e);
-    afficherMessage("❌ Erreur Réseau : " + e.message, 'erreur');
+  } catch (erreur) {
+    console.error("❌ Erreur création devoir :", erreur);
+    afficherMessage("❌ Erreur réseau. Veuillez réessayer.", 'erreur');
   }
 }
 
-// 🚀 AU CHARGEMENT
+// ==================================================
+// ✅ DÉCONNEXION SÉCURISÉE
+// ==================================================
+function deconnexion() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  localStorage.removeItem('prenoms');
+  location.href = 'connexion.html';
+}
+
+// ✅ Initialiser la date du jour par défaut
 document.getElementById('date_publication').value = new Date().toISOString().split('T')[0];
-chargerClasses();
+
+// ✅ Lancer au chargement
+document.addEventListener('DOMContentLoaded', chargerClasses);
 </script>
 
 </body>
