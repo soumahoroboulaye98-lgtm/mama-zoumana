@@ -1,153 +1,466 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="lang-fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>
-    <span class="lang-fr">Changer le Mot de Passe</span>
-    <span class="lang-en">Change Password</span>
-    <span class="lang-ar">تغيير كلمة المرور</span>
+    <span class="txt-fr">Changer le Mot de Passe — Enseignant — MAMA-ZOUMANA</span>
+    <span class="txt-en">Change Password — Teacher — MAMA-ZOUMANA</span>
+    <span class="txt-ar">تغيير كلمة المرور — المعلم — ماما زومانا</span>
   </title>
+
+  <!-- URLs vérifiées et harmonisées -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
   <style>
     :root {
+      --primaire: #0c4a6e;
+      --accent: #f59e0b;
       --sombre: #0f172a;
-      --sombre-clair: #1e293b;
-      --bord-orange: #f59e0b;
       --vert: #10b981;
-      --texte: #f8fafc;
     }
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{background:var(--sombre);color:var(--texte);min-height:100vh;font-family:'Segoe UI',sans-serif;}
-    .entete-page{background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.2rem 0}
-    .carte{background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);padding:1.5rem;max-width:500px;margin:0 auto;}
-    .form-control{background:#0f172a;border:1px solid #334155;color:white;border-radius:8px}
-    .form-control:focus{background:#0f172a;border-color:var(--bord-orange);color:white;box-shadow:0 0 0 0.25rem rgba(245,158,11,0.25)}
-    .btn-valide{background:var(--vert);color:white;border-radius:8px;border:none;}
-    .btn-langue.active{background:var(--bord-orange);color:#000;border-color:var(--bord-orange);font-weight:bold;}
 
-    .lang-en, .lang-ar { display: none; }
-    body.lang-fr .lang-fr { display: inline; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: all 0.25s ease;
+    }
+
+    body {
+      background: #f1f5f9;
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ✅ MENU LATÉRAL */
+    .menu-gauche {
+      background: linear-gradient(180deg, var(--sombre), var(--primaire));
+      min-height: 100vh;
+      width: 260px;
+      position: fixed;
+      padding: 0;
+      overflow-y: auto;
+      z-index: 100;
+    }
+
+    .entete-menu {
+      padding: 25px 20px;
+      border-bottom: 1px solid rgba(245,158,11,0.15);
+      background: rgba(0,0,0,0.08);
+    }
+
+    .logo-menu {
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 1.3rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-menu i { font-size: 1.6rem; }
+
+    .nav-menu { padding: 20px 12px; }
+
+    .lien-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 15px;
+      margin-bottom: 6px;
+      color: #cbd5e1;
+      text-decoration: none;
+      border-radius: 10px;
+    }
+
+    .lien-nav:hover, .lien-nav.actif {
+      background: rgba(245,158,11,0.12);
+      color: var(--accent);
+    }
+
+    /* ✅ CONTENU PRINCIPAL */
+    .contenu-principal {
+      margin-left: 260px;
+      padding: 25px 30px;
+      min-height: 100vh;
+    }
+
+    .barre-haut {
+      background: white;
+      padding: 18px 28px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+      margin-bottom: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .btn-langue {
+      background: rgba(12,74,110,0.06);
+      border: 1px solid transparent;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin: 0 2px;
+      color: var(--primaire);
+      font-weight: 600;
+    }
+
+    .btn-langue.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    .btn-deco {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 7px 14px;
+      border-radius: 10px;
+    }
+
+    .btn-deco:hover {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .carte {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+      border-left: 4px solid var(--accent);
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .form-control {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+      border-radius: 10px;
+      padding: 10px 14px;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
+      outline: none;
+    }
+
+    .btn-valide {
+      background: var(--vert);
+      color: white;
+      border-radius: 10px;
+      border: none;
+      font-weight: 600;
+      padding: 10px 20px;
+    }
+
+    .btn-valide:hover {
+      background: #059669;
+      color: white;
+    }
+
+    /* ✅ GESTION DES LANGUES — CONFORME AU STANDARD DU PROJET */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
     body.lang-en { direction: ltr; }
-    body.lang-en .lang-fr, body.lang-en .lang-ar { display: none; }
-    body.lang-en .lang-en { display: inline; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
     body.lang-ar { direction: rtl; }
-    body.lang-ar .lang-fr, body.lang-ar .lang-en { display: none; }
-    body.lang-ar .lang-ar { display: inline; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
   </style>
 </head>
-<body class="lang-fr">
+<body>
+
+<div class="d-flex">
+  <!-- ✅ MENU LATÉRAL -->
+  <aside class="menu-gauche">
+    <div class="entete-menu">
+      <a href="dashboard-prof.html" class="logo-menu">
+        <i class="bi bi-building"></i> MAMA-ZOUMANA
+      </a>
+    </div>
+    <nav class="nav-menu">
+      <a href="dashboard-prof.html" class="lien-nav">
+        <i class="bi bi-speedometer2"></i>
+        <span class="txt-fr">Tableau de bord</span>
+        <span class="txt-en">Dashboard</span>
+        <span class="txt-ar">لوحة التحكم</span>
+      </a>
+      <a href="mes-classes.html" class="lien-nav">
+        <i class="bi bi-grid"></i>
+        <span class="txt-fr">Mes Classes</span>
+        <span class="txt-en">My Classes</span>
+        <span class="txt-ar">فصولي</span>
+      </a>
+      <a href="presences.html" class="lien-nav">
+        <i class="bi bi-check2-square"></i>
+        <span class="txt-fr">Présences & Retards</span>
+        <span class="txt-en">Attendance & Lateness</span>
+        <span class="txt-ar">الحضور والتأخير</span>
+      </a>
+      <a href="saisie-notes.html" class="lien-nav">
+        <i class="bi bi-pencil-square"></i>
+        <span class="txt-fr">Saisie des Notes</span>
+        <span class="txt-en">Enter Grades</span>
+        <span class="txt-ar">إدخال الدرجات</span>
+      </a>
+      <a href="bulletins.html" class="lien-nav">
+        <i class="bi bi-file-earmark-text"></i>
+        <span class="txt-fr">Bulletins Scolaires</span>
+        <span class="txt-en">Report Cards</span>
+        <span class="txt-ar">الشهادات المدرسية</span>
+      </a>
+      <a href="devoirs.html" class="lien-nav">
+        <i class="bi bi-journal-text"></i>
+        <span class="txt-fr">Devoirs & Examens</span>
+        <span class="txt-en">Homework & Exams</span>
+        <span class="txt-ar">الواجبات والامتحانات</span>
+      </a>
+      <a href="emploi-temps.html" class="lien-nav">
+        <i class="bi bi-calendar-week"></i>
+        <span class="txt-fr">Emploi du Temps</span>
+        <span class="txt-en">Timetable</span>
+        <span class="txt-ar">الجدول الزمني</span>
+      </a>
+      <a href="contacter-parents.html" class="lien-nav">
+        <i class="bi bi-people"></i>
+        <span class="txt-fr">Contacter Parents</span>
+        <span class="txt-en">Contact Parents</span>
+        <span class="txt-ar">التواصل مع الأولياء</span>
+      </a>
+      <a href="messages.html" class="lien-nav">
+        <i class="bi bi-chat-dots"></i>
+        <span class="txt-fr">Messages</span>
+        <span class="txt-en">Messages</span>
+        <span class="txt-ar">الرسائل</span>
+      </a>
+      <a href="changer-mot-de-passe.html" class="lien-nav actif">
+        <i class="bi bi-key"></i>
+        <span class="txt-fr">Changer Mot de Passe</span>
+        <span class="txt-en">Change Password</span>
+        <span class="txt-ar">تغيير كلمة المرور</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- ✅ CONTENU PRINCIPAL -->
+  <main class="contenu-principal">
+    <div class="barre-haut">
+      <div class="titre-section">
+        <h4 class="mb-0 text-uppercase fw-bold text-primary">
+          <i class="bi bi-key me-2" style="color:var(--accent)"></i>
+          <span class="txt-fr">Changer le Mot de Passe</span>
+          <span class="txt-en">Change Your Password</span>
+          <span class="txt-ar">تغيير كلمة المرور</span>
+        </h4>
+        <small class="text-muted">
+          <span class="txt-fr">Sécurisez votre compte en changeant régulièrement votre mot de passe</span>
+          <span class="txt-en">Keep your account secure by updating your password regularly</span>
+          <span class="txt-ar">حافظ على أمان حسابك بتغيير كلمة المرور بانتظام</span>
+        </small>
+      </div>
+      <div class="utilisateur d-flex align-items-center gap-2">
+        <button class="btn-langue" data-lang="fr">FR</button>
+        <button class="btn-langue" data-lang="en">EN</button>
+        <button class="btn-langue" data-lang="ar">AR</button>
+        <i class="bi bi-person-circle fs-4 ms-2"></i>
+        <span id="nom-prof"></span>
+        <button class="btn btn-deco ms-2" onclick="deconnexion()">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="txt-fr"> Déconnexion</span>
+          <span class="txt-en"> Logout</span>
+          <span class="txt-ar"> تسجيل الخروج</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ✅ LIEN RETOUR -->
+    <a href="dashboard-prof.html" class="btn btn-outline-secondary mb-4">
+      <i class="bi bi-arrow-left"></i>
+      <span class="txt-fr"> Retour au Tableau de Bord</span>
+      <span class="txt-en"> Back to Dashboard</span>
+      <span class="txt-ar"> الرجوع إلى لوحة التحكم</span>
+    </a>
+
+    <!-- ⚠️ ZONE DE MESSAGES -->
+    <div id="zone-message"></div>
+
+    <!-- ✅ FORMULAIRE -->
+    <div class="carte">
+      <div class="mb-3">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">🔒 Mot de passe actuel</span>
+          <span class="txt-en">🔒 Current Password</span>
+          <span class="txt-ar">🔒 كلمة المرور الحالية</span>
+        </label>
+        <input type="password" id="mdp_actuel" class="form-control" placeholder="••••••••" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">🔑 Nouveau mot de passe</span>
+          <span class="txt-en">🔑 New Password</span>
+          <span class="txt-ar">🔑 كلمة المرور الجديدة</span>
+        </label>
+        <input type="password" id="nouveau_mdp" class="form-control" placeholder="Au moins 6 caractères" required>
+      </div>
+      <div class="mb-4">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">✅ Confirmer le nouveau mot de passe</span>
+          <span class="txt-en">✅ Confirm New Password</span>
+          <span class="txt-ar">✅ تأكيد كلمة المرور الجديدة</span>
+        </label>
+        <input type="password" id="confirmer_mdp" class="form-control" placeholder="Retapez le nouveau mot de passe" required>
+      </div>
+      <button class="btn btn-valide w-100 fw-bold" onclick="changerMotDePasse()">
+        <i class="bi bi-check-circle me-2"></i>
+        <span class="txt-fr">Mettre à jour le mot de passe</span>
+        <span class="txt-en">Update Password</span>
+        <span class="txt-ar">تحديث كلمة المرور</span>
+      </button>
+    </div>
+  </main>
+</div>
 
 <script>
+// ==================================================
+// ✅ CONFIGURATION & SÉCURITÉ
+// ==================================================
 const token = localStorage.getItem('token');
-if(!token){
-  alert("⛔ Connecte-toi d'abord !");
+const role = localStorage.getItem('role');
+const id_utilisateur = localStorage.getItem('id_utilisateur');
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+
+console.log("🔑 Token :", token ? "PRÉSENT ✅" : "MANQUANT ❌");
+console.log("👤 Rôle :", role);
+
+if (!token || role !== 'prof') {
+  alert("⛔ Accès réservé aux Enseignants. Veuillez vous reconnecter.");
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  location.href = 'connexion.html';
+}
+
+// ✅ Afficher nom de l'enseignant
+document.getElementById('nom-prof').textContent = 
+  (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || 'Enseignant');
+
+// ==================================================
+// 🗣️ GESTION DE LA LANGUE — Conforme au standard
+// ==================================================
+function appliquerLangue(lang) {
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + lang);
+  localStorage.setItem('langue', lang);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-lang="${lang}"]`)?.classList.add('active');
+}
+
+const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+appliquerLangue(langueSauvegardee);
+document.querySelectorAll('.btn-langue').forEach(btn => {
+  btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
+});
+
+// ==================================================
+// 💬 AFFICHAGE DES MESSAGES
+// ==================================================
+function afficherMessage(texte, type = 'info') {
+  const zone = document.getElementById('zone-message');
+  const style = type === 'succes' ? 'border-success bg-success bg-opacity-10 text-success' :
+                type === 'erreur' ? 'border-danger bg-danger bg-opacity-10 text-danger' :
+                'border-info bg-info bg-opacity-10 text-info';
+  zone.innerHTML = `<div class="alert ${style} border-2">${texte}</div>`;
+  setTimeout(() => zone.innerHTML = '', 10000);
+}
+
+// ==================================================
+// 🔐 CHANGER MOT DE PASSE — Route corrigée
+// ==================================================
+async function changerMotDePasse() {
+  const mdp_actuel = document.getElementById('mdp_actuel').value.trim();
+  const nouveau_mdp = document.getElementById('nouveau_mdp').value.trim();
+  const confirmer_mdp = document.getElementById('confirmer_mdp').value.trim();
+
+  // ✅ Validation complète
+  if (!mdp_actuel || !nouveau_mdp || !confirmer_mdp) {
+    afficherMessage("⚠️ Veuillez remplir tous les champs.", 'erreur');
+    return;
+  }
+  if (nouveau_mdp !== confirmer_mdp) {
+    afficherMessage("⚠️ Les deux nouveaux mots de passe ne correspondent pas.", 'erreur');
+    return;
+  }
+  if (nouveau_mdp.length < 6) {
+    afficherMessage("⚠️ Le mot de passe doit contenir au moins 6 caractères.", 'erreur');
+    return;
+  }
+  if (mdp_actuel === nouveau_mdp) {
+    afficherMessage("⚠️ Le nouveau mot de passe est identique à l'actuel.", 'info');
+    return;
+  }
+
+  try {
+    const reponse = await fetch(`${API_URL}/utilisateur/changer-mot-de-passe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ mdp_actuel, nouveau_mdp })
+    });
+
+    if (reponse.status === 401) {
+      throw new Error("⛔ Votre session a expiré. Veuillez vous reconnecter.");
+    }
+
+    const res = await reponse.json();
+    if (res.ok) {
+      afficherMessage("✅ Mot de passe modifié avec succès ! Vous allez être redirigé vers la connexion...", 'succes');
+      // ⏳ Attendre avant déconnexion pour que l'utilisateur voie le message
+      setTimeout(() => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('id_utilisateur');
+        localStorage.removeItem('role');
+        localStorage.removeItem('nom');
+        localStorage.removeItem('prenoms');
+        location.href = 'connexion.html';
+      }, 2500);
+    } else {
+      afficherMessage("❌ " + (res.erreur || "Erreur lors de la modification."), 'erreur');
+    }
+  } catch (erreur) {
+    console.error("❌ Erreur changement mot de passe :", erreur);
+    afficherMessage("❌ Erreur réseau. Veuillez réessayer.", 'erreur');
+  }
+}
+
+// ==================================================
+// ✅ DÉCONNEXION SÉCURISÉE
+// ==================================================
+function deconnexion() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  localStorage.removeItem('prenoms');
   location.href = 'connexion.html';
 }
 </script>
 
-<div class="entete-page">
-  <div class="container d-flex justify-content-between align-items-center">
-    <div>
-      <h3 class="mb-1">
-        <span class="lang-fr">🔐 Changer le Mot de Passe</span>
-        <span class="lang-en">🔐 Change Password</span>
-        <span class="lang-ar">🔐 تغيير كلمة المرور</span>
-      </h3>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-sm btn-outline-light btn-langue active" onclick="changerLangue('fr')" id="btn-fr">FR</button>
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('en')" id="btn-en">EN</button>
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('ar')" id="btn-ar">AR</button>
-      <a href="dashboard-prof.html" class="btn btn-outline-light ms-2">
-        <i class="bi bi-arrow-left"></i>
-        <span class="lang-fr"> Retour</span>
-        <span class="lang-en"> Back</span>
-        <span class="lang-ar"> عودة</span>
-      </a>
-    </div>
-  </div>
-</div>
-
-<div class="container py-5">
-  <div class="carte">
-    <div class="mb-3">
-      <label class="form-label fw-bold">
-        <span class="lang-fr">🔒 Mot de passe actuel</span>
-        <span class="lang-en">🔒 Current Password</span>
-        <span class="lang-ar">🔒 كلمة المرور الحالية</span>
-      </label>
-      <input type="password" id="mdp_actuel" class="form-control" placeholder="••••••••">
-    </div>
-    <div class="mb-3">
-      <label class="form-label fw-bold">
-        <span class="lang-fr">🔑 Nouveau mot de passe</span>
-        <span class="lang-en">🔑 New Password</span>
-        <span class="lang-ar">🔑 كلمة المرور الجديدة</span>
-      </label>
-      <input type="password" id="nouveau_mdp" class="form-control" placeholder="••••••••">
-    </div>
-    <div class="mb-4">
-      <label class="form-label fw-bold">
-        <span class="lang-fr">✅ Confirmer le nouveau mot de passe</span>
-        <span class="lang-en">✅ Confirm New Password</span>
-        <span class="lang-ar">✅ تأكيد كلمة المرور الجديدة</span>
-      </label>
-      <input type="password" id="confirmer_mdp" class="form-control" placeholder="••••••••">
-    </div>
-    <button class="btn btn-valide w-100 fw-bold" onclick="changerMotDePasse()">
-      <i class="bi bi-check-circle me-2"></i>
-      <span class="lang-fr">Mettre à jour</span>
-      <span class="lang-en">Update</span>
-      <span class="lang-ar">تحديث</span>
-    </button>
-  </div>
-</div>
-
-<script>
-async function changerMotDePasse(){
-  const mdp_actuel = document.getElementById('mdp_actuel').value;
-  const nouveau_mdp = document.getElementById('nouveau_mdp').value;
-  const confirmer_mdp = document.getElementById('confirmer_mdp').value;
-
-  if(!mdp_actuel || !nouveau_mdp || !confirmer_mdp){
-    alert("⚠️ Remplis tous les champs !"); return;
-  }
-  if(nouveau_mdp !== confirmer_mdp){
-    alert("⚠️ Les deux nouveaux mots de passe ne correspondent pas !"); return;
-  }
-  if(nouveau_mdp.length < 6){
-    alert("⚠️ Le mot de passe doit faire au moins 6 caractères !"); return;
-  }
-
-  try {
-    const r = await fetch('/api/utilisateur/changer-mot-de-passe', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-      body: JSON.stringify({ mdp_actuel, nouveau_mdp })
-    });
-    const res = await r.json();
-    if(res.ok){
-      alert("✅ Mot de passe modifié avec succès !\nReconnecte-toi...");
-      localStorage.clear();
-      location.href = 'connexion.html';
-    } else {
-      alert("❌ " + (res.erreur || "Erreur"));
-    }
-  } catch(e) { alert("❌ Erreur Réseau : " + e.message); }
-}
-
-function changerLangue(langue) {
-  document.body.className = 'lang-' + langue;
-  localStorage.setItem('langue', langue);
-  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-'+langue).classList.add('active');
-}
-
-let langue = localStorage.getItem('langue') || 'fr';
-document.body.className = 'lang-' + langue;
-document.getElementById('btn-'+langue).classList.add('active');
-</script>
 </body>
 </html>
