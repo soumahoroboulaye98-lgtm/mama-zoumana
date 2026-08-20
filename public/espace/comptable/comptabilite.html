@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Espace Comptable — Grand Livre, Bilan & Résultat</title>
+  <title>Espace Comptable — Grand Livre, Balance, Bilan & Résultat</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
@@ -78,7 +78,7 @@
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#balance">📊 Balance</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#bilan">⚖️ Bilan</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#resultat">📈 Résultat</button></li>
-    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#plan">📖 Plan</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#plan">📖 Plan Comptable</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#exercices">📅 Exercices</button></li>
   </ul>
 
@@ -524,445 +524,460 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+
+
+
+
 <script>
-const API_URL = 'https://mama-zoumana-api.onrender.com/api';
-const token = localStorage.getItem('token');
-let planComptable = [];
-let journauxDispo = [];
+// ==================================================
+// VERSION AUTONOME — FONCTIONNE 24H/24 SANS API
+// ==================================================
 
-function formatMontant(m){ return new Intl.NumberFormat('fr-FR').format(parseFloat(m)||0)+' F CFA'; }
+let planComptable = [
+  { numero_compte: "101", libelle: "Capital", classe: "1", type_compte: "Passif", sens: "C" },
+  { numero_compte: "120", libelle: "Resultat exercice", classe: "1", type_compte: "Passif", sens: "C" },
+  { numero_compte: "201", libelle: "Immobilisations corporelles", classe: "2", type_compte: "Actif", sens: "D" },
+  { numero_compte: "301", libelle: "Stocks marchandises", classe: "3", type_compte: "Actif", sens: "D" },
+  { numero_compte: "401", libelle: "Fournisseurs", classe: "4", type_compte: "Passif", sens: "C" },
+  { numero_compte: "411", libelle: "Clients", classe: "4", type_compte: "Actif", sens: "D" },
+  { numero_compte: "512", libelle: "Banque", classe: "5", type_compte: "Actif", sens: "D" },
+  { numero_compte: "601", libelle: "Achats marchandises", classe: "6", type_compte: "Charge", sens: "D" },
+  { numero_compte: "622", libelle: "Salaires et charges", classe: "6", type_compte: "Charge", sens: "D" },
+  { numero_compte: "701", libelle: "Ventes marchandises", classe: "7", type_compte: "Produit", sens: "C" }
+];
 
-document.addEventListener('DOMContentLoaded', async () => {
-  if(!token) { alert("🔒 Authentification requise"); return; }
-  document.querySelector('#formEcriture [name=date_ecriture]').valueAsDate = new Date();
+let journauxDispo = [
+  { id_journal: 1, code_journal: "AC", libelle: "Achat" },
+  { id_journal: 2, code_journal: "VT", libelle: "Vente" },
+  { id_journal: 3, code_journal: "BQ", libelle: "Banque" },
+  { id_journal: 4, code_journal: "OD", libelle: "Operations diverses" }
+];
+
+let ecritures = [];
+let exercices = [
+  { id_exercice: 1, annee: "2026", date_debut: "2026-01-01", date_fin: "2026-12-31", statut: "ouvert" },
+  { id_exercice: 2, annee: "2025", date_debut: "2025-01-01", date_fin: "2025-12-31", statut: "cloture", date_cloture: "2025-12-31" }
+];
+
+function formatMontant(m) { 
+  return new Intl.NumberFormat('fr-FR').format(parseFloat(m) || 0) + ' F CFA'; 
+}
+
+function sauvegarder() {
+  localStorage.setItem('ecritures', JSON.stringify(ecritures));
+}
+
+function chargerSauvegarde() {
+  const e = localStorage.getItem('ecritures');
+  if (e) ecritures = JSON.parse(e);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  chargerSauvegarde();
+  const dateInput = document.querySelector('#formEcriture [name="date_ecriture"]');
+  if (dateInput) dateInput.valueAsDate = new Date();
   document.getElementById('affAnnee').value = new Date().getFullYear();
 
-  await chargerPlanComptable();
-  await chargerJournaux();
-  await chargerEcritures();
-  await chargerExercices();
+  chargerPlanComptable();
+  chargerJournaux();
+  chargerEcritures();
+  chargerExercices();
 });
 
-async function chargerPlanComptable(){
-  try{
-    const r = await fetch(`${API_URL}/plan`, {headers:{'Authorization':`Bearer ${token}`}});
-    const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
-    planComptable = res.comptes;
+function chargerPlanComptable() {
+  document.getElementById('corpsPlan').innerHTML = planComptable.map(function(c) {
+    return '<tr><td><strong>' + c.numero_compte + '</strong></td><td>' + c.libelle + '</td><td>' + c.classe + '</td><td>' + c.type_compte + '</td><td>' + c.sens + '</td></tr>';
+  }).join('');
 
-    document.getElementById('corpsPlan').innerHTML = planComptable.map(c=>`
-      <tr>
-        <td><strong>${c.numero_compte}</strong></td>
-        <td>${c.libelle}</td>
-        <td>${c.classe||'—'}</td>
-        <td>${c.type_compte}</td>
-        <td>${c.sens}</td>
-      </tr>`).join('');
+  const opts = planComptable.map(function(c) { 
+    return '<option value="' + c.numero_compte + '">' + c.numero_compte + ' — ' + c.libelle + '</option>'; 
+  }).join('');
 
-    const opts = planComptable.map(c=>`<option value="${c.numero_compte}">${c.numero_compte} — ${c.libelle}</option>`).join('');
-    document.querySelectorAll('.sel-compte').forEach(s=>{ s.innerHTML = '<option value="">Choisir un compte</option>' + opts; });
-    document.getElementById('selCompteGL').innerHTML = '<option value="">Tous les comptes</option>' + opts;
-  }catch(e){ console.error(e); }
+  document.querySelectorAll('.sel-compte').forEach(function(s) {
+    s.innerHTML = '<option value="">Choisir un compte</option>' + opts;
+  });
+  document.getElementById('selCompteGL').innerHTML = '<option value="">Tous les comptes</option>' + opts;
 }
 
-async function chargerJournaux(){
-  try{
-    const r = await fetch(`${API_URL}/journaux`, {headers:{'Authorization':`Bearer ${token}`}});
-    const res = await r.json();
-    journauxDispo = res.journaux;
-    const opts = journauxDispo.map(j=>`<option value="${j.id_journal}">${j.code_journal} — ${j.libelle}</option>`).join('');
-    const optsF = journauxDispo.map(j=>`<option value="${j.code_journal}">${j.code_journal}</option>`).join('');
-    document.getElementById('selJournal').innerHTML = '<option value="">Choisir</option>' + opts;
-    document.getElementById('filtreJournal').innerHTML = '<option value="">Tous</option>' + optsF;
-  }catch(e){ console.error(e); }
+function chargerJournaux() {
+  const opts = journauxDispo.map(function(j) { 
+    return '<option value="' + j.id_journal + '">' + j.code_journal + ' — ' + j.libelle + '</option>'; 
+  }).join('');
+  document.getElementById('selJournal').innerHTML = '<option value="">Choisir</option>' + opts;
+  document.getElementById('filtreJournal').innerHTML = '<option value="">Tous</option>' + 
+    journauxDispo.map(function(j) { return '<option value="' + j.code_journal + '">' + j.code_journal + '</option>'; }).join('');
 }
 
-async function chargerEcritures(){
-  try{
-    let url = `${API_URL}/ecritures?`;
-    const annee = document.getElementById('filtreAnneeEc').value;
-    const mois = document.getElementById('filtreMoisEc').value;
-    const statut = document.getElementById('filtreStatut').value;
-    const code_journal = document.getElementById('filtreJournal').value;
-    if(annee) url += `annee=${annee}&`;
-    if(mois) url += `mois=${mois}&`;
-    if(statut) url += `statut=${statut}&`;
-    if(code_journal) url += `code_journal=${code_journal}&`;
+function chargerEcritures() {
+  const annee = document.getElementById('filtreAnneeEc').value;
+  const mois = document.getElementById('filtreMoisEc').value;
+  const statut = document.getElementById('filtreStatut').value;
+  const codeJournal = document.getElementById('filtreJournal').value;
 
-    const r = await fetch(url, {headers:{'Authorization':`Bearer ${token}`}});
-    const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
+  let liste = ecritures;
+  if (annee) liste = liste.filter(function(e) { return e.date_ecriture.startsWith(annee); });
+  if (mois) liste = liste.filter(function(e) { 
+    const m = new Date(e.date_ecriture).getMonth() + 1; 
+    return m == mois; 
+  });
+  if (statut) liste = liste.filter(function(e) { return e.statut === statut; });
+  if (codeJournal) liste = liste.filter(function(e) { return e.code_journal === codeJournal; });
 
-    const lignesParEc = {};
-    res.lignes.forEach(l=>{
-      if(!lignesParEc[l.id_ecriture]) lignesParEc[l.id_ecriture] = {d:0,c:0};
-      lignesParEc[l.id_ecriture].d += parseFloat(l.montant_debit||0);
-      lignesParEc[l.id_ecriture].c += parseFloat(l.montant_credit||0);
+  document.getElementById('corpsEcritures').innerHTML = liste.length ? liste.map(function(ec) {
+    const totD = ec.lignes.reduce(function(s, l) { return s + (parseFloat(l.montant_debit) || 0); }, 0);
+    const totC = ec.lignes.reduce(function(s, l) { return s + (parseFloat(l.montant_credit) || 0); }, 0);
+    const badgeClasse = ec.statut === 'valide' ? 'badge-valide' : 'badge-brouillon';
+    const statutTxt = ec.statut === 'valide' ? 'Valide' : 'Brouillon';
+    return '<tr><td><strong>' + ec.numero_ecriture + '</strong></td>' +
+      '<td>' + new Date(ec.date_ecriture).toLocaleDateString('fr-CA') + '</td>' +
+      '<td>' + ec.code_journal + '</td><td>' + ec.libelle + '</td>' +
+      '<td><span class="badge ' + badgeClasse + '">' + statutTxt + '</span></td>' +
+      '<td class="montant debit">' + formatMontant(totD) + '</td>' +
+      '<td class="montant credit">' + formatMontant(totC) + '</td>' +
+      '<td class="no-print">' + (ec.statut === 'brouillon' ? 
+        '<button class="btn btn-sm btn-succes" onclick="validerEc(' + ec.id_ecriture + ')">Valider</button>' : 
+        '<span>—</span>') + '</td></tr>';
+  }).join('') : '<tr><td colspan="8" class="text-center text-muted py-3">Aucune ecriture</td></tr>';
+}
+
+function chargerGrandLivre() {
+  const annee = document.getElementById('selAnneeGL').value;
+  const compteSel = document.getElementById('selCompteGL').value;
+
+  let liste = ecritures.filter(function(e) { return e.statut === 'valide'; });
+  if (annee) liste = liste.filter(function(e) { return e.date_ecriture.startsWith(annee); });
+
+  let parCompte = {};
+  liste.forEach(function(ec) {
+    ec.lignes.forEach(function(l) {
+      if (compteSel && l.numero_compte !== compteSel) return;
+      if (!parCompte[l.numero_compte]) parCompte[l.numero_compte] = [];
+      parCompte[l.numero_compte].push({
+        numero_compte: l.numero_compte,
+        montant_debit: l.montant_debit,
+        montant_credit: l.montant_credit,
+        date_ecriture: ec.date_ecriture,
+        numero_ecriture: ec.numero_ecriture,
+        libelle_ecriture: ec.libelle,
+        code_journal: ec.code_journal
+      });
     });
+  });
 
-    document.getElementById('corpsEcritures').innerHTML = res.ecritures.map(ec=>{
-      const totD = lignesParEc[ec.id_ecriture]?.d||0;
-      const totC = lignesParEc[ec.id_ecriture]?.c||0;
-      const badgeClasse = ec.statut==='valide'?'badge-valide':'badge-brouillon';
-      const statutTxt = ec.statut==='valide'?'✅ Validé':'📝 Brouillon';
-      return `
-      <tr>
-        <td><strong>${ec.numero_ecriture}</strong></td>
-        <td>${new Date(ec.date_ecriture).toLocaleDateString('fr-CA')}</td>
-        <td>${ec.code_journal||'—'}</td>
-        <td>${ec.libelle}</td>
-        <td><span class="badge ${badgeClasse}">${statutTxt}</span></td>
-        <td class="montant debit">${formatMontant(totD)}</td>
-        <td class="montant credit">${formatMontant(totC)}</td>
-        <td class="no-print">
-          ${ec.statut==='brouillon'?`<button class="btn btn-sm btn-succes" onclick="validerEc(${ec.id_ecriture})" title="Valider">✅</button>`:'<span class="text-muted">—</span>'}
-        </td>
-      </tr>`;
-    }).join('') || '<tr><td colspan="8" class="text-center text-muted py-3">Aucune écriture trouvée</td></tr>';
-  }catch(e){
-    document.getElementById('corpsEcritures').innerHTML = `<tr><td colspan="8" class="text-center text-danger py-3">${e.message}</td></tr>`;
+  let html = '';
+  for (let cpt in parCompte) {
+    const infos = planComptable.find(function(c) { return c.numero_compte === cpt; });
+    let solde = 0;
+    html += '<div class="compte-groupe p-3 mb-3 rounded"><h6 class="titre-section">' + cpt + ' — ' + (infos ? infos.libelle : '') + '</h6>' +
+      '<div class="table-responsive"><table class="table table-dark table-sm mb-0"><thead><tr>' +
+      '<th>Date</th><th>N°</th><th>Libelle</th><th>Journal</th><th>Debit</th><th>Credit</th><th>Solde</th>' +
+      '</tr></thead><tbody>';
+    parCompte[cpt].sort(function(a, b) { return a.date_ecriture.localeCompare(b.date_ecriture); }).forEach(function(l) {
+      const d = parseFloat(l.montant_debit) || 0;
+      const c = parseFloat(l.montant_credit) || 0;
+      solde += d - c;
+      const soldeTxt = solde >= 0 ? 'Debit ' + formatMontant(solde) : 'Credit ' + formatMontant(-solde);
+      html += '<tr><td>' + new Date(l.date_ecriture).toLocaleDateString('fr-CA') + '</td>' +
+        '<td>' + l.numero_ecriture + '</td><td>' + l.libelle_ecriture + '</td><td>' + l.code_journal + '</td>' +
+        '<td class="debit">' + (d > 0 ? formatMontant(d) : '—') + '</td>' +
+        '<td class="credit">' + (c > 0 ? formatMontant(c) : '—') + '</td>' +
+        '<td>' + soldeTxt + '</td></tr>';
+    });
+    html += '</tbody></table></div></div>';
   }
+  document.getElementById('corpsGL').innerHTML = html || '<p class="text-center text-muted py-4">Aucune ecriture validee</p>';
 }
 
-async function chargerGrandLivre(){
-  try{
-    let url = `${API_URL}/grand-livre?`;
-    const annee = document.getElementById('selAnneeGL').value;
-    const compte = document.getElementById('selCompteGL').value;
-    if(annee) url += `annee=${annee}&`;
-    if(compte) url += `numero_compte=${compte}&`;
+function chargerBalance() {
+  const annee = document.getElementById('selAnneeBalance').value;
+  let liste = ecritures.filter(function(e) { return e.statut === 'valide'; });
+  if (annee) liste = liste.filter(function(e) { return e.date_ecriture.startsWith(annee); });
 
-    const r = await fetch(url, {headers:{'Authorization':`Bearer ${token}`}});
-    const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
+  let soldes = {};
+  liste.forEach(function(ec) {
+    ec.lignes.forEach(function(l) {
+      if (!soldes[l.numero_compte]) soldes[l.numero_compte] = { d: 0, c: 0 };
+      soldes[l.numero_compte].d += parseFloat(l.montant_debit) || 0;
+      soldes[l.numero_compte].c += parseFloat(l.montant_credit) || 0;
+    });
+  });
 
-    if(!res.grand_livre.length) {
-      document.getElementById('corpsGL').innerHTML = '<p class="text-center text-muted py-4">Aucune écriture validée pour cette période</p>';
-      return;
-    }
+  let tD = 0, tC = 0, sD = 0, sC = 0;
+  document.getElementById('corpsBalance').innerHTML = Object.entries(soldes).map(function(entry) {
+    const num = entry[0];
+    const v = entry[1];
+    const lib = planComptable.find(function(c) { return c.numero_compte === num; });
+    const libTxt = lib ? lib.libelle : '';
+    tD += v.d; tC += v.c;
+    const soldeD = Math.max(0, v.d - v.c);
+    const soldeC = Math.max(0, v.c - v.d);
+    sD += soldeD; sC += soldeC;
+    return '<tr><td><strong>' + num + '</strong></td><td>' + libTxt + '</td>' +
+      '<td class="montant debit">' + formatMontant(v.d) + '</td>' +
+      '<td class="montant credit">' + formatMontant(v.c) + '</td>' +
+      '<td class="montant solde-d">' + (soldeD > 0 ? formatMontant(soldeD) : '—') + '</td>' +
+      '<td class="montant solde-c">' + (soldeC > 0 ? formatMontant(soldeC) : '—') + '</td></tr>';
+  }).join('') || '<tr><td colspan="6" class="text-center text-muted py-3">Aucune ecriture validee</td></tr>';
 
-    document.getElementById('corpsGL').innerHTML = res.grand_livre.map(cpt=>`
-      <div class="compte-groupe p-3 mb-3 rounded">
-        <h6 class="titre-section">${cpt.numero_compte} — ${cpt.libelle_compte}</h6>
-        <p class="small mb-2">
-          Débit: <strong>${formatMontant(cpt.cumul_debit)}</strong> · 
-          Crédit: <strong>${formatMontant(cpt.cumul_credit)}</strong> · 
-          Solde: <strong class="${cpt.solde_progressif>=0?'text-danger':'text-primary'}">${formatMontant(Math.abs(cpt.solde_progressif))} ${cpt.solde_progressif>=0?'(D)':'(C)'}</strong>
-        </p>
-        <div class="table-responsive">
-          <table class="table table-dark table-sm mb-0">
-            <thead>
-              <tr>
-                <th>Date</th><th>N° Écriture</th><th>Libellé</th><th>Journal</th>
-                <th>Débit</th><th>Crédit</th><th>Solde</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${cpt.mouvements.map(m=>`
-                <tr>
-                  <td>${new Date(m.date_ecriture).toLocaleDateString('fr-CA')}</td>
-                  <td>${m.numero_ecriture}</td>
-                  <td>${m.libelle_ecriture}</td>
-                  <td>${m.code_journal||'—'}</td>
-                  <td class="debit">${parseFloat(m.montant_debit)>0?formatMontant(m.montant_debit):'—'}</td>
-                  <td class="credit">${parseFloat(m.montant_credit)>0?formatMontant(m.montant_credit):'—'}</td>
-                  <td class="${m.solde_apres>=0?'solde-d':'solde-c'}">${formatMontant(Math.abs(m.solde_apres))}</td>
-                </tr>`).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>`).join('');
-  }catch(e){
-    document.getElementById('corpsGL').innerHTML = `<p class="text-center text-danger py-4">${e.message}</p>`;
-  }
+  document.getElementById('piedBalance').classList.remove('d-none');
+  document.getElementById('totDebit').textContent = formatMontant(tD);
+  document.getElementById('totCredit').textContent = formatMontant(tC);
+  document.getElementById('totSoldeD').textContent = formatMontant(sD);
+  document.getElementById('totSoldeC').textContent = formatMontant(sC);
 }
 
-async function chargerBalance(){
-  try{
-    const annee = document.getElementById('selAnneeBalance').value;
-    let url = `${API_URL}/balance`;
-    if(annee) url += `?annee=${annee}`;
-
-    const r = await fetch(url, {headers:{'Authorization':`Bearer ${token}`}});
-    const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
-
-    let tD=0, tC=0, sD=0, sC=0;
-    document.getElementById('corpsBalance').innerHTML = res.balance.map(b=>{
-      tD += parseFloat(b.total_debit); tC += parseFloat(b.total_credit);
-      sD += parseFloat(b.solde_debit); sC += parseFloat(b.solde_credit);
-      return `
-      <tr>
-        <td><strong>${b.numero_compte}</strong></td>
-        <td>${b.libelle}</td>
-        <td class="montant debit">${formatMontant(b.total_debit)}</td>
-        <td class="montant credit">${formatMontant(b.total_credit)}</td>
-        <td class="montant solde-d">${b.solde_debit>0?formatMontant(b.solde_debit):'—'}</td>
-        <td class="montant solde-c">${b.solde_credit>0?formatMontant(b.solde_credit):'—'}</td>
-      </tr>`;
-    }).join('') || '<tr><td colspan="6" class="text-center text-muted py-3">Aucune écriture validée</td></tr>';
-
-    document.getElementById('piedBalance').classList.remove('d-none');
-    document.getElementById('totDebit').textContent = formatMontant(tD);
-    document.getElementById('totCredit').textContent = formatMontant(tC);
-    document.getElementById('totSoldeD').textContent = formatMontant(sD);
-    document.getElementById('totSoldeC').textContent = formatMontant(sC);
-  }catch(e){
-    document.getElementById('corpsBalance').innerHTML = `<tr><td colspan="6" class="text-center text-danger py-3">${e.message}</td></tr>`;
-  }
-}
-
-function exporterBalance(){
+function exporterBalance() {
   const rows = document.querySelectorAll('#corpsBalance tr');
   let csv = "Compte;Libellé;Débit;Crédit;Solde D;Solde C\n";
-  rows.forEach(tr=>{
+  rows.forEach(function(tr) {
     const tds = tr.querySelectorAll('td');
-    if(tds.length===6) csv += `${tds[0].textContent};${tds[1].textContent};${tds[2].textContent};${tds[3].textContent};${tds[4].textContent};${tds[5].textContent}\n`;
+    if (tds.length === 6) {
+      csv += tds[0].textContent + ";" + tds[1].textContent + ";" + tds[2].textContent + ";" + 
+             tds[3].textContent + ";" + tds[4].textContent + ";" + tds[5].textContent + "\n";
+    }
   });
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = `balance_${new Date().toLocaleDateString('fr-CA')}.csv`; a.click();
+  a.href = url; a.download = "balance_" + new Date().toLocaleDateString('fr-CA') + ".csv"; a.click();
   URL.revokeObjectURL(url);
 }
 
-async function chargerBilan(){
-  try{
-    const annee = document.getElementById('selAnneeBilan').value;
-    let url = `${API_URL}/bilan`;
-    if(annee) url += `?annee=${annee}`;
+function chargerBilan() {
+  const annee = document.getElementById('selAnneeBilan').value;
+  let liste = ecritures.filter(function(e) { return e.statut === 'valide'; });
+  if (annee) liste = liste.filter(function(e) { return e.date_ecriture.startsWith(annee); });
 
-    const r = await fetch(url, {headers:{'Authorization':`Bearer ${token}`}});
-    const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
+  let soldes = {};
+  liste.forEach(function(ec) {
+    ec.lignes.forEach(function(l) {
+      if (!soldes[l.numero_compte]) soldes[l.numero_compte] = 0;
+      soldes[l.numero_compte] += (parseFloat(l.montant_debit) || 0) - (parseFloat(l.montant_credit) || 0);
+    });
+  });
 
-    document.getElementById('bilanActif').innerHTML = res.actif.map(c=>`
-      <tr><td>${c.numero_compte}</td><td>${c.libelle}</td><td class="montant">${formatMontant(c.solde)}</td></tr>
-    `).join('') || '<tr><td colspan="3" class="text-center text-muted">Aucun compte</td></tr>';
-    document.getElementById('totActif').textContent = formatMontant(res.totActif);
-
-    document.getElementById('bilanPassif').innerHTML = res.passif.map(c=>`
-      <tr><td>${c.numero_compte}</td><td>${c.libelle}</td><td class="montant">${formatMontant(c.solde)}</td></tr>
-    `).join('') || '<tr><td colspan="3" class="text-center text-muted">Aucun compte</td></tr>';
-    document.getElementById('totPassif').textContent = formatMontant(res.totPassif);
-
-    const ecart = document.getElementById('ecartBilan');
-    ecart.classList.remove('d-none', 'alert-success', 'alert-danger');
-    if(Math.abs(res.ecart) < 0.01){
-      ecart.classList.add('alert-success');
-      ecart.textContent = `✅ BILAN ÉQUILIBRÉ — Actif = Passif = ${formatMontant(res.totActif)}`;
-    }else{
-      ecart.classList.add('alert-danger');
-      ecart.textContent = `⚠️ DÉSÉQUILIBRÉ — Écart : ${formatMontant(Math.abs(res.ecart))}`;
+  let actif = [], passif = [], totActif = 0, totPassif = 0;
+  Object.entries(soldes).forEach(function(entry) {
+    const num = entry[0];
+    const solde = entry[1];
+    const infos = planComptable.find(function(c) { return c.numero_compte === num; });
+    if (!infos) return;
+    if (infos.type_compte === 'Actif') {
+      if (solde > 0) { actif.push({ num: num, lib: infos.libelle, solde: solde }); totActif += solde; }
+      else { passif.push({ num: num, lib: infos.libelle, solde: Math.abs(solde) }); totPassif += Math.abs(solde); }
+    } else {
+      if (solde < 0) { passif.push({ num: num, lib: infos.libelle, solde: Math.abs(solde) }); totPassif += Math.abs(solde); }
+      else { actif.push({ num: num, lib: infos.libelle, solde: solde }); totActif += solde; }
     }
-  }catch(e){ alert(e.message); }
+  });
+
+  document.getElementById('bilanActif').innerHTML = actif.map(function(c) { 
+    return '<tr><td>' + c.num + '</td><td>' + c.lib + '</td><td class="montant">' + formatMontant(c.solde) + '</td></tr>'; 
+  }).join('') || '<tr><td colspan="3" class="text-center text-muted">Aucune donnee</td></tr>';
+  document.getElementById('totActif').textContent = formatMontant(totActif);
+
+  document.getElementById('bilanPassif').innerHTML = passif.map(function(c) { 
+    return '<tr><td>' + c.num + '</td><td>' + c.lib + '</td><td class="montant">' + formatMontant(c.solde) + '</td></tr>'; 
+  }).join('') || '<tr><td colspan="3" class="text-center text-muted">Aucune donnee</td></tr>';
+  document.getElementById('totPassif').textContent = formatMontant(totPassif);
+
+  const ecart = document.getElementById('ecartBilan');
+  ecart.classList.remove('d-none', 'alert-success', 'alert-danger');
+  if (Math.abs(totActif - totPassif) < 1) { 
+    ecart.classList.add('alert-success'); 
+    ecart.textContent = 'Bilan equilibre: ' + formatMontant(totActif); 
+  } else { 
+    ecart.classList.add('alert-danger'); 
+    ecart.textContent = 'Ecart: ' + formatMontant(Math.abs(totActif - totPassif)); 
+  }
 }
 
-async function chargerResultat(){
-  try{
-    const annee = document.getElementById('selAnneeResultat').value;
-    let url = `${API_URL}/resultat`;
-    if(annee) url += `?annee=${annee}`;
+function chargerResultat() {
+  const annee = document.getElementById('selAnneeResultat').value;
+  let liste = ecritures.filter(function(e) { return e.statut === 'valide'; });
+  if (annee) liste = liste.filter(function(e) { return e.date_ecriture.startsWith(annee); });
 
-    const r = await fetch(url, {headers:{'Authorization':`Bearer ${token}`}});
-    const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
+  let soldes = {};
+  liste.forEach(function(ec) {
+    ec.lignes.forEach(function(l) {
+      if (!soldes[l.numero_compte]) soldes[l.numero_compte] = 0;
+      soldes[l.numero_compte] += (parseFloat(l.montant_debit) || 0) - (parseFloat(l.montant_credit) || 0);
+    });
+  });
 
-    document.getElementById('tabCharges').innerHTML = res.charges.map(c=>`
-      <tr><td>${c.numero_compte}</td><td>${c.libelle}</td><td class="montant">${formatMontant(c.solde)}</td></tr>
-    `).join('') || '<tr><td colspan="3" class="text-center text-muted">Aucune charge</td></tr>';
-    document.getElementById('totCharges').textContent = formatMontant(res.totCharges);
+  let charges = [], produits = [], totCharges = 0, totProduits = 0;
+  Object.entries(soldes).forEach(function(entry) {
+    const num = entry[0];
+    const solde = entry[1];
+    const infos = planComptable.find(function(c) { return c.numero_compte === num; });
+    if (!infos) return;
+    if (infos.type_compte === 'Charge') {
+      charges.push({ num: num, lib: infos.libelle, solde: Math.abs(solde) });
+      totCharges += Math.abs(solde);
+    } else if (infos.type_compte === 'Produit') {
+      produits.push({ num: num, lib: infos.libelle, solde: Math.abs(solde) });
+      totProduits += Math    }
+  });
 
-    document.getElementById('tabProduits').innerHTML = res.produits.map(c=>`
-      <tr><td>${c.numero_compte}</td><td>${c.libelle}</td><td class="montant">${formatMontant(c.solde)}</td></tr>
-    `).join('') || '<tr><td colspan="3" class="text-center text-muted">Aucun produit</td></tr>';
-    document.getElementById('totProduits').textContent = formatMontant(res.totProduits);
+  document.getElementById('tabCharges').innerHTML = charges.map(function(c) { 
+    return '<tr><td>' + c.num + '</td><td>' + c.lib + '</td><td class="montant">' + formatMontant(c.solde) + '</td></tr>'; 
+  }).join('') || '<tr><td colspan="3" class="text-center text-muted">Aucune charge</td></tr>';
+  document.getElementById('totCharges').textContent = formatMontant(totCharges);
 
-    const bloc = document.getElementById('blocResultat');
-    bloc.classList.remove('d-none', 'alert-success', 'alert-danger');
-    if(res.resultat > 0){
-      bloc.classList.add('alert-success');
-      bloc.innerHTML = `✅ BÉNÉFICE — Produits - Charges = ${formatMontant(res.resultat)}`;
-    }else if(res.resultat < 0){
-      bloc.classList.add('alert-danger');
-      bloc.innerHTML = `🔴 PERTE — Charges - Produits = ${formatMontant(Math.abs(res.resultat))}`;
-    }else{
-      bloc.classList.add('alert-info');
-      bloc.textContent = `ÉQUILIBRE — Produits = Charges = ${formatMontant(res.totProduits)}`;
-    }
-  }catch(e){ alert(e.message); }
+  document.getElementById('tabProduits').innerHTML = produits.map(function(c) { 
+    return '<tr><td>' + c.num + '</td><td>' + c.lib + '</td><td class="montant">' + formatMontant(c.solde) + '</td></tr>'; 
+  }).join('') || '<tr><td colspan="3" class="text-center text-muted">Aucun produit</td></tr>';
+  document.getElementById('totProduits').textContent = formatMontant(totProduits);
+
+  let res = totProduits - totCharges;
+  let bloc = document.getElementById('blocResultat');
+  bloc.classList.remove('d-none', 'alert-success', 'alert-danger');
+  if (res > 0) { bloc.classList.add('alert-success'); bloc.textContent = 'Benefice: ' + formatMontant(res); }
+  else if (res < 0) { bloc.classList.add('alert-danger'); bloc.textContent = 'Perte: ' + formatMontant(Math.abs(res)); }
+  else { bloc.classList.add('alert-info'); bloc.textContent = 'Equilibre'; }
 }
 
-document.getElementById('formEcriture').addEventListener('submit', async e=>{
+document.getElementById('formEcriture').addEventListener('submit', function(e) {
   e.preventDefault();
-  const form = e.target;
+  const form = this;
   const lignes = [];
   const dateEc = form['date_ecriture'].value;
   const anneeEc = new Date(dateEc).getFullYear();
   document.getElementById('affAnnee').value = anneeEc;
+  const journalSel = journauxDispo.find(function(j) { return j.id_journal == form['id_journal'].value; });
 
-  form.querySelectorAll('.ligne-ecriture').forEach(ligne=>{
+  form.querySelectorAll('.ligne-ecriture').forEach(function(ligne) {
     const c = ligne.querySelector('.sel-compte').value;
     const lib = ligne.querySelector('[name=libelle_ligne]').value;
-    const d = parseFloat(ligne.querySelector('.in-debit').value)||0;
-    const cdt = parseFloat(ligne.querySelector('.in-credit').value)||0;
-    if(c && (d>0 || cdt>0)) lignes.push({ numero_compte:c, libelle_ligne:lib, montant_debit:d, montant_credit:cdt });
+    const d = parseFloat(ligne.querySelector('.in-debit').value) || 0;
+    const cdt = parseFloat(ligne.querySelector('.in-credit').value) || 0;
+    if (c && (d > 0 || cdt > 0)) lignes.push({ 
+      numero_compte: c, 
+      libelle_ligne: lib, 
+      montant_debit: d, 
+      montant_credit: cdt 
+    });
   });
 
-  if(lignes.length < 2) return alert("⚠️ Saisis au moins 2 lignes comptables");
+  const totD = lignes.reduce(function(s, l) { return s + parseFloat(l.montant_debit); }, 0);
+  const totC = lignes.reduce(function(s, l) { return s + parseFloat(l.montant_credit); }, 0);
+  if (Math.abs(totD - totC) > 1) { alert("Ecriture non equilibree !"); return; }
+  if (lignes.length < 2) { alert("Saisissez au moins 2 lignes"); return; }
 
-  const totD = lignes.reduce((s,l)=>s+parseFloat(l.montant_debit),0);
-  const totC = lignes.reduce((s,l)=>s+parseFloat(l.montant_credit),0);
-  if(Math.abs(totD-totC) > 0.01) return alert("❌ Écriture non équilibrée ! Débit ≠ Crédit");
+  const nouvelle = {
+    id_ecriture: Date.now(),
+    numero_ecriture: 'N' + String(ecritures.length + 1).padStart(4, '0'),
+    date_ecriture: dateEc,
+    id_journal: form['id_journal'].value,
+    code_journal: journalSel ? journalSel.code_journal : '',
+    libelle: form['libelle'].value,
+    reference: form['reference'].value,
+    statut: 'brouillon',
+    lignes: lignes
+  };
+  ecritures.push(nouvelle);
+  sauvegarder();
 
-  try{
-    const r = await fetch(`${API_URL}/ecritures/enregistrer`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-      body:JSON.stringify({
-        date_ecriture: dateEc,
-        id_journal: form['id_journal'].value,
-        libelle: form['libelle'].value,
-        reference: form['reference'].value,
-        lignes
-      })
-    });
-    const res = await r.json();
-    if(res.ok){
-      bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEcriture')).hide();
-      form.reset();
-      document.querySelector('#formEcriture [name=date_ecriture]').valueAsDate = new Date();
-      document.getElementById('blocLignes').innerHTML = '';
-      ajouterLigne();
-      chargerEcritures();
-      alert("✅ Écriture enregistrée : "+res.numero_ecriture);
-    }else alert("❌ "+res.erreur);
-  }catch(err){ alert("Erreur réseau : "+err.message); }
+  const modal = bootstrap.Modal.getInstance(document.getElementById('modalEcriture'));
+  if (modal) modal.hide();
+  form.reset();
+  const dateInput = document.querySelector('#formEcriture [name="date_ecriture"]');
+  if (dateInput) dateInput.valueAsDate = new Date();
+  document.getElementById('blocLignes').innerHTML = '';
+  ajouterLigne();
+  chargerEcritures();
+  alert("Ecriture enregistree: " + nouvelle.numero_ecriture);
 });
 
-window.validerEc = async function(id){
-  if(!confirm("Confirmer la validation définitive de cette écriture ?")) return;
-  try{
-    const r = await fetch(`${API_URL}/ecritures/valider/${id}`, {
-      method:'POST', headers:{'Authorization':`Bearer ${token}`}
-    });
-    const res = await r.json();
-    if(res.ok){ alert("✅ Écriture validée !"); chargerEcritures(); }
-    else alert("❌ "+res.erreur);
-  }catch{ alert("Erreur réseau"); }
+window.validerEc = function(id) {
+  if (!confirm("Valider definitivement cette ecriture ?")) return;
+  const ec = ecritures.find(function(e) { return e.id_ecriture === id; });
+  if (ec) { ec.statut = 'valide'; sauvegarder(); chargerEcritures(); alert("Validee !"); }
 };
 
-function equilibrer(){
+function equilibrer() {
   let totD = 0, totC = 0;
-  document.querySelectorAll('.in-debit').forEach(i=> totD += parseFloat(i.value)||0);
-  document.querySelectorAll('.in-credit').forEach(i=> totC += parseFloat(i.value)||0);
+  document.querySelectorAll('.in-debit').forEach(function(i) { totD += parseFloat(i.value) || 0; });
+  document.querySelectorAll('.in-credit').forEach(function(i) { totC += parseFloat(i.value) || 0; });
   const ecart = totD - totC;
   document.getElementById('sumDebit').textContent = formatMontant(totD);
   document.getElementById('sumCredit').textContent = formatMontant(totC);
   document.getElementById('ecart').textContent = formatMontant(Math.abs(ecart));
 
   const bloc = document.getElementById('blocEquilibre');
-  if(Math.abs(ecart) < 0.01){
+  if (Math.abs(ecart) < 1) { 
     bloc.classList.remove('equilibre-ko'); bloc.classList.add('equilibre-ok');
-    bloc.innerHTML = `✅ ÉQUILIBRÉ — Débit : ${formatMontant(totD)} | Crédit : ${formatMontant(totC)}`;
-  }else{
+    bloc.innerHTML = "✅ EQUILIBRE — Debit : " + formatMontant(totD) + " | Credit : " + formatMontant(totC);
+  } else { 
     bloc.classList.remove('equilibre-ok'); bloc.classList.add('equilibre-ko');
-    bloc.innerHTML = `⚠️ DÉSÉQUILIBRÉ — Débit : ${formatMontant(totD)} | Crédit : ${formatMontant(totC)} | Écart : ${formatMontant(Math.abs(ecart))}`;
+    bloc.innerHTML = "⚠️ DESEQUILIBRE — Debit : " + formatMontant(totD) + " | Credit : " + formatMontant(totC) + " | Ecart : " + formatMontant(Math.abs(ecart));
   }
 }
 
-function ajouterLigne(){
+function ajouterLigne() {
   const bloc = document.getElementById('blocLignes');
   const ligne = document.createElement('div');
   ligne.className = 'ligne-ecriture row g-2 align-items-center mb-2 border rounded p-2 bg-dark bg-opacity-25';
-  ligne.innerHTML = `
-    <div class="col-md-2">
-      <select name="numero_compte" class="form-select sel-compte" required>
-        <option value="">Compte</option>
-        ${planComptable.map(c=>`<option value="${c.numero_compte}">${c.numero_compte} — ${c.libelle}</option>`).join('')}
-      </select>
-    </div>
-    <div class="col-md-4">
-      <input type="text" name="libelle_ligne" class="form-control" placeholder="Libellé ligne">
-    </div>
-    <div class="col-md-3">
-      <input type="number" name="montant_debit" class="form-control in-debit" placeholder="Débit" min="0" step="100" oninput="equilibrer()">
-    </div>
-    <div class="col-md-2">
-      <input type="number" name="montant_credit" class="form-control in-credit" placeholder="Crédit" min="0" step="100" oninput="equilibrer()">
-    </div>
-    <div class="col-md-1">
-      <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.ligne-ecriture').remove(); equilibrer()">
-        <i class="bi bi-trash"></i>
-      </button>
-    </div>
-  `;
+  let options = planComptable.map(function(c) { 
+    return '<option value="' + c.numero_compte + '">' + c.numero_compte + ' — ' + c.libelle + '</option>'; 
+  }).join('');
+  ligne.innerHTML = '<div class="col-md-2"><select name="numero_compte" class="form-select sel-compte" required><option value="">Compte</option>' + options + '</select></div>' +
+    '<div class="col-md-4"><input type="text" name="libelle_ligne" class="form-control" placeholder="Libelle"></div>' +
+    '<div class="col-md-3"><input type="number" name="montant_debit" class="form-control in-debit" placeholder="Debit" min="0" step="100" oninput="equilibrer()"></div>' +
+    '<div class="col-md-2"><input type="number" name="montant_credit" class="form-control in-credit" placeholder="Credit" min="0" step="100" oninput="equilibrer()"></div>' +
+    '<div class="col-md-1"><button type="button" class="btn btn-danger btn-sm" onclick="this.closest(\'.ligne-ecriture\').remove();equilibrer();"><i class="bi bi-trash"></i></button></div>';
   bloc.appendChild(ligne);
 }
 
-// ==================================================
-// 📅 GESTION DES EXERCICES COMPTABLES
-// ==================================================
-async function chargerExercices(){
-  try{
-    const r = await fetch(`${API_URL}/exercices`, {headers:{'Authorization':`Bearer ${token}`}});
-    const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
-
-    document.getElementById('corpsExercices').innerHTML = res.exercices.map(ex=>{
-      const statutBadge = ex.statut==='ouvert'?'bg-success':'bg-secondary';
-      const statutTxt = ex.statut==='ouvert'?'✅ Ouvert':'🔒 Clôturé';
-      return `
-      <tr>
-        <td><strong>${ex.annee}</strong></td>
-        <td>${new Date(ex.date_debut).toLocaleDateString('fr-CA')} → ${new Date(ex.date_fin).toLocaleDateString('fr-CA')}</td>
-        <td><span class="badge ${statutBadge}">${statutTxt}</span></td>
-        <td>${ex.date_cloture ? new Date(ex.date_cloture).toLocaleDateString('fr-CA') : '—'}</td>
-        <td class="no-print">
-          ${ex.statut==='ouvert'?`<button class="btn btn-sm btn-danger" onclick="cloturerExercice(${ex.id_exercice})">Clôturer</button>`:'<span class="text-muted">—</span>'}
-        </td>
-      </tr>`;
-    }).join('') || '<tr><td colspan="5" class="text-center text-muted py-3">Aucun exercice créé</td></tr>';
-  }catch(e){
-    document.getElementById('corpsExercices').innerHTML = `<tr><td colspan="5" class="text-center text-danger py-3">${e.message}</td></tr>`;
-  }
+function rechercherPlan() {
+  const t = document.getElementById('recherchePlan').value.trim().toLowerCase();
+  const cl = document.getElementById('filtreClasse').value;
+  let f = planComptable;
+  if (cl) f = f.filter(function(c) { return c.numero_compte.startsWith(cl); });
+  if (t) f = f.filter(function(c) { 
+    return c.numero_compte.toLowerCase().indexOf(t) !== -1 || 
+           c.libelle.toLowerCase().indexOf(t) !== -1; 
+  });
+  document.getElementById('corpsPlan').innerHTML = f.length ? f.map(function(c) { 
+    return '<tr><td><strong>' + c.numero_compte + '</strong></td><td>' + c.libelle + '</td><td>' + c.classe + '</td><td>' + c.type_compte + '</td><td>' + c.sens + '</td></tr>'; 
+  }).join('') : '<tr><td colspan="5" class="text-center text-muted">Aucun compte</td></tr>';
 }
 
-document.getElementById('formExercice').addEventListener('submit', async e=>{
-  e.preventDefault();
-  const form = e.target;
-  const donnees = {
-    annee: form['annee'].value,
-    date_debut: form['date_debut'].value,
-    date_fin: form['date_fin'].value
-  };
+function chargerExercices() {
+  document.getElementById('corpsExercices').innerHTML = exercices.map(function(ex) {
+    const badge = ex.statut === 'ouvert' ? 'bg-success' : 'bg-secondary';
+    const txt = ex.statut === 'ouvert' ? 'Ouvert' : 'Cloture';
+    return '<tr><td><strong>' + ex.annee + '</strong></td><td>' + ex.date_debut + ' — ' + ex.date_fin + '</td>' +
+      '<td><span class="badge ' + badge + '">' + txt + '</span></td><td>' + (ex.date_cloture || '—') + '</td>' +
+      '<td class="no-print">' + (ex.statut === 'ouvert' ? 
+        '<button class="btn btn-sm btn-danger" onclick="cloturerExercice(' + ex.id_exercice + ')">Cloturer</button>' : '—') + '</td></tr>';
+  }).join('');
+}
 
-  try{
-    const r = await fetch(`${API_URL}/exercices/creer`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-      body:JSON.stringify(donnees)
-    });
-    const res = await r.json();
-    if(res.ok){
-      bootstrap.Modal.getOrCreateInstance(document.getElementById('modalExercice')).hide();
-      form.reset();
-      chargerExercices();
-      alert("✅ Exercice créé avec succès !");
-    }else alert("❌ "+res.erreur);
-  }catch(err){ alert("Erreur réseau : "+err.message); }
+document.getElementById('formExercice').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const f = this;
+  exercices.unshift({ 
+    id_exercice: Date.now(), 
+    annee: f['annee'].value, 
+    date_debut: f['date_debut'].value, 
+    date_fin: f['date_fin'].value, 
+    statut: 'ouvert' 
+  });
+  const modal = bootstrap.Modal.getInstance(document.getElementById('modalExercice'));
+  if (modal) modal.hide();
+  f.reset();
+  chargerExercices();
+  alert("Exercice cree !");
 });
 
-window.cloturerExercice = async function(id){
-  if(!confirm("⚠️ Êtes-vous sûr de vouloir clôturer cet exercice ? Cette action est définitive et empêchera toute nouvelle écriture.")) return;
-  try{
-    const r = await fetch(`${API_URL}/exercices/cloturer/${id}`, {
-      method:'POST', headers:{'Authorization':`Bearer ${token}`}
-    });
-    const res = await r.json();
-    if(res.ok){ alert("✅ Exercice clôturé !"); chargerExercices(); }
-    else alert("❌ "+res.erreur);
-  }catch{ alert("Erreur réseau"); }
+window.cloturerExercice = function(id) {
+  if (!confirm("Cloturer definitivement cet exercice ?")) return;
+  const ex = exercices.find(function(x) { return x.id_exercice === id; });
+  if (ex) { ex.statut = 'cloture'; ex.date_cloture = new Date().toISOString().split('T')[0]; chargerExercices(); alert("Cloture !"); }
 };
 </script>
 
