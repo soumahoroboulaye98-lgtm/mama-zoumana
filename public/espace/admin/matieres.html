@@ -1,125 +1,424 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="lang-fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestion des Matières — MAMA-ZOUMANA</title>
+  <title>
+    <span class="txt-fr">Gestion des Matières — MAMA-ZOUMANA</span>
+    <span class="txt-en">Subject Management — MAMA-ZOUMANA</span>
+    <span class="txt-ar">إدارة المواد — ماما زومانا</span>
+  </title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    :root { --sombre:#0f172a; --bord-orange:#f59e0b; --succes:#10b981; --texte:#f8fafc; --fond-dore:#b78628; --fond-dore-clair:#d4a03a; }
-    body{background:linear-gradient(160deg,var(--fond-dore),var(--fond-dore-clair));color:var(--texte);min-height:100vh}
-    .entete{background:rgba(15,23,42,0.85);border-bottom:2px solid var(--bord-orange);padding:1.5rem 0}
-    .carte{position:relative;background:rgba(15,23,42,0.9);border-radius:16px;overflow:hidden;padding:1.5rem;margin-bottom:1.5rem}
-    .carte::before{content:'';position:absolute;inset:-3px;background:conic-gradient(from 0deg,var(--bord-orange),var(--fond-dore),var(--bord-orange));animation:tourne 3s linear infinite;z-index:-1}
-    @keyframes tourne{to{transform:rotate(360deg)}}
-    .barre-langue{display:flex;gap:0.75rem;justify-content:center;margin-bottom:2rem}
-    .form-control,.form-select{background:rgba(30,41,59,0.9);border:1px solid #475569;color:white}
-    .form-control:focus,.form-select:focus{background:rgba(30,41,59,0.95);color:white;border-color:var(--bord-orange)}
-    [dir="rtl"]{font-family:'Segoe UI Tahoma',sans-serif}
+    :root { 
+      --sombre: #0f172a; 
+      --bord-orange: #f59e0b; 
+      --succes: #10b981; 
+      --texte: #f8fafc; 
+      --fond-dore: #b78628; 
+      --fond-dore-clair: #d4a03a; 
+      --rouge: #ef4444;
+    }
+
+    /* ===== 🌐 LANGUE ===== */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar { direction: rtl; }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(160deg, var(--fond-dore), var(--fond-dore-clair));
+      color: var(--texte);
+      min-height: 100vh;
+    }
+
+    .entete {
+      background: rgba(15,23,42,0.85);
+      border-bottom: 2px solid var(--bord-orange);
+      padding: 1.5rem 0;
+    }
+
+    .carte {
+      position: relative;
+      background: rgba(15,23,42,0.9);
+      border-radius: 16px;
+      overflow: hidden;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .carte::before {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      background: conic-gradient(from 0deg, var(--bord-orange), var(--fond-dore), var(--bord-orange), var(--fond-dore), var(--bord-orange));
+      animation: tourne 4s linear infinite;
+      z-index: -1;
+      border-radius: 18px;
+    }
+
+    @keyframes tourne {
+      to { transform: rotate(360deg); }
+    }
+
+    .barre-langue {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+    .form-control, .form-select {
+      background: rgba(30,41,59,0.9);
+      border: 1px solid #475569;
+      color: white;
+    }
+
+    .form-control:focus, .form-select:focus {
+      background: rgba(30,41,59,0.95);
+      color: white;
+      border-color: var(--bord-orange);
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
+    }
+
+    .btn-langue {
+      width: 46px;
+      height: 46px;
+      border-radius: 50% !important;
+      border: 2px solid transparent;
+      font-weight: 600;
+      transition: all 0.25s;
+    }
+
+    .btn-langue.active {
+      border-color: var(--bord-orange);
+      background: var(--bord-orange);
+      color: #000;
+      box-shadow: 0 0 12px rgba(245,158,11,0.4);
+    }
+
+    .table-dark { --bs-table-bg: transparent; }
+    .text-coef { color: var(--bord-orange); font-weight: 600; }
   </style>
 </head>
 <body>
+
 <script>
-if(!localStorage.getItem('token') || localStorage.getItem('role')!=='admin'){alert("⛔ Accès réservé Admin");location.href='dashboard.html'}
-const token = localStorage.getItem('token');
+  // 🔐 SÉCURITÉ
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  if (!token || role !== 'admin') {
+    alert("⛔ Accès réservé à l'administrateur");
+    location.href = 'dashboard.html';
+  }
+
+  // 🔗 DÉTECTION AUTOMATIQUE DE L'API
+  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:10000/api'
+    : '/api';
+
+  // 💾 STOCKAGE LOCAL (FALLBACK SI API INDISPONIBLE)
+  function obtenirMatieresLocales() {
+    return JSON.parse(localStorage.getItem('matieres') || '[]');
+  }
+  function sauvegarderMatieresLocales(liste) {
+    localStorage.setItem('matieres', JSON.stringify(liste));
+  }
+
+  // 🌍 GESTION DE LA LANGUE
+  let langueActuelle = localStorage.getItem('langue') || 'fr';
+  document.body.classList.add('lang-' + langueActuelle);
+
+  function changerLangue(lang) {
+    langueActuelle = lang;
+    localStorage.setItem('langue', lang);
+    document.body.classList.remove('lang-fr','lang-en','lang-ar');
+    document.body.classList.add('lang-' + lang);
+    document.documentElement.lang = lang;
+    document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+    chargerListe();
+  }
 </script>
 
 <div class="entete">
   <div class="container d-flex justify-content-between align-items-center">
-    <div><h3 class="mb-1">📚 Gestion des Matières</h3></div>
-    <a href="dashboard.html" class="btn btn-outline-light"><i class="bi bi-arrow-left"></i> Retour</a>
+    <div>
+      <h3 class="mb-1">
+        📚 
+        <span class="txt-fr">Gestion des Matières</span>
+        <span class="txt-en">Subject Management</span>
+        <span class="txt-ar">إدارة المواد</span>
+      </h3>
+    </div>
+    <a href="dashboard.html" class="btn btn-outline-light">
+      <i class="bi bi-arrow-left"></i> 
+      <span class="txt-fr">Retour</span>
+      <span class="txt-en">Back</span>
+      <span class="txt-ar">رجوع</span>
+    </a>
   </div>
 </div>
 
 <div class="container py-4">
+  <!-- 🌐 BARRE DE LANGUE -->
   <div class="barre-langue">
-    <button class="btn btn-outline-warning active" onclick="changerLangue('fr')">🇫🇷</button>
-    <button class="btn btn-outline-warning" onclick="changerLangue('ar')">🇸🇦</button>
-    <button class="btn btn-outline-warning" onclick="changerLangue('en')">🇬🇧</button>
+    <button class="btn btn-langue btn-outline-warning" data-lang="fr" onclick="changerLangue('fr')">🇫🇷</button>
+    <button class="btn btn-langue btn-outline-warning" data-lang="en" onclick="changerLangue('en')">🇬🇧</button>
+    <button class="btn btn-langue btn-outline-warning" data-lang="ar" onclick="changerLangue('ar')">🇸🇦</button>
   </div>
 
-  <!-- FORMULAIRE AJOUT/MODIF -->
+  <!-- FORMULAIRE AJOUT / MODIFICATION -->
   <div class="carte mb-4">
-    <h5 id="titre-form">➕ Ajouter une Matière</h5>
+    <h5 id="titre-form">
+      ➕ 
+      <span class="txt-fr">Ajouter une Matière</span>
+      <span class="txt-en Add Subject">Add Subject</span>
+      <span class="txt-ar">إضافة مادة</span>
+    </h5>
     <form id="formMatiere">
       <input type="hidden" id="id_matiere">
       <div class="row g-3">
         <div class="col-md-5">
-          <label class="form-label">Nom de la matière</label>
-          <input type="text" id="nom_matiere" class="form-control" required>
+          <label class="form-label">
+            <span class="txt-fr">Nom de la matière</span>
+            <span class="txt-en">Subject Name</span>
+            <span class="txt-ar">اسم المادة</span>
+          </label>
+          <input type="text" id="nom_matiere" class="form-control" required placeholder="">
         </div>
         <div class="col-md-3">
-          <label class="form-label">Coefficient</label>
+          <label class="form-label">
+            <span class="txt-fr">Coefficient</span>
+            <span class="txt-en">Coefficient</span>
+            <span class="txt-ar">المعامل</span>
+          </label>
           <input type="number" id="coefficient" class="form-control" min="1" value="1" required>
         </div>
         <div class="col-md-4 align-self-end">
-          <button type="submit" class="btn btn-success w-100">💾 Enregistrer</button>
+          <button type="submit" class="btn btn-success w-100">
+            💾 
+            <span class="txt-fr">Enregistrer</span>
+            <span class="txt-en">Save</span>
+            <span class="txt-ar">حفظ</span>
+          </button>
         </div>
       </div>
     </form>
   </div>
 
-  <!-- LISTE DES MATIERES -->
+  <!-- 📋 LISTE DES MATIÈRES -->
   <div class="carte">
-    <h5>📋 Liste des matières</h5>
+    <h5>
+      📋 
+      <span class="txt-fr">Liste des matières</span>
+      <span class="txt-en">Subject List</span>
+      <span class="txt-ar">قائمة المواد</span>
+    </h5>
     <div class="table-responsive mt-3">
       <table class="table table-dark table-striped">
-        <thead><tr><th>#</th><th>Matière</th><th>Coeff</th><th>Actions</th></tr></thead>
-        <tbody id="liste-matieres"></tbody>
+        <thead>
+          <tr>
+            <th class="text-center">#</th>
+            <th>
+              <span class="txt-fr">Matière</span>
+              <span class="txt-en">Subject</span>
+              <span class="txt-ar">المادة</span>
+            </th>
+            <th class="text-center">
+              <span class="txt-fr">Coeff</span>
+              <span class="txt-en">Coef</span>
+              <span class="txt-ar">المعامل</span>
+            </th>
+            <th class="text-center">
+              <span class="txt-fr">Actions</span>
+              <span class="txt-en">Actions</span>
+              <span class="txt-ar">إجراءات</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="liste-matieres">
+          <tr>
+            <td colspan="4" class="text-center text-muted py-4">
+              <div class="spinner-border text-warning mb-2"></div>
+              <span class="txt-fr">Chargement...</span>
+              <span class="txt-en">Loading...</span>
+              <span class="txt-ar">جار التحميل...</span>
+            </td>
+          </tr>
+        </tbody>
       </table>
     </div>
   </div>
 </div>
 
 <script>
-let langueActuelle='fr';
-function changerLangue(l){langueActuelle=l;document.documentElement.lang=l;document.body.dir=l==='ar'?'rtl':'ltr';charger()}
+  // 📋 CHARGER LA LISTE
+  async function chargerListe() {
+    const conteneur = document.getElementById('liste-matieres');
+    let liste = [];
 
-async function charger(){
-  const r = await fetch('/api/matieres',{headers:{Authorization:`Bearer ${token}`}}).then(x=>x.json());
-  document.getElementById('liste-matieres').innerHTML=r.lignes.map((m,i)=>`
-    <tr>
-      <td>${i+1}</td>
-      <td>${m.nom_matiere}</td>
-      <td class="text-warning">${m.coefficient}</td>
-      <td>
-        <button class="btn btn-sm btn-outline-warning me-1" onclick="modifier(${JSON.stringify(m).replace(/"/g,'&quot;')})"><i class="bi bi-pencil"></i></button>
-        <button class="btn btn-sm btn-outline-danger" onclick="supprimer(${m.id_matiere})"><i class="bi bi-trash"></i></button>
-      </td>
-    </tr>`).join('');
-}
+    try {
+      const r = await fetch(`${API_URL}/matieres`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const res = await r.json();
+      if (res.ok && res.lignes) {
+        liste = res.lignes;
+        sauvegarderMatieresLocales(liste);
+      } else {
+        throw Error("Réponse invalide");
+      }
+    } catch {
+      // ⚠️ Mode hors-ligne
+      liste = obtenirMatieresLocales();
+    }
 
-function modifier(m){
-  document.getElementById('id_matiere').value=m.id_matiere;
-  document.getElementById('nom_matiere').value=m.nom_matiere;
-  document.getElementById('coefficient').value=m.coefficient;
-  document.getElementById('titre-form').textContent='✏️ Modifier la Matière';
-}
+    // Affichage
+    if (!liste.length) {
+      conteneur.innerHTML = `<tr>
+        <td colspan="4" class="text-center text-muted py-4">
+          📭 
+          <span class="txt-fr">Aucune matière enregistrée</span>
+          <span class="txt-en">No subject registered</span>
+          <span class="txt-ar">لا توجد مواد مسجلة</span>
+        </td>
+      </tr>`;
+      return;
+    }
 
-async function supprimer(id){
-  if(!confirm("Supprimer cette matière ?")) return;
-  await fetch(`/api/matieres/${id}`,{method:'DELETE',headers:{Authorization:`Bearer ${token}`}});
-  charger();
-}
+    conteneur.innerHTML = liste.map((m, i) => `
+      <tr>
+        <td class="text-center fw-bold">${i + 1}</td>
+        <td>${escaperHtml(m.nom_matiere || '')}</td>
+        <td class="text-center text-coef">${m.coefficient || 1}</td>
+        <td class="text-center">
+          <button class="btn btn-sm btn-outline-warning me-1" onclick='modifierMatiere(${JSON.stringify(m).replace(/'/g, "\\'")})' title="${
+            langueActuelle==='ar'?'تعديل':langueActuelle==='en'?'Edit':'Modifier'
+          }">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" onclick="supprimerMatiere(${m.id_matiere})" title="${
+            langueActuelle==='ar'?'حذف':langueActuelle==='en'?'Delete':'Supprimer'
+          }">
+            <i class="bi bi-trash"></i>
+          </button>
+        </td>
+      </tr>`).join('');
+  }
 
-document.getElementById('formMatiere').addEventListener('submit',async e=>{
-  e.preventDefault();
-  const id = document.getElementById('id_matiere').value;
-  const data = {
-    nom_matiere:document.getElementById('nom_matiere').value,
-    coefficient:document.getElementById('coefficient').value
-  };
-  const methode = id ? 'PUT' : 'POST';
-  const url = id ? `/api/matieres/${id}` : '/api/matieres/ajouter';
-  await fetch(url,{method:methode,headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify(data)});
-  document.getElementById('formMatiere').reset();
-  document.getElementById('id_matiere').value='';
-  document.getElementById('titre-form').textContent='➕ Ajouter une Matière';
-  charger();
-});
+  // ✂️ ÉCHAPPEMENT SÉCURITAIRE
+  function escaperHtml(texte) {
+    const div = document.createElement('div');
+    div.textContent = texte;
+    return div.innerHTML;
+  }
 
-charger();
+  // ✏️ MODIFIER — Préremplir le formulaire
+  function modifierMatiere(m) {
+    document.getElementById('id_matiere').value = m.id_matiere || '';
+    document.getElementById('nom_matiere').value = m.nom_matiere || '';
+    document.getElementById('coefficient').value = m.coefficient || 1;
+    document.getElementById('titre-form').innerHTML = `✏️ 
+      <span class="txt-fr">Modifier la Matière</span>
+      <span class="txt-en">Edit Subject</span>
+      <span class="txt-ar">تعديل المادة</span>`;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // 🗑️ SUPPRIMER
+  async function supprimerMatiere(id) {
+    const msgConf = {
+      fr: "⚠️ Supprimer définitivement cette matière ?",
+      en: "⚠️ Delete this subject permanently?",
+      ar: "⚠️ حذف هذه المادة نهائيًا؟"
+    };
+    if (!confirm(msgConf[langueActuelle])) return;
+
+    // Supprimer localement
+    let liste = obtenirMatieresLocales().filter(m => m.id_matiere !== id);
+    sauvegarderMatieresLocales(liste);
+
+    // Notifier l'API en arrière-plan
+    try {
+      await fetch(`${API_URL}/matieres/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+    } catch {}
+
+    chargerListe();
+  }
+
+  // 💾 ENREGISTRER (AJOUT / MODIF)
+  document.getElementById('formMatiere').addEventListener('submit', async e => {
+    e.preventDefault();
+    const id = document.getElementById('id_matiere').value.trim();
+    const nom = document.getElementById('nom_matiere').value.trim();
+    const coef = parseInt(document.getElementById('coefficient').value) || 1;
+
+    if (!nom) {
+      alert(langueActuelle==='ar'?'أدخل اسم المادة ⚠️':langueActuelle==='en'?'Enter the subject name ⚠️':'⚠️ Entrez le nom de la matière');
+      return;
+    }
+
+    const data = { nom_matiere: nom, coefficient: coef };
+    const idNumerique = id ? parseInt(id) : Date.now();
+
+    // 1. Sauvegarde immédiate locale
+    let liste = obtenirMatieresLocales();
+    if (id) {
+      // Modification
+      const idx = liste.findIndex(m => m.id_matiere === idNumerique);
+      if (idx !== -1) liste[idx] = { ...liste[idx], ...data };
+    } else {
+      // Ajout
+      liste.unshift({ id_matiere: idNumerique, ...data });
+    }
+    sauvegarderMatieresLocales(liste);
+
+    // 2. Envoyer à l'API en arrière-plan
+    try {
+      const methode = id ? 'PUT' : 'POST';
+      const url = id ? `${API_URL}/matieres/${idNumerique}` : `${API_URL}/matieres/ajouter`;
+      await fetch(url, {
+        method: methode,
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(data)
+      });
+    } catch {}
+
+    // ✅ Réinitialisation formulaire
+    document.getElementById('formMatiere').reset();
+    document.getElementById('id_matiere').value = '';
+    document.getElementById('coefficient').value = '1';
+    document.getElementById('titre-form').innerHTML = `➕ 
+      <span class="txt-fr">Ajouter une Matière</span>
+      <span class="txt-en">Add Subject</span>
+      <span class="txt-ar">إضافة مادة</span>`;
+
+    const msgOk = {
+      fr: "✅ Enregistré !",
+      en: "✅ Saved!",
+      ar: "✅ تم الحفظ!"
+    };
+    alert(msgOk[langueActuelle]);
+    chargerListe();
+  });
+
+  // 🚀 Initialisation
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-langue').forEach(b => {
+      b.classList.toggle('active', b.dataset.lang === langueActuelle);
+    });
+    chargerListe();
+  });
 </script>
 </body>
 </html>
