@@ -161,6 +161,7 @@
 </head>
 <body>
 
+
 <script>
   // 🔐 SÉCURITÉ & AUTHENTIFICATION
   const token = localStorage.getItem('token');
@@ -207,6 +208,7 @@
   });
 </script>
 
+
 <!-- 📋 MENU LATÉRAL -->
 <div class="sidebar">
   <div class="sidebar-logo"><a href="dashboard.html" class="logo"><i class="bi bi-building"></i> MAMA-ZOUMANA</a></div>
@@ -232,6 +234,7 @@
     <span class="txt-fr">Changer mot de passe</span><span class="txt-en">Change Password</span><span class="txt-ar">تغيير كلمة المرور</span>
   </a>
 </div>
+
 
 <!-- 📄 CONTENU PRINCIPAL -->
 <div class="contenu">
@@ -287,7 +290,7 @@
             </div>
           </div>
           <div class="col-md-4">
-            <label class="form-label fw-bold"><span class="txt-fr">Couleur Secondaire</span><span class="txt-en">Secondary Color</span><span class="txt-ar">اللون الثانوي</span></label>
+            <label class="form-label fw-bold"><span class="txt-fr">Couleur Secondaire / Accent</span><span class="txt-en">Accent Color</span><span class="txt-ar">لون التمييز</span></label>
             <div class="d-flex gap-2 align-items-center">
               <input type="color" id="couleur_secondaire" class="color-input" value="#f59e0b">
               <input type="text" id="couleur_secondaire_txt" class="form-control" value="#f59e0b" oninput="document.getElementById('couleur_secondaire').value=this.value">
@@ -311,8 +314,8 @@
           <div class="col-md-4">
             <label class="form-label fw-bold"><span class="txt-fr">Type de Fond</span><span class="txt-en">Background Type</span><span class="txt-ar">نوع الخلفية</span></label>
             <select id="type_fond" class="form-select">
-              <option value="image"><span class="txt-fr">🖼️ Image</span><span class="txt-en">🖼️ Image</span><span class="txt-ar">🖼️ صورة</span></option>
-              <option value="video"><span class="txt-fr">🎬 Vidéo</span><span class="txt-en">🎬 Video</span><span class="txt-ar">🎬 فيديو</span></option>
+              <option value="image" class="txt-fr">🖼️ Image</option>
+              <option value="video" class="txt-fr">🎬 Vidéo</option>
             </select>
           </div>
           <div class="col-md-8">
@@ -346,8 +349,8 @@
           <div class="col-md-4">
             <label class="form-label fw-bold"><span class="txt-fr">Animations</span><span class="txt-en">Animations</span><span class="txt-ar">الحركة</span></label>
             <select id="animation_active" class="form-select">
-              <option value="true"><span class="txt-fr">✅ Activées</span><span class="txt-en">✅ Enabled</span><span class="txt-ar">✅ مفعلة</span></option>
-              <option value="false"><span class="txt-fr">❌ Désactivées</span><span class="txt-en">❌ Disabled</span><span class="txt-ar">❌ معطلة</span></option>
+              <option value="true" class="txt-fr">✅ Activées</option>
+              <option value="false" class="txt-fr">❌ Désactivées</option>
             </select>
           </div>
           <div class="col-md-4">
@@ -406,8 +409,8 @@
           <div class="col-md-3">
             <label class="form-label"><span class="txt-fr">Type</span><span class="txt-en">Type</span><span class="txt-ar">النوع</span></label>
             <select id="galerie_type" class="form-select">
-              <option value="image"><span class="txt-fr">🖼️ Image</span><span class="txt-en">🖼️ Image</span><span class="txt-ar">🖼️ صورة</span></option>
-              <option value="video"><span class="txt-fr">🎬 Vidéo</span><span class="txt-en">🎬 Video</span><span class="txt-ar">🎬 فيديو</span></option>
+              <option value="image" class="txt-fr">🖼️ Image</option>
+              <option value="video" class="txt-fr">🎬 Vidéo</option>
             </select>
           </div>
           <div class="col-md-5">
@@ -454,7 +457,7 @@
             </select>
           </div>
           <div class="col-md-3">
-            <label class="form-label"><span class="txt-fr">Ordre</span><span class="txt-en">Order</span><span class="txt-ar">الترتيب</span></label>
+            <label class="form-label"><span class="txt-fr">Ordre d'affichage</span><span class="txt-en">Display Order</span><span class="txt-ar">ترتيب العرض</span></label>
             <input type="number" id="annonce_ordre" class="form-control" value="1" min="1">
           </div>
         </div>
@@ -498,6 +501,7 @@
     </button>
   </div>
 </div>
+
 
 <script>
   let configActuelle = {};
@@ -558,19 +562,28 @@
     const cfg = JSON.parse(localStorage.getItem('config_site') || '{}');
     configActuelle = cfg;
 
+    // Couleurs
     document.getElementById('couleur_primaire').value = cfg.couleur_primaire || '#0c4a6e';
     document.getElementById('couleur_primaire_txt').value = cfg.couleur_primaire || '#0c4a6e';
     document.getElementById('couleur_secondaire').value = cfg.couleur_secondaire || '#f59e0b';
     document.getElementById('couleur_secondaire_txt').value = cfg.couleur_secondaire || '#f59e0b';
     document.getElementById('couleur_fond').value = cfg.couleur_fond || '#f1f5f9';
     document.getElementById('couleur_fond_txt').value = cfg.couleur_fond || '#f1f5f9';
+    
+    // Fond média
     document.getElementById('type_fond').value = cfg.type_fond || 'image';
     document.getElementById('url_fond').value = cfg.url_fond || cfg.image_fond || cfg.video_fond || '';
+    
+    // Polices & animations
     document.getElementById('police_titres').value = cfg.police_titres || "'Segoe UI', sans-serif";
     document.getElementById('animation_active').value = cfg.animation_active ? 'true' : 'false';
     document.getElementById('vitesse_animation').value = cfg.vitesse_animation || 3000;
+    
+    // Texte en-tête & pied
     document.getElementById('texte_entete').value = cfg.texte_entete || '';
     document.getElementById('texte_pied').value = cfg.texte_pied || '';
+    
+    // Réseaux sociaux
     document.getElementById('lien_facebook').value = cfg.lien_facebook || '';
     document.getElementById('lien_whatsapp').value = cfg.lien_whatsapp || '';
     document.getElementById('lien_email').value = cfg.lien_email || '';
@@ -599,21 +612,21 @@
       date_mise_a_jour: new Date().toISOString()
     };
 
-    // ✅ SAUVEGARDE → L'INDEX LIRE ICI DONC S'AFFICHE DIRECTEMENT
+    // ✅ SAUVEGARDE LOCALE → l'index lira ici et s'affichera à jour
     localStorage.setItem('config_site', JSON.stringify(donnees));
     
-    // ✅ MESSAGE DE SUCCÈS
+    // ✅ Message de succès
     document.getElementById('msg-succes').classList.add('montre');
     setTimeout(() => document.getElementById('msg-succes').classList.remove('montre'), 6000);
 
-    // Envoyer au serveur si API prête
+    // Envoyer au serveur si API prête (non bloquant)
     try {
       await fetch(API_URL + '/config/modifier', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(donnees)
       });
-    } catch(e) { /* API non prête → localStorage suffit */ }
+    } catch(e) { /* API non prête → localStorage fonctionne seul */ }
   }
 
   // 🖼️ GALERIE
@@ -668,34 +681,12 @@
     medias.splice(index, 1);
     localStorage.setItem('galerie_medias', JSON.stringify(medias));
     chargerGalerie();
-  };
-
-  // 📢 ANNONCES
-  async function chargerAnnonces() {
-    const annonces = JSON.parse(localStorage.getItem('annonces') || '[]');
-    const zone = document.getElementById('liste-annonces');
-    if (annonces.length > 0) {
-      zone.innerHTML = annonces.map((a,i) => `
-        <div class="p-3 border rounded-3 mb-2 bg-light">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="mb-0 fw-bold">${a.titre}</h6>
-            <span class="badge bg-secondary">#${i+1}</span>
-          </div>
-          <p class="mb-1 text-dark">${a.contenu.substring(0, 80)}${a.contenu.length > 80 ? '...' : ''}</p>
-          <div class="d-flex justify-content-between align-items-center small text-muted mt-2">
-            <span>${a.date_debut || ''}${a.date_fin ? ' → ' + a.date_fin : ''}</span>
-            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="supprimerAnnonce(${i})">🗑️</button>
-          </div>
-        </div>`).join('');
-    } else {
-      zone.innerHTML = '<p class="text-muted text-center py-3"><span class="txt-fr">Aucune annonce</span><span class="txt-en">No announcements</span><span class="txt-ar">لا توجد إعلانات</span></p>';
-    }
   }
 
-  async function ajouterAnnonce() {
+   async function ajouterAnnonce() {
     const annonces = JSON.parse(localStorage.getItem('annonces') || '[]');
     annonces.push({
-            titre: document.getElementById('annonce_titre').value,
+      titre: document.getElementById('annonce_titre').value,
       contenu: document.getElementById('annonce_contenu').value,
       type: document.getElementById('annonce_type').value,
       ordre: parseInt(document.getElementById('annonce_ordre').value) || 1,
@@ -704,7 +695,49 @@
       date_creation: new Date().toISOString()
     });
 
+    // Réinitialisation du formulaire
+    document.getElementById('annonce_titre').value = '';
+    document.getElementById('annonce_contenu').value = '';
+    document.getElementById('annonce_type').value = 'info';
+    document.getElementById('annonce_ordre').value = '1';
+    document.getElementById('annonce_debut').value = '';
+    document.getElementById('annonce_fin').value = '';
+
     localStorage.setItem('annonces', JSON.stringify(annonces));
+    chargerAnnonces();
+    alert(langue === 'ar' ? '✅ تم نشر الإعلان!' : langue === 'en' ? '✅ Announcement published!' : '✅ Annonce publiée !');
+  }
+
+  window.supprimerAnnonce = function(index) {
+    if (!confirm(t('confirmer'))) return;
+    const annonces = JSON.parse(localStorage.getItem('annonces') || '[]');
+    annonces.splice(index, 1);
+    localStorage.setItem('annonces', JSON.stringify(annonces));
+    chargerAnnonces();
+  };
+
+  // Synchronisation champs de couleur
+  document.getElementById('couleur_primaire').addEventListener('input', e => {
+    document.getElementById('couleur_primaire_txt').value = e.target.value;
+  });
+  document.getElementById('couleur_primaire_txt').addEventListener('input', e => {
+    document.getElementById('couleur_primaire').value = e.target.value;
+  });
+
+  document.getElementById('couleur_secondaire').addEventListener('input', e => {
+    document.getElementById('couleur_secondaire_txt').value = e.target.value;
+  });
+  document.getElementById('couleur_secondaire_txt').addEventListener('input', e => {
+    document.getElementById('couleur_secondaire').value = e.target.value;
+  });
+
+  document.getElementById('couleur_fond').addEventListener('input', e => {
+    document.getElementById('couleur_fond_txt').value = e.target.value;
+  });
+  document.getElementById('couleur_fond_txt').addEventListener('input', e => {
+    document.getElementById('couleur_fond').value = e.target.value;
+  });
+
 
     // Réinitialisation du formulaire
     document.getElementById('annonce_titre').value = '';
@@ -716,7 +749,7 @@
 
     chargerAnnonces();
     alert(langue==='ar'?'✅ تم نشر الإعلان!':langue==='en'?'✅ Announcement published!':'✅ Annonce publiée !');
-  }
+  
 
   window.supprimerAnnonce = function(index) {
     if (!confirm(t('confirmer'))) return;
@@ -726,17 +759,27 @@
     chargerAnnonces();
   }
 
-  // Synchronisation des champs couleur texte ↔ sélectionneur
+  // 🔄 Synchronisation en temps réel : champ texte ←→ sélecteur de couleur
   document.getElementById('couleur_primaire').addEventListener('input', e => {
     document.getElementById('couleur_primaire_txt').value = e.target.value;
   });
+  document.getElementById('couleur_primaire_txt').addEventListener('input', e => {
+    document.getElementById('couleur_primaire').value = e.target.value;
+  });
+
   document.getElementById('couleur_secondaire').addEventListener('input', e => {
     document.getElementById('couleur_secondaire_txt').value = e.target.value;
   });
+  document.getElementById('couleur_secondaire_txt').addEventListener('input', e => {
+    document.getElementById('couleur_secondaire').value = e.target.value;
+  });
+
   document.getElementById('couleur_fond').addEventListener('input', e => {
     document.getElementById('couleur_fond_txt').value = e.target.value;
   });
-
+  document.getElementById('couleur_fond_txt').addEventListener('input', e => {
+    document.getElementById('couleur_fond').value = e.target.value;
+  });
 </script>
 
 </body>
