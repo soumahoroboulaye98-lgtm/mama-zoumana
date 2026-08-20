@@ -1,20 +1,25 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const verifadmin = require('../middleware/verifadmin');
-const verifauth = require('../middleware/verifadmin');
+const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté
+const verifadmin = require('../middleware/verifadmin');    // ✅ Après le token
+
+// ✅ Protections groupées
+const protegerAdmin = [veriftoken, verifadmin];
+const protegerAuth = [veriftoken]; // Seul le token suffit pour l'espace utilisateur
+
 
 // ==================================================
-// 📋 LISTE DES PAIEMENTS + RÉSUMÉ — ADMIN SEUL
+// 📋 LISTE DES PAIEMENTS + RÉSUMÉ — Administrateur seul
 // ==================================================
-router.get('/liste', verifadmin, async (req, res) => {
+router.get('/liste', protegerAdmin, async (req, res) => {
   try {
     const { statut, moyen, mois, annee } = req.query;
     let conditions = [], params = [], idx = 1;
 
     if (statut) { conditions.push(`p.statut = $${idx++}`); params.push(statut); }
     if (moyen) { conditions.push(`p.moyen_paiement = $${idx++}`); params.push(moyen); }
-    if (mois && annee) { 
+    if (mois && annee) {
       conditions.push(`EXTRACT(MONTH FROM p.date_paiement) = $${idx}`); params.push(mois); idx++;
       conditions.push(`EXTRACT(YEAR FROM p.date_paiement) = $${idx}`); params.push(annee); idx++;
     }
@@ -22,18 +27,18 @@ router.get('/liste', verifadmin, async (req, res) => {
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const r = await pool.query(`
-      SELECT p.*, 
+      SELECT p.*,
         CASE WHEN p.montant_total > 0 THEN ROUND((p.montant_paye / p.montant_total) * 100, 1) ELSE 0 END AS pourcentage_paiement_calcule,
-        u.nom, u.prenoms, u.email 
+        u.nom, u.prenoms, u.email
       FROM paiements p
       LEFT JOIN utilisateurs u ON p.id_utilisateur = u.id_utilisateur
       ${where}
       ORDER BY p.date_paiement DESC, p.date_creation DESC
     `, params);
 
-    // 📊 Résumé — utilise les colonnes existantes
+    // 📊 Résumé
     const totaux = await pool.query(`
-      SELECT 
+      SELECT
         COUNT(*) AS total_enregistrements,
         COALESCE(SUM(p.montant_total),0)::NUMERIC AS somme_totale,
         COALESCE(SUM(p.montant_paye),0)::NUMERIC AS somme_recue,
@@ -44,8 +49,9 @@ router.get('/liste', verifadmin, async (req, res) => {
       FROM paiements p ${where}
     `, params);
 
-    res.json({ 
-      ok: true, 
+    console.log(`✅ Liste paiements chargée : ${r.rows.length} enregistrements`);
+    res.json({
+      ok: true,
       paiements: r.rows,
       resume: {
         somme_totale: totaux.rows[0].somme_totale,
@@ -59,10 +65,11 @@ router.get('/liste', verifadmin, async (req, res) => {
   }
 });
 
+
 // ==================================================
-// ➕ ENREGISTRER UN PAIEMENT — ADMIN SEUL
+// ➕ ENREGISTRER UN PAIEMENT — Administrateur seul
 // ==================================================
-router.post('/enregistrer', verifadmin, async (req, res) => {
+router.post('/enregistrer', protegerAdmin, async (req, res) => {
   try {
     const id_utilisateur = req.user.id_utilisateur;
     const {
@@ -81,7 +88,7 @@ router.post('/enregistrer', verifadmin, async (req, res) => {
     const montantVerse = parseFloat(montant_paye) || 0;
     const montantRestant = Math.max(0, montantDu - montantVerse);
 
-    // ✅ Statut et pourcentage calculés auto
+    // ✅ Statut et pourcentage calculés automatiquement
     let statut = 'en_attente';
     let pourcentage = 0;
     if (montantDu > 0) {
@@ -109,34 +116,38 @@ router.post('/enregistrer', verifadmin, async (req, res) => {
       commentaire || null, categorie || 'frais_scolaires'
     ]);
 
+    console.log(`✅ Paiement enregistré — ID: ${r.rows[0].id_paiement}, Statut: ${statut}`);
     res.json({ ok: true, paiement: r.rows[0] });
   } catch (e) {
-    console.log("❌ ERREUR ENREGISTREMENT :", e.message);
+    console.log("❌ ERREUR ENREGISTREMENT PAIEMENT :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
-// ✏️ AJOUTER UN VERSEMENT — ADMIN SEUL
+// ✏️ AJOUTER UN VERSEMENT — Administrateur seul
 // ==================================================
-router.put('/ajouter-versement/:id', verifadmin, async (req, res) => {
+router.put('/ajouter-versement/:id', protegerAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { montant_paye, commentaire, numero_transaction } = req.body;
     const montantAjoute = parseFloat(montant_paye) || 0;
 
-    // Récupère paiement existant
+    // Récupère le paiement existant
     const ancien = await pool.query(
-      'SELECT montant_total, montant_paye FROM paiements WHERE id_paiement = $1', 
+      'SELECT montant_total, montant_paye FROM paiements WHERE id_paiement = $1',
       [id]
     );
-    if (!ancien.rows.length) return res.json({ ok: false, erreur: "Paiement introuvable" });
+    if (!ancien.rows.length) {
+      return res.json({ ok: false, erreur: "Paiement introuvable" });
+    }
 
     const montantDu = parseFloat(ancien.rows[0].montant_total);
     const nouveauPaye = parseFloat(ancien.rows[0].montant_paye) + montantAjoute;
     const nouveauRestant = Math.max(0, montantDu - nouveauPaye);
-    
-    // ✅ Nouveau statut et pourcentage
+
+    // ✅ Nouveau statut et pourcentage recalculés
     let nouveauStatut = 'en_attente';
     let nouveauPourcentage = 0;
     if (montantDu > 0) {
@@ -158,6 +169,7 @@ router.put('/ajouter-versement/:id', verifadmin, async (req, res) => {
       RETURNING *
     `, [nouveauPaye, nouveauRestant, nouveauStatut, nouveauPourcentage, montantAjoute, numero_transaction || null, id]);
 
+    console.log(`✅ Versement ajouté — Paiement ID: ${id}, Nouveau statut: ${nouveauStatut}`);
     res.json({ ok: true, paiement: r.rows[0] });
   } catch (e) {
     console.log("❌ ERREUR AJOUT VERSEMENT :", e.message);
@@ -165,30 +177,37 @@ router.put('/ajouter-versement/:id', verifadmin, async (req, res) => {
   }
 });
 
+
 // ==================================================
-// ❌ SUPPRIMER — ADMIN SEUL
+// ❌ SUPPRIMER UN PAIEMENT — Administrateur seul
 // ==================================================
-router.delete('/:id', verifadmin, async (req, res) => {
+router.delete('/:id', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(
-      'DELETE FROM paiements WHERE id_paiement = $1 RETURNING *', 
+      'DELETE FROM paiements WHERE id_paiement = $1 RETURNING *',
       [req.params.id]
     );
-    if (!r.rows.length) return res.json({ ok: false, erreur: "Paiement introuvable" });
+    if (!r.rows.length) {
+      return res.json({ ok: false, erreur: "Paiement introuvable" });
+    }
+    console.log(`🗑️ Paiement supprimé — ID: ${req.params.id}`);
     res.json({ ok: true });
   } catch (e) {
-    console.log("❌ ERREUR SUPPRESSION :", e.message);
+    console.log("❌ ERREUR SUPPRESSION PAIEMENT :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
 // 👤 MES PAIEMENTS — Utilisateur connecté
 // ==================================================
-router.get('/mes-paiements', verifauth, async (req, res) => {
+router.get('/mes-paiements', protegerAuth, async (req, res) => {
   try {
     const id_utilisateur = req.user?.id_utilisateur;
-    if (!id_utilisateur) return res.json({ ok: false, erreur: "Authentification requise" });
+    if (!id_utilisateur) {
+      return res.json({ ok: false, erreur: "Authentification requise" });
+    }
 
     const { statut, annee } = req.query;
     let conditions = ['p.id_utilisateur = $1'];
@@ -217,6 +236,7 @@ router.get('/mes-paiements', verifauth, async (req, res) => {
       ${where}
     `, params);
 
+    console.log(`✅ Mes paiements chargés — Utilisateur ID: ${id_utilisateur}`);
     res.json({
       ok: true,
       paiements: r.rows,
@@ -227,5 +247,6 @@ router.get('/mes-paiements', verifauth, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 module.exports = router;
