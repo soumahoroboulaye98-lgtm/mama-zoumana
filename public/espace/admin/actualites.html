@@ -180,6 +180,14 @@
 
     /* 📦 Contenu */
     .contenu { padding: 2.5rem; max-width: 1280px; margin: 0 auto; }
+    .alerte-api {
+      border-left: 3px solid var(--alerte);
+      background: rgba(239,68,68,0.08);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    body.lang-ar .alerte-api { border-left: none; border-right: 3px solid var(--alerte); }
     .bienvenue {
       background: linear-gradient(135deg, rgba(12,74,110,0.06), rgba(245,158,11,0.08));
       padding: 2.2rem 2.8rem; border-radius: 24px;
@@ -189,16 +197,16 @@
     }
     .bienvenue:hover { box-shadow: var(--ombre-hover); transform: translateY(-2px); }
     body.lang-ar .bienvenue { border-left: none; border-right: 5px solid var(--accent); }
-   .bienvenue h2 {
-  font-size: 1.9rem;
-  font-weight: 800;
-  color: var(--primaire);
-  margin-bottom: 0.5rem;
-  background: linear-gradient(90deg, var(--primaire), var(--primaire-clair));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-} 
+    .bienvenue h2 {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--primaire);
+      margin-bottom: 0.5rem;
+      background: linear-gradient(90deg, var(--primaire), var(--primaire-clair));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
     .nom-utilisateur-affiche {
       font-weight: 600; color: var(--primaire); background: white;
       padding: 0.5rem 1.2rem; border-radius: 50px;
@@ -313,212 +321,130 @@
 <body>
 
 <script>
+  // 🔗 CONFIGURATION API & SÉCURITÉ
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
   const nomUtilisateur = localStorage.getItem('nom') || 'Utilisateur';
   const prenomUtilisateur = localStorage.getItem('prenoms') || '';
   const nomComplet = (nomUtilisateur + ' ' + prenomUtilisateur).trim();
-  const API_URL = "https://mama-zoumana-api.onrender.com/api"
 
-  if (!token || !['admin','super_admin'].includes(role)) {
-    alert("⛔ Accès réservé à l'Administrateur");
+  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api/actualites'
+    : 'https://mama-zoumana-api.onrender.com/api/actualites';
+
+  let langue = localStorage.getItem('langue') || 'fr';
+  let modeLocal = false;
+  let editionId = null;
+
+  // 💾 STOCKAGE LOCAL
+  function obtenirActualitesLocales() { return JSON.parse(localStorage.getItem('actualites') || '[]'); }
+  function sauvegarderActualitesLocales(liste) { localStorage.setItem('actualites', JSON.stringify(liste)); }
+
+  // 🗣️ TRADUCTIONS
+  const MSG = {
+    fr: {
+      accesReserve: "⛔ Accès réservé à l'Administrateur",
+      serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
+      chargerErreur: "Erreur de chargement",
+      connexionErreur: "❌ Erreur de connexion au serveur",
+      aucunChampVide: "⚠️ Remplissez au moins le titre et le contenu en français",
+      ajouterSucces: "✅ Actualité publiée avec succès !",
+      modifierSucces: "✅ Actualité mise à jour !",
+      supprimerConfirmer: "Supprimer cette actualité ?",
+      supprimerSucces: "✅ Supprimé avec succès !",
+      annuler: "Annuler",
+      modifier: "Modifier",
+      supprimer: "Supprimer",
+      publier: "🚀 Publier l'Actualité",
+      miseAJour: "✅ Mettre à jour",
+      aucunEnregistrement: "Aucune actualité enregistrée",
+      brouillon: "📄 Brouillon",
+      date: "Date"
+    },
+    en: {
+      accesReserve: "⛔ Access restricted to Administrator",
+      serveurIndispo: "⚠️ Server offline — Local mode active",
+      chargerErreur: "Loading error",
+      connexionErreur: "❌ Server connection error",
+      aucunChampVide: "⚠️ Fill at least French title and content",
+      ajouterSucces: "✅ News published successfully!",
+      modifierSucces: "✅ News updated!",
+      supprimerConfirmer: "Delete this news item?",
+      supprimerSucces: "✅ Deleted successfully!",
+      annuler: "Cancel",
+      modifier: "Edit",
+      supprimer: "Delete",
+      publier: "🚀 Publish News",
+      miseAJour: "✅ Update",
+      aucunEnregistrement: "No news recorded",
+      brouillon: "📄 Draft",
+      date: "Date"
+    },
+    ar: {
+      accesReserve: "⛔ الوصول مقصور على المدير",
+      serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
+      chargerErreur: "خطأ في التحميل",
+      connexionErreur: "❌ خطأ في الاتصال بالخادم",
+      aucunChampVide: "⚠️ املأ العنوان والمحتوى بالفرنسية على الأقل",
+      ajouterSucces: "✅ تم نشر الخبر بنجاح!",
+      modifierSucces: "✅ تم تحديث الخبر!",
+      supprimerConfirmer: "حذف هذا الخبر؟",
+      supprimerSucces: "✅ تم الحذف بنجاح!",
+      annuler: "إلغاء",
+      modifier: "تعديل",
+      supprimer: "حذف",
+      publier: "🚀 نشر الخبر",
+      miseAJour: "✅ تحديث",
+      aucunEnregistrement: "لا أخبار مسجلة",
+      brouillon: "📄 مسودة",
+      date: "التاريخ"
+    }
+  };
+  function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
+
+  // 🔒 SÉCURITÉ
+  if(!token || !['admin','super_admin'].includes(role)){
+    alert(m('accesReserve'));
+    localStorage.clear();
     location.href = '../connexion.html';
   }
 
-  let langue = localStorage.getItem('langue') || 'fr';
   document.body.classList.add('lang-' + langue);
-  let editionId = null;
 
+  // 📡 ALERTE MODE LOCAL
+  function basculerModeLocal(actif) {
+    modeLocal = actif;
+    const alerte = document.getElementById('alerteApi');
+    if (alerte) {
+      alerte.textContent = m('serveurIndispo');
+      alerte.classList.toggle('d-none', !actif);
+    }
+  }
+</script>
+
+<script>
+  // 🗣️ CHANGEMENT DE LANGUE
   window.appliquerLangue = function(lang, e) {
     localStorage.setItem('langue', lang);
+    langue = lang;
     document.body.classList.remove('lang-fr','lang-en','lang-ar');
     document.body.classList.add('lang-' + lang);
     document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('actif'));
     e.currentTarget.classList.add('actif');
-    langue = lang;
+    chargerActualites();
   };
 
   window.deconnecter = function() {
-    const msg = { 
-      ar: 'هل تريد تسجيل الخروج ؟', en: 'Are you sure you want to log out?', fr: 'Êtes-vous sûr de vouloir vous déconnecter ?' 
-    }[langue];
-    if (confirm(msg)) { localStorage.clear(); location.href = '../connexion.html'; }
+    if (confirm(m('supprimerConfirmer').slice(0,15) + '...')) {
+      localStorage.clear();
+      location.href = '../connexion.html';
+    }
   };
 
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('actif', b.dataset.lang === langue));
     document.getElementById('nom-affiche').textContent = nomComplet;
     chargerActualites();
-  });
-
-  const msg = {
-    chargerErreur: { fr: "Erreur de chargement", en: "Loading error", ar: "خطأ في التحميل" },
-    connexionErreur: { fr: "❌ Erreur de connexion au serveur", en: "❌ Server connection error", ar: "❌ خطأ في الاتصال بالخادم" },
-    aucunChampVide: { fr: "⚠️ Remplissez au moins le titre et le contenu en français", en: "⚠️ Fill at least French title and content", ar: "⚠️ املأ العنوان والمحتوى بالفرنسية على الأقل" },
-    ajouterSucces: { fr: "✅ Actualité publiée avec succès !", en: "✅ News published successfully!", ar: "✅ تم نشر الخبر بنجاح!" },
-    modifierSucces: { fr: "✅ Actualité mise à jour !", en: "✅ News updated!", ar: "✅ تم تحديث الخبر!" },
-    supprimerConfirmer: { fr: "Supprimer cette actualité ?", en: "Delete this news item?", ar: "حذف هذا الخبر؟" },
-    supprimerSucces: { fr: "✅ Supprimé avec succès !", en: "✅ Deleted successfully!", ar: "✅ تم الحذف بنجاح!" },
-    annuler: { fr: "Annuler", en: "Cancel", ar: "إلغاء" },
-    modifier: { fr: "Modifier", en: "Edit", ar: "تعديل" },
-    supprimer: { fr: "Supprimer", en: "Delete", ar: "حذف" },
-    publier: { fr: "🚀 Publier l'Actualité", en: "🚀 Publish News", ar: "🚀 نشر الخبر" },
-    miseAJour: { fr: "✅ Mettre à jour", en: "✅ Update", ar: "✅ تحديث" },
-    aucunEnregistrement: { fr: "Aucune actualité enregistrée", en: "No news recorded", ar: "لا أخبار مسجلة" }
-  };
-
-  async function chargerActualites() {
-    try {
-      const r = await fetch(`${API_URL}/liste?tout=1`, { headers: { 'Authorization': `Bearer ${token}` } });
-      const texte = await r.text();
-      let res;
-      try { res = JSON.parse(texte); } 
-      catch { throw new Error("Vérifiez que la route /api/actualites est déclarée AVANT express.static dans serveur.js"); }
-
-      const cont = document.getElementById('liste-actualites');
-      if (res.ok && res.actualites?.length > 0) {
-        cont.innerHTML = '';
-        res.actualites.forEach((a, index) => {
-          const titreAffiche = a[`titre_${langue}`] || a.titre_fr || a.titre_en || a.titre_ar || '';
-          const resumeAffiche = a[`resume_${langue}`] || a.resume_fr || '';
-          const dateAffiche = a.date_publication 
-            ? new Date(a.date_publication).toLocaleDateString(langue === 'ar' ? 'ar-MA' : 'fr-FR', { day:'2-digit', month:'long', year:'numeric' }) 
-            : '';
-          
-          cont.innerHTML += `
-            <div class="actu-card ${a.epingle ? 'epingle' : ''}" style="animation-delay: ${0.1 + index * 0.08}s">
-              <div class="d-flex justify-content-between align-items-start">
-                <div class="flex-grow-1">
-                  <div class="actu-titre">
-                    ${a.epingle ? '<i class="bi bi-pin-angle-fill text-warning float" style="animation-delay:0s"></i>' : ''}
-                    ${titreAffiche}
-                    ${!a.est_publie ? `<span class="badge bg-secondary ms-2 txt-fr">Brouillon</span>` : ''}
-                  </div>
-                  <div class="actu-meta"><i class="bi bi-calendar3 text-primary"></i> ${dateAffiche}</div>
-                  ${resumeAffiche ? `<p class="actu-contenu">${resumeAffiche}</p>` : ''}
-                </div>
-                <div class="btn-group ms-2">
-                  <button class="btn btn-sm btn-outline-primary" onclick="editerActualite(${a.id})" title="${msg.modifier[langue]}">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  <button class="btn btn-sm btn-outline-danger" onclick="supprimerActualite(${a.id})" title="${msg.supprimer[langue]}">
-                    <i class="bi bi-trash3"></i>
-                  </button>
-                </div>
-              </div>
-            </div>`;
-        });
-      } else {
-        cont.innerHTML = `<p class="text-muted text-center py-5 fade-in">
-          <i class="bi bi-newspaper display-4 d-block mb-3 text-opacity-25"></i>
-          📰 <span class="txt-fr">${msg.aucunEnregistrement.fr}</span>
-          <span class="txt-en">${msg.aucunEnregistrement.en}</span>
-          <span class="txt-ar">${msg.aucunEnregistrement.ar}</span>
-        </p>`;
-      }
-    } catch (e) {
-      document.getElementById('liste-actualites').innerHTML = `
-        <div class="alert alert-danger fade-in-up" role="alert">
-          ⚠️ ${msg.chargerErreur[langue]} : ${e.message}
-        </div>`;
-    }
-  }
-
-  function reinitialiserFormulaire() {
-    document.getElementById('form-actualite').reset();
-    document.querySelector('#form-actualite button[type="submit"]').innerHTML = `
-      <i class="bi bi-send-check me-2"></i>
-      <span class="txt-fr">${msg.publier.fr}</span>
-      <span class="txt-en">${msg.publier.en}</span>
-      <span class="txt-ar">${msg.publier.ar}</span>`;
-    editionId = null;
-  }
-
-  window.editerActualite = async function(id) {
-    try {
-      const r = await fetch(`${API_URL}/liste?tout=1`, { headers: { 'Authorization': `Bearer ${token}` } });
-      const res = await r.json();
-      const actu = res.actualites.find(a => a.id === id);
-      if (!actu) return;
-
-      document.getElementById('titre_fr').value = actu.titre_fr || '';
-      document.getElementById('titre_en').value = actu.titre_en || '';
-      document.getElementById('titre_ar').value = actu.titre_ar || '';
-      document.getElementById('resume_fr').value = actu.resume_fr || '';
-      document.getElementById('resume_en').value = actu.resume_en || '';
-      document.getElementById('resume_ar').value = actu.resume_ar || '';
-      document.getElementById('contenu_fr').value = actu.contenu_fr || '';
-      document.getElementById('contenu_en').value = actu.contenu_en || '';
-      document.getElementById('contenu_ar').value = actu.contenu_ar || '';
-      document.getElementById('est_publie').checked = actu.est_publie !== false;
-      document.getElementById('epingle').checked = actu.epingle === true;
-
-      document.querySelector('#form-actualite button[type="submit"]').innerHTML = `
-        <i class="bi bi-check2-square me-2"></i>
-        <span class="txt-fr">${msg.miseAJour.fr}</span>
-        <span class="txt-en">${msg.miseAJour.en}</span>
-        <span class="txt-ar">${msg.miseAJour.ar}</span>
-        <button type="button" class="btn btn-sm btn-outline-secondary ms-3" onclick="reinitialiserFormulaire()">
-          <span class="txt-fr">${msg.annuler.fr}</span>
-          <span class="txt-en">${msg.annuler.en}</span>
-          <span class="txt-ar">${msg.annuler.ar}</span>
-        </button>`;
-      editionId = id;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (e) { alert(e.message); }
-  };
-
-  window.supprimerActualite = async function(id) {
-    if (!confirm(msg.supprimerConfirmer[langue])) return;
-    try {
-      const r = await fetch(`${API_URL}/${id}`, {
-        method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const res = await r.json();
-      if (res.ok) { alert(msg.supprimerSucces[langue]); chargerActualites(); }
-      else alert("❌ " + (res.erreur || "Erreur"));
-    } catch { alert(msg.connexionErreur[langue]); }
-  };
-
-  document.getElementById('form-actualite').addEventListener('submit', async e => {
-    e.preventDefault();
-    const titre_fr = document.getElementById('titre_fr').value.trim();
-    const titre_en = document.getElementById('titre_en').value.trim();
-    const titre_ar = document.getElementById('titre_ar').value.trim();
-    const resume_fr = document.getElementById('resume_fr').value.trim();
-    const resume_en = document.getElementById('resume_en').value.trim();
-    const resume_ar = document.getElementById('resume_ar').value.trim();
-    const contenu_fr = document.getElementById('contenu_fr').value.trim();
-    const contenu_en = document.getElementById('contenu_en').value.trim();
-    const contenu_ar = document.getElementById('contenu_ar').value.trim();
-    const est_publie = document.getElementById('est_publie').checked;
-    const epingle = document.getElementById('epingle').checked;
-
-    if (!titre_fr || !contenu_fr) { alert(msg.aucunChampVide[langue]); return; }
-
-    const donnees = { titre_fr, titre_en, titre_ar, resume_fr, resume_en, resume_ar, contenu_fr, contenu_en, contenu_ar, est_publie, epingle };
-
-    try {
-      let r, res;
-      if (editionId) {
-        r = await fetch(`${API_URL}/${editionId}`, {
-          method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify(donnees)
-        });
-        res = await r.json();
-        if (res.ok) alert(msg.modifierSucces[langue]);
-      } else {
-        r = await fetch(`${API_URL}/enregistrer`, {
-          method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify(donnees)
-        });
-        res = await r.json();
-        if (res.ok) alert(msg.ajouterSucces[langue]);
-      }
-      if (!res.ok) return alert("❌ " + (res.erreur || "Erreur serveur"));
-      reinitialiserFormulaire();
-      chargerActualites();
-    } catch { alert(msg.connexionErreur[langue]); }
   });
 </script>
 
@@ -533,7 +459,7 @@
       <ul class="navbar-nav me-auto">
         <li class="nav-item">
           <a class="nav-link" href="dashboard.html">
-            <i class="bi bi-speedometer2"></i> 
+            <i class="bi bi-speedometer2"></i>
             <span class="txt-fr">Tableau de Bord</span>
             <span class="txt-en">Dashboard</span>
             <span class="txt-ar">لوحة التحكم</span>
@@ -541,20 +467,20 @@
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-            <i class="bi bi-people"></i> 
+            <i class="bi bi-people"></i>
             <span class="txt-fr">Utilisateurs</span>
             <span class="txt-en">Users</span>
             <span class="txt-ar">المستخدمون</span>
           </a>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="utilisateurs.html">
-              <i class="bi bi-person-lines-fill"></i> 
+              <i class="bi bi-person-lines-fill"></i>
               <span class="txt-fr">Gérer Utilisateurs</span>
               <span class="txt-en">Manage Users</span>
               <span class="txt-ar">إدارة المستخدمين</span>
             </a></li>
             <li><a class="dropdown-item" href="affectation-prof.html">
-              <i class="bi bi-person-check"></i> 
+              <i class="bi bi-person-check"></i>
               <span class="txt-fr">Affectation Enseignants</span>
               <span class="txt-en">Teacher Assignment</span>
               <span class="txt-ar">تكليف المدرسين</span>
@@ -563,26 +489,26 @@
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
-            <i class="bi bi-megaphone"></i> 
+            <i class="bi bi-megaphone"></i>
             <span class="txt-fr">Communication</span>
             <span class="txt-en">Communication</span>
             <span class="txt-ar">التواصل</span>
           </a>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="annonces.html">
-              <i class="bi bi-broadcast-pin"></i> 
+              <i class="bi bi-broadcast-pin"></i>
               <span class="txt-fr">Annonces</span>
               <span class="txt-en">Announcements</span>
               <span class="txt-ar">الإعلانات</span>
             </a></li>
             <li><a class="dropdown-item active" href="actualites.html">
-              <i class="bi bi-newspaper"></i> 
+              <i class="bi bi-newspaper"></i>
               <span class="txt-fr">Actualités</span>
               <span class="txt-en">News</span>
               <span class="txt-ar">الأخبار</span>
             </a></li>
             <li><a class="dropdown-item" href="evenements.html">
-              <i class="bi bi-calendar-event"></i> 
+              <i class="bi bi-calendar-event"></i>
               <span class="txt-fr">Événements</span>
               <span class="txt-en">Events</span>
               <span class="txt-ar">الفعاليات</span>
@@ -593,7 +519,7 @@
       <div class="d-flex align-items-center">
         <button class="btn-langue" data-lang="fr" onclick="appliquerLangue('fr', event)">🇫🇷 FR</button>
         <button class="btn-langue" data-lang="en" onclick="appliquerLangue('en', event)">🇬🇧 EN</button>
-        <button class="btn-langue" data-lang="ar" onclick="appliquerLangue('ar', event)">🇩🇪 AR</button>
+        <button class="btn-langue" data-lang="ar" onclick="appliquerLangue('ar', event)">🇸🇦 AR</button>
         <span class="nom-utilisateur-affiche ms-3 d-none d-md-inline">
           <i class="bi bi-person-circle text-primary"></i> <span id="nom-affiche">...</span>
         </span>
@@ -608,10 +534,16 @@
   </div>
 </nav>
 
-
 <div class="contenu">
+
+  <!-- ⚠️ ALERTE MODE LOCAL -->
+  <div id="alerteApi" class="alerte-api d-none fade-in-up">
+    <i class="bi bi-wifi-off me-2"></i>
+    <span id="texteAlerteApi"></span>
+  </div>
+
   <div class="bienvenue fade-in-up">
-    <h2>📰 
+    <h2>📰
       <span class="txt-fr">Gestion des Actualités</span>
       <span class="txt-en">News Management</span>
       <span class="txt-ar">إدارة الأخبار</span>
@@ -619,7 +551,7 @@
     <p class="text-muted mb-0">
       <span class="txt-fr">Publiez et gérez vos actualités en trois langues : Français, Anglais et Arabe.</span>
       <span class="txt-en">Publish and manage your news in three languages: French, English and Arabic.</span>
-      <span class="txt-ar">انشر وأخبر أخبارك بثلاث لغات: الفرنسية والإنجليزية والعربية.</span>
+      <span class="txt-ar">انشر وأدر أخبارك بثلاث لغات: الفرنسية والإنجليزية والعربية.</span>
     </p>
   </div>
 
@@ -716,7 +648,7 @@
         </div>
       </div>
 
-      <button type="submit" class="btn btn-primary w-100 mt-4">
+      <button type="submit" id="btnSoumettre" class="btn btn-primary w-100 mt-4">
         <i class="bi bi-send-check me-2"></i>
         <span class="txt-fr">🚀 Publier l'Actualité</span>
         <span class="txt-en">🚀 Publish News</span>
@@ -737,5 +669,194 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// 📋 CHARGER LA LISTE
+async function chargerActualites(forcerLocal = false) {
+  let liste = [];
+  if (!forcerLocal) {
+    try {
+      const r = await fetch(`${API_URL}/liste?tout=1`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (!r.ok) throw new Error();
+      const texte = await r.text();
+      let res;
+      try { res = JSON.parse(texte); }
+      catch { throw new Error("Réponse invalide du serveur"); }
+      liste = res.actualites || [];
+      sauvegarderActualitesLocales(liste);
+      basculerModeLocal(false);
+    } catch {
+      forcerLocal = true;
+    }
+  }
+  if (forcerLocal) {
+    basculerModeLocal(true);
+    liste = obtenirActualitesLocales();
+  }
+
+  const cont = document.getElementById('liste-actualites');
+  if (liste.length > 0) {
+    cont.innerHTML = '';
+    liste.forEach((a, index) => {
+      const titreAffiche = a[`titre_${langue}`] || a.titre_fr || a.titre_en || a.titre_ar || '';
+      const resumeAffiche = a[`resume_${langue}`] || a.resume_fr || '';
+      const dateAffiche = a.date_publication
+        ? new Date(a.date_publication).toLocaleDateString(langue === 'ar' ? 'ar-MA' : 'fr-FR', { day:'2-digit', month:'long', year:'numeric' })
+        : '';
+
+      cont.innerHTML += `
+        <div class="actu-card ${a.epingle ? 'epingle' : ''}" style="animation-delay: ${0.1 + index * 0.08}s">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+              <div class="actu-titre">
+                ${a.epingle ? '<i class="bi bi-pin-angle-fill text-warning float"></i>' : ''}
+                ${titreAffiche}
+                ${!a.est_publie ? `<span class="badge bg-secondary ms-2">${m('brouillon')}</span>` : ''}
+              </div>
+              <div class="actu-meta"><i class="bi bi-calendar3 text-primary"></i> ${m('date')} : ${dateAffiche}</div>
+              ${resumeAffiche ? `<p class="actu-contenu">${resumeAffiche}</p>` : ''}
+            </div>
+            <div class="btn-group ms-2">
+              <button class="btn btn-sm btn-outline-primary" onclick="editerActualite(${a.id})" title="${m('modifier')}">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger" onclick="supprimerActualite(${a.id})" title="${m('supprimer')}">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+          </div>
+        </div>`;
+    });
+  } else {
+    cont.innerHTML = `<p class="text-muted text-center py-5 fade-in">
+      <i class="bi bi-newspaper display-4 d-block mb-3 text-opacity-25"></i>📰 ${m('aucunEnregistrement')}
+    </p>`;
+  }
+}
+
+// 🔄 Réinitialiser formulaire
+function reinitialiserFormulaire() {
+  document.getElementById('form-actualite').reset();
+  document.getElementById('btnSoumettre').innerHTML = `
+    <i class="bi bi-send-check me-2"></i>
+    <span class="txt-fr">🚀 Publier l'Actualité</span>
+    <span class="txt-en">🚀 Publish News</span>
+    <span class="txt-ar">🚀 نشر الخبر</span>`;
+  editionId = null;
+}
+
+// ✏️ Éditer une actualité
+window.editerActualite = async function(id) {
+  let liste;
+  try {
+    const r = await fetch(`${API_URL}/liste?tout=1`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const res = await r.json();
+    liste = res.actualites || [];
+  } catch {
+    liste = obtenirActualitesLocales();
+  }
+  const actu = liste.find(a => Number(a.id) === Number(id));
+  if (!actu) return;
+
+  document.getElementById('titre_fr').value = actu.titre_fr || '';
+  document.getElementById('titre_en').value = actu.titre_en || '';
+  document.getElementById('titre_ar').value = actu.titre_ar || '';
+  document.getElementById('resume_fr').value = actu.resume_fr || '';
+  document.getElementById('resume_en').value = actu.resume_en || '';
+  document.getElementById('resume_ar').value = actu.resume_ar || '';
+  document.getElementById('contenu_fr').value = actu.contenu_fr || '';
+  document.getElementById('contenu_en').value = actu.contenu_en || '';
+  document.getElementById('contenu_ar').value = actu.contenu_ar || '';
+  document.getElementById('est_publie').checked = actu.est_publie !== false;
+  document.getElementById('epingle').checked = actu.epingle === true;
+
+  document.getElementById('btnSoumettre').innerHTML = `
+    <i class="bi bi-check2-square me-2"></i>
+    <span class="txt-fr">✅ Mettre à jour</span>
+    <span class="txt-en">✅ Update</span>
+    <span class="txt-ar">✅ تحديث</span>
+    <button type="button" class="btn btn-sm btn-outline-secondary ms-3" onclick="reinitialiserFormulaire()">
+      <span class="txt-fr">Annuler</span><span class="txt-en">Cancel</span><span class="txt-ar">إلغاء</span>
+    </button>`;
+  editionId = id;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// 🗑️ Supprimer une actualité
+window.supprimerActualite = async function(id) {
+  if (!confirm(m('supprimerConfirmer'))) return;
+  try {
+    const r = await fetch(`${API_URL}/${id}`, {
+      method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const res = await r.json();
+    if (res.ok) { alert(m('supprimerSucces')); chargerActualites(); }
+    else alert("❌ " + (res.erreur || "Erreur"));
+  } catch {
+    let liste = obtenirActualitesLocales().filter(a => Number(a.id) !== Number(id));
+    sauvegarderActualitesLocales(liste);
+    basculerModeLocal(true);
+    alert(m('supprimerSucces') + " (local)");
+    chargerActualites(true);
+  }
+};
+
+// 💾 Soumettre le formulaire
+document.getElementById('form-actualite').addEventListener('submit', async e => {
+  e.preventDefault();
+  const titre_fr = document.getElementById('titre_fr').value.trim();
+  const titre_en = document.getElementById('titre_en').value.trim();
+  const titre_ar = document.getElementById('titre_ar').value.trim();
+  const resume_fr = document.getElementById('resume_fr').value.trim();
+  const resume_en = document.getElementById('resume_en').value.trim();
+  const resume_ar = document.getElementById('resume_ar').value.trim();
+  const contenu_fr = document.getElementById('contenu_fr').value.trim();
+  const contenu_en = document.getElementById('contenu_en').value.trim();
+  const contenu_ar = document.getElementById('contenu_ar').value.trim();
+  const est_publie = document.getElementById('est_publie').checked;
+  const epingle = document.getElementById('epingle').checked;
+
+  if (!titre_fr || !contenu_fr) { alert(m('aucunChampVide')); return; }
+
+  const donnees = { titre_fr, titre_en, titre_ar, resume_fr, resume_en, resume_ar, contenu_fr, contenu_en, contenu_ar, est_publie, epingle };
+  donnees.date_publication = new Date().toISOString();
+
+  try {
+    let r, res;
+    if (editionId) {
+      r = await fetch(`${API_URL}/${editionId}`, {
+        method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(donnees)
+      });
+      res = await r.json();
+      if (res.ok) alert(m('modifierSucces'));
+    } else {
+      r = await fetch(`${API_URL}/enregistrer`, {
+        method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(donnees)
+      });
+      res = await r.json();
+      if (res.ok) alert(m('ajouterSucces'));
+    }
+    if (!res.ok) return alert("❌ " + (res.erreur || "Erreur serveur"));
+    reinitialiserFormulaire();
+    chargerActualites();
+  } catch {
+    // 📴 Mode local
+    let liste = obtenirActualitesLocales();
+    donnees.id = editionId ? Number(editionId) : Date.now();
+    if (editionId) {
+      liste = liste.map(a => Number(a.id) === Number(editionId) ? {...a, ...donnees} : a);
+    } else {
+      liste.unshift(donnees);
+    }
+    sauvegarderActualitesLocales(liste);
+    basculerModeLocal(true);
+    alert((editionId ? m('modifierSucces') : m('ajouterSucces')) + " (local)");
+    reinitialiserFormulaire();
+    chargerActualites(true);
+  }
+});
+</script>
+
 </body>
 </html>
