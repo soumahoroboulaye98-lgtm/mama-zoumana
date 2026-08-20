@@ -4,12 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>
-    <span class="txt-fr">Emploi du Temps — Enseignant</span>
-    <span class="txt-en">My Timetable — Teacher</span>
-    <span class="txt-ar">الجدول الزمني — المعلم</span>
+    <span class="txt-fr">Emploi du Temps — Enseignant — MAMA-ZOUMANA</span>
+    <span class="txt-en">My Timetable — Teacher — MAMA-ZOUMANA</span>
+    <span class="txt-ar">الجدول الزمني — المعلم — ماما زومانا</span>
   </title>
+
+  <!-- URLs vérifiées et harmonisées -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
   <style>
     :root {
       --primaire: #0c4a6e;
@@ -19,43 +22,145 @@
       --vert: #10b981;
       --bleu: #3b82f6;
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #f1f5f9; font-family: 'Segoe UI', 'Roboto', sans-serif; min-height: 100vh; }
 
-    .menu-gauche { background: linear-gradient(180deg, var(--sombre), var(--primaire)); min-height: 100vh; width: 260px; position: fixed; padding: 0; overflow-y: auto; }
-    .entete-menu { padding: 25px 20px; border-bottom: 1px solid rgba(245,158,11,0.15); }
-    .logo-menu { color: var(--accent); font-weight: 800; font-size: 1.3rem; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: all 0.25s ease;
+    }
+
+    body {
+      background: #f1f5f9;
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ✅ MENU LATÉRAL */
+    .menu-gauche {
+      background: linear-gradient(180deg, var(--sombre), var(--primaire));
+      min-height: 100vh;
+      width: 260px;
+      position: fixed;
+      padding: 0;
+      overflow-y: auto;
+    }
+
+    .entete-menu {
+      padding: 25px 20px;
+      border-bottom: 1px solid rgba(245,158,11,0.15);
+    }
+
+    .logo-menu {
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 1.3rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     .logo-menu i { font-size: 1.6rem; }
+
     .nav-menu { padding: 20px 12px; }
-    .lien-nav { display: flex; align-items: center; gap: 12px; padding: 12px 15px; margin-bottom: 6px; color: #cbd5e1; text-decoration: none; border-radius: 10px; transition: all 0.25s ease; }
-    .lien-nav:hover, .lien-nav.actif { background: rgba(245,158,11,0.08); color: var(--accent); }
 
-    .contenu-principal { margin-left: 260px; padding: 25px 30px; min-height: 100vh; }
-    .barre-haut { background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-    .btn-langue { background: rgba(12,74,110,0.08); border: 1px solid var(--primaire); border-radius: 20px; padding: 5px 12px; font-size: 0.85rem; cursor: pointer; margin: 0 2px; color: var(--primaire); font-weight: 600; }
-    .btn-langue.active { background: var(--accent); color: #000; border-color: var(--accent); }
-    .btn-deco { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 6px 12px; border-radius: 8px; transition: all 0.2s; }
-    .btn-deco:hover { background: var(--accent); color: #000; }
+    .lien-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 15px;
+      margin-bottom: 6px;
+      color: #cbd5e1;
+      text-decoration: none;
+      border-radius: 10px;
+    }
 
-    .carte { background: white; border-radius: 14px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 4px solid var(--accent); margin-bottom: 1rem; transition: transform 0.2s; }
-    .carte:hover { transform: translateY(-3px); }
+    .lien-nav:hover, .lien-nav.actif {
+      background: rgba(245,158,11,0.08);
+      color: var(--accent);
+    }
 
-    /* ✅ MODÈLE DE LANGUE UNIFORME */
+    /* ✅ CONTENU PRINCIPAL */
+    .contenu-principal {
+      margin-left: 260px;
+      padding: 25px 30px;
+      min-height: 100vh;
+    }
+
+    .barre-haut {
+      background: white;
+      padding: 15px 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .btn-langue {
+      background: rgba(12,74,110,0.08);
+      border: 1px solid var(--primaire);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin: 0 2px;
+      color: var(--primaire);
+      font-weight: 600;
+    }
+
+    .btn-langue.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    .btn-deco {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 6px 12px;
+      border-radius: 8px;
+    }
+
+    .btn-deco:hover {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .carte {
+      background: white;
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border-left: 4px solid var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .carte:hover {
+      transform: translateY(-3px);
+    }
+
+    /* ✅ GESTION DES LANGUES — CONFORME AU STANDARD DU PROJET */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
     body.lang-en .txt-en { display: inline; }
     body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-en { direction: ltr; }
     body.lang-ar .txt-ar { display: inline; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
-    body.lang-ar .titre-section { text-align: right; }
     body.lang-ar { direction: rtl; }
   </style>
 </head>
 <body>
 
 <div class="d-flex">
-  <!-- ✅ MENU LATÉRAL IDENTIQUE AUX AUTRES PAGES PROF -->
+  <!-- ✅ MENU LATÉRAL -->
   <aside class="menu-gauche">
     <div class="entete-menu">
       <a href="dashboard-prof.html" class="logo-menu">
@@ -63,7 +168,7 @@
       </a>
     </div>
     <nav class="nav-menu">
-      <a href="dashboard.html" class="lien-nav">
+      <a href="dashboard-prof.html" class="lien-nav">
         <i class="bi bi-speedometer2"></i>
         <span class="txt-fr">Tableau de bord</span>
         <span class="txt-en">Dashboard</span>
@@ -87,7 +192,7 @@
         <span class="txt-en">Enter Grades</span>
         <span class="txt-ar">إدخال الدرجات</span>
       </a>
-      <a href="#" class="lien-nav actif">
+      <a href="emploi-temps.html" class="lien-nav actif">
         <i class="bi bi-calendar3"></i>
         <span class="txt-fr">Emploi du Temps</span>
         <span class="txt-en">Timetable</span>
@@ -131,20 +236,23 @@
         <span id="nom-prof"></span>
         <button class="btn btn-deco ms-2" onclick="deconnexion()">
           <i class="bi bi-box-arrow-right"></i>
-          <span class="txt-fr">Déconnexion</span>
-          <span class="txt-en">Logout</span>
-          <span class="txt-ar">تسجيل الخروج</span>
+          <span class="txt-fr"> Déconnexion</span>
+          <span class="txt-en"> Logout</span>
+          <span class="txt-ar"> تسجيل الخروج</span>
         </button>
       </div>
     </div>
 
-    <!-- ✅ LIEN RETOUR CORRIGÉ -->
-    <a href="dashboard.html" class="btn btn-outline-secondary mb-4">
+    <!-- ✅ LIEN RETOUR -->
+    <a href="dashboard-prof.html" class="btn btn-outline-secondary mb-4">
       <i class="bi bi-arrow-left"></i>
-      <span class="txt-fr">Retour au Tableau de Bord</span>
-      <span class="txt-en">Back to Dashboard</span>
-      <span class="txt-ar">الرجوع إلى لوحة التحكم</span>
+      <span class="txt-fr"> Retour au Tableau de Bord</span>
+      <span class="txt-en"> Back to Dashboard</span>
+      <span class="txt-ar"> الرجوع إلى لوحة التحكم</span>
     </a>
+
+    <!-- ⚠️ ZONE DE MESSAGES -->
+    <div id="zone-message"></div>
 
     <!-- ✅ INFO SOURCE -->
     <div class="alert alert-info py-2 mb-3">
@@ -170,11 +278,11 @@
 
 <script>
 // ==================================================
-// ✅ SÉCURITÉ
+// ✅ CONFIGURATION & SÉCURITÉ
 // ==================================================
 const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
-
+const id_utilisateur = localStorage.getItem('id_utilisateur');
 const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 
 console.log("🔑 Token :", token ? "PRÉSENT ✅" : "MANQUANT ❌");
@@ -182,9 +290,12 @@ console.log("👤 Rôle :", role);
 
 // ✅ VÉRIFICATION ACCÈS
 if (!token || role !== 'prof') {
-  alert("⛔ Accès réservé aux Enseignants — Reconnectez-vous");
-  localStorage.clear();
-  location.href = '/connexion.html';
+  alert("⛔ Accès réservé aux Enseignants. Veuillez vous reconnecter.");
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  location.href = 'connexion.html';
 }
 
 // ✅ AFFICHER NOM DE L'ENSEIGNANT
@@ -192,11 +303,11 @@ document.getElementById('nom-prof').textContent =
   (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || 'Enseignant');
 
 // ==================================================
-// 🗣️ GESTION DE LA LANGUE
+// 🗣️ GESTION DE LA LANGUE — Conforme au standard
 // ==================================================
 function appliquerLangue(lang) {
   document.body.classList.remove('lang-fr','lang-en','lang-ar');
-  document.body.classList.add('lang-'+lang);
+  document.body.classList.add('lang-' + lang);
   localStorage.setItem('langue', lang);
   document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
   document.querySelector(`[data-lang="${lang}"]`)?.classList.add('active');
@@ -209,29 +320,45 @@ document.querySelectorAll('.btn-langue').forEach(btn => {
 });
 
 // ==================================================
-// 📋 CHARGER MES SÉANCES — CORRIGÉ ✅
+// 💬 AFFICHAGE DES MESSAGES
 // ==================================================
-async function chargerEmploiTemps(){
-  try {
-    const urlAppel = `${API_URL}/prof`;
-    const id_utilisateur = localStorage.getItem('id_utilisateur');
+function afficherMessage(texte, type = 'info') {
+  const zone = document.getElementById('zone-message');
+  const style = type === 'succes' ? 'border-success bg-success bg-opacity-10 text-success' :
+                type === 'erreur' ? 'border-danger bg-danger bg-opacity-10 text-danger' :
+                'border-info bg-info bg-opacity-10 text-info';
+  zone.innerHTML = `<div class="alert ${style} border-2">${texte}</div>`;
+  setTimeout(() => zone.innerHTML = '', 10000);
+}
 
+// ==================================================
+// 📋 CHARGER MES SÉANCES — Route corrigée
+// ==================================================
+async function chargerEmploiTemps() {
+  try {
+    const urlAppel = `${API_URL}/presences/emploi-temps`;
     console.log("📡 Appel API :", urlAppel, "| ID Prof :", id_utilisateur);
 
-    const res = await fetch(urlAppel, {
+    const reponse = await fetch(urlAppel, {
       headers: { 
         'Authorization': `Bearer ${token}`,
         'X-ID-Utilisateur': id_utilisateur
       }
     });
 
-    // ✅ Plus de déconnexion automatique
-    const data = await res.json();
+    if (reponse.status === 401) {
+      throw new Error("⛔ Autorisation refusée. Votre session a peut-être expiré. Veuillez vous reconnecter.");
+    }
+
+    const data = await reponse.json();
     console.log("📊 Mes séances reçues :", data);
 
     const conteneur = document.getElementById('liste-mes-cours');
+    let seances = [];
+    if (data.lignes && Array.isArray(data.lignes)) seances = data.lignes;
+    else if (data.seances && Array.isArray(data.seances)) seances = data.seances;
 
-    if (!data.ok || !data.lignes || data.lignes.length === 0) {
+    if (seances.length === 0) {
       conteneur.innerHTML = `
         <div class="text-center opacity-75 py-5">
           <i class="bi bi-calendar-x fs-1 text-muted"></i>
@@ -240,25 +367,30 @@ async function chargerEmploiTemps(){
             <span class="txt-en">No sessions assigned yet</span>
             <span class="txt-ar">لم يتم تعيين أي حصة لك بعد</span>
           </h5>
+          <p class="text-muted small">
+            <span class="txt-fr">L'administrateur doit établir votre emploi du temps. Veuillez le contacter.</span>
+            <span class="txt-en">The administrator must set your timetable. Please contact them.</span>
+            <span class="txt-ar">يجب على المدير وضع جدولك الزمني. تواصل معه من فضلك.</span>
+          </p>
         </div>`;
       return;
     }
 
     // ✅ TRI PAR JOUR + HEURE
     const ordreJours = { 'Lundi':1, 'Mardi':2, 'Mercredi':3, 'Jeudi':4, 'Vendredi':5, 'Samedi':6 };
-    data.lignes.sort((a,b) => (ordreJours[a.jour]||9) - (ordreJours[b.jour]||9) || a.heure_debut.localeCompare(b.heure_debut));
+    seances.sort((a, b) => (ordreJours[a.jour] || 9) - (ordreJours[b.jour] || 9) || (a.heure_debut || '').localeCompare(b.heure_debut || ''));
 
     // ✅ AFFICHAGE DES SÉANCES
-    conteneur.innerHTML = data.lignes.map(seance => `
+    conteneur.innerHTML = seances.map(seance => `
       <div class="carte">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="mb-0 fw-bold text-primary">
             <i class="bi bi-calendar-event me-2" style="color:var(--accent)"></i>
-            ${seance.jour}
+            ${seance.jour || 'Jour non spécifié'}
           </h5>
           <span class="badge bg-warning text-dark fw-bold">
             <i class="bi bi-clock me-1"></i>
-            ${(seance.heure_debut||'00:00').substring(0,5)} — ${(seance.heure_fin||'00:00').substring(0,5)}
+            ${(seance.heure_debut || '00:00').substring(0,5)} — ${(seance.heure_fin || '00:00').substring(0,5)}
           </span>
         </div>
         <div class="row g-2">
@@ -269,7 +401,7 @@ async function chargerEmploiTemps(){
               <span class="txt-en">Class : </span>
               <span class="txt-ar">القسم : </span>
             </strong>
-            ${seance.libelle_classe}
+            ${seance.libelle_classe || '—'}
           </div>
           <div class="col-md-6">
             <i class="bi bi-book me-2 text-muted"></i>
@@ -278,7 +410,7 @@ async function chargerEmploiTemps(){
               <span class="txt-en">Subject : </span>
               <span class="txt-ar">المادة : </span>
             </strong>
-            ${seance.libelle_matiere}
+            ${seance.libelle_matiere || '—'}
           </div>
         </div>
         ${seance.salle ? `
@@ -293,29 +425,47 @@ async function chargerEmploiTemps(){
       </div>
     `).join('');
 
-  } catch (e) {
-    console.error("❌ ERREUR :", e);
+    afficherMessage(`✅ ${seances.length} séance(s) chargée(s)`, 'succes');
+
+  } catch (erreur) {
+    console.error("❌ ERREUR :", erreur);
     document.getElementById('liste-mes-cours').innerHTML = `
       <div class="alert alert-danger text-center">
         <i class="bi bi-exclamation-triangle me-2"></i>
-        <span class="txt-fr">Erreur de chargement</span>
-        <span class="txt-en">Loading error</span>
-        <span class="txt-ar">خطأ في التحميل</span>
-        <br><small>${e.message}</small>
+        ${erreur.message}
+        <br>
+        <button class="btn btn-warning mt-3" onclick="reconnecter()">
+          <i class="bi bi-box-arrow-in-right"></i>
+          <span class="txt-fr"> Se reconnecter</span>
+          <span class="txt-en"> Reconnect</span>
+          <span class="txt-ar"> إعادة الاتصال</span>
+        </button>
       </div>`;
   }
 }
 
-// ==================================================
-// ✅ DÉCONNEXION
-// ==================================================
-function deconnexion(){
-  localStorage.clear();
-  location.href = '/connexion.html';
+// ✅ Reconnexion rapide
+function reconnecter() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  localStorage.removeItem('prenoms');
+  location.href = 'connexion.html';
+}
+
+// ✅ DÉCONNEXION SÉCURISÉE
+function deconnexion() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  localStorage.removeItem('prenoms');
+  location.href = 'connexion.html';
 }
 
 // ✅ LANCER AU CHARGEMENT
-chargerEmploiTemps();
+document.addEventListener('DOMContentLoaded', chargerEmploiTemps);
 </script>
 
 </body>
