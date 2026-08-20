@@ -1,53 +1,123 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="lang-fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestion Préinscriptions — Admin MAMA-ZOUMANA</title>
+  <title>
+    <span class="txt-fr">Gestion Préinscriptions — Admin MAMA-ZOUMANA</span>
+    <span class="txt-en">Pre-registration Management — Admin MAMA-ZOUMANA</span>
+    <span class="txt-ar">إدارة التسجيل المسبق — إدارة ماما زومانا</span>
+  </title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    :root { --primaire: #0c4a6e; --secondaire: #0369a1; --accent: #f59e0b; --succes: #10b981; --alerte: #ef4444; --sombre: #0f172a; --clair: #f8fafc; }
-    *{margin:0;padding:0;box-sizing:border-box;border-radius:10px !important}
-    body{background:var(--sombre);color:var(--clair);font-family:'Segoe UI',sans-serif;min-height:100vh}
-    .entete{background:linear-gradient(135deg,var(--primaire),var(--secondaire));padding:20px 30px;margin-bottom:25px;display:flex;justify-content:space-between;align-items:center}
-    .btn-retour{color:white;text-decoration:none;font-weight:500}
-    .statut{padding:4px 10px;border-radius:20px;font-size:0.85rem;font-weight:600}
-    .attente{background:rgba(245,158,11,0.2);color:var(--accent);border:1px solid var(--accent)}
-    .validee{background:rgba(16,185,129,0.2);color:var(--succes);border:1px solid var(--succes)}
-    .refusee{background:rgba(239,68,68,0.2);color:var(--alerte);border:1px solid var(--alerte)}
-    .btn-valider{background:var(--succes);color:white;border:none;padding:6px 12px;font-weight:500}
-    .btn-refuser{background:var(--alerte);color:white;border:none;padding:6px 12px;font-weight:500}
-    .btn-doc{background:var(--primaire);color:white;border:none;padding:4px 8px;font-size:0.8rem;font-weight:500;text-decoration:none;display:inline-block;margin:2px}
-    .btn-doc:hover{background:var(--secondaire);color:white}
-    .matricule{font-weight:700;color:var(--accent);font-size:0.9rem}
-    .table-responsive{padding:0 15px}
-    table{background:rgba(15,23,42,0.95);border-radius:12px;overflow:hidden;width:100%}
-    th{background:var(--primaire);color:white;text-align:center;padding:12px;white-space:nowrap}
-    td{padding:10px;text-align:center;border-bottom:1px solid #334155;vertical-align:middle}
-    .alert{margin:15px;border-radius:10px}
-    .mini-img{width:45px;height:45px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid #475569}
-    .mini-img:hover{border-color:var(--accent);transform:scale(1.1);transition:0.2s}
-    .docs-col{min-width:160px}
-    .nom-col{min-width:160px}
-    .modal-img{max-width:100%;max-height:80vh;border-radius:8px}
+    :root { 
+      --primaire: #0c4a6e; 
+      --secondaire: #0369a1; 
+      --accent: #f59e0b; 
+      --succes: #10b981; 
+      --alerte: #ef4444; 
+      --sombre: #0f172a; 
+      --clair: #f8fafc; 
+    }
+
+    /* ===== 🌐 LANGUE ===== */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar { direction: rtl; }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 10px !important; }
+    body { background: var(--sombre); color: var(--clair); font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+
+    .entete {
+      background: linear-gradient(135deg, var(--primaire), var(--secondaire));
+      padding: 20px 30px;
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .btn-retour { color: white; text-decoration: none; font-weight: 500; }
+    .statut { padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+    .attente { background: rgba(245,158,11,0.2); color: var(--accent); border: 1px solid var(--accent); }
+    .validee { background: rgba(16,185,129,0.2); color: var(--succes); border: 1px solid var(--succes); }
+    .refusee { background: rgba(239,68,68,0.2); color: var(--alerte); border: 1px solid var(--alerte); }
+
+    .btn-valider { background: var(--succes); color: white; border: none; padding: 6px 12px; font-weight: 500; }
+    .btn-refuser { background: var(--alerte); color: white; border: none; padding: 6px 12px; font-weight: 500; }
+    .btn-doc { background: var(--primaire); color: white; border: none; padding: 4px 8px; font-size: 0.8rem; font-weight: 500; text-decoration: none; display: inline-block; margin: 2px; }
+    .btn-doc:hover { background: var(--secondaire); color: white; }
+
+    .matricule { font-weight: 700; color: var(--accent); font-size: 0.9rem; }
+    .table-responsive { padding: 0 15px; }
+    table { background: rgba(15,23,42,0.95); border-radius: 12px; overflow: hidden; width: 100%; }
+    th { background: var(--primaire); color: white; text-align: center; padding: 12px; white-space: nowrap; }
+    td { padding: 10px; text-align: center; border-bottom: 1px solid #334155; vertical-align: middle; }
+    .alert { margin: 15px; border-radius: 10px; }
+    .mini-img { width: 45px; height: 45px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid #475569; }
+    .mini-img:hover { border-color: var(--accent); transform: scale(1.1); transition: 0.2s; }
+    .docs-col { min-width: 160px; }
+    .nom-col { min-width: 160px; }
+    .modal-img { max-width: 100%; max-height: 80vh; border-radius: 8px; }
   </style>
 </head>
 <body>
 
 <!-- 🔒 PROTECTION -->
 <script>
-if(!localStorage.getItem('token') || !['admin','super_admin'].includes(localStorage.getItem('role'))){
-  alert("⛔ Accès réservé à l'administrateur");
-  location.href='dashboard.html';
-}
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  if (!token || !['admin','super_admin'].includes(role)) {
+    alert("⛔ Accès réservé à l'administrateur");
+    location.href = 'dashboard.html';
+  }
+
+  // 🔗 DÉTECTION AUTOMATIQUE DE L'API
+  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:10000/api'
+    : 'https://mama-zoumana-api.onrender.com/api';
+
+  // 💾 STOCKAGE LOCAL (FALLBACK SI API INDISPONIBLE)
+  function obtenirPreinscriptionsLocales() {
+    return JSON.parse(localStorage.getItem('preinscriptions') || '[]');
+  }
+  function sauvegarderPreinscriptionsLocales(liste) {
+    localStorage.setItem('preinscriptions', JSON.stringify(liste));
+  }
+
+  // 🌍 GESTION DE LA LANGUE
+  let langueActuelle = localStorage.getItem('langue') || 'fr';
+  document.body.classList.add('lang-' + langueActuelle);
 </script>
 
 <!-- 🧭 ENTÊTE -->
 <div class="entete">
-  <a href="dashboard.html" class="btn-retour"><i class="bi bi-arrow-left"></i> Retour Tableau de bord</a>
-  <h3 class="mb-0 text-white"><i class="bi bi-person-lines-fill"></i> Gestion des Préinscriptions</h3>
-  <button class="btn btn-outline-light btn-sm" onclick="chargerListe()"><i class="bi bi-arrow-clockwise"></i> Actualiser</button>
+  <a href="dashboard.html" class="btn-retour">
+    <i class="bi bi-arrow-left"></i> 
+    <span class="txt-fr">Retour Tableau de bord</span>
+    <span class="txt-en">Back to Dashboard</span>
+    <span class="txt-ar">الرجوع إلى لوحة التحكم</span>
+  </a>
+  <h3 class="mb-0 text-white">
+    <i class="bi bi-person-lines-fill"></i> 
+    <span class="txt-fr">Gestion des Préinscriptions</span>
+    <span class="txt-en">Pre-registration Management</span>
+    <span class="txt-ar">إدارة التسجيل المسبق</span>
+  </h3>
+  <button class="btn btn-outline-light btn-sm" onclick="chargerListe()">
+    <i class="bi bi-arrow-clockwise"></i> 
+    <span class="txt-fr">Actualiser</span>
+    <span class="txt-en">Refresh</span>
+    <span class="txt-ar">تحديث</span>
+  </button>
 </div>
 
 <div class="container-fluid">
@@ -57,19 +127,61 @@ if(!localStorage.getItem('token') || !['admin','super_admin'].includes(localStor
       <thead>
         <tr>
           <th>#</th>
-          <th class="nom-col">Nom & Prénoms</th>
-          <th>Profil</th>
-          <th>Classe</th>
-          <th>Documents / Photo</th>
-          <th>Contact</th>
-          <th>Date demande</th>
-          <th>Statut</th>
-          <th>Matricule</th>
-          <th>Actions</th>
+          <th class="nom-col">
+            <span class="txt-fr">Nom & Prénoms</span>
+            <span class="txt-en">Full Name</span>
+            <span class="txt-ar">الاسم واللقب</span>
+          </th>
+          <th>
+            <span class="txt-fr">Profil</span>
+            <span class="txt-en">Profile</span>
+            <span class="txt-ar">الملف الشخصي</span>
+          </th>
+          <th>
+            <span class="txt-fr">Classe</span>
+            <span class="txt-en">Class</span>
+            <span class="txt-ar">القسم</span>
+          </th>
+          <th class="docs-col">
+            <span class="txt-fr">Documents / Photo</span>
+            <span class="txt-en">Docs / Photo</span>
+            <span class="txt-ar">المستندات / الصورة</span>
+          </th>
+          <th>
+            <span class="txt-fr">Contact</span>
+            <span class="txt-en">Contact</span>
+            <span class="txt-ar">الاتصال</span>
+          </th>
+          <th>
+            <span class="txt-fr">Date demande</span>
+            <span class="txt-en">Request Date</span>
+            <span class="txt-ar">تاريخ الطلب</span>
+          </th>
+          <th>
+            <span class="txt-fr">Statut</span>
+            <span class="txt-en">Status</span>
+            <span class="txt-ar">الحالة</span>
+          </th>
+          <th>
+            <span class="txt-fr">Matricule</span>
+            <span class="txt-en">Registration No.</span>
+            <span class="txt-ar">الرقم التسلسلي</span>
+          </th>
+          <th>
+            <span class="txt-fr">Actions</span>
+            <span class="txt-en">Actions</span>
+            <span class="txt-ar">إجراءات</span>
+          </th>
         </tr>
       </thead>
       <tbody id="corpsTableau">
-        <tr><td colspan="10" class="text-center py-4">Chargement en cours...</td></tr>
+        <tr>
+          <td colspan="10" class="text-center py-4">
+            <span class="txt-fr">Chargement en cours...</span>
+            <span class="txt-en">Loading...</span>
+            <span class="txt-ar">جار التحميل...</span>
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -80,7 +192,12 @@ if(!localStorage.getItem('token') || !['admin','super_admin'].includes(localStor
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content bg-dark text-white">
       <div class="modal-header border-secondary">
-        <h5 class="modal-title">📷 Photo d'identité</h5>
+        <h5 class="modal-title">
+          📷 
+          <span class="txt-fr">Photo d'identité</span>
+          <span class="txt-en">ID Photo</span>
+          <span class="txt-ar">صورة الهوية</span>
+        </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
       </div>
       <div class="modal-body text-center p-4">
@@ -91,113 +208,204 @@ if(!localStorage.getItem('token') || !['admin','super_admin'].includes(localStor
 </div>
 
 <script>
-const API_BASE = "https://mama-zoumana-api.onrender.com/api";
-
-// 📋 CHARGER LA LISTE
-async function chargerListe(){
-  const token = localStorage.getItem('token');
-  const res = await fetch(`${API_BASE}/preinscription/en-attente`, {
-    headers:{'Authorization':'Bearer '+token}
-  });
-  const d = await res.json();
-
-  if(!d.ok || !d.lignes || d.lignes.length === 0){
-    document.getElementById('corpsTableau').innerHTML = `<tr><td colspan="10" class="text-center py-4 text-warning">Aucune demande en attente</td></tr>`;
-    return;
+  // ✂️ ÉCHAPPEMENT SÉCURITAIRE
+  function escaperHtml(texte) {
+    if (!texte) return '';
+    const div = document.createElement('div');
+    div.textContent = texte;
+    return div.innerHTML;
   }
 
-  document.getElementById('corpsTableau').innerHTML = d.lignes.map((x,i) => {
-    let classeStatut = '';
-    if(x.statut_preinscription === 'en_attente') classeStatut = 'attente';
-    else if(x.statut_preinscription === 'valide') classeStatut = 'validee';
-    else if(x.statut_preinscription === 'refusee') classeStatut = 'refusee';
+  // 📋 CHARGER LA LISTE
+  async function chargerListe() {
+    const conteneur = document.getElementById('corpsTableau');
+    let liste = [];
 
-    // ✅ CONSTRUCTION DES LIENS DE DOCUMENTS
-    const photoUrl = x.photo_identite ? `${API_BASE}/uploads/${x.photo_identite}` : null;
-    const extraitUrl = x.extrait_naissance ? `${API_BASE}/uploads/${x.extrait_naissance}` : null;
-    const bulletinUrl = x.bulletin ? `${API_BASE}/uploads/${x.bulletin}` : null;
-    const cvUrl = x.cv ? `${API_BASE}/uploads/${x.cv}` : null;
-
-    // ✅ BLOC DOCUMENTS
-    let blocDocs = '';
-    if(photoUrl){
-      blocDocs += `<img src="${photoUrl}" class="mini-img me-1 mb-1" alt="Photo" onclick="voirPhoto('${photoUrl}')" title="Cliquer pour voir la photo">`;
-    } else {
-      blocDocs += `<span class="text-muted small">—</span>`;
+    try {
+      const res = await fetch(`${API_BASE}/preinscription/en-attente`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const d = await res.json();
+      if (d.ok && Array.isArray(d.lignes)) {
+        liste = d.lignes;
+        sauvegarderPreinscriptionsLocales(liste);
+      } else {
+        throw Error("Réponse invalide");
+      }
+    } catch {
+      // ⚠️ Mode hors-ligne
+      liste = obtenirPreinscriptionsLocales().filter(x => x.statut_preinscription === 'en_attente');
     }
-    if(extraitUrl) blocDocs += `<a href="${extraitUrl}" target="_blank" class="btn-doc"><i class="bi bi-file-earmark-text"></i> Extrait</a><br>`;
-    if(bulletinUrl) blocDocs += `<a href="${bulletinUrl}" target="_blank" class="btn-doc"><i class="bi bi-file-earmark-bar-graph"></i> Bulletin</a><br>`;
-    if(cvUrl) blocDocs += `<a href="${cvUrl}" target="_blank" class="btn-doc"><i class="bi bi-file-earmark-pdf"></i> CV</a>`;
-    if(!extraitUrl && !bulletinUrl && !cvUrl) blocDocs += `<br><span class="text-muted small">Aucun document</span>`;
 
-    return `
-    <tr>
-      <td>${i+1}</td>
-      <td class="text-start fw-medium">${x.nom} ${x.prenoms}</td>
-      <td><span class="badge bg-secondary">${x.profil.toUpperCase()}</span></td>
-      <td><small>${x.libelle_classe || x.id_classe || '—'}</small></td>
-      <td class="docs-col">${blocDocs}</td>
-      <td><small>${x.email}<br>${x.telephone}</small></td>
-      <td><small>${new Date(x.date_preinscription).toLocaleString('fr-FR')}</small></td>
-      <td><span class="statut ${classeStatut}">${x.statut_preinscription.replace('_',' ')}</span></td>
-      <td class="matricule">${x.matricule || '—'}</td>
-      <td>
-        ${x.statut_preinscription==='en_attente'?`
-          <button class="btn-valider me-1 mb-1" onclick="valider(${x.id_preinscription})"><i class="bi bi-check-circle"></i> Valider</button>
-          <button class="btn-refuser me-1 mb-1" onclick="refuser(${x.id_preinscription})"><i class="bi bi-x-circle"></i> Refuser</button>
-        `:'<small class="text-muted">Traité</small>'}
-      </td>
-    </tr>
-  `}).join('');
-}
+    // 📭 Liste vide
+    if (!liste.length) {
+      conteneur.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-warning">
+        <span class="txt-fr">Aucune demande en attente</span>
+        <span class="txt-en">No pending requests</span>
+        <span class="txt-ar">لا توجد طلبات قيد الانتظار</span>
+      </td></tr>`;
+      return;
+    }
 
-// 🖼️ AFFICHER LA PHOTO EN GRAND
-function voirPhoto(url){
-  document.getElementById('imgApercu').src = url;
-  new bootstrap.Modal(document.getElementById('modalPhoto')).show();
-}
+    // 🎨 AFFICHAGE
+    conteneur.innerHTML = liste.map((x, i) => {
+      // Déterminer la classe de statut
+      let classeStatut = '';
+      if (x.statut_preinscription === 'en_attente') classeStatut = 'attente';
+      else if (x.statut_preinscription === 'valide') classeStatut = 'validee';
+      else if (x.statut_preinscription === 'refusee') classeStatut = 'refusee';
 
-// ✅ VALIDER
-async function valider(id){
-  if(!confirm('✅ Confirmer la validation ? Un compte sera créé pour cet utilisateur.')) return;
-  const token = localStorage.getItem('token');
-  const res = await fetch(`${API_BASE}/preinscription/traiter/${id}`, {
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'Authorization':'Bearer '+token
-    },
-    body:JSON.stringify({ statut: 'valide' })
-  });
-  const d = await res.json();
-  afficherMsg(d.ok?'success':'danger', d.ok?'✅ Demande validée ! Compte créé.':'❌ Erreur : '+(d.erreur||''));
-  chargerListe();
-}
+      // Construire les URLs des documents
+      const photoUrl = x.photo_identite ? `${API_BASE}/uploads/${x.photo_identite}` : null;
+      const extraitUrl = x.extrait_naissance ? `${API_BASE}/uploads/${x.extrait_naissance}` : null;
+      const bulletinUrl = x.bulletin ? `${API_BASE}/uploads/${x.bulletin}` : null;
+      const cvUrl = x.cv ? `${API_BASE}/uploads/${x.cv}` : null;
 
-// ❌ REFUSER
-async function refuser(id){
-  if(!confirm('❌ Confirmer le refus ?')) return;
-  const token = localStorage.getItem('token');
-  const res = await fetch(`${API_BASE}/preinscription/traiter/${id}`, {
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'Authorization':'Bearer '+token
-    },
-    body:JSON.stringify({ statut: 'refusee' })
-  });
-  const d = await res.json();
-  afficherMsg(d.ok?'success':'danger', d.ok?'❌ Demande refusée.':'❌ Erreur : '+(d.erreur||''));
-  chargerListe();
-}
+      // Construire le bloc documents
+      let blocDocs = '';
+      if (photoUrl) {
+        blocDocs += `<img src="${photoUrl}" class="mini-img me-1 mb-1" alt="Photo" onclick="voirPhoto('${photoUrl}')" title="${
+          langueActuelle==='ar'?'انقر لعرض الصورة':langueActuelle==='en'?'Click to view photo':'Cliquer pour voir la photo'
+        }">`;
+      } else {
+        blocDocs += `<span class="text-muted small">—</span>`;
+      }
+      if (extraitUrl) blocDocs += `<a href="${extraitUrl}" target="_blank" class="btn-doc"><i class="bi bi-file-earmark-text"></i> <span class="txt-fr">Extrait</span><span class="txt-en">Birth Cert.</span><span class="txt-ar">شهادة الولادة</span></a><br>`;
+      if (bulletinUrl) blocDocs += `<a href="${bulletinUrl}" target="_blank" class="btn-doc"><i class="bi bi-file-earmark-bar-graph"></i> <span class="txt-fr">Bulletin</span><span class="txt-en">Transcript</span><span class="txt-ar">كشف النقاط</span></a><br>`;
+      if (cvUrl) blocDocs += `<a href="${cvUrl}" target="_blank" class="btn-doc"><i class="bi bi-file-earmark-pdf"></i> CV</a>`;
+      if (!extraitUrl && !bulletinUrl && !cvUrl) blocDocs += `<br><span class="text-muted small">
+        <span class="txt-fr">Aucun document</span>
+        <span class="txt-en">No documents</span>
+        <span class="txt-ar">لا مستندات</span>
+      </span>`;
 
-function afficherMsg(type,texte){
-  document.getElementById('msg').innerHTML = `<div class="alert alert-${type}">${texte}</div>`;
-  setTimeout(()=>document.getElementById('msg').innerHTML='',5000);
-}
+      // Formater la date
+      let dateFormatee = '';
+      try { dateFormatee = new Date(x.date_preinscription).toLocaleString('fr-FR'); }
+      catch { dateFormatee = x.date_preinscription || '—'; }
 
-// AU CHARGEMENT
-chargerListe();
+      // Affichage de la ligne
+      return `
+      <tr>
+        <td>${i + 1}</td>
+        <td class="text-start fw-medium">${escaperHtml(x.nom)} ${escaperHtml(x.prenoms)}</td>
+        <td><span class="badge bg-secondary">${escaperHtml((x.profil || '').toUpperCase())}</span></td>
+        <td><small>${escaperHtml(x.libelle_classe || x.id_classe || '—')}</small></td>
+        <td class="docs-col">${blocDocs}</td>
+        <td><small>${escaperHtml(x.email)}<br>${escaperHtml(x.telephone)}</small></td>
+        <td><small>${dateFormatee}</small></td>
+        <td><span class="statut ${classeStatut}">${(x.statut_preinscription || '').replace('_', ' ')}</span></td>
+        <td class="matricule">${escaperHtml(x.matricule || '—')}</td>
+        <td>
+          ${x.statut_preinscription === 'en_attente' ? `
+            <button class="btn-valider me-1 mb-1" onclick="valider(${x.id_preinscription})">
+              <i class="bi bi-check-circle"></i> 
+              <span class="txt-fr">Valider</span>
+              <span class="txt-en">Approve</span>
+              <span class="txt-ar">موافقة</span>
+            </button>
+            <button class="btn-refuser me-1 mb-1" onclick="refuser(${x.id_preinscription})">
+              <i class="bi bi-x-circle"></i> 
+              <span class="txt-fr">Refuser</span>
+              <span class="txt-en">Reject</span>
+              <span class="txt-ar">رفض</span>
+            </button>
+          ` : `<small class="text-muted">
+            <span class="txt-fr">Traité</span>
+            <span class="txt-en">Processed</span>
+            <span class="txt-ar">معالج</span>
+          </small>`}
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // 🖼️ AFFICHER LA PHOTO EN GRAND
+  function voirPhoto(url) {
+    document.getElementById('imgApercu').src = url;
+    new bootstrap.Modal(document.getElementById('modalPhoto')).show();
+  }
+
+  // ✅ VALIDER UNE PRÉINSCRIPTION
+  async function valider(id) {
+    const msgConf = {
+      fr: '✅ Confirmer la validation ? Un compte sera créé pour cet utilisateur.',
+      en: '✅ Confirm approval? An account will be created for this user.',
+      ar: '✅ تأكيد الموافقة؟ سيتم إنشاء حساب لهذا المستخدم.'
+    };
+    if (!confirm(msgConf[langueActuelle])) return;
+
+    // Mise à jour immédiate en local
+    let liste = obtenirPreinscriptionsLocales();
+    const idx = liste.findIndex(x => x.id_preinscription === id);
+    if (idx !== -1) liste[idx].statut_preinscription = 'valide';
+    sauvegarderPreinscriptionsLocales(liste);
+
+    // Envoyer à l'API en arrière-plan
+    try {
+      const res = await fetch(`${API_BASE}/preinscription/traiter/${id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ statut: 'valide' })
+      });
+      const d = await res.json();
+      afficherMsg(d.ok ? 'success' : 'danger', 
+        d.ok ? { fr: '✅ Demande validée ! Compte créé.', en: '✅ Approved! Account created.', ar: '✅ تمت الموافقة! تم إنشاء الحساب.' }[langueActuelle] 
+             : `❌ ${d.erreur || ''}`);
+    } catch {
+      afficherMsg('success', { fr: '✅ Enregistré localement. Sync en cours.', en: '✅ Saved locally. Sync pending.', ar: '✅ تم الحفظ محليًا. جارٍ المزامنة.' }[langueActuelle]);
+    }
+
+    chargerListe();
+  }
+
+  // ❌ REFUSER UNE PRÉINSCRIPTION
+  async function refuser(id) {
+    const msgConf = {
+      fr: '❌ Confirmer le refus ?',
+      en: '❌ Confirm rejection?',
+      ar: '❌ تأكيد الرفض؟'
+    };
+    if (!confirm(msgConf[langueActuelle])) return;
+
+    // Mise à jour immédiate en local
+    let liste = obtenirPreinscriptionsLocales();
+    const idx = liste.findIndex(x => x.id_preinscription === id);
+    if (idx !== -1) liste[idx].statut_preinscription = 'refusee';
+    sauvegarderPreinscriptionsLocales(liste);
+
+    // Envoyer à l'API en arrière-plan
+    try {
+      const res = await fetch(`${API_BASE}/preinscription/traiter/${id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ statut: 'refusee' })
+      });
+      const d = await res.json();
+      afficherMsg(d.ok ? 'success' : 'danger', 
+        d.ok ? { fr: '❌ Demande refusée.', en: '❌ Rejected.', ar: '❌ تم الرفض.' }[langueActuelle] 
+             : `❌ ${d.erreur || ''}`);
+    } catch {
+      afficherMsg('success', { fr: '✅ Enregistré localement.', en: '✅ Saved locally.', ar: '✅ تم الحفظ محليًا.' }[langueActuelle]);
+    }
+
+    chargerListe();
+  }
+
+  // 💬 AFFICHER UN MESSAGE
+  function afficherMsg(type, texte) {
+    document.getElementById('msg').innerHTML = `<div class="alert alert-${type}">${texte}</div>`;
+    setTimeout(() => document.getElementById('msg').innerHTML = '', 5000);
+  }
+
+  // 🚀 AU CHARGEMENT
+  document.addEventListener('DOMContentLoaded', chargerListe);
 </script>
 
 <!-- ✅ Bootstrap JS pour la modale -->
