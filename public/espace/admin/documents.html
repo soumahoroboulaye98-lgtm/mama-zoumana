@@ -1,110 +1,410 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="lang-fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Documents Officiels — Admin</title>
+  <title>
+    <span class="txt-fr">Documents Officiels — Administration</span>
+    <span class="txt-en">Official Documents — Administration</span>
+    <span class="txt-ar">الوثائق الرسمية — الإدارة</span>
+  </title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    :root { --sombre:#0f172a; --sombre-clair:#1e293b; --bord-orange:#f59e0b; --fond-dore:#b78628; --fond-dore-clair:#d4a03a; --texte:#f8fafc; }
-    body{background:linear-gradient(160deg,var(--fond-dore),var(--fond-dore-clair));color:var(--texte);min-height:100vh}
-    .entete{background:rgba(15,23,42,0.85);border-bottom:2px solid var(--bord-orange);padding:1.5rem 0}
-    .carte{background:rgba(15,23,42,0.9);border-radius:12px;padding:1.25rem;border-left:3px solid var(--bord-orange)}
-    .form-control,.form-select{background:rgba(15,23,42,0.95);border:1px solid #334155;color:white;border-radius:8px}
-    .barre-langue{display:flex;gap:0.75rem;justify-content:center;margin-bottom:2rem}
-    .carte-scolaire{background:white;color:black;border-radius:10px;padding:2rem;max-width:450px;margin:1rem auto;border:3px solid var(--bord-orange)}
-    .logo-carte{font-size:1.8rem;font-weight:bold;color:var(--primaire)}
-    .numero-ref{font-family:monospace;font-weight:bold;color:#666}
-    [dir="rtl"]{font-family:'Segoe UI Tahoma',sans-serif}
-    @media print{body{background:white !important;color:black !important}.entete,.barre-langue,.btn,.no-print{display:none}.carte{border:none}}
+    :root {
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b;
+      --fond-dore: #b78628;
+      --fond-dore-clair: #d4a03a;
+      --texte: #f8fafc;
+      --succes: #10b981;
+      --alerte: #ef4444;
+    }
+
+    body {
+      background: linear-gradient(160deg, var(--fond-dore), var(--fond-dore-clair));
+      color: var(--texte);
+      min-height: 100vh;
+    }
+
+    .entete {
+      background: rgba(15,23,42,0.85);
+      border-bottom: 2px solid var(--bord-orange);
+      padding: 1.5rem 0;
+    }
+
+    .carte {
+      background: rgba(15,23,42,0.9);
+      border-radius: 12px;
+      padding: 1.25rem;
+      border-left: 3px solid var(--bord-orange);
+      margin-bottom: 1.5rem;
+    }
+
+    .form-control, .form-select {
+      background: rgba(15,23,42,0.95);
+      border: 1px solid #334155;
+      color: white;
+      border-radius: 8px;
+    }
+
+    .form-control:focus, .form-select:focus {
+      background: rgba(15,23,42,0.95);
+      border-color: var(--bord-orange);
+      color: white;
+      box-shadow: 0 0 0 3px rgba(245,158,11,0.15);
+    }
+
+    .barre-langue {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+    .carte-scolaire {
+      background: white;
+      color: black;
+      border-radius: 10px;
+      padding: 2rem;
+      max-width: 480px;
+      margin: 1rem auto;
+      border: 3px solid var(--bord-orange);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    }
+
+    .logo-carte {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: var(--fond-dore);
+    }
+
+    .numero-ref {
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      color: #666;
+    }
+
+    .alerte-api {
+      border-left: 4px solid var(--alerte);
+      background: rgba(239,68,68,0.1);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+    }
+
+    /* ===== TRADUCTIONS ===== */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en { direction: ltr; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-ar { direction: rtl; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+
+    @media print {
+      body { background: white !important; color: black !important; }
+      .entete, .barre-langue, .btn, .no-print, .alerte-api { display: none !important; }
+      .carte { border: none; background: white; padding: 0; }
+      .carte-scolaire { box-shadow: none; margin: 0; border-width: 2px; }
+    }
   </style>
 </head>
 <body>
-<script>if(!localStorage.getItem('token') || localStorage.getItem('role')!=='admin'){alert("⛔ Accès réservé");location.href='../connexion.html';}</script>
+
+<script>
+  // 🔗 URL adaptative
+  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'
+    : 'https://mama-zoumana-api.onrender.com/api';
+
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  let langueActuelle = localStorage.getItem('langue') || 'fr';
+
+  // 💾 Stockage local
+  function obtenirElevesLocaux() { return JSON.parse(localStorage.getItem('liste_eleves') || '[]'); }
+  function sauvegarderElevesLocaux(liste) { localStorage.setItem('liste_eleves', JSON.stringify(liste)); }
+  function obtenirDocumentsLocaux() { return JSON.parse(localStorage.getItem('documents_crees') || '[]'); }
+  function sauvegarderDocumentLocal(doc) {
+    const liste = obtenirDocumentsLocaux();
+    doc.id = Date.now();
+    liste.push(doc);
+    localStorage.setItem('documents_crees', JSON.stringify(liste));
+  }
+
+  // 🗣️ Messages
+  const MSG = {
+    fr: {
+      accesReserve: "⛔ Accès réservé à l'Administrateur",
+      serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
+      eleve: "Élève", typeDoc: "Type de document", annee: "Année Scolaire", generer: "💾 Générer & Enregistrer",
+      imprimer: "🖨️ Imprimer en PDF", erreurChargement: "Erreur de chargement des élèves", aucunEleve: "Aucun élève trouvé",
+      genereOk: "✅ Document généré !"
+    },
+    en: {
+      accesReserve: "⛔ Access restricted to Administrator",
+      serveurIndispo: "⚠️ Server offline — Local mode active",
+      eleve: "Student", typeDoc: "Document Type", annee: "School Year", generer: "💾 Generate & Save",
+      imprimer: "🖨️ Print as PDF", erreurChargement: "Failed to load students", aucunEleve: "No student found",
+      genereOk: "✅ Document generated!"
+    },
+    ar: {
+      accesReserve: "⛔ الوصول مقصور على المدير",
+      serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
+      eleve: "التلميذ", typeDoc: "نوع الوثيقة", annee: "السنة الدراسية", generer: "💾 إنشاء وحفظ",
+      imprimer: "🖨️ طباعة PDF", erreurChargement: "خطأ في تحميل قائمة التلاميذ", aucunEleve: "لم يتم العثور على تلاميذ",
+      genereOk: "✅ تم إنشاء الوثيقة!"
+    }
+  };
+  function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
+
+  // 🔒 SÉCURITÉ
+  if(!token || role !== 'admin'){
+    alert(m('accesReserve'));
+    localStorage.clear();
+    location.href='dashboard.html';
+  }
+
+  document.body.classList.add('lang-' + langueActuelle);
+</script>
 
 <div class="entete">
   <div class="container d-flex justify-content-between align-items-center">
-    <div><h3 class="mb-1">🪪 Documents Officiels</h3><p class="mb-0 opacity-80">Carte Scolaire — Attestations — Certificats</p></div>
-    <a href="dashboard.html" class="btn btn-outline-light">Retour</a>
+    <div>
+      <h3 class="mb-1">
+        🪪
+        <span class="txt-fr">Documents Officiels</span>
+        <span class="txt-en">Official Documents</span>
+        <span class="txt-ar">الوثائق الرسمية</span>
+      </h3>
+      <p class="mb-0 opacity-80">
+        <span class="txt-fr">Carte Scolaire — Attestations — Certificats</span>
+        <span class="txt-en">School Card — Attestations — Certificates</span>
+        <span class="txt-ar">البطاقة المدرسية — الشهادات</span>
+      </p>
+    </div>
+    <a href="dashboard.html" class="btn btn-outline-light">
+      <i class="bi bi-arrow-left me-1"></i>
+      <span class="txt-fr">Retour</span>
+      <span class="txt-en">Back</span>
+      <span class="txt-ar">رجوع</span>
+    </a>
   </div>
 </div>
 
 <div class="container py-4">
+  <!-- ⚠️ ALERTE API -->
+  <div id="alerteApi" class="alerte-api d-none">
+    <i class="bi bi-wifi-off me-2"></i>
+    <span id="texteAlerteApi"></span>
+  </div>
+
+  <!-- 🌐 LANGUES -->
   <div class="barre-langue">
-    <button class="btn btn-outline-warning active" onclick="changerLangue('fr')">🇫🇷</button>
-    <button class="btn btn-outline-warning" onclick="changerLangue('ar')">🇸🇦</button>
-    <button class="btn btn-outline-warning" onclick="changerLangue('en')">🇬🇧</button>
+    <button class="btn btn-outline-warning" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
+    <button class="btn btn-outline-warning" onclick="changerLangue('ar')" id="btn-ar">🇸🇦 AR</button>
+    <button class="btn btn-outline-warning" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
   </div>
 
   <div class="row g-4">
+    <!-- ➕ FORMULAIRE -->
     <div class="col-md-5">
       <div class="carte">
-        <h5>Délivrer un document</h5>
-        <form id="formDoc" class="g-3">
-          <div class="mb-3"><label>Élève</label><select name="id_eleve" id="sel-eleve" class="form-select" required></select></div>
-          <div class="mb-3"><label>Type document</label>
-            <select name="type_doc" class="form-select" required>
-              <option value="carte_scolaire">🪪 Carte Scolaire</option>
-              <option value="attestation_scolarite">📄 Attestation de Scolarité</option>
-              <option value="certificat_scolarite">📃 Certificat de Scolarité</option>
-              <option value="releve_notes">📊 Relevé de Notes</option>
+        <h5 class="mb-4">
+          <span class="txt-fr">Délivrer un document</span>
+          <span class="txt-en">Issue a document</span>
+          <span class="txt-ar">إصدار وثيقة</span>
+        </h5>
+        <form id="formDoc">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">${m('eleve')} *</label>
+            <select name="id_eleve" id="sel-eleve" class="form-select" required>
+              <option value="">--- <span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جار التحميل...</span> ---</option>
             </select>
           </div>
-          <div class="mb-3"><label>Année Scolaire</label><input type="text" name="annee_scolaire" class="form-control" value="2026-2027" required></div>
-          <button type="submit" class="btn btn-success w-100">Générer & Enregistrer</button>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">${m('typeDoc')} *</label>
+            <select name="type_doc" id="sel-type" class="form-select" required>
+              <option value="carte_scolaire">🪪 <span class="txt-fr">Carte Scolaire</span><span class="txt-en">School Card</span><span class="txt-ar">البطاقة المدرسية</span></option>
+              <option value="attestation_scolarite">📄 <span class="txt-fr">Attestation de Scolarité</span><span class="txt-en">School Attestation</span><span class="txt-ar">شهادة دراسية</span></option>
+              <option value="certificat_scolarite">📃 <span class="txt-fr">Certificat de Scolarité</span><span class="txt-en">School Certificate</span><span class="txt-ar">إفادة دراسية</span></option>
+              <option value="releve_notes">📊 <span class="txt-fr">Relevé de Notes</span><span class="txt-en">Transcript</span><span class="txt-ar">كشف النقاط</span></option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">${m('annee')} *</label>
+            <input type="text" name="annee_scolaire" class="form-control" value="2026-2027" required>
+          </div>
+          <button type="submit" class="btn btn-success w-100 py-2">
+            <i class="bi bi-save me-2"></i>
+            <span class="txt-fr">Générer & Enregistrer</span>
+            <span class="txt-en">Generate & Save</span>
+            <span class="txt-ar">إنشاء وحفظ</span>
+          </button>
         </form>
       </div>
     </div>
 
+    <!-- 📄 PRÉVISUALISATION -->
     <div class="col-md-7">
-      <div id="affichage-carte"></div>
+      <div id="affichage-carte">
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-file-earmark-text fs-1"></i>
+          <p class="mt-3">
+            <span class="txt-fr">Le document apparaîtra ici après génération</span>
+            <span class="txt-en">The document will appear here after generation</span>
+            <span class="txt-ar">ستظهر الوثيقة هنا بعد الإنشاء</span>
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 </div>
-<a href="../deconnexion.html" class="menu-item text-danger">
-  <i class="bi bi-box-arrow-right"></i>
-  <span data-fr="Déconnexion" data-ar="تسجيل الخروج" data-en="Logout">Déconnexion</span>
-</a>
+
 <script>
-let donneesEleve=null;
-async function chargerEleves(){
-  const r=await fetch('/api/auth/eleves/tous',{headers:{'Authorization':`Bearer ${localStorage.getItem('token')}`}}).then(x=>x.json());
-  document.getElementById('sel-eleve').innerHTML=r.lignes.map(e=>`<option value="${e.id_utilisateur}">${e.nom} ${e.prenoms} — ${e.nom_classe}</option>`).join('');
-  donneesEleve=r.lignes;
-}
+  let donneesEleve = [];
 
-document.getElementById('formDoc').addEventListener('submit',async e=>{
-  e.preventDefault();
-  const d=Object.fromEntries(new FormData(e.target));
-  const res=await fetch('/api/auth/document/delivrer',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('token')}`},body:JSON.stringify(d)});
-  const rep=await res.json();
-  if(!rep.ok)return alert(rep.erreur);
+  // 🗣️ CHANGEMENT DE LANGUE
+  function changerLangue(lang){
+    langueActuelle = lang;
+    localStorage.setItem('langue', lang);
+    document.body.className = 'lang-' + lang;
+    document.querySelectorAll('.barre-langue button').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-'+lang).classList.add('active');
+  }
+  document.getElementById('btn-'+langueActuelle)?.classList.add('active');
 
-  const el=donneesEleve.find(x=>x.id_utilisateur==d.id_eleve);
-  document.getElementById('affichage-carte').innerHTML=`
-    <div class="carte-scolaire">
-      <div class="text-center mb-3">
-        <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
-        <div class="small opacity-75">Établissement Scolaire & Centre Islamique</div>
-        <hr class="border-warning">
-      </div>
-      <h4 class="text-center text-uppercase">${d.type_doc.replace('_',' ')}</h4>
-      <div class="mt-4">
-        <p><strong>Nom :</strong> ${el.nom}</p>
-        <p><strong>Prénoms :</strong> ${el.prenoms}</p>
-        <p><strong>Classe :</strong> ${el.nom_classe}</p>
-        <p><strong>Année :</strong> ${d.annee_scolaire}</p>
-        <p class="numero-ref">N° ${rep.numero_unique}</p>
-      </div>
-      <div class="text-center mt-4">
-        <button class="btn btn-warning no-print" onclick="window.print()">🖨️ Imprimer en PDF</button>
-      </div>
-    </div>
-  `;
-});
+  // 📄 Libellé type de document
+  function libelleTypeDoc(code){
+    const lib = {
+      fr: {carte_scolaire:"CARTE SCOLAIRE", attestation_scolarite:"ATTESTATION DE SCOLARITÉ", certificat_scolarite:"CERTIFICAT DE SCOLARITÉ", releve_notes:"RELEVÉ DE NOTES"},
+      en: {carte_scolaire:"SCHOOL CARD", attestation_scolarite:"SCHOOL ATTESTATION", certificat_scolarite:"SCHOOL CERTIFICATE", releve_notes:"TRANSCRIPT"},
+      ar: {carte_scolaire:"البطاقة المدرسية", attestation_scolarite:"شهادة دراسية", certificat_scolarite:"إفادة دراسية", releve_notes:"كشف النقاط"}
+    };
+    return lib[langueActuelle]?.[code] || lib.fr[code] || code.replace('_',' ').toUpperCase();
+  }
 
-chargerEleves();
+  // ✅ CHARGER LA LISTE DES ÉLÈVES
+  async function chargerEleves(){
+    const sel = document.getElementById('sel-eleve');
+    const alerteApi = document.getElementById('alerteApi');
+    const texteAlerteApi = document.getElementById('texteAlerteApi');
+
+    try {
+      const r = await fetch(`${API_URL}/eleves/tous`, {headers:{'Authorization':`Bearer ${token}`}});
+      const data = await r.json();
+      alerteApi.classList.add('d-none');
+
+      if(data.ok && data.lignes && data.lignes.length > 0){
+        donneesEleve = data.lignes;
+        sauvegarderElevesLocaux(data.lignes);
+        sel.innerHTML = '<option value="">--- Sélectionner ---</option>' +
+          data.lignes.map(e => `<option value="${e.id_utilisateur}">${e.nom} ${e.prenoms} — ${e.nom_classe || e.classe || ''}</option>`).join('');
+      } else {
+        sel.innerHTML = `<option value="">--- ${m('aucunEleve')} ---</option>`;
+      }
+    } catch {
+      // 📴 MODE LOCAL
+      console.warn("🔌 Chargement élèves depuis stockage local");
+      texteAlerteApi.textContent = m('serveurIndispo');
+      alerteApi.classList.remove('d-none');
+      donneesEleve = obtenirElevesLocaux();
+      if(donneesEleve.length === 0){
+        sel.innerHTML = `<option value="">--- ${m('aucunEleve')} ---</option>`;
+        return;
+      }
+      sel.innerHTML = '<option value="">--- Sélectionner ---</option>' +
+        donneesEleve.map(e => `<option value="${e.id_utilisateur}">${e.nom} ${e.prenoms} — ${e.nom_classe || e.classe || ''}</option>`).join('');
+    }
+  }
+
+  // 💾 GÉNÉRER LE DOCUMENT
+  document.getElementById('formDoc').addEventListener('submit', async e => {
+    e.preventDefault();
+    const d = Object.fromEntries(new FormData(e.target));
+    const selEleve = donneesEleve.find(x => String(x.id_utilisateur) === String(d.id_eleve));
+    if(!selEleve) return alert(m('aucunEleve'));
+
+    try {
+      const r = await fetch(`${API_URL}/documents/delivrer`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+        body: JSON.stringify(d)
+      });
+      const rep = await r.json();
+
+      if(!rep.ok) throw new Error(rep.erreur || "Erreur serveur");
+      afficherCarte(selEleve, d, rep.numero_unique);
+      alert(m('genereOk'));
+
+    } catch {
+      // 📴 GÉNÉRATION LOCALE
+      console.warn("🔴 Génération en mode local");
+      const numeroUnique = 'LOC-' + Date.now().toString().slice(-8);
+      sauvegarderDocumentLocal({...d, numero_unique: numeroUnique, eleve: selEleve});
+      afficherCarte(selEleve, d, numeroUnique);
+      alert(m('genereOk') + " (mode local)");
+    }
+  });
+
+  // 🖼️ AFFICHER LA CARTE / DOCUMENT
+  function afficherCarte(el, d, numero){
+    document.getElementById('affichage-carte').innerHTML = `
+      <div class="carte-scolaire">
+        <div class="text-center mb-4">
+          <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
+          <div class="small opacity-75">
+            <span class="txt-fr">Établissement Scolaire & Centre Islamique</span>
+            <span class="txt-en">School & Islamic Center</span>
+            <span class="txt-ar">مؤسسة تعليمية ومركز إسلامي</span>
+          </div>
+          <hr style="border-color:var(--bord-orange)">
+        </div>
+        <h4 class="text-center text-uppercase fw-bold mb-4" style="color:var(--fond-dore)">${libelleTypeDoc(d.type_doc)}</h4>
+        <div class="mt-4 px-2">
+          <p class="mb-2"><strong>
+            <span class="txt-fr">Nom :</span>
+            <span class="txt-en">Last Name:</span>
+            <span class="txt-ar">اللقب :</span>
+          </strong> ${el.nom}</p>
+          <p class="mb-2"><strong>
+            <span class="txt-fr">Prénoms :</span>
+            <span class="txt-en">First Names:</span>
+            <span class="txt-ar">الأسماء :</span>
+          </strong> ${el.prenoms}</p>
+          <p class="mb-2"><strong>
+            <span class="txt-fr">Classe :</span>
+            <span class="txt-en">Class:</span>
+            <span class="txt-ar">القسم :</span>
+          </strong> ${el.nom_classe || el.classe || '-'}</p>
+          <p class="mb-3"><strong>
+            <span class="txt-fr">Année Scolaire :</span>
+            <span class="txt-en">School Year:</span>
+            <span class="txt-ar">السنة الدراسية :</span>
+          </strong> ${d.annee_scolaire}</p>
+          <p class="numero-ref text-end mt-3">
+            N° ${numero}
+          </p>
+        </div>
+        <div class="text-center mt-4 no-print">
+          <button class="btn btn-warning px-4" onclick="window.print()">
+            <i class="bi bi-printer me-2"></i>
+            <span class="txt-fr">Imprimer en PDF</span>
+            <span class="txt-en">Print as PDF</span>
+            <span class="txt-ar">طباعة PDF</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  // 🚀 CHARGEMENT
+  chargerEleves();
 </script>
+
 </body>
 </html>
