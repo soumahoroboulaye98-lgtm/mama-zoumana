@@ -8,21 +8,10 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-
-// 🔐 MIDDLEWARE VÉRIFICATION ADMIN
-const verifadmin = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if(!token) return res.status(401).json({erreur:"Token manquant"});
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if(decoded.role !== 'admin' && decoded.role !== 'super_admin'){
-      return res.status(403).json({erreur:"Accès réservé à l'administrateur"});
-    }
-    next();
-  } catch {
-    return res.status(401).json({erreur:"Token invalide ou expiré"});
-  }
-};
+// ✅ Middlewares importés et harmonisés
+const veriftoken = require('../middleware/veriftoken');
+const verifadmin = require('../middleware/verifadmin');
+const protegerAdmin = [veriftoken, verifadmin];
 
 
 // ==================================================
@@ -68,7 +57,7 @@ async function envoyerEmail(destinataire, sujet, messageHtml) {
 
 
 // ==================================================
-// ✅ ENREGISTRER UNE PRÉINSCRIPTION — AVEC RÉSERVATION PLACES
+// ✅ ENREGISTRER UNE PRÉINSCRIPTION — Publique
 // ==================================================
 router.post('/', upload.fields([
   { name: 'photo_identite', maxCount: 1 },
@@ -83,8 +72,8 @@ router.post('/', upload.fields([
       langue, date_naissance
     } = req.body;
 
-    const id_classe_nombre = (id_classe && id_classe !== '' && !isNaN(Number(id_classe))) 
-      ? Number(id_classe) 
+    const id_classe_nombre = (id_classe && id_classe !== '' && !isNaN(Number(id_classe)))
+      ? Number(id_classe)
       : null;
 
     // ══════════════════════════════════════════════════
@@ -96,28 +85,26 @@ router.post('/', upload.fields([
     let placesOccupeesActuelles = null;
 
     if (profil === 'eleve' && id_classe_nombre) {
-      // ✅ HARMONISÉ : On NE sélectionne PAS places_restantes (non stockée)
       const verifclasse = await pool.query(
         'SELECT id_classe, libelle_classe, capacite_max, places_occupees FROM classes WHERE id_classe = $1',
         [id_classe_nombre]
       );
       if (verifclasse.rows.length === 0) {
-        return res.json({ 
-          ok: false, 
-          erreur: "❌ Cette classe n'existe pas ! Choisis dans la liste." 
+        return res.json({
+          ok: false,
+          erreur: "❌ Cette classe n'existe pas ! Choisissez dans la liste."
         });
       }
 
       libelleClasse = verifclasse.rows[0].libelle_classe;
       capaciteMax = verifclasse.rows[0].capacite_max;
       placesOccupeesActuelles = verifclasse.rows[0].places_occupees || 0;
-      placesRestantes = capaciteMax - placesOccupeesActuelles; // ✅ Calcul dynamique
+      placesRestantes = capaciteMax - placesOccupeesActuelles;
 
-      // ⛔ BLOQUER SI LA CLASSE EST COMPLÈTE
       if (placesRestantes <= 0) {
-        return res.json({ 
-          ok: false, 
-          erreur: `❌ La classe ${libelleClasse} est complète ! Aucune place disponible.` 
+        return res.json({
+          ok: false,
+          erreur: `❌ La classe ${libelleClasse} est complète ! Aucune place disponible.`
         });
       }
     }
@@ -125,7 +112,7 @@ router.post('/', upload.fields([
     // ══════════════════════════════════════════════════
     // ✅ TRAITEMENT DES FICHIERS
     // ══════════════════════════════════════════════════
-    const photoUrl = x.photo_identite ? `https://mama-zoumana-api.onrender.com/api/${x.photo_identite}` : null;
+    const photo_identite = req.files?.photo_identite ? 'uploads/' + req.files.photo_identite[0].filename : null;
     const extrait_naissance = req.files?.extrait_naissance ? 'uploads/' + req.files.extrait_naissance[0].filename : null;
     const bulletin = req.files?.bulletin ? 'uploads/' + req.files.bulletin[0].filename : null;
     const cv = req.files?.cv ? 'uploads/' + req.files.cv[0].filename : null;
@@ -163,21 +150,20 @@ router.post('/', upload.fields([
     // ══════════════════════════════════════════════════
     if (profil === 'eleve' && id_classe_nombre && placesRestantes !== null) {
       const nouveauOccupees = placesOccupeesActuelles + 1;
-      // ✅ HARMONISÉ : On met à jour SEULEMENT places_occupees
       await pool.query(`
-        UPDATE classes 
+        UPDATE classes
         SET places_occupees = $1
         WHERE id_classe = $2
       `, [nouveauOccupees, id_classe_nombre]);
 
-      placesRestantes = capaciteMax - nouveauOccupees; // ✅ Calcul dynamique
+      placesRestantes = capaciteMax - nouveauOccupees;
     }
 
     // ══════════════════════════════════════════════════
-    // ✅ EMAIL DE CONFIRMATION AVEC PLACES RESTANTES
+    // ✅ EMAIL DE CONFIRMATION
     // ══════════════════════════════════════════════════
-    const infoClasse = libelleClasse 
-      ? `🏫 Classe : ${libelleClasse}<br>📊 Places restantes dans la classe : <strong>${placesRestantes}</strong> place(s)` 
+    const infoClasse = libelleClasse
+      ? `🏫 Classe : ${libelleClasse}<br>📊 Places restantes dans la classe : <strong>${placesRestantes}</strong> place(s)`
       : '';
 
     await envoyerEmail(email, 'Préinscription enregistrée — MAMA-ZOUMANA', `
@@ -190,25 +176,26 @@ router.post('/', upload.fields([
       <hr><p>Établissement MAMA-ZOUMANA</p>
     `);
 
-    // ✅ RÉPONSE AVEC LES INFOS
-    const messageClasse = libelleClasse 
-      ? `\n🏫 Classe : ${libelleClasse}\n📊 Places restantes : ${placesRestantes} place(s)` 
+    console.log(`✅ PRÉINSCRIPTION ENREGISTRÉE — ID: ${idDemande}, Email: ${email}`);
+
+    const messageClasse = libelleClasse
+      ? `\n🏫 Classe : ${libelleClasse}\n📊 Places restantes : ${placesRestantes} place(s)`
       : '';
 
-    res.json({ 
-      ok: true, 
-      message: `✅ Préinscription enregistrée !${messageClasse}\n⏳ En attente de validation par l'administration.`, 
+    res.json({
+      ok: true,
+      message: `✅ Préinscription enregistrée !${messageClasse}\n⏳ En attente de validation par l'administration.`,
       id: idDemande,
       libelle_classe: libelleClasse,
       places_restantes: placesRestantes
     });
 
   } catch (e) {
-    console.error("❌ ERREUR INSERTION :", e.message);
+    console.error("❌ ERREUR INSERTION PRÉINSCRIPTION :", e.message);
     res.json({
       ok: false,
-      erreur: e.message.includes('unique constraint') 
-        ? '❌ Cet email est déjà utilisé !' 
+      erreur: e.message.includes('unique constraint')
+        ? '❌ Cet email est déjà utilisé !'
         : e.message
     });
   }
@@ -216,37 +203,39 @@ router.post('/', upload.fields([
 
 
 // ==================================================
-// 📋 ROUTE EN ATTENTE — appelée par ton HTML
+// 📋 PRÉINSCRIPTIONS EN ATTENTE — Admin seul
 // ==================================================
-router.get('/en-attente', verifadmin, async (req, res) => {
+router.get('/en-attente', protegerAdmin, async (req, res) => {
   try {
     const liste = await pool.query(`
-      SELECT 
-        id_preinscription, nom, prenoms, email, telephone, 
+      SELECT
+        id_preinscription, nom, prenoms, email, telephone,
         profil, id_classe, matricule, date_preinscription, statut_preinscription
-      FROM preinscriptions 
+      FROM preinscriptions
       WHERE statut_preinscription = 'en_attente'
       ORDER BY date_preinscription DESC
     `);
+
+    console.log(`📋 DEMANDES EN ATTENTE : ${liste.rows.length}`);
     res.json({ ok: true, lignes: liste.rows });
   } catch (e) {
-    console.error("❌ ERREUR LISTE :", e.message);
+    console.error("❌ ERREUR LISTE EN ATTENTE :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 
 // ==================================================
-// 📋 LISTE — avec libellé de la classe
+// 📋 LISTE COMPLÈTE — Admin seul
 // ==================================================
-router.get('/liste', verifadmin, async (req, res) => {
+router.get('/liste', protegerAdmin, async (req, res) => {
   try {
     const liste = await pool.query(`
-      SELECT 
-        id_preinscription, nom, prenoms, email, telephone, 
-        profil, id_classe, matricule, date_preinscription, 
+      SELECT
+        id_preinscription, nom, prenoms, email, telephone,
+        profil, id_classe, matricule, date_preinscription,
         photo_identite, documents, statut_preinscription
-      FROM preinscriptions 
+      FROM preinscriptions
       ORDER BY date_preinscription DESC
     `);
 
@@ -263,18 +252,19 @@ router.get('/liste', verifadmin, async (req, res) => {
       return { ...dem, classe: libelleClasse };
     }));
 
+    console.log(`📋 LISTE PRÉINSCRIPTIONS : ${resultat.length}`);
     res.json({ ok: true, liste: resultat });
   } catch (e) {
-    console.error("❌ ERREUR LISTE :", e.message);
+    console.error("❌ ERREUR LISTE PRÉINSCRIPTIONS :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 
 // ==================================================
-// ✅ VALIDER UNE DEMANDE — SANS redéduire la place (déjà fait !)
+// ✅ VALIDER UNE DEMANDE — Admin seul
 // ==================================================
-router.put('/valider/:id', verifadmin, async (req, res) => {
+router.put('/valider/:id', protegerAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -284,9 +274,9 @@ router.put('/valider/:id', verifadmin, async (req, res) => {
     }
     const d = demande.rows[0];
 
-    const prefixe = d.profil === 'eleve' ? 'ELV' 
-                  : d.profil === 'prof' ? 'ENS' 
-                  : d.profil === 'parent' ? 'PAR' : 'VIS';
+    const prefixe = d.profil === 'eleve' ? 'ELV'
+      : d.profil === 'prof' ? 'ENS'
+      : d.profil === 'parent' ? 'PAR' : 'VIS';
     const annee = new Date().getFullYear();
     const compteur = String(d.id_preinscription).padStart(5, '0');
     const matricule = `${prefixe}-${annee}-${compteur}`;
@@ -347,6 +337,8 @@ router.put('/valider/:id', verifadmin, async (req, res) => {
     `;
 
     await envoyerEmail(d.email, '✅ INSCRIPTION VALIDÉE — MAMA-ZOUMANA', htmlMail);
+
+    console.log(`✅ PRÉINSCRIPTION VALIDÉE — ID: ${id}, Matricule: ${matricule}`);
     res.json({ ok: true, message: "✅ Inscription validée ! Compte créé et email envoyé." });
 
   } catch (e) {
@@ -357,13 +349,12 @@ router.put('/valider/:id', verifadmin, async (req, res) => {
 
 
 // ==================================================
-// ❌ REFUSER UNE DEMANDE — REND LA PLACE DISPONIBLE !
+// ❌ REFUSER UNE DEMANDE — Admin seul
 // ==================================================
-router.put('/refuser/:id', verifadmin, async (req, res) => {
+router.put('/refuser/:id', protegerAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // ✅ Récupérer la classe de la demande refusée
     const demande = await pool.query("SELECT id_classe FROM preinscriptions WHERE id_preinscription = $1", [id]);
     if (demande.rows.length === 0) {
       return res.json({ ok: false, erreur: "❌ Demande introuvable !" });
@@ -371,19 +362,20 @@ router.put('/refuser/:id', verifadmin, async (req, res) => {
 
     const idClasse = demande.rows[0].id_classe;
 
-    // ✅ HARMONISÉ : Ne décrémenter QUE places_occupees
+    // ✅ RENDRE LA PLACE DISPONIBLE
     if (idClasse) {
       await pool.query(`
-        UPDATE classes 
+        UPDATE classes
         SET places_occupees = GREATEST(0, places_occupees - 1)
         WHERE id_classe = $1
       `, [idClasse]);
     }
 
-    // ✅ Marquer comme refusée
     await pool.query(`UPDATE preinscriptions SET statut_preinscription = 'refusee' WHERE id_preinscription = $1`, [id]);
 
+    console.log(`🗑️ PRÉINSCRIPTION REFUSÉE — ID: ${id}, Classe: ${idClasse || 'aucune'}`);
     res.json({ ok: true, message: "✅ Demande refusée. Place rendue disponible dans la classe." });
+
   } catch (e) {
     console.error("❌ ERREUR REFUS :", e.message);
     res.json({ ok: false, erreur: e.message });
@@ -392,9 +384,9 @@ router.put('/refuser/:id', verifadmin, async (req, res) => {
 
 
 // ==================================================
-// 🔍 DÉTAILS D'UNE PRÉINSCRIPTION
+// 🔍 DÉTAILS D'UNE PRÉINSCRIPTION — Admin seul
 // ==================================================
-router.get('/detail/:id', verifadmin, async (req, res) => {
+router.get('/detail/:id', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
       SELECT id_preinscription, nom, prenoms, email, telephone, profil, id_classe,
@@ -410,7 +402,10 @@ router.get('/detail/:id', verifadmin, async (req, res) => {
       const c = await pool.query('SELECT libelle_classe FROM classes WHERE id_classe = $1', [d.id_classe]);
       if (c.rows.length > 0) nomClasse = c.rows[0].libelle_classe;
     }
+
+    console.log(`🔍 DÉTAIL PRÉINSCRIPTION — ID: ${req.params.id}`);
     res.json({ ok: true, demande: { ...d, classe: nomClasse } });
+
   } catch (e) {
     console.error("❌ ERREUR DÉTAIL :", e.message);
     res.json({ ok: false, erreur: e.message });
