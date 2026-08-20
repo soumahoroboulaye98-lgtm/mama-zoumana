@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Administration — Secrétariat</title>
+  <title>Administration — Secrétariat — MAMA-ZOUMANA</title>
+
+  <!-- URLs vérifiées et harmonisées -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
   <style>
     :root {
       --sombre: #0f172a;
@@ -13,88 +16,167 @@
       --bord-orange: #f59e0b;
       --succes: #10b981;
       --info: #3b82f6;
+      --texte-clair: #f8fafc;
     }
-    body{background:#f1f5f9;min-height:100vh}
-    .entete{background:linear-gradient(90deg,var(--sombre),var(--sombre-clair));color:white;padding:1.5rem;border-bottom:4px solid var(--bord-orange)}
-    .carte{background:white;border-radius:12px;padding:1.25rem;box-shadow:0 2px 8px rgba(0,0,0,0.08);border-left:4px solid var(--bord-orange);transition:all 0.2s}
-    .carte:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1)}
-    .lien-menu{text-decoration:none;color:inherit;display:block}
+
+    body {
+      background: #f1f5f9;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    .entete {
+      background: linear-gradient(90deg, var(--sombre), var(--sombre-clair));
+      color: white;
+      padding: 1.5rem;
+      border-bottom: 4px solid var(--bord-orange);
+    }
+
+    .carte {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border-left: 4px solid var(--bord-orange);
+      transition: all 0.25s ease;
+      height: 100%;
+    }
+
+    .carte:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    }
+
+    .carte h5 {
+      font-weight: 600;
+    }
+
+    .btn-action {
+      border: none;
+      font-weight: 600;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-action:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    }
+
+    .lien-menu {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
   </style>
 </head>
 <body>
 
+<!-- 🔒 Vérification des droits d'accès -->
 <script>
-if(!localStorage.getItem('token') || localStorage.getItem('role')!=='secretaire'){
-  alert("⛔ Accès réservé au Secrétariat");
-  location.href='../connexion.html';
+if (!localStorage.getItem('token') || localStorage.getItem('role') !== 'secretaire') {
+  alert("⛔ Accès réservé au Secrétariat. Veuillez vous connecter.");
+  location.href = '../connexion.html';
 }
 </script>
 
+<!-- 🧭 EN-TÊTE -->
 <div class="entete">
   <div class="container">
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
       <div>
         <h2 class="mb-1">📝 Espace Secrétariat</h2>
         <p class="mb-0 opacity-75">Gestion des inscriptions, classes et documents administratifs</p>
       </div>
       <div class="d-flex gap-2">
-        <a href="../changer-mot-de-passe.html" class="btn btn-outline-light btn-sm">🔐 Changer MDP</a>
-        <button class="btn btn-outline-light btn-sm" onclick="deconnexion()">🚪 Déconnexion</button>
+        <a href="../changer-mot-de-passe.html" class="btn btn-outline-light btn-sm">
+          🔐 Changer mon mot de passe
+        </a>
+        <button class="btn btn-warning btn-sm text-dark fw-medium" onclick="deconnexion()">
+          🚪 Déconnexion
+        </button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- 📋 GRILLE DES FONCTIONNALITÉS -->
 <div class="container py-4">
-
   <div class="row g-4">
+
+    <!-- Inscriptions -->
     <div class="col-md-6">
       <div class="carte h-100">
-        <h5 class="mb-3"><i class="bi bi-person-plus text-success"></i> Inscriptions</h5>
-        <p class="text-muted small mb-3">Valider et suivre les demandes de préinscription</p>
-        <a href="../espace/admin/gestion-inscriptions.html" class="btn w-100 text-white" style="background:var(--succes)">
+        <h5 class="mb-3">
+          <i class="bi bi-person-plus text-success me-2"></i>Inscriptions
+        </h5>
+        <p class="text-muted small mb-4">Valider et suivre les demandes de préinscription</p>
+        <a href="../espace/admin/gestion-inscriptions.html" class="btn-action d-block text-center text-white" style="background: var(--succes);">
           📋 Voir les demandes en attente
         </a>
       </div>
     </div>
+
+    <!-- Classes & Effectifs -->
     <div class="col-md-6">
       <div class="carte h-100">
-        <h5 class="mb-3"><i class="bi bi-grid text-primary"></i> Classes & Effectifs</h5>
-        <p class="text-muted small mb-3">Gérer les classes, consulter les listes et places disponibles</p>
-        <a href="../espace/admin/classes.html" class="btn w-100 text-white" style="background:var(--info)">
+        <h5 class="mb-3">
+          <i class="bi bi-grid text-primary me-2"></i>Classes & Effectifs
+        </h5>
+        <p class="text-muted small mb-4">Gérer les classes, consulter les listes et places disponibles</p>
+        <a href="../espace/admin/classes.html" class="btn-action d-block text-center text-white" style="background: var(--info);">
           🏫 Gérer les classes
         </a>
       </div>
     </div>
+
+    <!-- Documents Administratifs -->
     <div class="col-md-6">
       <div class="carte h-100">
-        <h5 class="mb-3"><i class="bi bi-file-earmark-text text-warning"></i> Documents Administratifs</h5>
-        <p class="text-muted small mb-3">Extraits, certificats, attestations et reçus scolaires</p>
-        <button class="btn w-100 text-dark" style="background:var(--bord-orange)">
+        <h5 class="mb-3">
+          <i class="bi bi-file-earmark-text text-warning me-2"></i>Documents Administratifs
+        </h5>
+        <p class="text-muted small mb-4">Extraits, certificats, attestations et reçus scolaires</p>
+        <button class="btn-action d-block w-100 text-center text-dark" style="background: var(--bord-orange);">
           📄 Générer un document
         </button>
       </div>
     </div>
+
+    <!-- Emplois du Temps -->
     <div class="col-md-6">
       <div class="carte h-100">
-        <h5 class="mb-3"><i class="bi bi-calendar-event text-secondary"></i> Emplois du Temps</h5>
-        <p class="text-muted small mb-3">Consulter et publier les emplois du temps des classes</p>
-        <button class="btn w-100" style="background:#e2e8f0">
+        <h5 class="mb-3">
+          <i class="bi bi-calendar-event text-secondary me-2"></i>Emplois du Temps
+        </h5>
+        <p class="text-muted small mb-4">Consulter et publier les emplois du temps des classes</p>
+        <button class="btn-action d-block w-100 text-center" style="background: #e2e8f0;">
           📅 Consulter les emplois
         </button>
       </div>
     </div>
+
   </div>
 
-  <div class="alert alert-info mt-4">
-    <i class="bi bi-info-circle"></i> 
+  <!-- 📌 Note d'information -->
+  <div class="alert alert-info mt-4 border-0 shadow-sm">
+    <i class="bi bi-info-circle me-2"></i>
     Le Secrétariat gère les inscriptions, classes et documents — <strong>sans accès aux paiements</strong> ni aux paramètres sensibles.
   </div>
 
 </div>
 
 <script>
-function deconnexion(){ localStorage.clear(); location.href='../connexion.html'; }
+// 🚪 Déconnexion sécurisée
+function deconnexion() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  location.href = '../connexion.html';
+}
 </script>
+
 </body>
 </html>
