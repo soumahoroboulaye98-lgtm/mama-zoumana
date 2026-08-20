@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+\<!DOCTYPE html>
 <html lang="fr" class="lang-fr">
 <head>
   <meta charset="UTF-8">
@@ -13,6 +13,7 @@
   <style>
     :root {
       --primaire: #0c4a6e;
+      --secondaire: #0369a1;
       --succes: #10b981;
       --info: #3b82f6;
       --alerte: #f59e0b;
@@ -30,7 +31,8 @@
     body.lang-en .txt-fr,body.lang-en .txt-ar{display:none}
     body.lang-ar .txt-ar{display:inline}
     body.lang-ar .txt-fr,body.lang-ar .txt-en{display:none}
-    body.lang-ar .titre-section,body.lang-ar .text-end-ar{text-align:right}
+    body.lang-ar .titre-section,
+    body.lang-ar .text-end-ar{text-align:right}
 
     body {
       background: linear-gradient(135deg, var(--sombre), var(--sombre-clair));
@@ -62,11 +64,12 @@
       background: rgba(245, 158, 11, 0.1);
     }
 
-    .btn-primaire { background: linear-gradient(135deg, var(--primaire), #0369a1); border:none; color:white; }
-    .btn-primaire:hover { background: linear-gradient(135deg, #0369a1, var(--primaire)); color:white; }
-    .btn-succes { background: linear-gradient(135deg, var(--succes), #059669); border:none; color:white; }
-    .btn-info { background: linear-gradient(135deg, var(--info), #2563eb); border:none; color:white; }
-    .btn-accent { background: linear-gradient(135deg, var(--alerte), #d97706); border:none; color:#000; font-weight:500; }
+    .btn-primaire { background: linear-gradient(135deg, var(--primaire), var(--secondaire)); border:none; color:white; border-radius: 10px; }
+    .btn-primaire:hover { background: linear-gradient(135deg, var(--secondaire), var(--primaire)); color:white; transform: translateY(-1px); }
+    .btn-succes { background: linear-gradient(135deg, var(--succes), #059669); border:none; color:white; border-radius: 10px; }
+    .btn-info { background: linear-gradient(135deg, var(--info), #2563eb); border:none; color:white; border-radius: 10px; }
+    .btn-accent { background: linear-gradient(135deg, var(--alerte), #d97706); border:none; color:#000; font-weight:500; border-radius: 10px; }
+    .btn-accent:hover { transform: translateY(-1px); }
 
     .titre-section { color: var(--texte-dore); font-weight:600; }
 
@@ -106,13 +109,15 @@
     .badge-partiel { background:#f59e0b; color:#000; }
     .badge-impaye { background:#ef4444; }
 
-    .montant { font-family:monospace; font-weight:600; }
+    .montant { font-family: 'Segoe UI Mono', monospace; font-weight:600; }
     .text-cfa::after { content:" F CFA"; font-size:.85rem; opacity:.8; margin-left:2px; }
 
     .btn-lang { width:38px; height:38px; padding:0; font-size:14px; border-radius:50%; border:2px solid; display:flex; align-items:center; justify-content:center; }
     .btn-lang.active { background:var(--alerte); color:#000; border-color:var(--alerte); }
 
-    .photo-eleve { width:60px; height:60px; border-radius:50%; object-fit:cover; border:3px solid var(--alerte); }
+    .photo-eleve { width:60px; height:60px; border-radius:50%; object-fit:cover; border:3px solid var(--alerte); background: rgba(15,23,42,0.6); }
+
+    .table-dark { --bs-table-bg: rgba(15,23,42,0.5); --bs-table-striped-bg: rgba(30,41,59,0.4); }
   </style>
 </head>
 <body>
@@ -202,9 +207,21 @@
             <span class="txt-ar">النتائج الدراسية</span>
           </h5>
           <select id="filtreTrimestre" class="form-select form-select-sm w-auto">
-            <option value="1">1er Trimestre</option>
-            <option value="2">2ème Trimestre</option>
-            <option value="3">3ème Trimestre</option>
+            <option value="1">
+              <span class="txt-fr">1er Trimestre</span>
+              <span class="txt-en">1st Term</span>
+              <span class="txt-ar">الثلاثاء الأول</span>
+            </option>
+            <option value="2">
+              <span class="txt-fr">2ème Trimestre</span>
+              <span class="txt-en">2nd Term</span>
+              <span class="txt-ar">الثلاثاء الثاني</span>
+            </option>
+            <option value="3">
+              <span class="txt-fr">3ème Trimestre</span>
+              <span class="txt-en">3rd Term</span>
+              <span class="txt-ar">الثلاثاء الثالث</span>
+            </option>
           </select>
         </div>
         <div id="listeNotes" class="table-responsive">
@@ -218,20 +235,34 @@
                 <th class="text-center"><span class="txt-fr">Moyenne</span><span class="txt-en">Average</span><span class="txt-ar">المتوسط</span></th>
               </tr>
             </thead>
-            <tbody id="corpsNotes"><tr><td colspan="5" class="text-center text-muted">Chargement...</td></tr></tbody>
+            <tbody id="corpsNotes">
+              <tr>
+                <td colspan="5" class="text-center text-muted">
+                  <span class="txt-fr">Chargement...</span>
+                  <span class="txt-en">Loading...</span>
+                  <span class="txt-ar">جارٍ التحميل...</span>
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
         <div id="blocBulletin" class="mt-3 d-none">
           <div class="alert alert-info">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
               <div>
-                <strong><span class="txt-fr">Moyenne Générale :</span> <span id="moyenneGen">—</span>/20</strong>
+                <strong>
+                  <span class="txt-fr">Moyenne Générale :</span>
+                  <span class="txt-en">Overall Average :</span>
+                  <span class="txt-ar">المتوسط العام :</span>
+                  <span id="moyenneGen">—</span>/20
+                </strong>
                 <span class="badge bg-success ms-2" id="mentionBulletin">—</span>
               </div>
               <button class="btn btn-sm btn-accent" onclick="voirBulletin()">
                 <i class="bi bi-file-earmark-text"></i>
                 <span class="txt-fr"> Voir Bulletin</span>
                 <span class="txt-en"> View Report</span>
+                <span class="txt-ar"> عرض الشهادة</span>
               </button>
             </div>
           </div>
@@ -248,7 +279,11 @@
           <span class="txt-ar">الجدول الأسبوعي</span>
         </h5>
         <div id="contenuEDT" class="table-responsive">
-          <p class="text-center text-muted">Chargement...</p>
+          <p class="text-center text-muted">
+            <span class="txt-fr">Chargement...</span>
+            <span class="txt-en">Loading...</span>
+            <span class="txt-ar">جارٍ التحميل...</span>
+          </p>
         </div>
       </div>
     </div>
@@ -262,11 +297,40 @@
           <span class="txt-ar">الرسوم والمبالغ المدفوعة</span>
         </h5>
         <div id="resumePaiement" class="row g-2 mb-3">
-          <div class="col-md-4"><div class="bg-danger bg-opacity-25 p-2 rounded text-center"><span class="small txt-fr">Total Dû</span><h5 class="montant text-danger" id="fraisDu">—</h5></div></div>
-          <div class="col-md-4"><div class="bg-success bg-opacity-25 p-2 rounded text-center"><span class="small txt-fr">Déjà Payé</span><h5 class="montant text-success" id="fraisPaye">—</h5></div></div>
-          <div class="col-md-4"><div class="bg-warning bg-opacity-25 p-2 rounded text-center"><span class="small txt-fr">Restant</span><h5 class="montant text-warning" id="fraisRestant">—</h5></div></div>
+          <div class="col-md-4">
+            <div class="bg-danger bg-opacity-25 p-2 rounded text-center">
+              <span class="small txt-fr">Total Dû</span>
+              <h5 class="montant text-danger" id="fraisDu">—</h5>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="bg-success bg-opacity-25 p-2 rounded text-center">
+              <span class="small txt-fr">Déjà Payé</span>
+              <h5 class="montant text-success" id="fraisPaye">—</h5>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="bg-warning bg-opacity-25 p-2 rounded text-center">
+              <span class="small txt-fr">Restant</span>
+              <h5 class="montant text-warning" id="fraisRestant">—</h5>
+            </div>
+          </div>
         </div>
-        <div id="listePaiementsParent"></div>
+        <div id="listePaiementsParent" class="mt-3">
+          <p class="text-center text-muted">
+            <span class="txt-fr">Chargement des détails...</span>
+            <span class="txt-en">Loading details...</span>
+            <span class="txt-ar">جارٍ تحميل التفاصيل...</span>
+          </p>
+        </div>
+        <div class="mt-3 text-center">
+          <a href="paiements.html" class="btn btn-primaire">
+            <i class="bi bi-receipt me-1"></i>
+            <span class="txt-fr">Voir tous mes reçus</span>
+            <span class="txt-en">View all receipts</span>
+            <span class="txt-ar">عرض جميع الإيصالات</span>
+          </a>
+        </div>
       </div>
     </div>
 
@@ -278,7 +342,13 @@
           <span class="txt-en">Student Information</span>
           <span class="txt-ar">معلومات التلميذ</span>
         </h5>
-        <div id="infosEleve"></div>
+        <div id="infosEleve" class="row g-2">
+          <div class="col-12 text-center text-muted">
+            <span class="txt-fr">Chargement...</span>
+            <span class="txt-en">Loading...</span>
+            <span class="txt-ar">جارٍ التحميل...</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -291,6 +361,33 @@ const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 const token = localStorage.getItem('token');
 let idEleveActuel = null;
 let langueActuelle = 'fr';
+
+// Messages multilingues
+const MSG = {
+  fr: {
+    authRequired: "Authentification requise",
+    noChild: "Aucun enfant associé à votre compte",
+    noGrades: "Aucune note disponible pour ce trimestre",
+    loading: "Chargement...",
+    error: "Erreur"
+  },
+  en: {
+    authRequired: "Authentication required",
+    noChild: "No child linked to your account",
+    noGrades: "No grades available for this term",
+    loading: "Loading...",
+    error: "Error"
+  },
+  ar: {
+    authRequired: "المصادقة مطلوبة",
+    noChild: "لا يوجد طفل مرتبط بحسابك",
+    noGrades: "لا توجد درجات لهذا الفصل",
+    loading: "جارٍ التحميل...",
+    error: "خطأ"
+  }
+};
+
+function msg(key) { return MSG[langueActuelle]?.[key] || MSG.fr[key]; }
 
 // 🌐 LANGUE
 document.querySelectorAll('.btn-lang').forEach(btn => {
@@ -314,34 +411,40 @@ document.querySelectorAll('.onglet').forEach(ong => {
     if(nom==='notes') chargerNotes();
     if(nom==='edt') chargerEDT();
     if(nom==='paiements') chargerPaiements();
+    if(nom==='infos') chargerInfosEleve();
   });
 });
 
 // 🚀 CHARGER LA LISTE DES ENFANTS
 async function chargerEnfants(){
   const cont = document.getElementById('listeEnfants');
-  if(!token) { cont.innerHTML=`<div class="col-12 text-center text-danger"><p>Authentification requise</p></div>`; return; }
+  if(!token) {
+    cont.innerHTML=`<div class="col-12 text-center text-danger"><p>${msg('authRequired')}</p></div>`;
+    return;
+  }
   try{
     const r = await fetch(`${API_URL}/mes-enfants`, {headers:{'Authorization':`Bearer ${token}`}});
     const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
-    if(!res.enfants.length){
-      cont.innerHTML=`<div class="col-12 text-center text-muted py-3"><p>Aucun enfant associé à votre compte</p></div>`;
+    if(!res.ok) throw new Error(res.erreur || msg('error'));
+    if(!res.enfants?.length){
+      cont.innerHTML=`<div class="col-12 text-center text-muted py-3"><p>${msg('noChild')}</p></div>`;
       return;
     }
     cont.innerHTML = res.enfants.map(e => `
       <div class="col-md-6 col-lg-4">
         <div class="carte carte-enfant p-3" data-id="${e.id_utilisateur}" onclick="selectionnerEnfant(${e.id_utilisateur}, this)">
           <div class="d-flex align-items-center gap-3">
-            <img src="${e.photo_profil||'https://via.placeholder.com/60'}" class="photo-eleve" alt="${e.nom}">
+            <img src="${e.photo_profil || 'https://via.placeholder.com/60'}" class="photo-eleve" alt="${e.nom}" loading="lazy">
             <div>
-              <h6 class="mb-1">${e.prenoms} ${e.nom}</h6>
-              <p class="text-muted small mb-0">${e.libelle_classe||'Classe non affectée'}</p>
+              <h6 class="mb-1">${e.prenoms || ''} ${e.nom || ''}</h6>
+              <p class="text-muted small mb-0">${e.libelle_classe || '—'}</p>
             </div>
           </div>
         </div>
       </div>`).join('');
-  }catch(err){ cont.innerHTML=`<div class="col-12 text-center text-danger"><p>${err.message}</p></div>`; }
+  }catch(err){
+    cont.innerHTML=`<div class="col-12 text-center text-danger"><p>${err.message}</p></div>`;
+  }
 }
 
 // 👶 SÉLECTIONNER UN ENFANT
@@ -360,12 +463,16 @@ async function chargerNotes(){
   try{
     const r = await fetch(`${API_URL}/notes/${idEleveActuel}?trimestre=${trim}`, {headers:{'Authorization':`Bearer ${token}`}});
     const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
+    if(!res.ok) throw new Error(res.erreur || msg('error'));
     const tb = document.getElementById('corpsNotes');
-    if(!res.notes.length){ tb.innerHTML=`<tr><td colspan="5" class="text-center text-muted">Aucune note disponible pour ce trimestre</td></tr>`; return; }
+    if(!res.notes?.length){
+      tb.innerHTML=`<tr><td colspan="5" class="text-center text-muted">${msg('noGrades')}</td></tr>`;
+      document.getElementById('blocBulletin').classList.add('d-none');
+      return;
+    }
     tb.innerHTML = res.notes.map(n => `
       <tr>
-        <td><strong>${n.libelle_matiere}</strong></td>
+        <td><strong>${n.libelle_matiere || '—'}</strong></td>
         <td class="text-center">${n.note1??'—'}</td>
         <td class="text-center">${n.note2??'—'}</td>
         <td class="text-center">${n.note3??'—'}</td>
@@ -375,8 +482,12 @@ async function chargerNotes(){
       document.getElementById('blocBulletin').classList.remove('d-none');
       document.getElementById('moyenneGen').textContent = res.moyenne_generale;
       document.getElementById('mentionBulletin').textContent = res.mention||'—';
+    } else {
+      document.getElementById('blocBulletin').classList.add('d-none');
     }
-  }catch(err){ document.getElementById('corpsNotes').innerHTML=`<tr><td colspan="5" class="text-center text-danger">${err.message}</td></tr>`; }
+  }catch(err){
+    document.getElementById('corpsNotes').innerHTML=`<tr><td colspan="5" class="text-center text-danger">${err.message}</td></tr>`;
+  }
 }
 
 // 📅 CHARGER EDT
@@ -385,9 +496,11 @@ async function chargerEDT(){
   try{
     const r = await fetch(`${API_URL}/edt/${idEleveActuel}`, {headers:{'Authorization':`Bearer ${token}`}});
     const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
-    document.getElementById('contenuEDT').innerHTML = res.html||`<pre>${JSON.stringify(res.seances,null,2)}</pre>`;
-  }catch(err){ document.getElementById('contenuEDT').innerHTML=`<p class="text-center text-danger">${err.message}</p>`; }
+    if(!res.ok) throw new Error(res.erreur || msg('error'));
+    document.getElementById('contenuEDT').innerHTML = res.html || `<pre class="text-white small">${JSON.stringify(res.seances || res, null, 2)}</pre>`;
+  }catch(err){
+    document.getElementById('contenuEDT').innerHTML=`<p class="text-center text-danger">${err.message}</p>`;
+  }
 }
 
 // 💰 CHARGER PAIEMENTS
@@ -396,17 +509,70 @@ async function chargerPaiements(){
   try{
     const r = await fetch(`${API_URL}/paiements/${idEleveActuel}`, {headers:{'Authorization':`Bearer ${token}`}});
     const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
-    document.getElementById('fraisDu').textContent = format(res.totale);
-    document.getElementById('fraisPaye').textContent = format(res.paye);
-    document.getElementById('fraisRestant').textContent = format(res.restant);
-  }catch(err){ alert(err.message); }
+    if(!res.ok) throw new Error(res.erreur || msg('error'));
+    document.getElementById('fraisDu').textContent = format(res.totale || res.total_du || 0);
+    document.getElementById('fraisPaye').textContent = format(res.paye || res.total_paye || 0);
+    document.getElementById('fraisRestant').textContent = format(res.restant || res.total_restant || 0);
+    document.getElementById('listePaiementsParent').innerHTML = res.derniers_paiements?.length ? `
+      <h6 class="text-muted small mb-2">
+        <span class="txt-fr">Derniers paiements</span>
+        <span class="txt-en">Recent payments</span>
+        <span class="txt-ar">آخر المدفوعات</span>
+      </h6>
+      ${res.derniers_paiements.map(p => `
+        <div class="d-flex justify-content-between align-items-center py-2 border-top small">
+          <span>${p.libelle || p.date || ''}</span>
+          <span class="montant">${format(p.montant || 0)}</span>
+        </div>`).join('')}
+    ` : '';
+  }catch(err){
+    document.getElementById('listePaiementsParent').innerHTML=`<p class="text-center text-danger">${err.message}</p>`;
+  }
+}
+
+// ℹ️ CHARGER INFOS ÉLÈVE
+async function chargerInfosEleve(){
+  if(!idEleveActuel) return;
+  try{
+    const r = await fetch(`${API_URL}/eleve/${idEleveActuel}`, {headers:{'Authorization':`Bearer ${token}`}});
+    const res = await r.json();
+    if(!res.ok) throw new Error(res.erreur || msg('error'));
+    const e = res.eleve || res;
+    document.getElementById('infosEleve').innerHTML = `
+      <div class="col-md-6"><strong class="text-muted">
+        <span class="txt-fr">Nom & Prénoms</span><span class="txt-en">Full Name</span><span class="txt-ar">الاسم الكامل</span>
+        :</strong><br>${e.prenoms || ''} ${e.nom || ''}
+      </div>
+      <div class="col-md-6"><strong class="text-muted">
+        <span class="txt-fr">Classe</span><span class="txt-en">Class</span><span class="txt-ar">القسم</span>
+        :</strong><br>${e.libelle_classe || '—'}
+      </div>
+      <div class="col-md-6"><strong class="text-muted">
+        <span class="txt-fr">Date de naissance</span><span class="txt-en">Date of Birth</span><span class="txt-ar">تاريخ الميلاد</span>
+        :</strong><br>${e.date_naissance ? new Date(e.date_naissance).toLocaleDateString('fr-FR') : '—'}
+      </div>
+      <div class="col-md-6"><strong class="text-muted">
+        <span class="txt-fr">Numéro étudiant</span><span class="txt-en">Student ID</span><span class="txt-ar">رقم الطالب</span>
+        :</strong><br>${e.matricule || e.id_utilisateur || '—'}
+      </div>`;
+  }catch(err){
+    document.getElementById('infosEleve').innerHTML=`<p class="text-center text-danger">${err.message}</p>`;
+  }
 }
 
 // 🧾 VOIR BULLETIN
-window.voirBulletin = function(){ alert("📄 Le bulletin complet s'ouvrira ici en PDF/Impression"); };
+window.voirBulletin = function(){
+  const messages = {
+    fr: "📄 Le bulletin complet s'ouvrira en mode impression / PDF.",
+    en: "📄 The full report card will open in print / PDF mode.",
+    ar: "📄 ستُفتح الشهادة كاملة بصيغة طباعة / PDF."
+  };
+  alert(messages[langueActuelle] || messages.fr);
+};
 
-function format(m){ return new Intl.NumberFormat('fr-FR').format(parseFloat(m)||0)+' F CFA'; }
+function format(m){
+  return new Intl.NumberFormat('fr-FR').format(parseFloat(m)||0)+' F CFA';
+}
 
 // 🚀 INIT
 chargerEnfants();
