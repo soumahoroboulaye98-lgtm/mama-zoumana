@@ -4,232 +4,441 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>
-    <span class="txt-fr">Devoirs & Examens — Enseignant</span>
-    <span class="txt-en">Homework & Exams — Teacher</span>
-    <span class="txt-ar">الواجبات والامتحانات — المعلم</span>
+    <span class="txt-fr">Devoirs & Examens — Enseignant — MAMA-ZOUMANA</span>
+    <span class="txt-en">Homework & Exams — Teacher — MAMA-ZOUMANA</span>
+    <span class="txt-ar">الواجبات والامتحانات — المعلم — ماما زومانا</span>
   </title>
+
+  <!-- URLs vérifiées et harmonisées -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
   <style>
     :root {
+      --primaire: #0c4a6e;
+      --accent: #f59e0b;
       --sombre: #0f172a;
       --sombre-clair: #1e293b;
-      --bord-orange: #f59e0b;
       --vert: #10b981;
-      --bleu: #3b82f6;
       --rouge: #ef4444;
-      --texte: #f8fafc;
+      --bleu: #3b82f6;
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.25s ease; }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: all 0.25s ease;
+    }
+
     body {
-      background: var(--sombre);
-      color: var(--texte);
+      background: #f1f5f9;
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
       min-height: 100vh;
-      font-family: 'Segoe UI', system-ui, sans-serif;
     }
-    .entete-page {
-      background: var(--sombre-clair);
-      border-bottom: 3px solid var(--bord-orange);
-      padding: 1.2rem 0;
-      margin-bottom: 2rem;
+
+    /* ✅ MENU LATÉRAL */
+    .menu-gauche {
+      background: linear-gradient(180deg, var(--sombre), var(--primaire));
+      min-height: 100vh;
+      width: 260px;
+      position: fixed;
+      padding: 0;
+      overflow-y: auto;
     }
-    .carte {
-      background: var(--sombre-clair);
-      border-radius: 14px;
-      border-left: 4px solid var(--bord-orange);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+
+    .entete-menu {
+      padding: 25px 20px;
+      border-bottom: 1px solid rgba(245,158,11,0.15);
     }
-    .form-control, .form-select {
-      background: #0f172a;
-      border: 1px solid #334155;
-      color: white;
+
+    .logo-menu {
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 1.3rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-menu i { font-size: 1.6rem; }
+
+    .nav-menu { padding: 20px 12px; }
+
+    .lien-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 15px;
+      margin-bottom: 6px;
+      color: #cbd5e1;
+      text-decoration: none;
       border-radius: 10px;
     }
-    .form-control:focus, .form-select:focus {
-      background: #0f172a;
-      border-color: var(--bord-orange);
-      color: white;
-      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.25);
+
+    .lien-nav:hover, .lien-nav.actif {
+      background: rgba(245,158,11,0.08);
+      color: var(--accent);
     }
-    .btn-action { background: var(--bleu); color: white; border-radius: 10px; border: none; }
-    .btn-valide { background: var(--vert); color: white; border-radius: 10px; border: none; font-weight: 600; }
-    .btn-valide:hover { background: #059669; color: white; }
-    .btn-suppr { background: var(--rouge); color: white; border-radius: 6px; border: none; }
-    .btn-modif { background: var(--bleu); color: white; border-radius: 6px; border: none; }
+
+    /* ✅ CONTENU PRINCIPAL */
+    .contenu-principal {
+      margin-left: 260px;
+      padding: 25px 30px;
+      min-height: 100vh;
+    }
+
+    .barre-haut {
+      background: white;
+      padding: 15px 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .btn-langue {
+      background: rgba(12,74,110,0.08);
+      border: 1px solid var(--primaire);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin: 0 2px;
+      color: var(--primaire);
+      font-weight: 600;
+    }
+
+    .btn-langue.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    .btn-deco {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 6px 12px;
+      border-radius: 8px;
+    }
+
+    .btn-deco:hover {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .carte {
+      background: white;
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border-left: 4px solid var(--accent);
+      margin-bottom: 1.5rem;
+    }
+
+    .form-control, .form-select {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+      border-radius: 8px;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
+      outline: none;
+    }
+
     .ligne-devoir {
-      border-bottom: 1px solid #334155;
+      border-bottom: 1px solid #e2e8f0;
       padding: 1rem 0.8rem;
       border-radius: 8px;
       margin-bottom: 0.3rem;
+      transition: background-color 0.2s ease;
     }
-    .ligne-devoir:hover { background: rgba(245,158,11,0.08); }
+
+    .ligne-devoir:hover { background: rgba(245,158,11,0.05); }
+
     .badge-examen { background: var(--rouge); }
     .badge-devoir { background: var(--bleu); }
-    .btn-langue { border-radius: 8px; }
-    .btn-langue.active {
-      background: var(--bord-orange); color: #000;
-      border-color: var(--bord-orange); font-weight: 700;
-    }
-    .modal-content { background: var(--sombre-clair); color: white; border-radius: 14px; }
-    .modal-header { border-bottom: 1px solid #334155; }
-    .modal-footer { border-top: 1px solid #334155; }
 
-    /* ✅ GESTION DES LANGUES */
+    .btn-action { background: var(--bleu); color: white; border-radius: 8px; border: none; }
+    .btn-action:hover { background: #2563eb; color: white; }
+
+    .btn-valide { background: var(--vert); color: white; border-radius: 8px; border: none; font-weight: 600; }
+    .btn-valide:hover { background: #059669; color: white; }
+
+    .btn-suppr { background: var(--rouge); color: white; border-radius: 6px; border: none; }
+    .btn-suppr:hover { background: #dc2626; color: white; }
+
+    .btn-modif { background: var(--bleu); color: white; border-radius: 6px; border: none; }
+    .btn-modif:hover { background: #2563eb; color: white; }
+
+    .modal-content { background: white; color: #1e293b; border-radius: 14px; }
+    .modal-header { border-bottom: 1px solid #e2e8f0; }
+    .modal-footer { border-top: 1px solid #e2e8f0; }
+
+    /* ✅ GESTION DES LANGUES — CONFORME AU STANDARD DU PROJET */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
     body.lang-en { direction: ltr; }
-    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
     body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
     body.lang-ar { direction: rtl; }
-    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
     body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
   </style>
 </head>
-<body class="lang-fr">
+<body>
 
-<!-- 🔐 SÉCURITÉ -->
-<script>
-const token = localStorage.getItem('token');
-const role = localStorage.getItem('role');
-const API_URL = 'https://mama-zoumana-api.onrender.com/api';
-
-if (!token || role !== 'prof') {
-  alert("⛔ Accès réservé aux Enseignants");
-  localStorage.clear();
-  location.href = 'connexion.html';
-}
-</script>
-
-<!-- 📌 EN-TÊTE -->
-<div class="entete-page">
-  <div class="container d-flex justify-content-between align-items-center">
-    <div>
-      <h3 class="mb-1 fw-bold">
-        <i class="bi bi-journal-bookmark me-2" style="color:var(--bord-orange)"></i>
-        <span class="txt-fr">📚 Devoirs & Examens</span>
-        <span class="txt-en">📚 Homework & Exams</span>
-        <span class="txt-ar">📚 الواجبات والامتحانات</span>
-      </h3>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('ar')" id="btn-ar">🇸🇦 AR</button>
-      <a href="ajouter-devoir.html" class="btn btn-valide ms-2">
-        <i class="bi bi-plus-lg"></i>
-        <span class="txt-fr"> Nouveau</span>
-        <span class="txt-en"> New</span>
-        <span class="txt-ar"> جديد</span>
+<div class="d-flex">
+  <!-- ✅ MENU LATÉRAL -->
+  <aside class="menu-gauche">
+    <div class="entete-menu">
+      <a href="dashboard-prof.html" class="logo-menu">
+        <i class="bi bi-building"></i> MAMA-ZOUMANA
       </a>
-      <a href="dashboard.html" class="btn btn-outline-light ms-2"><i class="bi bi-arrow-left-circle"></i></a>
     </div>
-  </div>
-</div>
+    <nav class="nav-menu">
+      <a href="dashboard-prof.html" class="lien-nav">
+        <i class="bi bi-speedometer2"></i>
+        <span class="txt-fr">Tableau de bord</span>
+        <span class="txt-en">Dashboard</span>
+        <span class="txt-ar">لوحة التحكم</span>
+      </a>
+      <a href="mes-classes.html" class="lien-nav">
+        <i class="bi bi-grid"></i>
+        <span class="txt-fr">Mes Classes</span>
+        <span class="txt-en">My Classes</span>
+        <span class="txt-ar">فصولي</span>
+      </a>
+      <a href="presences.html" class="lien-nav">
+        <i class="bi bi-check2-square"></i>
+        <span class="txt-fr">Présences & Retards</span>
+        <span class="txt-en">Attendance & Lateness</span>
+        <span class="txt-ar">الحضور والتأخير</span>
+      </a>
+      <a href="saisie-notes.html" class="lien-nav">
+        <i class="bi bi-pencil-square"></i>
+        <span class="txt-fr">Saisie des Notes</span>
+        <span class="txt-en">Enter Grades</span>
+        <span class="txt-ar">إدخال الدرجات</span>
+      </a>
+      <a href="devoirs.html" class="lien-nav actif">
+        <i class="bi bi-book"></i>
+        <span class="txt-fr">Devoirs & Examens</span>
+        <span class="txt-en">Homework & Exams</span>
+        <span class="txt-ar">الواجبات والامتحانات</span>
+      </a>
+      <a href="messages.html" class="lien-nav">
+        <i class="bi bi-chat-dots"></i>
+        <span class="txt-fr">Messages</span>
+        <span class="txt-en">Messages</span>
+        <span class="txt-ar">الرسائل</span>
+      </a>
+    </nav>
+  </aside>
 
-<div class="container py-2">
-  <div id="zone-message"></div>
-
-  <!-- 🔍 FILTRES -->
-  <div class="carte mb-4">
-    <div class="row g-3 align-items-end">
-      <div class="col-md-5">
-        <label class="form-label fw-bold">
-          <span class="txt-fr">🏫 Classe</span>
-          <span class="txt-en">🏫 Class</span>
-          <span class="txt-ar">🏫 الفصل</span>
-        </label>
-        <select id="id_classe" class="form-select" onchange="chargerMatieresPourClasse(this.value)">
-          <option value=""><span class="txt-fr">-- Chargement... --</span><span class="txt-en">-- Loading... --</span><span class="txt-ar">-- جار التحميل... --</span></option>
-        </select>
+  <!-- ✅ CONTENU PRINCIPAL -->
+  <main class="contenu-principal">
+    <div class="barre-haut">
+      <div class="titre-section">
+        <h4 class="mb-0 text-uppercase fw-bold text-primary">
+          <i class="bi bi-journal-bookmark me-2" style="color:var(--accent)"></i>
+          <span class="txt-fr">Devoirs & Examens</span>
+          <span class="txt-en">Homework & Exams</span>
+          <span class="txt-ar">الواجبات والامتحانات</span>
+        </h4>
+        <small class="text-muted">
+          <span class="txt-fr">Création · Consultation · Modification · Suppression</span>
+          <span class="txt-en">Create · View · Edit · Delete</span>
+          <span class="txt-ar">إنشاء · استعراض · تعديل · حذف</span>
+        </small>
       </div>
-      <div class="col-md-5">
-        <label class="form-label fw-bold">
-          <span class="txt-fr">📚 Matière</span>
-          <span class="txt-en">📚 Subject</span>
-          <span class="txt-ar">📚 المادة</span>
-        </label>
-        <select id="id_matiere" class="form-select" onchange="chargerDevoirs()">
-          <option value=""><span class="txt-fr">-- Choisir une Classe d'abord --</span><span class="txt-en">-- Choose Class First --</span><span class="txt-ar">-- اختر الفصل أولاً --</span></option>
-        </select>
-      </div>
-      <div class="col-md-2">
-        <button class="btn btn-action w-100" onclick="chargerDevoirs()"><i class="bi bi-search"></i></button>
+      <div class="utilisateur d-flex align-items-center gap-2">
+        <button class="btn-langue" data-lang="fr">FR</button>
+        <button class="btn-langue" data-lang="en">EN</button>
+        <button class="btn-langue" data-lang="ar">AR</button>
+        <i class="bi bi-person-circle fs-4 ms-2"></i>
+        <span id="nom-prof"></span>
+        <button class="btn btn-deco ms-2" onclick="deconnexion()">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="txt-fr"> Déconnexion</span>
+          <span class="txt-en"> Logout</span>
+          <span class="txt-ar"> تسجيل الخروج</span>
+        </button>
       </div>
     </div>
-  </div>
 
-  <!-- 📋 LISTE DES DEVOIRS -->
-  <div class="carte">
-    <h5 class="mb-3 fw-bold">
-      <i class="bi bi-list-check me-2"></i>
-      <span class="txt-fr">📋 Liste des Devoirs</span>
-      <span class="txt-en">📋 Assignments List</span>
-      <span class="txt-ar">📋 قائمة الواجبات</span>
-    </h5>
-    <div id="listeDevoirs">
-      <div class="text-center py-5 text-muted">
-        <i class="bi bi-filter-left fs-1 mb-2 d-block"></i>
-        <span class="txt-fr">Sélectionne une Classe et une Matière</span>
-        <span class="txt-en">Select a Class and Subject</span>
-        <span class="txt-ar">اختر الفصل والمادة</span>
+    <!-- ✅ LIEN RETOUR -->
+    <a href="dashboard-prof.html" class="btn btn-outline-secondary mb-4">
+      <i class="bi bi-arrow-left"></i>
+      <span class="txt-fr"> Retour au Tableau de Bord</span>
+      <span class="txt-en"> Back to Dashboard</span>
+      <span class="txt-ar"> الرجوع إلى لوحة التحكم</span>
+    </a>
+
+    <!-- ⚠️ ZONE DE MESSAGES -->
+    <div id="zone-message"></div>
+
+    <!-- ➕ BOUTON CRÉER -->
+    <div class="mb-4">
+      <a href="ajouter-devoir.html" class="btn btn-valide">
+        <i class="bi bi-plus-lg me-1"></i>
+        <span class="txt-fr"> Nouveau Devoir / Examen</span>
+        <span class="txt-en"> New Homework / Exam</span>
+        <span class="txt-ar"> واجب / امتحان جديد</span>
+      </a>
+    </div>
+
+    <!-- 🔍 FILTRES -->
+    <div class="carte mb-4">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-5">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">🏫 Classe</span>
+            <span class="txt-en">🏫 Class</span>
+            <span class="txt-ar">🏫 الفصل</span>
+          </label>
+          <select id="id_classe" class="form-select" onchange="chargerMatieresPourClasse(this.value)">
+            <option value="">
+              <span class="txt-fr">-- Chargement... --</span>
+              <span class="txt-en">-- Loading... --</span>
+              <span class="txt-ar">-- جار التحميل... --</span>
+            </option>
+          </select>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">📚 Matière</span>
+            <span class="txt-en">📚 Subject</span>
+            <span class="txt-ar">📚 المادة</span>
+          </label>
+          <select id="id_matiere" class="form-select" onchange="chargerDevoirs()">
+            <option value="">
+              <span class="txt-fr">-- Choisir une Classe d'abord --</span>
+              <span class="txt-en">-- Choose Class First --</span>
+              <span class="txt-ar">-- اختر الفصل أولاً --</span>
+            </option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-action w-100" onclick="chargerDevoirs()">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
       </div>
     </div>
-  </div>
+
+    <!-- 📋 LISTE DES DEVOIRS -->
+    <div class="carte">
+      <h5 class="mb-3 fw-bold">
+        <i class="bi bi-list-check me-2"></i>
+        <span class="txt-fr">📋 Liste des Devoirs & Examens</span>
+        <span class="txt-en">📋 Assignments & Exams List</span>
+        <span class="txt-ar">📋 قائمة الواجبات والامتحانات</span>
+      </h5>
+      <div id="listeDevoirs">
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-filter-left fs-1 mb-2 d-block"></i>
+          <span class="txt-fr">Sélectionnez une Classe et une Matière</span>
+          <span class="txt-en">Select a Class and Subject</span>
+          <span class="txt-ar">اختر الفصل والمادة</span>
+        </div>
+      </div>
+    </div>
+  </main>
 </div>
 
 <!-- ✏️ MODALE MODIFICATION DEVOIR -->
-<div class="modal fade" id="modaleModifier" tabindex="-1">
+<div class="modal fade" id="modaleModifier" tabindex="-1" aria-labelledby="modaleModifierLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title fw-bold">
-          <i class="bi bi-pencil-square me-2" style="color:var(--bord-orange)"></i>
-          <span class="txt-fr">Modifier le Devoir</span>
-          <span class="txt-en">Edit Assignment</span>
-          <span class="txt-ar">تعديل الواجب</span>
+        <h5 class="modal-title fw-bold" id="modaleModifierLabel">
+          <i class="bi bi-pencil-square me-2" style="color:var(--accent)"></i>
+          <span class="txt-fr">Modifier le Devoir / Examen</span>
+          <span class="txt-en">Edit Assignment / Exam</span>
+          <span class="txt-ar">تعديل الواجب / الامتحان</span>
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="edit_id_devoir">
         <div class="row g-3 mb-3">
           <div class="col-md-6">
-            <label class="form-label fw-bold"><span class="txt-fr">Titre</span><span class="txt-en">Title</span><span class="txt-ar">العنوان</span></label>
-            <input type="text" id="edit_titre" class="form-control">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Titre</span>
+              <span class="txt-en">Title</span>
+              <span class="txt-ar">العنوان</span>
+            </label>
+            <input type="text" id="edit_titre" class="form-control" required>
           </div>
           <div class="col-md-6">
-            <label class="form-label fw-bold"><span class="txt-fr">Type</span><span class="txt-en">Type</span><span class="txt-ar">النوع</span></label>
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Type</span>
+              <span class="txt-en">Type</span>
+              <span class="txt-ar">النوع</span>
+            </label>
             <select id="edit_type" class="form-select">
-              <option value="devoir"><span class="txt-fr">Devoir</span><span class="txt-en">Homework</span><span class="txt-ar">واجب</span></option>
-              <option value="examen"><span class="txt-fr">Examen</span><span class="txt-en">Exam</span><span class="txt-ar">امتحان</span></option>
+              <option value="devoir">
+                <span class="txt-fr">Devoir</span>
+                <span class="txt-en">Homework</span>
+                <span class="txt-ar">واجب</span>
+              </option>
+              <option value="examen">
+                <span class="txt-fr">Examen</span>
+                <span class="txt-en">Exam</span>
+                <span class="txt-ar">امتحان</span>
+              </option>
             </select>
           </div>
         </div>
         <div class="row g-3 mb-3">
           <div class="col-md-6">
-            <label class="form-label fw-bold"><span class="txt-fr">Date de publication</span><span class="txt-en">Publish Date</span><span class="txt-ar">تاريخ النشر</span></label>
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Date de publication</span>
+              <span class="txt-en">Publish Date</span>
+              <span class="txt-ar">تاريخ النشر</span>
+            </label>
             <input type="date" id="edit_date_publication" class="form-control">
           </div>
           <div class="col-md-6">
-            <label class="form-label fw-bold"><span class="txt-fr">Date limite</span><span class="txt-en">Deadline</span><span class="txt-ar">الموعد النهائي</span></label>
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Date limite</span>
+              <span class="txt-en">Deadline</span>
+              <span class="txt-ar">الموعد النهائي</span>
+            </label>
             <input type="date" id="edit_date_echeance" class="form-control">
           </div>
         </div>
         <div>
-          <label class="form-label fw-bold"><span class="txt-fr">Description</span><span class="txt-en">Description</span><span class="txt-ar">الوصف</span></label>
+          <label class="form-label fw-bold">
+            <span class="txt-fr">Description</span>
+            <span class="txt-en">Description</span>
+            <span class="txt-ar">الوصف</span>
+          </label>
           <textarea id="edit_description" class="form-control" rows="3"></textarea>
         </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          <span class="txt-fr">Annuler</span><span class="txt-en">Cancel</span><span class="txt-ar">إلغاء</span>
+          <span class="txt-fr">Annuler</span>
+          <span class="txt-en">Cancel</span>
+          <span class="txt-ar">إلغاء</span>
         </button>
         <button type="button" class="btn btn-valide" onclick="enregistrerModification()">
           <i class="bi bi-check-lg me-1"></i>
-          <span class="txt-fr">Enregistrer</span><span class="txt-en">Save</span><span class="txt-ar">حفظ</span>
+          <span class="txt-fr">Enregistrer</span>
+          <span class="txt-en">Save</span>
+          <span class="txt-ar">حفظ</span>
         </button>
       </div>
     </div>
@@ -238,77 +447,180 @@ if (!token || role !== 'prof') {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const modale = new bootstrap.Modal(document.getElementById('modaleModifier'));
-let devoirsEnCache = [];
+// ==================================================
+// ✅ CONFIGURATION & SÉCURITÉ
+// ==================================================
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+const id_utilisateur = localStorage.getItem('id_utilisateur');
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 
-// 🗣️ LANGUE
-function changerLangue(langue) {
+console.log("🔑 Token :", token ? "PRÉSENT ✅" : "MANQUANT ❌");
+console.log("👤 Rôle :", role);
+
+if (!token || role !== 'prof') {
+  alert("⛔ Accès réservé aux Enseignants. Veuillez vous reconnecter.");
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  location.href = 'connexion.html';
+}
+
+// ✅ Afficher nom de l'enseignant
+document.getElementById('nom-prof').textContent = 
+  (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || 'Enseignant');
+
+// ==================================================
+// 🗣️ GESTION DE LA LANGUE — Conforme au standard
+// ==================================================
+function appliquerLangue(lang) {
   document.body.classList.remove('lang-fr','lang-en','lang-ar');
-  document.body.classList.add('lang-' + langue);
-  localStorage.setItem('langue', langue);
+  document.body.classList.add('lang-' + lang);
+  localStorage.setItem('langue', lang);
   document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-'+langue).classList.add('active');
+  document.querySelector(`[data-lang="${lang}"]`)?.classList.add('active');
 }
-changerLangue(localStorage.getItem('langue') || 'fr');
 
-// 💬 MESSAGES
-function afficherMessage(texte, type='info') {
+const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+appliquerLangue(langueSauvegardee);
+document.querySelectorAll('.btn-langue').forEach(btn => {
+  btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
+});
+
+// ==================================================
+// 💬 AFFICHAGE DES MESSAGES
+// ==================================================
+function afficherMessage(texte, type = 'info') {
   const zone = document.getElementById('zone-message');
-  const style = type==='succes'?'border-success bg-success bg-opacity-10 text-success':
-                type==='erreur'?'border-danger bg-danger bg-opacity-10 text-danger':'border-info bg-info bg-opacity-10 text-info';
+  const style = type === 'succes' ? 'border-success bg-success bg-opacity-10 text-success' :
+                type === 'erreur' ? 'border-danger bg-danger bg-opacity-10 text-danger' :
+                'border-info bg-info bg-opacity-10 text-info';
   zone.innerHTML = `<div class="alert ${style} border-2">${texte}</div>`;
-  setTimeout(()=>zone.innerHTML='',6000);
+  setTimeout(() => zone.innerHTML = '', 10000);
 }
 
-// 📥 CHARGER CLASSES
+// ==================================================
+// 📥 CHARGER CLASSES — Route corrigée
+// ==================================================
 async function chargerClasses() {
   try {
-    const r = await fetch(`${API_URL}/notes/mes-classes`, {headers:{'Authorization':`Bearer ${token}`}});
-    const res = await r.json();
+    const reponse = await fetch(`${API_URL}/notes/mes-classes`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (reponse.status === 401) {
+      throw new Error("⛔ Autorisation refusée. Votre session a peut-être expiré.");
+    }
+
+    const res = await reponse.json();
     const sel = document.getElementById('id_classe');
     const liste = res.classes || res.lignes || [];
-    sel.innerHTML = liste.length
-      ? '<option value="">-- Sélectionner --</option>' + liste.map(c=>`<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('')
-      : '<option value="">-- Aucune Classe --</option>';
-  } catch(e) { afficherMessage("❌ Erreur chargement classes", 'erreur'); }
+
+    sel.innerHTML = '<option value="">-- Sélectionner une Classe --</option>';
+    if (liste.length > 0) {
+      liste.forEach(c => {
+        sel.innerHTML += `<option value="${c.id_classe}">${c.libelle_classe}</option>`;
+      });
+    } else {
+      sel.innerHTML += '<option value="" disabled>⚠️ Aucune classe affectée</option>';
+      afficherMessage("⚠️ Aucune classe ne vous est affectée. Veuillez contacter l'administrateur.", 'info');
+    }
+  } catch (erreur) {
+    console.error("❌ Erreur chargement classes :", erreur);
+    afficherMessage("❌ Erreur de chargement des classes.", 'erreur');
+    document.getElementById('id_classe').innerHTML = '<option value="">❌ Erreur</option>';
+  }
 }
 
-// 📚 CHARGER MATIÈRES
+// ==================================================
+// 📚 CHARGER MATIÈRES — Route corrigée
+// ==================================================
 async function chargerMatieresPourClasse(id_classe) {
   const sel = document.getElementById('id_matiere');
-  if (!id_classe) { sel.innerHTML='<option value="">-- Choisir une Classe d\'abord --</option>'; return; }
-  sel.innerHTML='<option value="">-- Chargement... --</option>';
+  if (!id_classe) {
+    sel.innerHTML = '<option value="">-- Choisir une Classe d\'abord --</option>';
+    return;
+  }
+
+  sel.innerHTML = '<option value="">-- Chargement... --</option>';
   try {
-    const r = await fetch(`${API_URL}/matieres/mes-matieres?classe=${id_classe}`, {headers:{'Authorization':`Bearer ${token}`}});
-    const res = await r.json();
+    const reponse = await fetch(`${API_URL}/presences/mes-classes-matieres`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (reponse.status === 401) {
+      throw new Error("⛔ Autorisation refusée.");
+    }
+
+    const res = await reponse.json();
     const liste = res.matieres || res.lignes || [];
-    sel.innerHTML = liste.length
-      ? '<option value="">-- Choisir une Matière --</option>' + liste.map(m=>`<option value="${m.id_matiere}">${m.libelle_matiere}</option>`).join('')
-      : '<option value="">-- Aucune matière --</option>';
-  } catch(e) { sel.innerHTML='<option value="">-- Erreur --</option>'; }
+    const filtrées = liste.filter(m => m.id_classe == id_classe);
+
+    sel.innerHTML = '<option value="">-- Sélectionner une Matière --</option>';
+    if (filtrées.length > 0) {
+      filtrées.forEach(m => {
+        sel.innerHTML += `<option value="${m.id_matiere}">${m.libelle_matiere}</option>`;
+      });
+    } else {
+      sel.innerHTML = '<option value="">-- Aucune matière trouvée --</option>';
+    }
+  } catch (erreur) {
+    console.error("❌ Erreur chargement matières :", erreur);
+    sel.innerHTML = '<option value="">-- Erreur --</option>';
+  }
 }
 
-// 📋 CHARGER DEVOIRS
+// ==================================================
+// 📋 CHARGER DEVOIRS — Route corrigée
+// ==================================================
+let devoirsEnCache = [];
+const modale = new bootstrap.Modal(document.getElementById('modaleModifier'));
+
 async function chargerDevoirs() {
   const id_classe = document.getElementById('id_classe').value;
   const id_matiere = document.getElementById('id_matiere').value;
-  const liste = document.getElementById('listeDevoirs');
-  if (!id_classe || !id_matiere) { afficherMessage("⚠️ Sélectionne Classe ET Matière", 'info'); return; }
+  const conteneur = document.getElementById('listeDevoirs');
 
-  liste.innerHTML='<div class="text-center py-4"><div class="spinner-border spinner-border-sm me-2"></div> Chargement...</div>';
+  if (!id_classe || !id_matiere) {
+    afficherMessage("⚠️ Veuillez sélectionner une Classe ET une Matière.", 'info');
+    return;
+  }
+
+  conteneur.innerHTML = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm me-2"></div> Chargement...</div>';
   try {
-    const r = await fetch(`${API_URL}/devoirs/?classe=${id_classe}&matiere=${id_matiere}`, {headers:{'Authorization':`Bearer ${token}`}});
-    const res = await r.json();
+    const reponse = await fetch(`${API_URL}/devoirs/?classe=${id_classe}&matiere=${id_matiere}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (reponse.status === 401) {
+      throw new Error("⛔ Autorisation refusée.");
+    }
+
+    const res = await reponse.json();
     devoirsEnCache = res.devoirs || res.lignes || [];
 
-    liste.innerHTML = devoirsEnCache.length ? devoirsEnCache.map(d=>`
+    if (devoirsEnCache.length === 0) {
+      conteneur.innerHTML = `<div class="text-center py-5 text-muted">
+        <i class="bi bi-inbox fs-1 mb-2 d-block"></i>
+        <span class="txt-fr">Aucun devoir ou examen pour cette sélection</span>
+        <span class="txt-en">No homework or exam for this selection</span>
+        <span class="txt-ar">لا واجبات أو امتحانات لهذا الاختيار</span>
+      </div>`;
+      return;
+    }
+
+    // ✅ Affichage des devoirs
+    conteneur.innerHTML = devoirsEnCache.map(d => `
       <div class="ligne-devoir row align-items-center">
         <div class="col-md-1">
-          <span class="badge rounded-pill ${d.type_devoir==='examen'?'badge-examen':'badge-devoir'}">${d.type_devoir==='examen'?'Exam':'Dev'}</span>
+          <span class="badge rounded-pill ${d.type_devoir === 'examen' ? 'badge-examen' : 'badge-devoir'}">
+            ${d.type_devoir === 'examen' ? 'Exam' : 'Dev'}
+          </span>
         </div>
         <div class="col-md-4"><strong>${d.titre}</strong></div>
-        <div class="col-md-2 text-center">${d.date_publication||'-'}</div>
-        <div class="col-md-2 text-center">${d.date_echeance||'-'}</div>
+        <div class="col-md-2 text-center small">${d.date_publication || '—'}</div>
+        <div class="col-md-2 text-center small">${d.date_echeance || '—'}</div>
         <div class="col-md-3 text-center">
           <button class="btn btn-sm btn-modif me-1" onclick="ouvrirModification(${d.id_devoir})" title="Modifier">
             <i class="bi bi-pencil"></i>
@@ -318,18 +630,24 @@ async function chargerDevoirs() {
           </button>
         </div>
       </div>
-    `).join('') : `<div class="text-center py-5 text-muted">
-      <i class="bi bi-inbox fs-1 mb-2 d-block"></i> Aucun devoir trouvé
-    </div>`;
-  } catch(e) { liste.innerHTML='<div class="text-center py-4 text-danger">❌ Erreur chargement</div>'; }
+    `).join('');
+
+    afficherMessage(`✅ ${devoirsEnCache.length} devoir(s) chargé(s)`, 'succes');
+  } catch (erreur) {
+    console.error("❌ Erreur chargement devoirs :", erreur);
+    conteneur.innerHTML = '<div class="text-center py-4 text-danger">❌ Erreur de chargement</div>';
+  }
 }
 
+// ==================================================
 // ✏️ OUVRIR MODIFICATION
+// ==================================================
 function ouvrirModification(id_devoir) {
-  const d = devoirsEnCache.find(x=>x.id_devoir===id_devoir);
+  const d = devoirsEnCache.find(x => x.id_devoir === id_devoir);
   if (!d) return;
+
   document.getElementById('edit_id_devoir').value = d.id_devoir;
-  document.getElementById('edit_titre').value = d.titre;
+  document.getElementById('edit_titre').value = d.titre || '';
   document.getElementById('edit_type').value = d.type_devoir || 'devoir';
   document.getElementById('edit_date_publication').value = d.date_publication || '';
   document.getElementById('edit_date_echeance').value = d.date_echeance || '';
@@ -337,7 +655,9 @@ function ouvrirModification(id_devoir) {
   modale.show();
 }
 
+// ==================================================
 // 💾 ENREGISTRER MODIFICATION
+// ==================================================
 async function enregistrerModification() {
   const id_devoir = document.getElementById('edit_id_devoir').value;
   const titre = document.getElementById('edit_titre').value.trim();
@@ -346,45 +666,83 @@ async function enregistrerModification() {
   const date_echeance = document.getElementById('edit_date_echeance').value;
   const description = document.getElementById('edit_description').value.trim();
 
-  if (!titre) { afficherMessage("⚠️ Titre obligatoire", 'erreur'); return; }
+  if (!titre) {
+    afficherMessage("⚠️ Le titre est obligatoire.", 'erreur');
+    return;
+  }
 
   try {
-    const r = await fetch(`${API_URL}/devoirs/${id_devoir}`, {
+    const reponse = await fetch(`${API_URL}/devoirs/${id_devoir}`, {
       method: 'PUT',
-      headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({ titre, type_devoir, date_publication, date_echeance, description })
     });
-    const res = await r.json();
+
+    if (reponse.status === 401) {
+      throw new Error("⛔ Autorisation refusée.");
+    }
+
+    const res = await reponse.json();
     if (res.ok) {
       afficherMessage("✅ Devoir modifié avec succès !", 'succes');
       modale.hide();
       chargerDevoirs();
     } else {
-      afficherMessage("❌ " + (res.erreur||"Erreur"), 'erreur');
+      afficherMessage("❌ " + (res.erreur || "Erreur inconnue"), 'erreur');
     }
-  } catch(e) { afficherMessage("❌ Erreur Réseau", 'erreur'); }
+  } catch (erreur) {
+    console.error("❌ Erreur modification :", erreur);
+    afficherMessage("❌ Erreur réseau.", 'erreur');
+  }
 }
 
+// ==================================================
 // ❌ SUPPRIMER DEVOIR
+// ==================================================
 async function supprimerDevoir(id_devoir) {
-  if (!confirm("⚠️ Confirmer la suppression ?")) return;
+  if (!confirm("⚠️ Confirmer la suppression définitive de ce devoir ?")) return;
+
   try {
-    const r = await fetch(`${API_URL}/devoirs/${id_devoir}`, {
+    const reponse = await fetch(`${API_URL}/devoirs/${id_devoir}`, {
       method: 'DELETE',
-      headers: {'Authorization':`Bearer ${token}`}
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    const res = await r.json();
+
+    if (reponse.status === 401) {
+      throw new Error("⛔ Autorisation refusée.");
+    }
+
+    const res = await reponse.json();
     if (res.ok) {
       afficherMessage("✅ Devoir supprimé !", 'succes');
       chargerDevoirs();
     } else {
-      afficherMessage("❌ " + (res.erreur||"Erreur"), 'erreur');
+      afficherMessage("❌ " + (res.erreur || "Erreur"), 'erreur');
     }
-  } catch(e) { afficherMessage("❌ Erreur Réseau", 'erreur'); }
+  } catch (erreur) {
+    console.error("❌ Erreur suppression :", erreur);
+    afficherMessage("❌ Erreur réseau.", 'erreur');
+  }
 }
 
-// 🚀 AU CHARGEMENT
-chargerClasses();
+// ==================================================
+// ✅ DÉCONNEXION SÉCURISÉE
+// ==================================================
+function deconnexion() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  localStorage.removeItem('prenoms');
+  location.href = 'connexion.html';
+}
+
+// ✅ LANCER AU CHARGEMENT
+document.addEventListener('DOMContentLoaded', chargerClasses);
 </script>
+
 </body>
 </html>
