@@ -1,14 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
+const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté systématiquement
 const verifadmin = require('../middleware/verifadmin');
 const verifcomptableouadmin = require('../middleware/verifcomptableouadmin');
 
+// ✅ Protections groupées uniformes
+const protegerLecture = [veriftoken, verifcomptableouadmin];
+const protegerEcriture = [veriftoken, verifcomptableouadmin];
+const protegerAdmin = [veriftoken, verifadmin];
+
+
 // ==================================================
 // 📋 LISTE + BILAN + COMPARAISON + BUDGET
-// ✅ Tous les droits : Comptable OU Admin
+// ✅ Accessible : Comptable OU Administrateur
 // ==================================================
-router.get('/liste', verifcomptableouadmin, async (req, res) => {
+router.get('/liste', protegerLecture, async (req, res) => {
   try {
     const { type, categorie, mois, annee, recherche, id_utilisateur } = req.query;
     let conditions = [], params = [], idx = 1;
@@ -124,6 +131,7 @@ router.get('/liste', verifcomptableouadmin, async (req, res) => {
       ORDER BY nb_ops DESC
     `, params);
 
+    console.log(`✅ Finances consultées — ${operations.rows.length} opération(s) trouvée(s)`);
     res.json({
       ok: true,
       operations: operations.rows,
@@ -137,15 +145,17 @@ router.get('/liste', verifcomptableouadmin, async (req, res) => {
     });
 
   } catch (e) {
-    console.log("❌ ERREUR FINANCES :", e.message);
+    console.log("❌ ERREUR LISTE FINANCES :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
-// ➕ ENREGISTRER — Comptable OU Admin ✅
+// ➕ ENREGISTRER UNE OPÉRATION
+// ✅ Accessible : Comptable OU Administrateur
 // ==================================================
-router.post('/enregistrer', verifcomptableouadmin, async (req, res) => {
+router.post('/enregistrer', protegerEcriture, async (req, res) => {
   try {
     const { type, libelle, categorie, montant, date_operation, commentaire, mode_paiement, reference } = req.body;
     const id_utilisateur = req.user?.id_utilisateur;
@@ -162,7 +172,7 @@ router.post('/enregistrer', verifcomptableouadmin, async (req, res) => {
       SELECT id_periode FROM periodes_cloturees WHERE annee = $1 AND mois = $2
     `, [annee, mois]);
     if (verrou.rows.length > 0) {
-      return res.json({ ok: false, erreur: "🔒 Cette période est clôturée — Impossible d'ajouter" });
+      return res.json({ ok: false, erreur: "🔒 Cette période est clôturée — Impossible d'ajouter une opération" });
     }
 
     const r = await pool.query(`
@@ -177,17 +187,21 @@ router.post('/enregistrer', verifcomptableouadmin, async (req, res) => {
       mode_paiement || 'especes', reference || null, id_utilisateur
     ]);
 
+    console.log(`✅ Opération enregistrée — ${type}, ${montant}`);
     res.json({ ok: true, operation: r.rows[0] });
+
   } catch (e) {
-    console.log("❌ ERREUR ENREGISTREMENT :", e.message);
+    console.log("❌ ERREUR ENREGISTREMENT OPÉRATION :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
-// ✏️ MODIFIER — SEULEMENT ADMIN 🔒
+// ✏️ MODIFIER UNE OPÉRATION
+// 🔒 Réservé : Administrateur uniquement
 // ==================================================
-router.put('/:id', verifadmin, async (req, res) => {
+router.put('/:id', protegerAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { type, libelle, categorie, montant, date_operation, commentaire, mode_paiement, reference, statut } = req.body;
@@ -229,17 +243,21 @@ router.put('/:id', verifadmin, async (req, res) => {
       return res.json({ ok: false, erreur: "Opération introuvable" });
     }
 
+    console.log(`✅ Opération modifiée — ID: ${id}`);
     res.json({ ok: true, operation: r.rows[0] });
+
   } catch (e) {
-    console.log("❌ ERREUR MODIFICATION :", e.message);
+    console.log("❌ ERREUR MODIFICATION OPÉRATION :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
-// ❌ SUPPRIMER — SEULEMENT ADMIN 🔒
+// ❌ SUPPRIMER UNE OPÉRATION
+// 🔒 Réservé : Administrateur uniquement
 // ==================================================
-router.delete('/:id', verifadmin, async (req, res) => {
+router.delete('/:id', protegerAdmin, async (req, res) => {
   try {
     const op = await pool.query(
       'SELECT date_operation FROM operations_financieres WHERE id = $1',
@@ -259,17 +277,21 @@ router.delete('/:id', verifadmin, async (req, res) => {
     }
 
     await pool.query('DELETE FROM operations_financieres WHERE id = $1', [req.params.id]);
+    console.log(`🗑️ Opération supprimée — ID: ${req.params.id}`);
     res.json({ ok: true });
+
   } catch (e) {
-    console.log("❌ ERREUR SUPPRESSION :", e.message);
+    console.log("❌ ERREUR SUPPRESSION OPÉRATION :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
-// 🔒 CLÔTURER / ROUVRIR — SEULEMENT ADMIN 🔒
+// 🔒 CLÔTURER UNE PÉRIODE
+// 🔒 Réservé : Administrateur uniquement
 // ==================================================
-router.post('/cloturer', verifadmin, async (req, res) => {
+router.post('/cloturer', protegerAdmin, async (req, res) => {
   try {
     const { mois, annee, observations } = req.body;
     const id_utilisateur = req.user?.id_utilisateur;
@@ -280,28 +302,39 @@ router.post('/cloturer', verifadmin, async (req, res) => {
       ON CONFLICT(annee, mois) DO NOTHING
     `, [annee, mois, id_utilisateur, observations || '']);
 
-    res.json({ ok: true, message: `✅ Période ${mois}/${annee} clôturée` });
+    console.log(`✅ Période clôturée — ${mois}/${annee}`);
+    res.json({ ok: true, message: `✅ Période ${mois}/${annee} clôturée avec succès` });
+
   } catch (e) {
-    console.log("❌ ERREUR CLÔTURE :", e.message);
+    console.log("❌ ERREUR CLÔTURE PÉRIODE :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
-router.post('/rouvrir', verifadmin, async (req, res) => {
+
+// ==================================================
+// 🔓 ROUVRIR UNE PÉRIODE
+// 🔒 Réservé : Administrateur uniquement
+// ==================================================
+router.post('/rouvrir', protegerAdmin, async (req, res) => {
   try {
     const { mois, annee } = req.body;
     await pool.query('DELETE FROM periodes_cloturees WHERE annee = $1 AND mois = $2', [annee, mois]);
+    console.log(`✅ Période rouverte — ${mois}/${annee}`);
     res.json({ ok: true, message: `✅ Période ${mois}/${annee} rouverte` });
+
   } catch (e) {
-    console.log("❌ ERREUR RÉOUVERTURE :", e.message);
+    console.log("❌ ERREUR RÉOUVERTURE PÉRIODE :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
-// 🏷️ BUDGET PRÉVISIONNEL — Comptable OU Admin ✅
+// 🏷️ ENREGISTRER / METTRE À JOUR UN BUDGET PRÉVISIONNEL
+// ✅ Accessible : Comptable OU Administrateur
 // ==================================================
-router.post('/budget/enregistrer', verifcomptableouadmin, async (req, res) => {
+router.post('/budget/enregistrer', protegerEcriture, async (req, res) => {
   try {
     const { annee, mois, categorie, montant_prevu } = req.body;
     const r = await pool.query(`
@@ -310,11 +343,15 @@ router.post('/budget/enregistrer', verifcomptableouadmin, async (req, res) => {
       ON CONFLICT(annee, mois, categorie) DO UPDATE SET montant_prevu = $4
       RETURNING *
     `, [annee, mois, categorie, montant_prevu]);
+
+    console.log(`✅ Budget prévisionnel enregistré — ${mois}/${annee}, ${categorie}`);
     res.json({ ok: true, budget: r.rows[0] });
+
   } catch (e) {
-    console.log("❌ ERREUR BUDGET :", e.message);
+    console.log("❌ ERREUR ENREGISTREMENT BUDGET :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 module.exports = router;
