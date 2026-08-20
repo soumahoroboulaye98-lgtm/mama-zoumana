@@ -13,6 +13,7 @@
   <style>
     :root {
       --primaire: #0c4a6e;
+      --secondaire: #0369a1;
       --succes: #10b981;
       --info: #3b82f6;
       --alerte: #f59e0b;
@@ -30,7 +31,8 @@
     body.lang-en .txt-fr,body.lang-en .txt-ar{display:none}
     body.lang-ar .txt-ar{display:inline}
     body.lang-ar .txt-fr,body.lang-ar .txt-en{display:none}
-    body.lang-ar .titre-section{text-align:right}
+    body.lang-ar .titre-section,
+    body.lang-ar .text-end-ar{text-align:right}
 
     body {
       background: linear-gradient(135deg, var(--sombre), var(--sombre-clair));
@@ -51,21 +53,39 @@
       box-shadow: 0 8px 25px rgba(245, 158, 11, 0.15);
     }
 
-    .btn-primaire { background: linear-gradient(135deg, var(--primaire), #0369a1); border:none; color:white; }
-    .btn-primaire:hover { background: linear-gradient(135deg, #0369a1, var(--primaire)); color:white; }
-    .btn-accent { background: linear-gradient(135deg, var(--alerte), #d97706); border:none; color:#000; font-weight:500; }
+    .btn-primaire {
+      background: linear-gradient(135deg, var(--primaire), var(--secondaire));
+      border: none;
+      color: white;
+      border-radius: 10px;
+    }
+    .btn-primaire:hover {
+      background: linear-gradient(135deg, var(--secondaire), var(--primaire));
+      color: white;
+      transform: translateY(-1px);
+    }
+    .btn-accent {
+      background: linear-gradient(135deg, var(--alerte), #d97706);
+      border: none;
+      color: #000;
+      font-weight: 500;
+      border-radius: 10px;
+    }
+    .btn-accent:hover { transform: translateY(-1px); }
 
-    .titre-section { color: var(--texte-dore); font-weight:600; }
+    .titre-section { color: var(--texte-dore); font-weight: 600; }
 
     .form-control,.form-select {
       background: rgba(15,23,42,0.6);
-      border:1px solid rgba(245,158,11,0.25);
-      color:var(--texte-clair);
-      border-radius:10px;
+      border: 1px solid rgba(245,158,11,0.25);
+      color: var(--texte-clair);
+      border-radius: 10px;
     }
     .form-control:focus,.form-select:focus {
-      background:rgba(15,23,42,0.8); border-color:var(--alerte); color:var(--texte-clair);
-      box-shadow:0 0 0 .25rem rgba(245,158,11,.15);
+      background: rgba(15,23,42,0.8);
+      border-color: var(--alerte);
+      color: var(--texte-clair);
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
     }
 
     .onglet {
@@ -89,21 +109,52 @@
     .contenu-onglet.actif { display: block; animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
 
-    .photo-profil { width:90px; height:90px; border-radius:50%; object-fit:cover; border:4px solid var(--alerte); }
-    .note-excellente { color:#10b981; font-weight:bold; }
-    .note-bien { color:#60a5fa; font-weight:bold; }
-    .note-passable { color:#f59e0b; font-weight:bold; }
-    .note-faible { color:#ef4444; font-weight:bold; }
+    .photo-profil {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid var(--alerte);
+      background: rgba(15,23,42,0.6);
+    }
+    .note-excellente { color: #10b981; font-weight: bold; }
+    .note-bien { color: #60a5fa; font-weight: bold; }
+    .note-passable { color: #f59e0b; font-weight: bold; }
+    .note-faible { color: #ef4444; font-weight: bold; }
 
-    .btn-lang { width:38px; height:38px; padding:0; font-size:14px; border-radius:50%; border:2px solid; display:flex; align-items:center; justify-content:center; }
-    .btn-lang.active { background:var(--alerte); color:#000; border-color:var(--alerte); }
+    .btn-lang {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      font-size: 14px;
+      border-radius: 50%;
+      border: 2px solid;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-lang.active {
+      background: var(--alerte);
+      color: #000;
+      border-color: var(--alerte);
+    }
+
+    .table-dark { --bs-table-bg: rgba(15,23,42,0.5); --bs-table-striped-bg: rgba(30,41,59,0.4); }
+
+    @media print {
+      body { background: #fff; color: #000; }
+      .no-print { display: none !important; }
+      .carte { background: #fff; border: 1px solid #ddd; box-shadow: none; }
+      .table-dark { --bs-table-bg: #fff; color: #000; }
+      .table-striped > tbody > tr:nth-of-type(odd) { --bs-table-accent-bg: #f9f9f9; }
+    }
   </style>
 </head>
 <body>
 
 <div class="container py-4">
   <!-- 🌐 LANGUE & RETOUR -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 no-print">
     <a href="dashboard.html" class="btn btn-outline-light btn-sm">
       <i class="bi bi-arrow-left-circle"></i>
       <span class="txt-fr"> Retour</span>
@@ -120,7 +171,7 @@
   <!-- 📌 EN-TÊTE PROFIL ÉLÈVE -->
   <div class="carte p-4 mb-4">
     <div class="d-flex flex-wrap align-items-center gap-4">
-      <img id="photoEleve" src="https://via.placeholder.com/90" class="photo-profil" alt="Photo">
+      <img id="photoEleve" src="https://via.placeholder.com/90" class="photo-profil" alt="Photo de profil" loading="lazy">
       <div class="flex-grow-1">
         <h3 class="titre-section mb-1" id="nomEleve">—</h3>
         <p class="text-muted mb-1" id="classeEleve">—</p>
@@ -128,6 +179,7 @@
           <i class="bi bi-calendar3 me-1"></i>
           <span class="txt-fr">Année Scolaire :</span>
           <span class="txt-en">School Year :</span>
+          <span class="txt-ar">السنة الدراسية :</span>
           <span id="anneeScolaire">2025-2026</span>
         </p>
       </div>
@@ -135,6 +187,7 @@
         <h6 class="text-muted small">
           <span class="txt-fr">Moyenne Générale</span>
           <span class="txt-en">Overall Average</span>
+          <span class="txt-ar">المعدل العام</span>
         </h6>
         <h3 class="titre-section" id="moyenneGenerale">—/20</h3>
         <span class="badge bg-success" id="mention">—</span>
@@ -143,7 +196,7 @@
   </div>
 
   <!-- 📱 ONGLETS -->
-  <div class="d-flex flex-wrap gap-1 mb-3 border-bottom pb-1">
+  <div class="d-flex flex-wrap gap-1 mb-3 border-bottom pb-1 no-print">
     <button class="onglet active" data-onglet="notes">
       <i class="bi bi-journal-check me-1"></i>
       <span class="txt-fr">Mes Notes</span>
@@ -180,9 +233,21 @@
           <span class="txt-ar">كشف الدرجات</span>
         </h5>
         <select id="filtreTrimestre" class="form-select form-select-sm w-auto">
-          <option value="1">1er Trimestre</option>
-          <option value="2">2ème Trimestre</option>
-          <option value="3">3ème Trimestre</option>
+          <option value="1">
+            <span class="txt-fr">1er Trimestre</span>
+            <span class="txt-en">1st Term</span>
+            <span class="txt-ar">الثلاثاء الأول</span>
+          </option>
+          <option value="2">
+            <span class="txt-fr">2ème Trimestre</span>
+            <span class="txt-en">2nd Term</span>
+            <span class="txt-ar">الثلاثاء الثاني</span>
+          </option>
+          <option value="3">
+            <span class="txt-fr">3ème Trimestre</span>
+            <span class="txt-en">3rd Term</span>
+            <span class="txt-ar">الثلاثاء الثالث</span>
+          </option>
         </select>
       </div>
       <div class="table-responsive">
@@ -201,18 +266,32 @@
               </th>
             </tr>
           </thead>
-          <tbody id="corpsNotes"><tr><td colspan="6" class="text-center text-muted">Chargement...</td></tr></tbody>
+          <tbody id="corpsNotes">
+            <tr>
+              <td colspan="6" class="text-center text-muted">
+                <span class="txt-fr">Chargement...</span>
+                <span class="txt-en">Loading...</span>
+                <span class="txt-ar">جارٍ التحميل...</span>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
       <div class="alert alert-info mt-3" id="blocMoyenne">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
           <span>
-            <strong><span class="txt-fr">Moyenne du Trimestre :</span> <span id="moyenneTrimestre">—</span>/20</strong>
+            <strong>
+              <span class="txt-fr">Moyenne du Trimestre :</span>
+              <span class="txt-en">Term Average :</span>
+              <span class="txt-ar">معدل الفصل :</span>
+              <span id="moyenneTrimestre">—</span>/20
+            </strong>
           </span>
-          <button class="btn btn-sm btn-accent" onclick="window.print()">
+          <button class="btn btn-sm btn-accent no-print" onclick="window.print()">
             <i class="bi bi-printer"></i>
             <span class="txt-fr"> Imprimer</span>
             <span class="txt-en"> Print</span>
+            <span class="txt-ar"> طباعة</span>
           </button>
         </div>
       </div>
@@ -228,7 +307,11 @@
         <span class="txt-ar">جدولي الأسبوعي</span>
       </h5>
       <div id="contenuEDT" class="table-responsive">
-        <p class="text-center text-muted">Chargement...</p>
+        <p class="text-center text-muted">
+          <span class="txt-fr">Chargement...</span>
+          <span class="txt-en">Loading...</span>
+          <span class="txt-ar">جارٍ التحميل...</span>
+        </p>
       </div>
     </div>
   </div>
@@ -242,7 +325,11 @@
         <span class="txt-ar">إعلانات وأخبار</span>
       </h5>
       <div id="listeAnnonces">
-        <p class="text-center text-muted">Chargement...</p>
+        <p class="text-center text-muted">
+          <span class="txt-fr">Chargement...</span>
+          <span class="txt-en">Loading...</span>
+          <span class="txt-ar">جارٍ التحميل...</span>
+        </p>
       </div>
     </div>
   </div>
@@ -255,7 +342,13 @@
         <span class="txt-en">My Profile</span>
         <span class="txt-ar">بياناتي الشخصية</span>
       </h5>
-      <div id="contenuInfos"></div>
+      <div id="contenuInfos">
+        <p class="text-center text-muted">
+          <span class="txt-fr">Chargement...</span>
+          <span class="txt-en">Loading...</span>
+          <span class="txt-ar">جارٍ التحميل...</span>
+        </p>
+      </div>
     </div>
   </div>
 
@@ -266,6 +359,39 @@
 const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 const token = localStorage.getItem('token');
 let langueActuelle = 'fr';
+
+// Messages multilingues
+const MSG = {
+  fr: {
+    authRequired: "Authentification requise",
+    noGrades: "Aucune note pour ce trimestre",
+    noAnnouncements: "Aucune annonce pour le moment",
+    error: "Erreur",
+    notSpecified: "Non renseigné"
+  },
+  en: {
+    authRequired: "Authentication required",
+    noGrades: "No grades for this term",
+    noAnnouncements: "No announcements at this time",
+    error: "Error",
+    notSpecified: "Not specified"
+  },
+  ar: {
+    authRequired: "المصادقة مطلوبة",
+    noGrades: "لا توجد درجات لهذا الفصل",
+    noAnnouncements: "لا توجد إعلانات حتى الآن",
+    error: "خطأ",
+    notSpecified: "غير محدد"
+  }
+};
+
+function msg(key) { return MSG[langueActuelle]?.[key] || MSG.fr[key]; }
+
+// 🔒 Vérification accès
+if (!token || localStorage.getItem('profil') !== 'eleve') {
+  alert(msg('authRequired'));
+  location.href = '../../connexion.html';
+}
 
 // 🌐 LANGUE
 document.querySelectorAll('.btn-lang').forEach(btn => {
@@ -286,124 +412,193 @@ document.querySelectorAll('.onglet').forEach(ong => {
     const nom = ong.dataset.onglet;
     document.querySelectorAll('.contenu-onglet').forEach(c => c.classList.remove('actif'));
     document.getElementById(`onglet-${nom}`).classList.add('actif');
-    if(nom==='notes') chargerNotes();
-    if(nom==='edt') chargerEDT();
-    if(nom==='annonces') chargerAnnonces();
-    if(nom==='infos') chargerInfos();
+    if(nom === 'notes') chargerNotes();
+    if(nom === 'edt') chargerEDT();
+    if(nom === 'annonces') chargerAnnonces();
+    if(nom === 'infos') chargerInfos();
   });
 });
 
 // 🚀 CHARGER PROFIL ÉLÈVE
 async function chargerProfil(){
   try{
-    const r = await fetch(`${API_URL}/profil`, {headers:{'Authorization':`Bearer ${token}`}});
+    const r = await fetch(`${API_URL}/profil`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
-    document.getElementById('nomEleve').textContent = `${res.utilisateur.prenoms} ${res.utilisateur.nom}`;
-    document.getElementById('classeEleve').textContent = res.classe?.libelle_classe || 'Classe non affectée';
-    if(res.utilisateur.photo_profil) document.getElementById('photoEleve').src = res.utilisateur.photo_profil;
+    if(!res.ok) throw new Error(res.erreur || msg('error'));
+
+    document.getElementById('nomEleve').textContent = `${res.utilisateur.prenoms || ''} ${res.utilisateur.nom || ''}`;
+    document.getElementById('classeEleve').textContent = res.classe?.libelle_classe || msg('notSpecified');
     document.getElementById('anneeScolaire').textContent = res.annee_scolaire || '2025-2026';
-  }catch(err){ console.error("Profil :", err.message); }
+
+    if(res.utilisateur.photo_profil) {
+      document.getElementById('photoEleve').src = res.utilisateur.photo_profil;
+    }
+
+    if(res.moyenne_generale) {
+      document.getElementById('moyenneGenerale').textContent = `${res.moyenne_generale}/20`;
+      document.getElementById('mention').textContent = res.mention || '—';
+    }
+  }catch(err){
+    console.error("Profil :", err.message);
+  }
 }
 
 // 📝 CHARGER NOTES
 async function chargerNotes(){
   const trim = document.getElementById('filtreTrimestre').value;
   try{
-    const r = await fetch(`${API_URL}/notes?trimestre=${trim}`, {headers:{'Authorization':`Bearer ${token}`}});
+    const r = await fetch(`${API_URL}/notes?trimestre=${trim}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
+    if(!res.ok) throw new Error(res.erreur || msg('error'));
+
     const tb = document.getElementById('corpsNotes');
-    if(!res.notes.length){
-      tb.innerHTML=`<tr><td colspan="6" class="text-center text-muted">Aucune note pour ce trimestre</td></tr>`;
+    if(!res.notes?.length){
+      tb.innerHTML = `<tr><td colspan="6" class="text-center text-muted">${msg('noGrades')}</td></tr>`;
       document.getElementById('moyenneGenerale').textContent = '—/20';
       document.getElementById('mention').textContent = '—';
       document.getElementById('moyenneTrimestre').textContent = '—';
       return;
     }
+
     tb.innerHTML = res.notes.map(n => {
       let classeNote = '';
-      if(n.moyenne >=16) classeNote='note-excellente';
-      else if(n.moyenne >=14) classeNote='note-bien';
-      else if(n.moyenne >=10) classeNote='note-passable';
-      else classeNote='note-faible';
+      const moyenne = parseFloat(n.moyenne);
+      if (moyenne >= 16) classeNote = 'note-excellente';
+      else if (moyenne >= 14) classeNote = 'note-bien';
+      else if (moyenne >= 10) classeNote = 'note-passable';
+      else classeNote = 'note-faible';
+
       return `
       <tr>
-        <td><strong>${n.libelle_matiere}</strong></td>
-        <td class="text-center">${n.note1??'—'}</td>
-        <td class="text-center">${n.note2??'—'}</td>
-        <td class="text-center">${n.note3??'—'}</td>
-        <td class="text-center">${n.coefficient||1}</td>
-        <td class="text-center ${classeNote}">${n.moyenne??'—'}</td>
+        <td><strong>${n.libelle_matiere || '—'}</strong></td>
+        <td class="text-center">${n.note1 ?? '—'}</td>
+        <td class="text-center">${n.note2 ?? '—'}</td>
+        <td class="text-center">${n.note3 ?? '—'}</td>
+        <td class="text-center">${n.coefficient || 1}</td>
+        <td class="text-center ${classeNote}">${n.moyenne ?? '—'}</td>
       </tr>`;
     }).join('');
-    document.getElementById('moyenneGenerale').textContent = `${res.moyenne_generale}/20`;
-    document.getElementById('moyenneTrimestre').textContent = res.moyenne_generale;
-    document.getElementById('mention').textContent = res.mention||'—';
+
+    if(res.moyenne_generale){
+      document.getElementById('moyenneGenerale').textContent = `${res.moyenne_generale}/20`;
+      document.getElementById('mention').textContent = res.mention || '—';
+      document.getElementById('moyenneTrimestre').textContent = res.moyenne_generale;
+    }
   }catch(err){
-    document.getElementById('corpsNotes').innerHTML=`<tr><td colspan="6" class="text-center text-danger">${err.message}</td></tr>`;
+    document.getElementById('corpsNotes').innerHTML = `<tr><td colspan="6" class="text-center text-danger">${err.message}</td></tr>`;
   }
 }
 
 // 📅 CHARGER EDT
 async function chargerEDT(){
   try{
-    const r = await fetch(`${API_URL}/edt`, {headers:{'Authorization':`Bearer ${token}`}});
+    const r = await fetch(`${API_URL}/edt`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
-    document.getElementById('contenuEDT').innerHTML = res.html||`<pre>${JSON.stringify(res.seances,null,2)}</pre>`;
-  }catch(err){ document.getElementById('contenuEDT').innerHTML=`<p class="text-center text-danger">${err.message}</p>`; }
+    if(!res.ok) throw new Error(res.erreur || msg('error'));
+    document.getElementById('contenuEDT').innerHTML = res.html || `<pre class="text-white small">${JSON.stringify(res.seances || res, null, 2)}</pre>`;
+  }catch(err){
+    document.getElementById('contenuEDT').innerHTML = `<p class="text-center text-danger">${err.message}</p>`;
+  }
 }
 
 // 📢 CHARGER ANNONCES
 async function chargerAnnonces(){
   try{
-    const r = await fetch(`${API_URL}/annonces`, {headers:{'Authorization':`Bearer ${token}`}});
+    const r = await fetch(`${API_URL}/annonces`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
+    if(!res.ok) throw new Error(res.erreur || msg('error'));
+
     const c = document.getElementById('listeAnnonces');
-    if(!res.annonces.length){
-      c.innerHTML=`<p class="text-center text-muted">Aucune annonce pour le moment</p>`;
+    if(!res.annonces?.length){
+      c.innerHTML = `<p class="text-center text-muted">${msg('noAnnouncements')}</p>`;
       return;
     }
+
     c.innerHTML = res.annonces.map(a => `
     <div class="alert alert-secondary mb-2">
-      <h6 class="mb-1">${a.titre}</h6>
-      <p class="mb-1 small">${a.contenu}</p>
-      <span class="small text-muted">${new Date(a.date_publication).toLocaleDateString('fr-CA')}</span>
+      <h6 class="mb-1">${a.titre || '—'}</h6>
+      <p class="mb-1 small">${a.contenu || ''}</p>
+      <span class="small text-muted">${a.date_publication ? new Date(a.date_publication).toLocaleDateString('fr-CA') : ''}</span>
     </div>`).join('');
-  }catch(err){ document.getElementById('listeAnnonces').innerHTML=`<p class="text-center text-danger">${err.message}</p>`; }
+  }catch(err){
+    document.getElementById('listeAnnonces').innerHTML = `<p class="text-center text-danger">${err.message}</p>`;
+  }
 }
 
 // ℹ️ CHARGER INFOS
 async function chargerInfos(){
   try{
-    const r = await fetch(`${API_URL}/profil`, {headers:{'Authorization':`Bearer ${token}`}});
+    const r = await fetch(`${API_URL}/profil`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
+    if(!res.ok) throw new Error(res.erreur || msg('error'));
+
     const u = res.utilisateur;
     document.getElementById('contenuInfos').innerHTML = `
     <div class="row">
       <div class="col-md-6">
-        <p><strong>Nom :</strong> ${u.nom}</p>
-        <p><strong>Prénoms :</strong> ${u.prenoms}</p>
-        <p><strong>Date de Naissance :</strong> ${u.date_naissance || 'Non renseignée'}</p>
-        <p><strong>Lieu :</strong> ${u.lieu_naissance || 'Non renseigné'}</p>
+        <p><strong>
+          <span class="txt-fr">Nom :</span>
+          <span class="txt-en">Last Name :</span>
+          <span class="txt-ar">اللقب :</span>
+        </strong> ${u.nom || '—'}</p>
+        <p><strong>
+          <span class="txt-fr">Prénoms :</span>
+          <span class="txt-en">First Names :</span>
+          <span class="txt-ar">الأسماء الأولى :</span>
+        </strong> ${u.prenoms || '—'}</p>
+        <p><strong>
+          <span class="txt-fr">Date de Naissance :</span>
+          <span class="txt-en">Date of Birth :</span>
+          <span class="txt-ar">تاريخ الميلاد :</span>
+        </strong> ${u.date_naissance ? new Date(u.date_naissance).toLocaleDateString('fr-FR') : msg('notSpecified')}</p>
+        <p><strong>
+          <span class="txt-fr">Lieu de Naissance :</span>
+          <span class="txt-en">Place of Birth :</span>
+          <span class="txt-ar">مكان الميلاد :</span>
+        </strong> ${u.lieu_naissance || msg('notSpecified')}</p>
       </div>
       <div class="col-md-6">
-        <p><strong>Classe :</strong> ${res.classe?.libelle_classe || 'Non affectée'}</p>
-        <p><strong>Date d'Inscription :</strong> ${res.date_inscription || 'Non renseignée'}</p>
-        <p><strong>Parent :</strong> ${res.parent || 'Non renseigné'}</p>
-        <p><strong>Année Scolaire :</strong> ${res.annee_scolaire || '2025-2026'}</p>
+        <p><strong>
+          <span class="txt-fr">Classe :</span>
+          <span class="txt-en">Class :</span>
+          <span class="txt-ar">القسم :</span>
+        </strong> ${res.classe?.libelle_classe || msg('notSpecified')}</p>
+        <p><strong>
+          <span class="txt-fr">Matricule :</span>
+          <span class="txt-en">Student ID :</span>
+          <span class="txt-ar">الرقم الدراسي :</span>
+        </strong> ${u.matricule || u.id_utilisateur || msg('notSpecified')}</p>
+        <p><strong>
+          <span class="txt-fr">Date d'Inscription :</span>
+          <span class="txt-en">Registration Date :</span>
+          <span class="txt-ar">تاريخ التسجيل :</span>
+        </strong> ${res.date_inscription ? new Date(res.date_inscription).toLocaleDateString('fr-FR') : msg('notSpecified')}</p>
+        <p><strong>
+          <span class="txt-fr">Année Scolaire :</span>
+          <span class="txt-en">School Year :</span>
+          <span class="txt-ar">السنة الدراسية :</span>
+        </strong> ${res.annee_scolaire || '2025-2026'}</p>
       </div>
     </div>`;
-  }catch(err){ document.getElementById('contenuInfos').innerHTML=`<p class="text-center text-danger">${err.message}</p>`; }
+  }catch(err){
+    document.getElementById('contenuInfos').innerHTML = `<p class="text-center text-danger">${err.message}</p>`;
+  }
 }
 
 // 🚀 INIT
 chargerProfil();
 chargerNotes();
-document.getElementById('filtreTrimestre').addEventListener('change',chargerNotes);
+document.getElementById('filtreTrimestre').addEventListener('change', chargerNotes);
 </script>
 </body>
 </html>
