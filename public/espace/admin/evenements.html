@@ -36,6 +36,7 @@
     body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
     body.lang-ar .txt-ar { display: inline; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar { direction: rtl; }
     body.lang-ar .titre-section,
     body.lang-ar .menu-titre { text-align: right; }
 
@@ -149,6 +150,9 @@
     .bloc-ar h6 { color: #f59e0b; border-bottom-color: #f59e0b; direction: rtl; text-align: right; }
     .etoile-rouge { color: #ef4444; font-weight: bold; }
 
+    /* ⚠️ Alerte serveur */
+    .alerte-api { border-left: 4px solid var(--alerte); background: rgba(239,68,68,0.08); }
+
     /* ⏳ COMPTE À REBOURS — COULEURS PAR PROXIMITÉ */
     .j5 { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; border-left: 4px solid #f59e0b; }
     .j4 { background: linear-gradient(135deg, #fed7aa, #fdba74); color: #9a3412; border-left: 4px solid #fb923c; }
@@ -237,8 +241,13 @@
   const nomUtilisateur = localStorage.getItem('nom') || 'Utilisateur';
   const prenomUtilisateur = localStorage.getItem('prenoms') || '';
   const nomComplet = (nomUtilisateur + ' ' + prenomUtilisateur).trim();
-  const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 
+  // 🔗 URL adaptative : localhost en local, Render en ligne
+  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'
+    : 'https://mama-zoumana-api.onrender.com/api';
+
+  // 🔐 SÉCURITÉ
   if (!token || !['admin','super_admin'].includes(role)) {
     alert("⛔ Accès réservé à l'Administrateur");
     location.href = '../connexion.html';
@@ -246,6 +255,18 @@
 
   let langue = localStorage.getItem('langue') || 'fr';
   document.body.classList.add('lang-' + langue);
+
+  // 💾 Stockage local pour mode hors ligne
+  function obtenirEvenementsLocaux() { return JSON.parse(localStorage.getItem('evenements') || '[]'); }
+  function sauvegarderEvenementsLocaux(liste) { localStorage.setItem('evenements', JSON.stringify(liste)); }
+
+  // 🌐 TRADUCTIONS
+  const MSG = {
+    fr: { serveurIndispo: "⚠️ Serveur indisponible — Mode local actif", erreurChargement: "❌ Chargement impossible", confSuppr: "⚠️ Supprimer définitivement cet événement ? Irréversible.", supprOk: "✅ Supprimé !", erreurReseau: "❌ Erreur de connexion", titreObligatoire: "⚠️ Remplissez les titres dans les 3 langues" },
+    en: { serveurIndispo: "⚠️ Server offline — Local mode active", erreurChargement: "❌ Failed to load", confSuppr: "⚠️ Delete this event permanently? Cannot be undone.", supprOk: "✅ Deleted!", erreurReseau: "❌ Connection error", titreObligatoire: "⚠️ Fill titles in all 3 languages" },
+    ar: { serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي", erreurChargement: "❌ تعذر التحميل", confSuppr: "⚠️ حذف هذا الحدث نهائيًا؟ لا يمكن التراجع.", supprOk: "✅ تم الحذف!", erreurReseau: "❌ خطأ في الاتصال", titreObligatoire: "⚠️ املأ العناوين بجميع اللغات الثلاث" }
+  };
+  function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
 
   window.appliquerLangue = function(lang) {
     localStorage.setItem('langue', lang);
@@ -319,6 +340,12 @@
       </div>
       <span class="nom-utilisateur-affiche"><i class="bi bi-person-circle"></i> <span id="nom-affiche">Chargement...</span></span>
     </div>
+  </div>
+
+  <!-- ⚠️ ALERTE API HORS LIGNE -->
+  <div id="alerteApi" class="alert alerte-api d-none mb-3">
+    <i class="bi bi-wifi-off me-2"></i>
+    <span id="texteAlerteApi"></span>
   </div>
 
   <h2 class="titre-page">📅 <span class="txt-fr">Gestion des Événements</span><span class="txt-en">Events Management</span><span class="txt-ar">إدارة الفعاليات</span></h2>
@@ -445,7 +472,7 @@
     </form>
   </div>
 
-  <!-- 📅 LISTE DES ÉVÉNEMENTS — AFFICHÉE SUR L'INDEX JUSQU'À DATE PASSÉE -->
+  <!-- 📅 LISTE DES ÉVÉNEMENTS -->
   <h5 class="mb-3">📅 <span class="txt-fr">Calendrier & Compte à rebours</span><span class="txt-en">Calendar & Countdown</span><span class="txt-ar">التقويم والعد التنازلي</span></h5>
   <div class="carte p-4">
     <div id="listeEvenements">
@@ -482,16 +509,109 @@
     return { cls:'', txt:{fr:`📅 Dans ${jours} jours`, en:`📅 In ${jours} days`, ar:`📅 خلال ${jours} يوماً`} };
   }
 
-  // 📋 CHARGER LA LISTE — HARMONISÉE AVEC L'AFFICHAGE PUBLIC
+  // 🏷️ Type affiché selon la langue
+  function getTypeAffiche(evt) {
+    const types = {
+      fr: {scolaire:'📚 Scolaire', 'extra-scolaire':'🎉 Extra-scolaire', ferie:'🔴 Férié', rencontre:'🤝 Rencontre', autre:'📌 Autre'},
+      en: {school:'📚 School', 'extra-curricular':'🎉 Extra-curricular', holiday:'🔴 Holiday', meeting:'🤝 Meeting', other:'📌 Other'},
+      ar: {مدرسي:'📚 مدرسي', 'أنشطة لاصفية':'🎉 أنشطة لاصفية', عطلة:'🔴 عطلة', لقاء:'🤝 لقاء', آخر:'📌 آخر'}
+    };
+    const cle = evt.type_fr || evt.type_en || evt.type_ar || 'autre';
+    return types[langue]?.[cle] || types.fr[cle] || '📌 Autre';
+  }
+
+  // 📄 Texte de cible selon langue
+  function getCibleAffiche(cible) {
+    return cible === 'tous'
+      ? '<span class="txt-fr">Tous</span><span class="txt-en">All</span><span class="txt-ar">الجميع</span>'
+      : cible === 'eleves' ? '<span class="txt-fr">Élèves</span><span class="txt-en">Students</span><span class="txt-ar">التلاميذ</span>'
+      : cible === 'parents' ? '<span class="txt-fr">Parents</span><span class="txt-en">Parents</span><span class="txt-ar">أولياء الأمور</span>'
+      : '<span class="txt-fr">Enseignants</span><span class="txt-en">Teachers</span><span class="txt-ar">المعلمون</span>';
+  }
+
+  // 🖨️ Rendu d'un événement
+  function rendreEvenement(evt, index) {
+    const jours = calculJoursRestants(evt.date_evenement);
+    const avert = getAvertissement(jours);
+    const dateAffiche = new Date(evt.date_evenement).toLocaleDateString(langue==='ar'?'ar-TN':'fr-FR');
+    const titre = evt[`titre_${langue}`] || evt.titre_fr || evt.titre_en || evt.titre_ar || '';
+    const description = evt[`description_${langue}`] || evt.description_fr || evt.description_en || evt.description_ar || '';
+    const typeAffiche = getTypeAffiche(evt);
+
+    return `
+      <div class="carte-evenement ${avert.cls} animer-apparition retard-${(index%4)+1}">
+        ${evt.url_image ? `
+          <div class="image-conteneur">
+            <span class="icone-type">${typeAffiche}</span>
+            <img src="${evt.url_image}" alt="${titre}" loading="lazy">
+          </div>` : ''
+        }
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h5 class="mb-1 fw-bold fs-5">${titre}</h5>
+          <span class="badge bg-dark text-white">${avert.txt[langue]}</span>
+        </div>
+        <p class="mb-2">
+          📅 ${dateAffiche}
+          ${evt.heure_evenement ? ` &nbsp; ⏰ ${evt.heure_evenement}` : ''}
+          ${evt.lieu ? ` &nbsp; 📍 ${evt.lieu}` : ''}
+        </p>
+        ${description ? `<p class="mb-3 text-dark opacity-85">${description}</p>` : ''}
+        ${evt.url_video ? `
+          <div class="video-conteneur">
+            <video controls preload="metadata" src="${evt.url_video}"></video>
+          </div>` : ''
+        }
+        <small class="text-muted d-block mt-3 pt-2 border-top border-opacity-25 border-dark">
+          🔔 <span class="txt-fr">Notifié à</span><span class="txt-en">Notified to</span><span class="txt-ar">أُشعر إلى</span> : 
+          ${getCibleAffiche(evt.cible)}
+          &nbsp;|&nbsp; ${typeAffiche}
+          ${jours >= 0 ? `&nbsp;|&nbsp; <button class="btn btn-sm btn-outline-primary btn-action-petit ms-2" title="Modifier"><i class="bi bi-pencil"></i></button>` : ''}
+          <button class="btn btn-sm btn-outline-danger btn-action-petit ms-1" onclick="supprimerEvenement(${evt.id_evenement})" title="Supprimer">
+            <i class="bi bi-trash"></i>
+          </button>
+        </small>
+      </div>`;
+  }
+
+  // 📋 CHARGER LA LISTE
   async function chargerListe(){
     const conteneur = document.getElementById('listeEvenements');
+    const alerteApi = document.getElementById('alerteApi');
+    const texteAlerteApi = document.getElementById('texteAlerteApi');
+
     try {
-      const res = await fetch(`${API_URL}/liste`, {
+      const res = await fetch(`${API_URL}/evenements/liste`, {
         headers: { 'Authorization': 'Bearer ' + token }
       });
+
+      if (!res.ok) throw new Error(`Erreur ${res.status}`);
       const data = await res.json();
+      alerteApi.classList.add('d-none');
 
       if(!data.ok || !data.evenements || !data.evenements.length){
+        conteneur.innerHTML = `<div class="text-center text-muted py-5">
+          <i class="bi bi-calendar-x fs-1 mb-3 d-block"></i>
+          <p class="txt-fr">Aucun événement programmé</p>
+          <p class="txt-en">No scheduled events</p>
+          <p class="txt-ar">لا توجد فعاليات مقررة</p>
+        </div>`;
+        sauvegarderEvenementsLocaux([]);
+        return;
+      }
+
+      data.evenements.sort((a,b) => new Date(a.date_evenement) - new Date(b.date_evenement));
+      sauvegarderEvenementsLocaux(data.evenements);
+
+      conteneur.innerHTML = data.evenements.map((evt, i) => rendreEvenement(evt, i)).join('');
+
+    } catch {
+      // 📴 MODE LOCAL
+      console.warn("🔌 Mode local actif");
+      texteAlerteApi.textContent = m('serveurIndispo');
+      alerteApi.classList.remove('d-none');
+
+      const listeLocale = obtenirEvenementsLocaux();
+      if(listeLocale.length === 0){
         conteneur.innerHTML = `<div class="text-center text-muted py-5">
           <i class="bi bi-calendar-x fs-1 mb-3 d-block"></i>
           <p class="txt-fr">Aucun événement programmé</p>
@@ -501,71 +621,12 @@
         return;
       }
 
-      // ✅ TRI : événements à venir d'abord, puis passés
-      data.evenements.sort((a,b) => new Date(a.date_evenement) - new Date(b.date_evenement));
-
-      conteneur.innerHTML = '';
-      data.evenements.forEach((evt, i) => {
-        const jours = calculJoursRestants(evt.date_evenement);
-        const avert = getAvertissement(jours);
-        const dateAffiche = new Date(evt.date_evenement).toLocaleDateString(langue==='ar'?'ar-TN':'fr-FR');
-        const titre = evt[`titre_${langue}`] || evt.titre_fr || evt.titre_en || evt.titre_ar || '';
-        const description = evt[`description_${langue}`] || evt.description_fr || evt.description_en || evt.description_ar || '';
-        const typeAffiche = {
-          fr: {scolaire:'📚 Scolaire', 'extra-scolaire':'🎉 Extra-scolaire', ferie:'🔴 Férié', rencontre:'🤝 Rencontre', autre:'📌 Autre'},
-          en: {school:'📚 School', 'extra-curricular':'🎉 Extra-curricular', holiday:'🔴 Holiday', meeting:'🤝 Meeting', other:'📌 Other'},
-          ar: {مدرسي:'📚 مدرسي', 'أنشطة لاصفية':'🎉 أنشطة لاصفية', عطلة:'🔴 عطلة', لقاء:'🤝 لقاء', آخر:'📌 آخر'}
-        }[langue][evt.type_fr || evt.type_en || evt.type_ar] || '📌 Autre';
-
-        conteneur.innerHTML += `
-          <div class="carte-evenement ${avert.cls} animer-apparition retard-${(i%4)+1}">
-            ${evt.url_image ? `
-              <div class="image-conteneur">
-                <span class="icone-type">${typeAffiche}</span>
-                <img src="${evt.url_image}" alt="${titre}" loading="lazy">
-              </div>` : ''
-            }
-            <div class="d-flex justify-content-between align-items-start mb-2">
-              <h5 class="mb-1 fw-bold fs-5">${titre}</h5>
-              <span class="badge bg-dark text-white">${avert.txt[langue]}</span>
-            </div>
-            <p class="mb-2">
-              📅 ${dateAffiche}
-              ${evt.heure_evenement ? ` &nbsp; ⏰ ${evt.heure_evenement}` : ''}
-              ${evt.lieu ? ` &nbsp; 📍 ${evt.lieu}` : ''}
-            </p>
-            ${description ? `<p class="mb-3 text-dark opacity-85">${description}</p>` : ''}
-            ${evt.url_video ? `
-              <div class="video-conteneur">
-                <video controls preload="metadata" src="${evt.url_video}"></video>
-              </div>` : ''
-            }
-            <small class="text-muted d-block mt-3 pt-2 border-top border-opacity-25 border-dark">
-              🔔 <span class="txt-fr">Notifié à</span><span class="txt-en">Notified to</span><span class="txt-ar">أُشعر إلى</span> : 
-              ${evt.cible === 'tous' ? '<span class="txt-fr">Tous</span><span class="txt-en">All</span><span class="txt-ar">الجميع</span>' : 
-                evt.cible === 'eleves' ? '<span class="txt-fr">Élèves</span><span class="txt-en">Students</span><span class="txt-ar">التلاميذ</span>' : 
-                evt.cible === 'parents' ? '<span class="txt-fr">Parents</span><span class="txt-en">Parents</span><span class="txt-ar">أولياء الأمور</span>' : 
-                '<span class="txt-fr">Enseignants</span><span class="txt-en">Teachers</span><span class="txt-ar">المعلمون</span>'}
-              &nbsp;|&nbsp; ${typeAffiche}
-              ${jours >= 0 ? `&nbsp;|&nbsp; <button class="btn btn-sm btn-outline-primary btn-action-petit ms-2" title="Modifier"><i class="bi bi-pencil"></i></button>` : ''}
-              <button class="btn btn-sm btn-outline-danger btn-action-petit ms-1" onclick="supprimerEvenement(${evt.id_evenement})" title="Supprimer">
-                <i class="bi bi-trash"></i>
-              </button>
-            </small>
-          </div>
-        `;
-      });
-    } catch {
-      conteneur.innerHTML = `<div class="text-center text-muted py-5">
-        <i class="bi bi-exclamation-triangle fs-1 mb-3 d-block text-warning"></i>
-        <p class="txt-fr">Chargement impossible</p>
-        <p class="txt-en">Failed to load</p>
-        <p class="txt-ar">تعذر التحميل</p>
-      </div>`;
+      listeLocale.sort((a,b) => new Date(a.date_evenement) - new Date(b.date_evenement));
+      conteneur.innerHTML = listeLocale.map((evt, i) => rendreEvenement(evt, i)).join('');
     }
   }
 
-  // ➕ AJOUTER/PUBLIER UN ÉVÉNEMENT — AFFICHÉ DIRECTEMENT SUR L'INDEX
+  // ➕ AJOUTER/PUBLIER UN ÉVÉNEMENT
   document.getElementById('formEvent').addEventListener('submit', async e => {
     e.preventDefault();
 
@@ -587,19 +648,13 @@
       url_video: e.target.url_video.value.trim()
     };
 
-    // ✅ Validation des titres dans les 3 langues
     if (!donnees.titre_fr || !donnees.titre_en || !donnees.titre_ar) {
-      const msg = {
-        fr: "⚠️ Remplissez les titres dans les 3 langues (Français, Anglais et Arabe)",
-        en: "⚠️ Fill in titles in all 3 languages (French, English and Arabic)",
-        ar: "⚠️ املأ العناوين بجميع اللغات الثلاث (الفرنسية والإنجليزية والعربية)"
-      };
-      alert(msg[langue]);
+      alert(m('titreObligatoire'));
       return;
     }
 
     try {
-      const res = await fetch(`${API_URL}/publier`, {
+      const res = await fetch(`${API_URL}/evenements/publier`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify(donnees)
@@ -607,38 +662,37 @@
       const rep = await res.json();
 
       if(rep.ok){
-        const msgOk = {
-          fr: "✅ Événement publié ! Affiché sur le site jusqu'à la date de l'événement.",
-          en: "✅ Event published! Displayed on the site until the event date.",
-          ar: "✅ تم النشر! يظهر في الموقع حتى تاريخ الحدث."
-        };
-        alert(msgOk[langue]);
+        alert(langue==='fr'?"✅ Événement publié !":langue==='en'?"✅ Event published!":"✅ تم النشر!");
         e.target.reset();
         chargerListe();
       }else{
         alert("❌ " + (rep.erreur || "Erreur serveur"));
       }
     }catch{
-      const msgErr = { fr: "❌ Erreur de connexion", en: "❌ Connection error", ar: "❌ خطأ في الاتصال" };
-      alert(msgErr[langue]);
+      // 📴 SAUVEGARDE LOCALE
+      const liste = obtenirEvenementsLocaux();
+      donnees.id_evenement = Date.now();
+      liste.push(donnees);
+      sauvegarderEvenementsLocaux(liste);
+      alert(langue==='fr'?"✅ Enregistré localement !":langue==='en'?"✅ Saved locally!":"✅ تم الحفظ محلياً!");
+      e.target.reset();
+      chargerListe();
     }
   });
 
-  // 🗑️ SUPPRESSION — SEULEMENT PAR L'ADMIN
+  // 🗑️ SUPPRESSION
   window.supprimerEvenement = async function(id) {
-    const confMsg = {
-      fr: "⚠️ Supprimer définitivement cet événement ? Cette action est irréversible.",
-      en: "⚠️ Delete this event permanently? This action cannot be undone.",
-      ar: "⚠️ حذف هذا الحدث نهائيًا؟ لا يمكن التراجع عن هذا الإجراء."
-    };
-    if (!confirm(confMsg[langue])) return;
+    if (!confirm(m('confSuppr'))) return;
     try {
-      await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
-      chargerListe();
-    } catch { 
-      const errMsg = { fr: "Erreur lors de la suppression", en: "Deletion error", ar: "خطأ في الحذف" };
-      alert(errMsg[langue]); 
+      await fetch(`${API_URL}/evenements/${id}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
+      alert(m('supprOk'));
+    } catch {
+      // 📴 Suppression locale
+      const liste = obtenirEvenementsLocaux().filter(e => e.id_evenement !== id);
+      sauvegarderEvenementsLocaux(liste);
+      alert(m('supprOk'));
     }
+    chargerListe();
   };
 </script>
 
