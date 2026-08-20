@@ -1,49 +1,57 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const verifadmin = require('../middleware/verifadmin');   // ✅ AJOUTÉ
+const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté systématiquement
+const verifadmin = require('../middleware/verifadmin');
 const verifprof = require('../middleware/verifprof');
 
+// ✅ Protections groupées
+const protegerAdmin = [veriftoken, verifadmin];
+const protegerProf = [veriftoken, verifprof];
+
+
 // ==================================================
-// ✅ ADMIN : VOIR TOUTES LES CLASSES
+// ✅ Administrateur : voir toutes les classes
 // ==================================================
-router.get('/toutes-classes', verifadmin, async (req, res) => {
+router.get('/toutes-classes', protegerAdmin, async (req, res) => {
   try {
     console.log("📦 Admin → Chargement TOUTES les classes");
     const r = await pool.query(`
-      SELECT id_classe, libelle_classe 
-      FROM classes 
+      SELECT id_classe, libelle_classe
+      FROM classes
       ORDER BY libelle_classe
     `);
-    res.json({ ok: true, classes: r.rows, lignes: r.rows });
+    res.json({ ok: true, classes: r.rows });
   } catch (e) {
     console.error("❌ ERREUR toutes-classes :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
-// ✅ ADMIN : VOIR TOUTES LES MATIÈRES
+// ✅ Administrateur : voir toutes les matières
 // ==================================================
-router.get('/toutes-matieres', verifadmin, async (req, res) => {
+router.get('/toutes-matieres', protegerAdmin, async (req, res) => {
   try {
     console.log("📦 Admin → Chargement TOUTES les matières");
     const r = await pool.query(`
-      SELECT id_matiere, libelle_matiere, coefficient, volume_horaire, langue_ens 
-      FROM matieres 
+      SELECT id_matiere, libelle_matiere, coefficient, volume_horaire, langue_ens
+      FROM matieres
       ORDER BY libelle_matiere
     `);
-    res.json({ ok: true, matieres: r.rows, lignes: r.rows });
+    res.json({ ok: true, matieres: r.rows });
   } catch (e) {
     console.error("❌ ERREUR toutes-matieres :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
-// 🏫 MES CLASSES DU PROFESSEUR
+// 🏫 Mes classes (professeur)
 // ==================================================
-router.get('/mes-classes', verifprof, async (req, res) => {
+router.get('/mes-classes', protegerProf, async (req, res) => {
   try {
     const id_prof = req.user?.id_utilisateur;
     console.log("🔍 Prof → Chargement classes — id_prof:", id_prof);
@@ -68,10 +76,11 @@ router.get('/mes-classes', verifprof, async (req, res) => {
   }
 });
 
+
 // ==================================================
-// 📚 MES MATIÈRES — FILTRÉ PAR CLASSE SI FOURNIE
+// 📚 Mes matières (professeur) — filtré par classe si fournie
 // ==================================================
-router.get('/mes-matieres', verifprof, async (req, res) => {
+router.get('/mes-matieres', protegerProf, async (req, res) => {
   try {
     const id_prof = req.user?.id_utilisateur;
     const id_classe = req.query.classe;
@@ -97,25 +106,26 @@ router.get('/mes-matieres', verifprof, async (req, res) => {
 
     const r = await pool.query(requete, parametres);
     console.log("✅ Matières trouvées :", r.rows.length);
-    res.json({ ok: true, matieres: r.rows, lignes: r.rows });
+    res.json({ ok: true, matieres: r.rows });
   } catch (e) {
     console.error("❌ ERREUR mes-matieres :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
-// 👥 ÉLÈVES D'UNE CLASSE
+// 👥 Élèves d'une classe
 // ==================================================
-router.get('/eleves-classe/:id_classe', verifprof, async (req, res) => {
-  try {
-    const r = await pool.query(`
+router.get('/eleves-classe/:id_classe', protegerProf, async (req, res) => {
+  try {    const r = await pool.query(`
       SELECT id_utilisateur AS id_eleve, nom, prenoms, matricule, photo_profil
       FROM utilisateurs
       WHERE role = 'eleve' AND id_classe = $1
       ORDER BY nom, prenoms
     `, [req.params.id_classe]);
 
+    console.log(`✅ Élèves de la classe ${req.params.id_classe} : ${r.rows.length}`);
     res.json({ ok: true, eleves: r.rows });
   } catch (e) {
     console.error("❌ ERREUR ÉLÈVES :", e.message);
@@ -123,17 +133,18 @@ router.get('/eleves-classe/:id_classe', verifprof, async (req, res) => {
   }
 });
 
+
 // ==================================================
-// ✏️ SAISIE / MODIFICATION DES NOTES
+// ✏️ Saisie / modification des notes
 // 5 notes + moyenne + rang + mention + appréciation
 // ==================================================
-router.post('/saisir', verifprof, async (req, res) => {
+router.post('/saisir', protegerProf, async (req, res) => {
   try {
     const { notes } = req.body;
     const id_prof = req.user?.id_utilisateur;
 
     if (!id_prof) {
-      return res.json({ ok: false, erreur: "⛔ Profil introuvable. Reconnecte-toi." });
+      return res.json({ ok: false, erreur: "⛔ Profil introuvable. Reconnectez-vous." });
     }
     if (!notes || !Array.isArray(notes) || notes.length === 0) {
       return res.json({ ok: false, erreur: "⚠️ Aucune note à enregistrer" });
@@ -163,7 +174,7 @@ router.post('/saisir', verifprof, async (req, res) => {
       const toutesNotes = [n1, n2, n3, n4, n5];
       const valides = toutesNotes.every(x => x === null || (x >= 0 && x <= 20));
       if (!valides) {
-        return res.json({ ok: false, erreur: "⚠️ Les notes doivent être entre 0 et 20" });
+        return res.json({ ok: false, erreur: "⚠️ Les notes doivent être comprises entre 0 et 20" });
       }
 
       // Recalcul de la moyenne
@@ -181,7 +192,7 @@ router.post('/saisir', verifprof, async (req, res) => {
         ? Number(coefResult.rows[0].coefficient || 1)
         : 1;
 
-      // ENREGISTREMENT / MISE À JOUR
+      // Enregistrement / mise à jour
       await pool.query(`
         INSERT INTO notes(
           id_eleve, id_matiere, id_classe, trimestre, annee_scolaire,
@@ -210,6 +221,7 @@ router.post('/saisir', verifprof, async (req, res) => {
       });
     }
 
+    console.log(`✅ Notes enregistrées : ${notes.length} élève(s)`);
     res.json({
       ok: true,
       message: `✅ ${notes.length} élève(s) enregistré(s) avec succès !`,
@@ -221,10 +233,11 @@ router.post('/saisir', verifprof, async (req, res) => {
   }
 });
 
+
 // ==================================================
-// 📋 CHARGER LES NOTES DÉJÀ ENREGISTRÉES
+// 📋 Charger les notes déjà enregistrées
 // ==================================================
-router.post('/consulter', verifprof, async (req, res) => {
+router.post('/consulter', protegerProf, async (req, res) => {
   try {
     const { id_classe, id_matiere, trimestre, annee_scolaire } = req.body;
     const annee = annee_scolaire || '2026-2027';
@@ -234,7 +247,7 @@ router.post('/consulter', verifprof, async (req, res) => {
     }
 
     const r = await pool.query(`
-      SELECT 
+      SELECT
         n.id_eleve, n.note1, n.note2, n.note3, n.note4, n.note5,
         n.moyenne_matiere, n.rang, n.mention, n.tableau_honneur, n.appreciation,
         u.nom, u.prenoms, u.matricule, u.photo_profil,
@@ -242,29 +255,31 @@ router.post('/consulter', verifprof, async (req, res) => {
       FROM notes n
       JOIN utilisateurs u ON n.id_eleve = u.id_utilisateur
       JOIN matieres m ON n.id_matiere = m.id_matiere
-      WHERE n.id_classe = $1 AND n.id_matiere = $2 
+      WHERE n.id_classe = $1 AND n.id_matiere = $2
         AND n.trimestre = $3 AND n.annee_scolaire = $4
       ORDER BY u.nom, u.prenoms
     `, [id_classe, id_matiere, trimestre, annee]);
 
-    res.json({ ok: true, notes: r.rows, lignes: r.rows });
+    console.log(`✅ Notes chargées — Classe ${id_classe}, Matière ${id_matiere}, Trimestre ${trimestre}`);
+    res.json({ ok: true, notes: r.rows });
   } catch (e) {
     console.error("❌ ERREUR CHARGEMENT NOTES :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
-// 📄 GÉNÉRER BULLETINS + MOYENNE GÉNÉRALE + CLASSEMENT
+// 📄 Générer bulletins + moyenne générale + classement
 // ==================================================
-router.post('/generer-bulletin/:id_classe/:trimestre', verifprof, async (req, res) => {
+router.post('/generer-bulletin/:id_classe/:trimestre', protegerProf, async (req, res) => {
   try {
     const { id_classe, trimestre } = req.params;
     const annee = '2026-2027';
 
     await pool.query(`
       WITH moy_eleve AS (
-        SELECT 
+        SELECT
           n.id_eleve,
           SUM(n.moyenne_matiere * m.coefficient) / NULLIF(SUM(m.coefficient), 0) AS moyenne_generale
         FROM notes n
@@ -280,11 +295,13 @@ router.post('/generer-bulletin/:id_classe/:trimestre', verifprof, async (req, re
       SET moyenne_generale = EXCLUDED.moyenne_generale, rang = EXCLUDED.rang
     `, [id_classe, trimestre, annee]);
 
+    console.log(`✅ Bulletins générés — Classe ${id_classe}, Trimestre ${trimestre}`);
     res.json({ ok: true, message: "✅ Bulletins générés avec succès !" });
   } catch (e) {
-    console.error("❌ ERREUR BULLETIN :", e.message);
+    console.error("❌ ERREUR GÉNÉRATION BULLETINS :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 module.exports = router;
