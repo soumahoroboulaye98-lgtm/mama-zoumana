@@ -1,13 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const verifprof = require('../middleware/verifprof');
+const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté
+const verifprof = require('../middleware/verifprof');    // ✅ Après le token
+
+// ✅ Protection groupée : Token + Rôle Professeur
+const protegerProf = [veriftoken, verifprof];
+
 
 // ==================================================
-// ✅ MES CLASSES AFFECTÉES AU PROF — CORRIGÉE
-// Utilise la table "affectations_ens" conforme à ta base
+// ✅ MES CLASSES AFFECTÉES AU PROFESSEUR
 // ==================================================
-router.get('/mes-classes', verifprof, async (req, res) => {
+router.get('/mes-classes', protegerProf, async (req, res) => {
   try {
     const id_prof = req.user.id_utilisateur;
     console.log("🔍 Chargement classes pour ID Prof =", id_prof);
@@ -20,7 +24,7 @@ router.get('/mes-classes', verifprof, async (req, res) => {
       ORDER BY c.libelle_classe
     `, [id_prof]);
 
-    console.log("✅ Classes trouvées :", r.rows.length, r.rows);
+    console.log(`✅ Classes trouvées : ${r.rows.length}`);
     res.json({ ok: true, classes: r.rows });
   } catch (e) {
     console.log("❌ ERREUR CHARGEMENT CLASSES :", e.message);
@@ -28,11 +32,11 @@ router.get('/mes-classes', verifprof, async (req, res) => {
   }
 });
 
+
 // ==================================================
-// 👥 ÉLÈVES D'UNE CLASSE — CORRIGÉE
-// Colonnes existantes dans ta base : pas de "niveau", utilise "libelle_classe"
+// 👥 ÉLÈVES D'UNE CLASSE
 // ==================================================
-router.get('/eleves-classe/:id_classe', verifprof, async (req, res) => {
+router.get('/eleves-classe/:id_classe', protegerProf, async (req, res) => {
   try {
     const { id_classe } = req.params;
     const r = await pool.query(`
@@ -51,28 +55,29 @@ router.get('/eleves-classe/:id_classe', verifprof, async (req, res) => {
       ORDER BY u.nom, u.prenoms
     `, [id_classe]);
 
+    console.log(`✅ Élèves trouvés : ${r.rows.length}`);
     res.json({ ok: true, eleves: r.rows });
   } catch (e) {
-    console.log("❌ ERREUR ÉLÈVES :", e.message);
+    console.log("❌ ERREUR CHARGEMENT ÉLÈVES :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
 // 💾 ENREGISTRER / MODIFIER LES PRÉSENCES
-// Colonne de contrainte : (id_eleve, id_classe, date_jour)
 // ==================================================
-router.post('/marquer', verifprof, async (req, res) => {
+router.post('/marquer', protegerProf, async (req, res) => {
   try {
     const { id_classe, date_jour, presences, signature_prof, annee_scolaire, trimestre } = req.body;
     const id_prof = req.user.id_utilisateur;
 
     // ✅ Validation des champs obligatoires
     if (!id_classe || !date_jour || !presences || presences.length === 0) {
-      return res.json({ ok: false, erreur: "⚠️ Classe, Date et Liste élèves sont obligatoires" });
+      return res.json({ ok: false, erreur: "⚠️ Classe, Date et liste des élèves sont obligatoires" });
     }
 
-    // ✅ Enregistre chaque présence
+    // ✅ Enregistre chaque présence (INSERT ou UPDATE si déjà existante)
     for (const p of presences) {
       await pool.query(`
         INSERT INTO presences(
@@ -90,6 +95,7 @@ router.post('/marquer', verifprof, async (req, res) => {
       ]);
     }
 
+    console.log(`✅ ${presences.length} présence(s) enregistrée(s) — Classe ${id_classe}, Date ${date_jour}`);
     res.json({ 
       ok: true, 
       message: `✅ ${presences.length} présence(s) enregistrée(s) !`,
@@ -101,10 +107,11 @@ router.post('/marquer', verifprof, async (req, res) => {
   }
 });
 
+
 // ==================================================
 // 📖 CHARGER LES PRÉSENCES EXISTANTES POUR UNE CLASSE & UNE DATE
 // ==================================================
-router.post('/liste', verifprof, async (req, res) => {
+router.post('/liste', protegerProf, async (req, res) => {
   try {
     const { id_classe, date_jour } = req.body;
 
@@ -123,11 +130,13 @@ router.post('/liste', verifprof, async (req, res) => {
       ORDER BY u.nom, u.prenoms
     `, [id_classe, date_jour]);
 
+    console.log(`✅ Présences chargées : ${r.rows.length} — Classe ${id_classe}, Date ${date_jour}`);
     res.json({ ok: true, lignes: r.rows });
   } catch (e) {
-    console.log("ℹ️ Aucune présence existante :", e.message);
+    console.log("❌ ERREUR CHARGEMENT PRÉSENCES :", e.message);
     res.json({ ok: true, lignes: [] });
   }
 });
+
 
 module.exports = router;
