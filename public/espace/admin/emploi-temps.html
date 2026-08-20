@@ -69,6 +69,7 @@
     .form-control,.form-select{background:#0f172a;border:1px solid #334155;color:white;border-radius:8px}
     .form-control:focus,.form-select:focus{background:#0f172a;border-color:var(--bord-orange);color:white}
     .barre-langue{display:flex;gap:0.75rem;justify-content:center;margin-bottom:2rem}
+    .alerte-api { border-left: 4px solid var(--suppr); background: rgba(239,68,68,0.1); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
 
     /* ✅ GESTION DES LANGUES */
     .txt-en, .txt-ar { display: none; }
@@ -90,12 +91,31 @@
 const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
 
+// 🔗 URL adaptative
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000/api'
+  : 'https://mama-zoumana-api.onrender.com/api';
+
+// 💾 Stockage local mode hors ligne
+function obtenirEdtLocal() { return JSON.parse(localStorage.getItem('emploi_du_temps') || '[]'); }
+function sauvegarderEdtLocal(liste) { localStorage.setItem('emploi_du_temps', JSON.stringify(liste)); }
+
+// 🗣️ Traductions messages
+const MSG = {
+  fr: { serveurIndispo: "⚠️ Serveur indisponible — Mode local actif", erreurChargement: "❌ Erreur de chargement", confSuppr: "⚠️ Supprimer cette séance ?", supprOk: "✅ Séance supprimée !", enregOk: "✅ Séance enregistrée !", erreurReseau: "❌ Erreur de connexion", aucune: "Aucune séance programmée" },
+  en: { serveurIndispo: "⚠️ Server offline — Local mode active", erreurChargement: "❌ Loading error", confSuppr: "⚠️ Delete this session?", supprOk: "✅ Session deleted!", enregOk: "✅ Session saved!", erreurReseau: "❌ Network error", aucune: "No session scheduled" },
+  ar: { serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي", erreurChargement: "❌ خطأ في التحميل", confSuppr: "⚠️ حذف هذه الحصة ؟", supprOk: "✅ تم الحذف!", enregOk: "✅ تم الحفظ!", erreurReseau: "❌ خطأ في الاتصال", aucune: "لا توجد حصص مجدولة" }
+};
+function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
+
 // 🔒 SÉCURITÉ
 if(!token || role !== 'admin'){
   alert("⛔ Accès réservé à l'Administrateur");
   localStorage.clear();
   location.href='dashboard.html';
 }
+
+let langueActuelle = localStorage.getItem('langue') || 'fr';
 </script>
 
 <div class="entete-page">
@@ -123,9 +143,15 @@ if(!token || role !== 'admin'){
 </div>
 
 <div class="container py-4">
+  <!-- ⚠️ ALERTE API -->
+  <div id="alerteApi" class="alerte-api d-none">
+    <i class="bi bi-wifi-off me-2"></i>
+    <span id="texteAlerteApi"></span>
+  </div>
+
   <!-- 🌐 LANGUES -->
   <div class="barre-langue">
-    <button class="btn btn-anim-orange px-4 py-2 active" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
+    <button class="btn btn-anim-orange px-4 py-2" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
     <button class="btn btn-anim-orange px-4 py-2" onclick="changerLangue('ar')" id="btn-ar">🇸🇦 AR</button>
     <button class="btn btn-anim-orange px-4 py-2" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
   </div>
@@ -242,8 +268,6 @@ if(!token || role !== 'admin'){
 </div>
 
 <script>
-let langueActuelle = localStorage.getItem('langue') || 'fr';
-
 // 🗣️ CHANGEMENT DE LANGUE
 function changerLangue(lang){
   langueActuelle = lang;
@@ -253,79 +277,101 @@ function changerLangue(lang){
   document.getElementById('btn-'+lang).classList.add('active');
 }
 document.body.className = 'lang-' + langueActuelle;
+document.getElementById('btn-'+langueActuelle)?.classList.add('active');
 
-// ✅ CHARGER CLASSES, MATIÈRES, PROFESSEURS — BONNES COLONNES
+// 📄 Rendu d'une ligne séance
+function rendreLigneSeance(x) {
+  return `
+    <div class="d-flex justify-content-between align-items-center p-3 mb-2 rounded" style="background:var(--sombre)">
+      <div>
+        <span class="badge bg-info text-dark me-2">${x.jour || ''}</span>
+        <strong>${(x.heure_debut||'').slice(0,5)} — ${(x.heure_fin||'').slice(0,5)}</strong>
+        <span class="mx-2">|</span>
+        <span class="text-warning">${x.classe || '—'}</span>
+        <span class="mx-1">•</span>
+        <span>${x.matiere || '—'}</span>
+        <span class="mx-1">—</span>
+        <em class="text-success">${x.prof || 'Non affecté'}</em>
+        ${x.salle ? `<span class="badge bg-secondary ms-2">${x.salle}</span>` : ''}
+      </div>
+      <button class="btn btn-suppr-lumineux btn-sm" onclick="supprimer(${x.id_emploi || x.id})">
+        <i class="bi bi-trash"></i>
+        <span class="txt-fr"> Supprimer</span>
+        <span class="txt-en"> Delete</span>
+        <span class="txt-ar"> حذف</span>
+      </button>
+    </div>`;
+}
+
+// ✅ CHARGER CLASSES, MATIÈRES, PROFESSEURS
 async function chargerListes(){
   try {
     const [clRes, mtRes, prRes] = await Promise.all([
-      fetch('/api/classes/', {headers:{'Authorization':`Bearer ${token}`}}).then(r => r.json()),
-      fetch('/api/matieres/', {headers:{'Authorization':`Bearer ${token}`}}).then(r => r.json()),
-      fetch('/api/utilisateurs/professeurs', {headers:{'Authorization':`Bearer ${token}`}}).then(r => r.json())
+      fetch(`${API_URL}/classes/`, {headers:{'Authorization':`Bearer ${token}`}}).then(r => r.json()),
+      fetch(`${API_URL}/matieres/`, {headers:{'Authorization':`Bearer ${token}`}}).then(r => r.json()),
+      fetch(`${API_URL}/utilisateurs/professeurs`, {headers:{'Authorization':`Bearer ${token}`}}).then(r => r.json())
     ]);
 
-    // ✅ CLASSES : id_classe + libelle_classe
     if(clRes.ok && clRes.lignes){
-      document.getElementById('sel-cl').innerHTML = 
+      document.getElementById('sel-cl').innerHTML =
         '<option value="">--- Sélectionner ---</option>' +
         clRes.lignes.map(x => `<option value="${x.id_classe}">${x.libelle_classe}</option>`).join('');
     }
 
-    // ✅ MATIÈRES : id_matiere + libelle_matiere
     if(mtRes.ok && mtRes.lignes){
-      document.getElementById('sel-mat').innerHTML = 
+      document.getElementById('sel-mat').innerHTML =
         '<option value="">--- Sélectionner ---</option>' +
         mtRes.lignes.map(x => `<option value="${x.id_matiere}">${x.libelle_matiere}</option>`).join('');
     }
 
-    // ✅ PROFESSEURS : id_utilisateur + nom + prenoms
     if(prRes.ok && prRes.utilisateurs){
-      document.getElementById('sel-pr').innerHTML = 
+      document.getElementById('sel-pr').innerHTML =
         '<option value="">--- Sélectionner ---</option>' +
         prRes.utilisateurs.map(x => `<option value="${x.id_utilisateur}">${x.nom} ${x.prenoms}</option>`).join('');
     }
   } catch(e) {
-    console.error("❌ Erreur chargement listes :", e);
+    console.warn("🔌 Chargement listes impossible", e);
   }
 }
 
-// ✅ CHARGER EMPLOI DU TEMPS — ROUTE CORRIGÉE
+// ✅ CHARGER EMPLOI DU TEMPS
 async function chargerEdt(){
+  const zone = document.getElementById('liste-edt');
+  const alerteApi = document.getElementById('alerteApi');
+  const texteAlerteApi = document.getElementById('texteAlerteApi');
+
   try {
-    const r = await fetch('/api/emploi/tout', {headers:{'Authorization':`Bearer ${token}`}});
+    const r = await fetch(`${API_URL}/emploi/tout`, {headers:{'Authorization':`Bearer ${token}`}});
     const res = await r.json();
+    alerteApi.classList.add('d-none');
 
     if(res.ok && res.lignes && res.lignes.length>0){
-      document.getElementById('liste-edt').innerHTML = res.lignes.map(x => `
-        <div class="d-flex justify-content-between align-items-center p-3 mb-2 rounded" style="background:var(--sombre)">
-          <div>
-            <span class="badge bg-info text-dark me-2">${x.jour}</span>
-            <strong>${x.heure_debut?.slice(0,5)} — ${x.heure_fin?.slice(0,5)}</strong>
-            <span class="mx-2">|</span>
-            <span class="text-warning">${x.classe || '—'}</span>
-            <span class="mx-1">•</span>
-            <span>${x.matiere || '—'}</span>
-            <span class="mx-1">—</span>
-            <em class="text-success">${x.prof || 'Non affecté'}</em>
-            ${x.salle ? `<span class="badge bg-secondary ms-2">${x.salle}</span>` : ''}
-          </div>
-          <button class="btn btn-suppr-lumineux btn-sm" onclick="supprimer(${x.id_emploi})">
-            <i class="bi bi-trash"></i>
-            <span class="txt-fr"> Supprimer</span>
-            <span class="txt-en"> Delete</span>
-            <span class="txt-ar"> حذف</span>
-          </button>
-        </div>`).join('');
+      zone.innerHTML = res.lignes.map(x => rendreLigneSeance(x)).join('');
+      sauvegarderEdtLocal(res.lignes);
     } else {
-      document.getElementById('liste-edt').innerHTML = `<div class="text-center py-4 text-muted">
-        <span class="txt-fr">Aucune séance programmée</span>
-        <span class="txt-en">No session scheduled</span>
-        <span class="txt-ar">لا توجد حصص مجدولة</span>
+      zone.innerHTML = `<div class="text-center py-4 text-muted">
+        <span class="txt-fr">${MSG.fr.aucune}</span>
+        <span class="txt-en">${MSG.en.aucune}</span>
+        <span class="txt-ar">${MSG.ar.aucune}</span>
       </div>`;
+      sauvegarderEdtLocal([]);
     }
-  } catch(e) {
-    document.getElementById('liste-edt').innerHTML = `<div class="text-center py-4 text-danger">
-      ❌ Erreur chargement
-    </div>`;
+  } catch {
+    // 📴 MODE LOCAL
+    console.warn("🔌 Mode local EDT actif");
+    texteAlerteApi.textContent = m('serveurIndispo');
+    alerteApi.classList.remove('d-none');
+
+    const locale = obtenirEdtLocal();
+    if(locale.length === 0){
+      zone.innerHTML = `<div class="text-center py-4 text-muted">
+        <span class="txt-fr">${MSG.fr.aucune}</span>
+        <span class="txt-en">${MSG.en.aucune}</span>
+        <span class="txt-ar">${MSG.ar.aucune}</span>
+      </div>`;
+      return;
+    }
+    zone.innerHTML = locale.map(x => rendreLigneSeance(x)).join('');
   }
 }
 
@@ -335,7 +381,7 @@ document.getElementById('formEdt').addEventListener('submit', async e => {
   const d = Object.fromEntries(new FormData(e.target));
 
   try {
-    const r = await fetch('/api/emploi/ajouter', {
+    const r = await fetch(`${API_URL}/emploi/ajouter`, {
       method: 'POST',
       headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
       body: JSON.stringify(d)
@@ -343,33 +389,45 @@ document.getElementById('formEdt').addEventListener('submit', async e => {
     const res = await r.json();
 
     if(res.ok){
-      alert(langueActuelle==='ar'?"✅ تم الحفظ":langueActuelle==='en'?"✅ Saved":"✅ Séance enregistrée !");
+      alert(m('enregOk'));
       e.target.reset();
       chargerEdt();
     } else {
       alert("❌ " + (res.erreur || "Erreur"));
     }
   } catch {
-    alert(langueActuelle==='ar'?"❌ خطأ في الاتصال":langueActuelle==='en'?"❌ Network Error":"❌ Erreur Réseau");
+    // 📴 SAUVEGARDE LOCALE
+    const locale = obtenirEdtLocal();
+    d.id = Date.now();
+    d.id_emploi = d.id;
+    d.classe = document.querySelector(`#sel-cl option[value="${d.id_classe}"]`)?.textContent || '';
+    d.matiere = document.querySelector(`#sel-mat option[value="${d.id_matiere}"]`)?.textContent || '';
+    d.prof = document.querySelector(`#sel-pr option[value="${d.id_prof}"]`)?.textContent || '';
+    locale.push(d);
+    sauvegarderEdtLocal(locale);
+    alert(m('enregOk'));
+    e.target.reset();
+    chargerEdt();
   }
 });
 
 // ❌ SUPPRIMER UNE SÉANCE
 async function supprimer(id){
-  const confirmer = langueActuelle==='ar'?"حذف هذه الحصة ؟":
-                    langueActuelle==='en'?"Delete this session ?":
-                    "Supprimer cette séance ?";
-  if(!confirm(confirmer)) return;
+  if(!confirm(m('confSuppr'))) return;
 
   try {
-    await fetch(`/api/emploi/${id}`, {
+    await fetch(`${API_URL}/emploi/${id}`, {
       method: 'DELETE',
       headers: {'Authorization':`Bearer ${token}`}
     });
-    chargerEdt();
+    alert(m('supprOk'));
   } catch {
-    alert("❌ Erreur suppression");
+    // 📴 Suppression locale
+    const locale = obtenirEdtLocal().filter(x => (x.id_emploi||x.id) !== id);
+    sauvegarderEdtLocal(locale);
+    alert(m('supprOk'));
   }
+  chargerEdt();
 }
 
 // 🚀 AU CHARGEMENT
