@@ -4,123 +4,157 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>
-    <span class="txt-fr">Bulletins Scolaires — Enseignant</span>
-    <span class="txt-en">School Reports — Teacher</span>
-    <span class="txt-ar">الشهادات المدرسية — المعلم</span>
+    <span class="txt-fr">Bulletins Scolaires — Enseignant — MAMA-ZOUMANA</span>
+    <span class="txt-en">School Reports — Teacher — MAMA-ZOUMANA</span>
+    <span class="txt-ar">الشهادات المدرسية — المعلم — ماما زومانا</span>
   </title>
+
+  <!-- URLs vérifiées et harmonisées -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
   <style>
     :root {
+      --primaire: #0c4a6e;
+      --accent: #f59e0b;
       --sombre: #0f172a;
-      --sombre-clair: #1e293b;
-      --bord-orange: #f59e0b;
       --vert: #10b981;
-      --rouge: #ef4444;
       --bleu: #3b82f6;
-      --texte: #f8fafc;
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.25s ease; }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: all 0.25s ease;
+    }
+
     body {
-      background: var(--sombre);
-      color: var(--texte);
+      background: #f1f5f9;
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
       min-height: 100vh;
-      font-family: 'Segoe UI', system-ui, sans-serif;
     }
-    .entete-page {
-      background: var(--sombre-clair);
-      border-bottom: 3px solid var(--bord-orange);
-      padding: 1.2rem 0;
-      margin-bottom: 2rem;
+
+    /* ✅ MENU LATÉRAL */
+    .menu-gauche {
+      background: linear-gradient(180deg, var(--sombre), var(--primaire));
+      min-height: 100vh;
+      width: 260px;
+      position: fixed;
+      padding: 0;
+      overflow-y: auto;
+      z-index: 100;
     }
-    .carte {
-      background: var(--sombre-clair);
-      border-radius: 14px;
-      border-left: 4px solid var(--bord-orange);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+
+    .entete-menu {
+      padding: 25px 20px;
+      border-bottom: 1px solid rgba(245,158,11,0.15);
+      background: rgba(0,0,0,0.08);
     }
-    .bulletin {
-      background: #fff;
-      color: #000;
-      border-radius: 12px;
-      padding: 2rem;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+
+    .logo-menu {
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 1.3rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    .bulletin-entete {
-      border-bottom: 2px solid #333;
-      padding-bottom: 1rem;
-      margin-bottom: 1.5rem;
-    }
-    .bulletin-photo {
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid var(--bord-orange);
-    }
-    .ligne-note {
-      border-bottom: 1px dashed #ccc;
-      padding: 0.5rem 0;
-    }
-    .ligne-note:hover { background: #f9fafb; }
-    .moyenne-generale {
-      background: linear-gradient(135deg, #fef3c7, #fde68a);
+
+    .logo-menu i { font-size: 1.6rem; }
+
+    .nav-menu { padding: 20px 12px; }
+
+    .lien-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 15px;
+      margin-bottom: 6px;
+      color: #cbd5e1;
+      text-decoration: none;
       border-radius: 10px;
-      padding: 1.2rem;
-      border: 2px solid var(--bord-orange);
     }
-    .mention-badge {
-      font-size: 1.1rem;
-      font-weight: 700;
-      padding: 0.4rem 1rem;
-      border-radius: 30px;
-      display: inline-block;
+
+    .lien-nav:hover, .lien-nav.actif {
+      background: rgba(245,158,11,0.12);
+      color: var(--accent);
     }
-    .tableau-honneur {
-      background: linear-gradient(135deg, #fef08a, #facc15);
-      color: #854d0e;
-      padding: 0.4rem 1rem;
-      border-radius: 8px;
-      font-weight: 700;
-      display: inline-block;
-      margin-top: 0.5rem;
+
+    /* ✅ CONTENU PRINCIPAL */
+    .contenu-principal {
+      margin-left: 260px;
+      padding: 25px 30px;
+      min-height: 100vh;
     }
-    .appreciation-box {
-      background: #f0fdf4;
-      border-left: 4px solid #22c55e;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-top: 1rem;
-    }
-    .signature-box {
-      margin-top: 2rem;
+
+    .barre-haut {
+      background: white;
+      padding: 18px 28px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+      margin-bottom: 28px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
       flex-wrap: wrap;
-      gap: 1rem;
+      gap: 15px;
     }
-    .signature-col {
-      text-align: center;
-      border-top: 1px solid #333;
-      width: 22%;
-      min-width: 120px;
-      padding-top: 0.5rem;
-      font-size: 0.9rem;
+
+    .btn-langue {
+      background: rgba(12,74,110,0.06);
+      border: 1px solid transparent;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin: 0 2px;
+      color: var(--primaire);
+      font-weight: 600;
     }
-    .form-control, .form-select {
-      background: #0f172a;
-      border: 1px solid #334155;
-      color: white;
+
+    .btn-langue.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    .btn-deco {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 7px 14px;
       border-radius: 10px;
     }
-    .form-control:focus, .form-select:focus {
-      background: #0f172a;
-      border-color: var(--bord-orange);
-      color: white;
-      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.25);
+
+    .btn-deco:hover {
+      background: var(--accent);
+      color: #000;
     }
+
+    .carte {
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+      border-left: 4px solid var(--accent);
+      margin-bottom: 1.5rem;
+    }
+
+    .form-control, .form-select {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+      border-radius: 10px;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
+      outline: none;
+    }
+
     .btn-valide {
       background: var(--vert);
       color: white;
@@ -128,338 +162,518 @@
       border: none;
       font-weight: 600;
     }
+
     .btn-valide:hover {
       background: #059669;
-      box-shadow: 0 0 15px rgba(16,185,129,0.4);
       color: white;
     }
+
     .btn-imprimer {
       background: var(--bleu);
       color: white;
       border-radius: 10px;
       border: none;
+      font-weight: 600;
     }
-    .btn-langue { border-radius: 8px; }
-    .btn-langue.active {
-      background: var(--bord-orange); color: #000;
-      border-color: var(--bord-orange); font-weight: 700;
+
+    .btn-imprimer:hover {
+      background: #2563eb;
+      color: white;
     }
+
     .eleve-bulletin-select {
       cursor: pointer;
-      padding: 0.7rem;
-      border-radius: 8px;
+      padding: 0.75rem;
+      border-radius: 10px;
       margin-bottom: 0.4rem;
       border: 1px solid transparent;
       transition: all 0.2s ease;
     }
+
     .eleve-bulletin-select:hover {
-      background: rgba(245,158,11,0.1);
-      border-color: var(--bord-orange);
+      background: rgba(245,158,11,0.08);
+      border-color: var(--accent);
     }
+
     .eleve-bulletin-select.active {
+      background: rgba(245,158,11,0.12);
+      border-left: 3px solid var(--accent);
+    }
+
+    /* 📄 BULLETIN */
+    .bulletin {
+      background: white;
+      color: #000;
+      border-radius: 12px;
+      padding: 2.5rem;
+      box-shadow: 0 0 20px rgba(0,0,0,0.08);
+      border: 1px solid #e5e7eb;
+    }
+
+    .bulletin-entete {
+      border-bottom: 2px solid #374151;
+      padding-bottom: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .bulletin-photo {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--accent);
+    }
+
+    .ligne-note {
+      border-bottom: 1px dashed #d1d5db;
+      padding: 0.6rem 0;
+    }
+
+    .ligne-note:hover { background: #f9fafb; }
+
+    .moyenne-generale {
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
+      border-radius: 10px;
+      padding: 1.5rem;
+      border: 2px solid var(--accent);
+      margin-top: 1rem;
+    }
+
+    .mention-badge {
+      font-size: 1.05rem;
+      font-weight: 700;
+      padding: 0.4rem 1rem;
+      border-radius: 30px;
+      display: inline-block;
       background: rgba(245,158,11,0.15);
-      border-left: 3px solid var(--bord-orange);
+      color: #b45309;
     }
 
-    /* 🖨️ IMPRESSION PARFAITE — Seul le bulletin s'imprime */
+    .tableau-honneur {
+      background: linear-gradient(135deg, #fef9c3, #fef08a);
+      color: #854d0e;
+      padding: 0.4rem 1rem;
+      border-radius: 8px;
+      font-weight: 700;
+      display: inline-block;
+      margin-top: 0.5rem;
+    }
+
+    .appreciation-box {
+      background: #f0fdf4;
+      border-left: 4px solid #22c55e;
+      padding: 1rem 1.2rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+
+    .signature-box {
+      margin-top: 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .signature-col {
+      text-align: center;
+      border-top: 1px solid #374151;
+      width: 22%;
+      min-width: 130px;
+      padding-top: 0.8rem;
+      font-size: 0.9rem;
+    }
+
+    /* 🖨️ IMPRESSION */
     @media print {
-      body * { visibility: hidden; }
-      .bulletin, .bulletin * { visibility: visible; }
-      .bulletin { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; color: black !important; background: white !important; }
-      .no-print { display: none !important; }
+      .menu-gauche, .barre-haut, .no-print, .no-print * { display: none !important; }
+      .contenu-principal { margin-left: 0; padding: 0; }
+      .bulletin { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; }
+      .bulletin, .bulletin * { visibility: visible; color: black !important; background: white !important; }
     }
 
-    /* ✅ GESTION DES LANGUES */
+    /* ✅ TRILINGUE */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
     body.lang-en { direction: ltr; }
-    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
     body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
     body.lang-ar { direction: rtl; }
-    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
     body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
   </style>
 </head>
-<body class="lang-fr">
+<body>
 
-<!-- 🔐 SÉCURITÉ & CONFIGURATION -->
-<script>
-const token = localStorage.getItem('token');
-const role = localStorage.getItem('role');
-const API_URL = 'https://mama-zoumana-api.onrender.com/api';
-
-if (!token || role !== 'prof') {
-  alert("⛔ Accès réservé aux Enseignants — Reconnecte-toi !");
-  localStorage.clear();
-  location.href = 'connexion.html';
-}
-</script>
-
-<!-- 📌 EN-TÊTE -->
-<div class="entete-page">
-  <div class="container d-flex justify-content-between align-items-center">
-    <div>
-      <h3 class="mb-1 fw-bold">
-        <i class="bi bi-file-earmark-text me-2" style="color:var(--bord-orange)"></i>
-        <span class="txt-fr">🎓 Bulletins Scolaires</span>
-        <span class="txt-en">🎓 School Reports</span>
-        <span class="txt-ar">🎓 الشهادات المدرسية</span>
-      </h3>
-      <p class="mb-0 opacity-75">
-        <span class="txt-fr">Calculer · Consulter · Imprimer</span>
-        <span class="txt-en">Calculate · View · Print</span>
-        <span class="txt-ar">حساب · عرض · طباعة</span>
-      </p>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('ar')" id="btn-ar">🇸🇦 AR</button>
-      <a href="dashboard.html" class="btn btn-outline-light ms-2">
-        <i class="bi bi-arrow-left-circle"></i>
-        <span class="txt-fr"> Retour</span>
-        <span class="txt-en"> Back</span>
-        <span class="txt-ar"> عودة</span>
+<div class="d-flex">
+  <!-- ✅ MENU LATÉRAL -->
+  <aside class="menu-gauche">
+    <div class="entete-menu">
+      <a href="dashboard-prof.html" class="logo-menu">
+        <i class="bi bi-building"></i> MAMA-ZOUMANA
       </a>
     </div>
-  </div>
-</div>
+    <nav class="nav-menu">
+      <a href="dashboard-prof.html" class="lien-nav">
+        <i class="bi bi-speedometer2"></i>
+        <span class="txt-fr">Tableau de bord</span>
+        <span class="txt-en">Dashboard</span>
+        <span class="txt-ar">لوحة التحكم</span>
+      </a>
+      <a href="mes-classes.html" class="lien-nav">
+        <i class="bi bi-grid"></i>
+        <span class="txt-fr">Mes Classes</span>
+        <span class="txt-en">My Classes</span>
+        <span class="txt-ar">فصولي</span>
+      </a>
+      <a href="presences.html" class="lien-nav">
+        <i class="bi bi-check2-square"></i>
+        <span class="txt-fr">Présences & Retards</span>
+        <span class="txt-en">Attendance & Lateness</span>
+        <span class="txt-ar">الحضور والتأخير</span>
+      </a>
+      <a href="saisie-notes.html" class="lien-nav">
+        <i class="bi bi-pencil-square"></i>
+        <span class="txt-fr">Saisie des Notes</span>
+        <span class="txt-en">Enter Grades</span>
+        <span class="txt-ar">إدخال الدرجات</span>
+      </a>
+      <a href="bulletins.html" class="lien-nav actif">
+        <i class="bi bi-file-earmark-text"></i>
+        <span class="txt-fr">Bulletins Scolaires</span>
+        <span class="txt-en">Report Cards</span>
+        <span class="txt-ar">الشهادات المدرسية</span>
+      </a>
+      <a href="devoirs.html" class="lien-nav">
+        <i class="bi bi-journal-text"></i>
+        <span class="txt-fr">Devoirs & Examens</span>
+        <span class="txt-en">Homework & Exams</span>
+        <span class="txt-ar">الواجبات والامتحانات</span>
+      </a>
+      <a href="emploi-temps.html" class="lien-nav">
+        <i class="bi bi-calendar-week"></i>
+        <span class="txt-fr">Emploi du Temps</span>
+        <span class="txt-en">Timetable</span>
+        <span class="txt-ar">الجدول الزمني</span>
+      </a>
+      <a href="contacter-parents.html" class="lien-nav">
+        <i class="bi bi-people"></i>
+        <span class="txt-fr">Contacter Parents</span>
+        <span class="txt-en">Contact Parents</span>
+        <span class="txt-ar">التواصل مع الأولياء</span>
+      </a>
+      <a href="messages.html" class="lien-nav">
+        <i class="bi bi-chat-dots"></i>
+        <span class="txt-fr">Messages</span>
+        <span class="txt-en">Messages</span>
+        <span class="txt-ar">الرسائل</span>
+      </a>
+    </nav>
+  </aside>
 
-<div class="container py-2">
-  <!-- ⚠️ ZONE MESSAGES -->
-  <div id="zone-message"></div>
-
-  <!-- 🔍 SÉLECTION CRITÈRES -->
-  <div class="carte no-print">
-    <div class="row g-3 align-items-end">
-      <div class="col-md-3">
-        <label class="form-label fw-bold">
-          <span class="txt-fr">🏫 Classe</span>
-          <span class="txt-en">🏫 Class</span>
-          <span class="txt-ar">🏫 الفصل</span>
-        </label>
-        <select id="id_classe" class="form-select">
-          <option value="">
-            <span class="txt-fr">-- Chargement... --</span>
-            <span class="txt-en">-- Loading... --</span>
-            <span class="txt-ar">-- جار التحميل... --</span>
-          </option>
-        </select>
+  <!-- ✅ CONTENU PRINCIPAL -->
+  <main class="contenu-principal">
+    <div class="barre-haut">
+      <div class="titre-section">
+        <h4 class="mb-0 text-uppercase fw-bold text-primary">
+          <i class="bi bi-file-earmark-text me-2" style="color:var(--accent)"></i>
+          <span class="txt-fr">Bulletins Scolaires</span>
+          <span class="txt-en">School Report Cards</span>
+          <span class="txt-ar">الشهادات المدرسية</span>
+        </h4>
+        <small class="text-muted">
+          <span class="txt-fr">Calculer les moyennes → Consulter le classement → Générer et imprimer les bulletins</span>
+          <span class="txt-en">Calculate averages → View rankings → Generate and print reports</span>
+          <span class="txt-ar">حساب المعدلات → عرض الترتيب → إنشاء وطباعة الشهادات</span>
+        </small>
       </div>
-      <div class="col-md-3">
-        <label class="form-label fw-bold">
-          <span class="txt-fr">📆 Année Scolaire</span>
-          <span class="txt-en">📆 School Year</span>
-          <span class="txt-ar">📆 السنة الدراسية</span>
-        </label>
-        <input type="text" id="annee_scolaire" class="form-control" value="2026-2027">
-      </div>
-      <div class="col-md-3">
-        <label class="form-label fw-bold">
-          <span class="txt-fr">📖 Trimestre</span>
-          <span class="txt-en">📖 Term</span>
-          <span class="txt-ar">📖 الفصل الدراسي</span>
-        </label>
-        <select id="trimestre" class="form-select">
-          <option value="1">
-            <span class="txt-fr">1er Trimestre</span>
-            <span class="txt-en">1st Term</span>
-            <span class="txt-ar">الفصل الأول</span>
-          </option>
-          <option value="2">
-            <span class="txt-fr">2ème Trimestre</span>
-            <span class="txt-en">2nd Term</span>
-            <span class="txt-ar">الفصل الثاني</span>
-          </option>
-          <option value="3">
-            <span class="txt-fr">3ème Trimestre</span>
-            <span class="txt-en">3rd Term</span>
-            <span class="txt-ar">الفصل الثالث</span>
-          </option>
-        </select>
-      </div>
-      <div class="col-md-3">
-        <button class="btn btn-valide w-100" onclick="calculerEtCharger()">
-          <i class="bi bi-calculator me-1"></i>
-          <span class="txt-fr"> Calculer</span>
-          <span class="txt-en"> Calculate</span>
-          <span class="txt-ar"> حساب</span>
+      <div class="utilisateur d-flex align-items-center gap-2">
+        <button class="btn-langue" data-lang="fr">FR</button>
+        <button class="btn-langue" data-lang="en">EN</button>
+        <button class="btn-langue" data-lang="ar">AR</button>
+        <i class="bi bi-person-circle fs-4 ms-2"></i>
+        <span id="nom-prof"></span>
+        <button class="btn btn-deco ms-2" onclick="deconnexion()">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="txt-fr"> Déconnexion</span>
+          <span class="txt-en"> Logout</span>
+          <span class="txt-ar"> تسجيل الخروج</span>
         </button>
       </div>
     </div>
-  </div>
 
-  <div class="row">
-    <!-- 🏆 CLASSEMENT À GAUCHE -->
-    <div class="col-md-4 no-print">
-      <div class="carte">
-        <h5 class="mb-3 fw-bold">
-          <i class="bi bi-trophy me-2"></i>
-          <span class="txt-fr">🏆 Classement</span>
-          <span class="txt-en">🏆 Ranking</span>
-          <span class="txt-ar">🏆 الترتيب</span>
-        </h5>
-        <div id="liste-classement">
-          <div class="text-center py-4 text-muted">
-            <span class="txt-fr">Choisis Classe → Trimestre → clique Calculer</span>
-            <span class="txt-en">Choose Class → Term → click Calculate</span>
-            <span class="txt-ar">اختر الفصل → الفصل الدراسي → انقر حساب</span>
+    <!-- ✅ LIEN RETOUR -->
+    <a href="dashboard-prof.html" class="btn btn-outline-secondary mb-4 no-print">
+      <i class="bi bi-arrow-left"></i>
+      <span class="txt-fr"> Retour au Tableau de Bord</span>
+      <span class="txt-en"> Back to Dashboard</span>
+      <span class="txt-ar"> الرجوع إلى لوحة التحكم</span>
+    </a>
+
+    <!-- ⚠️ ZONE MESSAGES -->
+    <div id="zone-message"></div>
+
+    <!-- 🔍 SÉLECTION CRITÈRES -->
+    <div class="carte no-print">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">🏫 Classe</span>
+            <span class="txt-en">🏫 Class</span>
+            <span class="txt-ar">🏫 الفصل</span>
+          </label>
+          <select id="id_classe" class="form-select">
+            <option value="">
+              <span class="txt-fr">-- Chargement... --</span>
+              <span class="txt-en">-- Loading... --</span>
+              <span class="txt-ar">-- جار التحميل... --</span>
+            </option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">📆 Année Scolaire</span>
+            <span class="txt-en">📆 School Year</span>
+            <span class="txt-ar">📆 السنة الدراسية</span>
+          </label>
+          <input type="text" id="annee_scolaire" class="form-control" value="2026-2027">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">📖 Trimestre</span>
+            <span class="txt-en">📖 Term</span>
+            <span class="txt-ar">📖 الفصل الدراسي</span>
+          </label>
+          <select id="trimestre" class="form-select">
+            <option value="1"><span class="txt-fr">1er Trimestre</span><span class="txt-en">1st Term</span><span class="txt-ar">الفصل الأول</span></option>
+            <option value="2"><span class="txt-fr">2ème Trimestre</span><span class="txt-en">2nd Term</span><span class="txt-ar">الفصل الثاني</span></option>
+            <option value="3"><span class="txt-fr">3ème Trimestre</span><span class="txt-en">3rd Term</span><span class="txt-ar">الفصل الثالث</span></option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-valide w-100" onclick="calculerEtCharger()">
+            <i class="bi bi-calculator me-1"></i>
+            <span class="txt-fr"> Calculer</span>
+            <span class="txt-en"> Calculate</span>
+            <span class="txt-ar"> حساب</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- 🏆 CLASSEMENT À GAUCHE -->
+      <div class="col-md-4 no-print">
+        <div class="carte">
+          <h5 class="mb-3 fw-bold">
+            <i class="bi bi-trophy me-2"></i>
+            <span class="txt-fr">🏆 Classement</span>
+            <span class="txt-en">🏆 Ranking</span>
+            <span class="txt-ar">🏆 الترتيب</span>
+          </h5>
+          <div id="liste-classement">
+            <div class="text-center py-4 text-muted">
+              <span class="txt-fr">Choisis Classe → Trimestre → clique Calculer</span>
+              <span class="txt-en">Choose Class → Term → click Calculate</span>
+              <span class="txt-ar">اختر الفصل → الفصل الدراسي → انقر حساب</span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 📄 BULLETIN À DROITE -->
-    <div class="col-md-8">
-      <div id="zone-bulletin-vide" class="carte text-center py-5 text-muted">
-        <i class="bi bi-file-earmark-text fs-1 mb-3 d-block"></i>
-        <h5>
-          <span class="txt-fr">Le bulletin apparaîtra ici</span>
-          <span class="txt-en">The report will appear here</span>
-          <span class="txt-ar">سيظهر الشهادة هنا</span>
-        </h5>
-        <p>
-          <span class="txt-fr">Clique sur un élève dans le classement</span>
-          <span class="txt-en">Click a student in the ranking</span>
-          <span class="txt-ar">انقر على تلميذ في القائمة</span>
-        </p>
-      </div>
-
-      <div id="zone-bulletin" class="d-none">
-        <div class="d-flex justify-content-end gap-2 mb-3 no-print">
-          <button class="btn btn-imprimer" onclick="window.print()">
-            <i class="bi bi-printer me-1"></i>
-            <span class="txt-fr">🖨️ Imprimer</span>
-            <span class="txt-en">🖨️ Print</span>
-            <span class="txt-ar">🖨️ طباعة</span>
-          </button>
+      <!-- 📄 BULLETIN À DROITE -->
+      <div class="col-md-8">
+        <div id="zone-bulletin-vide" class="carte text-center py-5 text-muted">
+          <i class="bi bi-file-earmark-text fs-1 mb-3 d-block"></i>
+          <h5>
+            <span class="txt-fr">Le bulletin apparaîtra ici</span>
+            <span class="txt-en">The report card will appear here</span>
+            <span class="txt-ar">ستظهر الشهادة هنا</span>
+          </h5>
+          <p>
+            <span class="txt-fr">Clique sur un élève dans le classement</span>
+            <span class="txt-en">Click a student in the ranking list</span>
+            <span class="txt-ar">انقر على تلميذ في القائمة</span>
+          </p>
         </div>
 
-        <!-- 📄 CONTENU DU BULLETIN -->
-        <div class="bulletin" id="bulletin-contenu"></div>
+        <div id="zone-bulletin" class="d-none">
+          <div class="d-flex justify-content-end gap-2 mb-3 no-print">
+            <button class="btn btn-imprimer" onclick="window.print()">
+              <i class="bi bi-printer me-1"></i>
+              <span class="txt-fr">🖨️ Imprimer</span>
+              <span class="txt-en">🖨️ Print</span>
+              <span class="txt-ar">🖨️ طباعة</span>
+            </button>
+          </div>
+          <div class="bulletin" id="bulletin-contenu"></div>
+        </div>
       </div>
     </div>
-  </div>
+  </main>
 </div>
 
 <script>
-let classementComplet = [];
-let idEleveCourant = null;
+// ==================================================
+// ✅ CONFIGURATION & SÉCURITÉ
+// ==================================================
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+const id_utilisateur = localStorage.getItem('id_utilisateur');
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 
-// 🗣️ GESTION DE LA LANGUE
-function changerLangue(langue) {
-  document.body.classList.remove('lang-fr','lang-en','lang-ar');
-  document.body.classList.add('lang-' + langue);
-  localStorage.setItem('langue', langue);
-  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-' + langue).classList.add('active');
+console.log("🔑 Token :", token ? "PRÉSENT ✅" : "MANQUANT ❌");
+console.log("👤 Rôle :", role);
+
+if (!token || role !== 'prof') {
+  alert("⛔ Accès réservé aux Enseignants. Veuillez vous reconnecter.");
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  location.href = 'connexion.html';
 }
-changerLangue(localStorage.getItem('langue') || 'fr');
 
+// ✅ Afficher nom de l'enseignant
+document.getElementById('nom-prof').textContent = 
+  (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || 'Enseignant');
+
+// ==================================================
+// 🗣️ GESTION DE LA LANGUE — Conforme au standard
+// ==================================================
+function appliquerLangue(lang) {
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + lang);
+  localStorage.setItem('langue', lang);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-lang="${lang}"]`)?.classList.add('active');
+}
+
+const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+appliquerLangue(langueSauvegardee);
+document.querySelectorAll('.btn-langue').forEach(btn => {
+  btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
+});
+
+// ==================================================
 // 💬 AFFICHAGE DES MESSAGES
+// ==================================================
 function afficherMessage(texte, type = 'info') {
   const zone = document.getElementById('zone-message');
   const style = type === 'succes' ? 'border-success bg-success bg-opacity-10 text-success' :
                 type === 'erreur' ? 'border-danger bg-danger bg-opacity-10 text-danger' :
                 'border-info bg-info bg-opacity-10 text-info';
   zone.innerHTML = `<div class="alert ${style} border-2">${texte}</div>`;
-  setTimeout(() => zone.innerHTML = '', 8000);
+  setTimeout(() => zone.innerHTML = '', 10000);
 }
 
-// 📥 CHARGER MES CLASSES DU PROF — URL CORRIGÉE
+// ==================================================
+// 📥 CHARGER LES CLASSES
+// ==================================================
 async function chargerClasses() {
   try {
-    const r = await fetch(`${API_URL}/notes/mes-classes`, {
+    const reponse = await fetch(`${API_URL}/notes/mes-classes`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const res = await r.json();
+
+    if (reponse.status === 401) throw new Error("⛔ Session expirée.");
+
+    const res = await reponse.json();
     const sel = document.getElementById('id_classe');
     const listeClasses = res.classes || res.lignes || [];
 
     sel.innerHTML = listeClasses.length
       ? '<option value="">-- Sélectionner une Classe --</option>' + listeClasses.map(c => `<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('')
-      : '<option value="">-- Aucune Classe --</option>';
-  } catch (e) {
-    afficherMessage("❌ Erreur chargement classes : " + e.message, 'erreur');
+      : '<option value="">-- Aucune Classe trouvée --</option>';
+  } catch (erreur) {
+    afficherMessage("❌ Erreur chargement classes : " + erreur.message, 'erreur');
   }
 }
 
-// 🧮 ÉTAPE 1 : CALCULER TOUS LES BULLETINS — URL CORRIGÉE AVEC S
+// ==================================================
+// 🧮 CALCULER BULLETINS ET CLASSEMENT
+// ==================================================
 async function calculerEtCharger() {
   const id_classe = document.getElementById('id_classe').value;
   const trimestre = document.getElementById('trimestre').value;
   const annee = document.getElementById('annee_scolaire').value;
 
   if (!id_classe) {
-    afficherMessage("⚠️ Sélectionne une Classe d'abord !", 'erreur');
+    afficherMessage("⚠️ Sélectionnez d'abord une Classe.", 'erreur');
     return;
   }
 
-  afficherMessage("⏳ Calcul des moyennes et classement en cours...", 'info');
+  afficherMessage("⏳ Calcul des moyennes et du classement en cours...", 'info');
 
   try {
-    // ✅ URL CORRIGÉE : /bulletins/calculer (AVEC UN S)
-    const rCalc = await fetch(`${API_URL}/bulletins/calculer`, {
+    const reponseCalc = await fetch(`${API_URL}/bulletins/calculer`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({ id_classe, trimestre, annee_scolaire: annee })
     });
-    const resCalc = await rCalc.json();
 
+    if (reponseCalc.status === 401) throw new Error("⛔ Session expirée.");
+
+    const resCalc = await reponseCalc.json();
     if (!resCalc.ok) {
-      afficherMessage("❌ " + (resCalc.erreur || "Erreur calcul"), 'erreur');
+      afficherMessage("❌ " + (resCalc.erreur || "Erreur lors du calcul."), 'erreur');
       return;
     }
 
     classementComplet = resCalc.classement || [];
-    afficherMessage(`✅ ${resCalc.effectif} bulletin(s) calculé(s) et classé(s) !`, 'succes');
-
-    // ✅ AFFICHER LE CLASSEMENT À GAUCHE
+    afficherMessage(`✅ ${classementComplet.length} bulletin(s) calculé(s) et classé(s) !`, 'succes');
     afficherClassement();
 
-  } catch (e) {
-    afficherMessage("❌ Erreur : " + e.message, 'erreur');
+  } catch (erreur) {
+    afficherMessage("❌ Erreur : " + erreur.message, 'erreur');
   }
 }
 
+// ==================================================
 // 🏆 AFFICHER LE CLASSEMENT
+// ==================================================
+let classementComplet = [];
+
 function afficherClassement() {
   const zone = document.getElementById('liste-classement');
 
   if (classementComplet.length === 0) {
     zone.innerHTML = `<div class="text-center py-3 text-warning">
       <span class="txt-fr">Aucun résultat</span>
-      <span class="txt-en">No results</span>
+      <span class="txt-en">No results found</span>
       <span class="txt-ar">لا توجد نتائج</span>
     </div>`;
     return;
   }
 
   zone.innerHTML = classementComplet.map(el => {
-    const id = el.id_eleve;
     const nomComplet = `${el.nom} ${el.prenoms}`;
-    const moy = el.moyenne_generale || 0;
+    const moy = parseFloat(el.moyenne_generale || 0).toFixed(2);
     const rang = el.rang || '?';
     const mention = el.mention || '';
 
     return `
-      <div class="eleve-bulletin-select" data-id="${id}" onclick="chargerBulletinEleve(${id})">
+      <div class="eleve-bulletin-select" data-id="${el.id_eleve}" onclick="chargerBulletinEleve(${el.id_eleve})">
         <div class="d-flex justify-content-between align-items-center">
           <div>
             <span class="badge bg-secondary me-1">#${rang}</span>
             <span class="fw-bold">${nomComplet}</span>
           </div>
-          <span class="fw-bold text-warning">${parseFloat(moy).toFixed(2)}/20</span>
+          <span class="fw-bold text-warning">${moy}/20</span>
         </div>
-        <div class="small opacity-75 mt-1">${mention}</div>
+        ${mention ? `<div class="small opacity-75 mt-1">${mention}</div>` : ''}
       </div>`;
   }).join('');
 }
 
-// 📄 CHARGER LE BULLETIN D'UN ÉLÈVE AU CLIC — URL CORRIGÉE AVEC S
+// ==================================================
+// 📄 CHARGER ET AFFICHER UN BULLETIN
+// ==================================================
 async function chargerBulletinEleve(id_eleve) {
-  idEleveCourant = id_eleve;
   const id_classe = document.getElementById('id_classe').value;
   const trimestre = document.getElementById('trimestre').value;
   const annee = document.getElementById('annee_scolaire').value;
@@ -469,23 +683,24 @@ async function chargerBulletinEleve(id_eleve) {
   document.querySelector(`.eleve-bulletin-select[data-id="${id_eleve}"]`)?.classList.add('active');
 
   try {
-    // ✅ URL CORRIGÉE : /bulletins/voir/... (AVEC UN S)
-    const r = await fetch(`${API_URL}/bulletins/voir/${id_eleve}?id_classe=${id_classe}&trimestre=${trimestre}&annee_scolaire=${annee}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const res = await r.json();
+    const reponse = await fetch(
+      `${API_URL}/bulletins/voir/${id_eleve}?id_classe=${id_classe}&trimestre=${trimestre}&annee_scolaire=${annee}`,
+      { headers: { 'Authorization': `Bearer ${token}` } }
+    );
 
+    if (reponse.status === 401) throw new Error("⛔ Session expirée.");
+
+    const res = await reponse.json();
     if (res.ok) {
       afficherBulletin(res);
     } else {
-      afficherMessage("❌ " + (res.erreur || "Erreur chargement bulletin"), 'erreur');
+      afficherMessage("❌ " + (res.erreur || "Erreur chargement bulletin."), 'erreur');
     }
-  } catch (e) {
-    afficherMessage("❌ Erreur réseau : " + e.message, 'erreur');
+  } catch (erreur) {
+    afficherMessage("❌ Erreur réseau : " + erreur.message, 'erreur');
   }
 }
 
-// 🖨️ AFFICHER LE BULLETIN COMPLET
 function afficherBulletin(data) {
   document.getElementById('zone-bulletin-vide').classList.add('d-none');
   document.getElementById('zone-bulletin').classList.remove('d-none');
@@ -497,20 +712,15 @@ function afficherBulletin(data) {
   const eleve = data.eleve || {};
   const bulletin = data.bulletin || {};
   const notes = data.notes || [];
+  const nomComplet = `${eleve.nom || ''} ${eleve.prenoms || ''}`;
 
-  const nomEleve = eleve.nom || '';
-  const prenomsEleve = eleve.prenoms || '';
-  const nomComplet = `${nomEleve} ${prenomsEleve}`;
-  const matricule = eleve.matricule || '---';
-  const libelleClasse = eleve.libelle_classe || '---';
-
-  // ✅ Photo de profil ou avatar généré
-  let photoUrl = eleve.photo_profil ? `https://mama-zoumana-api.onrender.com/api/${eleve.photo_profil}` : null;
+  // ✅ Photo ou avatar généré
+  let photoUrl = eleve.photo_profil ? `${API_URL}/${eleve.photo_profil}` : null;
   if (!photoUrl) {
     photoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(nomComplet)}&background=0f172a&color=f59e0b&size=180`;
   }
 
-  const moyGenerale = bulletin.moyenne_generale || 0;
+  const moyGenerale = parseFloat(bulletin.moyenne_generale || 0).toFixed(2);
   const rang = bulletin.rang || '?';
   const mention = bulletin.mention || '--';
   const tableauHonneur = bulletin.tableau_honneur;
@@ -520,8 +730,8 @@ function afficherBulletin(data) {
     <div class="bulletin-entete d-flex justify-content-between align-items-start">
       <div>
         <h4 class="fw-bold mb-1">🏫 ÉTABLISSEMENT SCOLAIRE MAMA-ZOUMANA</h4>
-        <p class="mb-0">Année Scolaire : <strong>${annee}</strong> — ${numeroTrim} Trimestre</p>
-        <p class="mb-0">Classe : <strong>${libelleClasse}</strong></p>
+        <p class="mb-1">Année Scolaire : <strong>${annee}</strong> — ${numeroTrim} Trimestre</p>
+        <p class="mb-0">Classe : <strong>${eleve.libelle_classe || '---'}</strong></p>
       </div>
       <div class="text-center">
         <img src="${photoUrl}" class="bulletin-photo" alt="Photo élève" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(nomComplet)}&background=0f172a&color=f59e0b&size=180'">
@@ -530,7 +740,7 @@ function afficherBulletin(data) {
 
     <div class="mb-4">
       <h5 class="fw-bold">ÉLÈVE : ${nomComplet}</h5>
-      <p class="mb-0">Matricule : ${matricule}</p>
+      <p class="mb-0">Matricule : ${eleve.matricule || '---'}</p>
     </div>
 
     <h6 class="fw-bold border-top border-bottom py-2">📋 RELEVÉ DE NOTES</h6>
@@ -550,21 +760,21 @@ function afficherBulletin(data) {
           <div class="col-2 text-center">${n.note3 ?? '--'}</div>
           <div class="col-2 text-center fw-bold">${n.moyenne_matiere ? parseFloat(n.moyenne_matiere).toFixed(2) : '--'}</div>
         </div>
-      `).join('') : '<p class="text-center py-2 text-muted">Aucune note enregistrée pour ce trimestre</p>'}
+      `).join('') : '<p class="text-center py-3 text-muted">Aucune note enregistrée pour ce trimestre</p>'}
     </div>
 
     <div class="moyenne-generale mb-4">
       <div class="row align-items-center">
         <div class="col-md-4">
           <h5 class="mb-1">MOYENNE GÉNÉRALE</h5>
-          <span class="display-4 fw-bold">${parseFloat(moyGenerale).toFixed(2)} / 20</span>
+          <span class="display-4 fw-bold">${moyGenerale} / 20</span>
         </div>
         <div class="col-md-3">
           <p class="mb-0">Rang</p>
           <h4 class="fw-bold">#${rang}</h4>
         </div>
         <div class="col-md-5">
-          <span class="mention-badge" style="background:rgba(245,158,11,0.15); color:#b45309">${mention}</span>
+          <span class="mention-badge">${mention}</span>
           ${tableauHonneur ? '<div class="tableau-honneur mt-2">📋 TABLEAU D\'HONNEUR</div>' : ''}
         </div>
       </div>
@@ -576,36 +786,31 @@ function afficherBulletin(data) {
     </div>
 
     <div class="signature-box">
-      <div class="signature-col">
-        <p class="mb-0">Professeur Principal</p>
-        <br><br>
-        <p>_______________</p>
-      </div>
-      <div class="signature-col">
-        <p class="mb-0">Directeur d'Études</p>
-        <br><br>
-        <p>_______________</p>
-      </div>
-      <div class="signature-col">
-        <p class="mb-0">Chef d'Établissement</p>
-        <br><br>
-        <p>_______________</p>
-      </div>
-      <div class="signature-col">
-        <p class="mb-0">Cachet de l'Établissement</p>
-        <br><br>
-        <p>_______________</p>
-      </div>
+      <div class="signature-col"><p>Professeur Principal</p><br><br>_______________</div>
+      <div class="signature-col"><p>Directeur d'Études</p><br><br>_______________</div>
+      <div class="signature-col"><p>Chef d'Établissement</p><br><br>_______________</div>
+      <div class="signature-col"><p>Cachet de l'Établissement</p><br><br>_______________</div>
     </div>
 
-    <p class="text-center small mt-4 mb-0">
-      Fait le ${new Date().toLocaleDateString('fr-FR')} — Bulletin généré automatiquement
-    </p>
+    <p class="text-center small mt-4 mb-0">Fait le ${new Date().toLocaleDateString('fr-FR')} — Bulletin généré automatiquement</p>
   `;
 }
 
-// 🚀 AU CHARGEMENT
-chargerClasses();
+// ==================================================
+// ✅ DÉCONNEXION SÉCURISÉE
+// ==================================================
+function deconnexion() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  localStorage.removeItem('prenoms');
+  location.href = 'connexion.html';
+}
+
+// ✅ LANCER AU CHARGEMENT
+document.addEventListener('DOMContentLoaded', chargerClasses);
 </script>
+
 </body>
 </html>
