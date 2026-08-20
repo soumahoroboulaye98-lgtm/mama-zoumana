@@ -1,199 +1,539 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="lang-fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>
-    <span class="lang-fr">Contacter les Parents</span>
-    <span class="lang-en">Contact Parents</span>
-    <span class="lang-ar">التواصل مع أولياء الأمور</span>
+    <span class="txt-fr">Contacter les Parents — Enseignant — MAMA-ZOUMANA</span>
+    <span class="txt-en">Contact Parents — Teacher — MAMA-ZOUMANA</span>
+    <span class="txt-ar">التواصل مع أولياء الأمور — المعلم — ماما زومانا</span>
   </title>
+
+  <!-- URLs vérifiées et harmonisées -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
   <style>
     :root {
+      --primaire: #0c4a6e;
+      --accent: #f59e0b;
       --sombre: #0f172a;
       --sombre-clair: #1e293b;
-      --bord-orange: #f59e0b;
       --vert: #10b981;
-      --bleu: #3b82f6;
-      --texte: #f8fafc;
     }
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{background:var(--sombre);color:var(--texte);min-height:100vh;font-family:'Segoe UI',sans-serif;}
-    .entete-page{background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.2rem 0}
-    .carte{background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);padding:1.5rem;}
-    .form-control,.form-select{background:#0f172a;border:1px solid #334155;color:white;border-radius:8px}
-    .form-control:focus,.form-select:focus{background:#0f172a;border-color:var(--bord-orange);color:white;box-shadow:0 0 0 0.25rem rgba(245,158,11,0.25)}
-    .btn-valide{background:var(--vert);color:white;border-radius:8px;border:none;}
-    .btn-langue.active{background:var(--bord-orange);color:#000;border-color:var(--bord-orange);font-weight:bold;}
 
-    .lang-en, .lang-ar { display: none; }
-    body.lang-fr .lang-fr { display: inline; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: all 0.25s ease;
+    }
+
+    body {
+      background: #f1f5f9;
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ✅ MENU LATÉRAL */
+    .menu-gauche {
+      background: linear-gradient(180deg, var(--sombre), var(--primaire));
+      min-height: 100vh;
+      width: 260px;
+      position: fixed;
+      padding: 0;
+      overflow-y: auto;
+      z-index: 100;
+    }
+
+    .entete-menu {
+      padding: 25px 20px;
+      border-bottom: 1px solid rgba(245,158,11,0.15);
+      background: rgba(0,0,0,0.08);
+    }
+
+    .logo-menu {
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 1.3rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-menu i { font-size: 1.6rem; }
+
+    .nav-menu { padding: 20px 12px; }
+
+    .lien-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 15px;
+      margin-bottom: 6px;
+      color: #cbd5e1;
+      text-decoration: none;
+      border-radius: 10px;
+    }
+
+    .lien-nav:hover, .lien-nav.actif {
+      background: rgba(245,158,11,0.12);
+      color: var(--accent);
+    }
+
+    /* ✅ CONTENU PRINCIPAL */
+    .contenu-principal {
+      margin-left: 260px;
+      padding: 25px 30px;
+      min-height: 100vh;
+    }
+
+    .barre-haut {
+      background: white;
+      padding: 18px 28px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+      margin-bottom: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .btn-langue {
+      background: rgba(12,74,110,0.06);
+      border: 1px solid transparent;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin: 0 2px;
+      color: var(--primaire);
+      font-weight: 600;
+    }
+
+    .btn-langue.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    .btn-deco {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 7px 14px;
+      border-radius: 10px;
+    }
+
+    .btn-deco:hover {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .carte {
+      background: white;
+      border-radius: 16px;
+      padding: 1.8rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+      border-left: 4px solid var(--accent);
+    }
+
+    .form-control, .form-select {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+      border-radius: 10px;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
+      outline: none;
+    }
+
+    .btn-valide {
+      background: var(--vert);
+      color: white;
+      border-radius: 10px;
+      border: none;
+      font-weight: 600;
+      padding: 10px 20px;
+    }
+
+    .btn-valide:hover {
+      background: #059669;
+      color: white;
+    }
+
+    /* ✅ GESTION DES LANGUES — CONFORME AU STANDARD DU PROJET */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
     body.lang-en { direction: ltr; }
-    body.lang-en .lang-fr, body.lang-en .lang-ar { display: none; }
-    body.lang-en .lang-en { display: inline; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
     body.lang-ar { direction: rtl; }
-    body.lang-ar .lang-fr, body.lang-ar .lang-en { display: none; }
-    body.lang-ar .lang-ar { display: inline; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
   </style>
 </head>
-<body class="lang-fr">
+<body>
 
-<script>
-const token = localStorage.getItem('token');
-const role = localStorage.getItem('role');
-if(!token || role !== 'prof'){
-  alert("⛔ Accès réservé aux enseignants");
-  localStorage.clear();
-  location.href = 'connexion.html';
-}
-</script>
-
-<div class="entete-page">
-  <div class="container d-flex justify-content-between align-items-center">
-    <div>
-      <h3 class="mb-1">
-        <span class="lang-fr">📧 Contacter les Parents</span>
-        <span class="lang-en">📧 Contact Parents</span>
-        <span class="lang-ar">📧 التواصل مع أولياء الأمور</span>
-      </h3>
-      <p class="mb-0 opacity-75">
-        <span class="lang-fr">Envoyer un message aux parents d'élèves</span>
-        <span class="lang-en">Send message to parents</span>
-        <span class="lang-ar">إرسال رسالة إلى أولياء الأمور</span>
-      </p>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-sm btn-outline-light btn-langue active" onclick="changerLangue('fr')" id="btn-fr">FR</button>
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('en')" id="btn-en">EN</button>
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('ar')" id="btn-ar">AR</button>
-      <a href="dashboard.html" class="btn btn-outline-light ms-2">
-        <i class="bi bi-arrow-left"></i>
-        <span class="lang-fr"> Retour</span>
-        <span class="lang-en"> Back</span>
-        <span class="lang-ar"> عودة</span>
+<div class="d-flex">
+  <!-- ✅ MENU LATÉRAL -->
+  <aside class="menu-gauche">
+    <div class="entete-menu">
+      <a href="dashboard-prof.html" class="logo-menu">
+        <i class="bi bi-building"></i> MAMA-ZOUMANA
       </a>
     </div>
-  </div>
-</div>
+    <nav class="nav-menu">
+      <a href="dashboard-prof.html" class="lien-nav">
+        <i class="bi bi-speedometer2"></i>
+        <span class="txt-fr">Tableau de bord</span>
+        <span class="txt-en">Dashboard</span>
+        <span class="txt-ar">لوحة التحكم</span>
+      </a>
+      <a href="mes-classes.html" class="lien-nav">
+        <i class="bi bi-grid"></i>
+        <span class="txt-fr">Mes Classes</span>
+        <span class="txt-en">My Classes</span>
+        <span class="txt-ar">فصولي</span>
+      </a>
+      <a href="presences.html" class="lien-nav">
+        <i class="bi bi-check2-square"></i>
+        <span class="txt-fr">Présences & Retards</span>
+        <span class="txt-en">Attendance & Lateness</span>
+        <span class="txt-ar">الحضور والتأخير</span>
+      </a>
+      <a href="saisie-notes.html" class="lien-nav">
+        <i class="bi bi-pencil-square"></i>
+        <span class="txt-fr">Saisie des Notes</span>
+        <span class="txt-en">Enter Grades</span>
+        <span class="txt-ar">إدخال الدرجات</span>
+      </a>
+      <a href="bulletins.html" class="lien-nav">
+        <i class="bi bi-file-earmark-text"></i>
+        <span class="txt-fr">Bulletins Scolaires</span>
+        <span class="txt-en">Report Cards</span>
+        <span class="txt-ar">الشهادات المدرسية</span>
+      </a>
+      <a href="devoirs.html" class="lien-nav">
+        <i class="bi bi-journal-text"></i>
+        <span class="txt-fr">Devoirs & Examens</span>
+        <span class="txt-en">Homework & Exams</span>
+        <span class="txt-ar">الواجبات والامتحانات</span>
+      </a>
+      <a href="emploi-temps.html" class="lien-nav">
+        <i class="bi bi-calendar-week"></i>
+        <span class="txt-fr">Emploi du Temps</span>
+        <span class="txt-en">Timetable</span>
+        <span class="txt-ar">الجدول الزمني</span>
+      </a>
+      <a href="contacter-parents.html" class="lien-nav actif">
+        <i class="bi bi-people"></i>
+        <span class="txt-fr">Contacter Parents</span>
+        <span class="txt-en">Contact Parents</span>
+        <span class="txt-ar">التواصل مع الأولياء</span>
+      </a>
+      <a href="messages.html" class="lien-nav">
+        <i class="bi bi-chat-dots"></i>
+        <span class="txt-fr">Messages</span>
+        <span class="txt-en">Messages</span>
+        <span class="txt-ar">الرسائل</span>
+      </a>
+    </nav>
+  </aside>
 
-<div class="container py-4">
-  <div class="carte mb-4">
-    <div class="row g-3 mb-3">
-      <div class="col-md-6">
-        <label class="form-label fw-bold">
-          <span class="lang-fr">🏫 Classe</span>
-          <span class="lang-en">🏫 Class</span>
-          <span class="lang-ar">🏫 الفصل</span>
-        </label>
-        <select id="classe" class="form-select" onchange="chargerEleves()">
-          <option value="">-- Chargement... --</option>
-        </select>
+  <!-- ✅ CONTENU PRINCIPAL -->
+  <main class="contenu-principal">
+    <div class="barre-haut">
+      <div class="titre-section">
+        <h4 class="mb-0 text-uppercase fw-bold text-primary">
+          <i class="bi bi-people me-2" style="color:var(--accent)"></i>
+          <span class="txt-fr">Contacter les Parents</span>
+          <span class="txt-en">Contact Parents</span>
+          <span class="txt-ar">التواصل مع أولياء الأمور</span>
+        </h4>
+        <small class="text-muted">
+          <span class="txt-fr">Envoyer un message aux parents d'élèves</span>
+          <span class="txt-en">Send message to students' parents</span>
+          <span class="txt-ar">إرسال رسالة إلى أولياء الأمور</span>
+        </small>
       </div>
-      <div class="col-md-6">
-        <label class="form-label fw-bold">
-          <span class="lang-fr">👤 Élève</span>
-          <span class="lang-en">👤 Student</span>
-          <span class="lang-ar">👤 التلميذ</span>
-        </label>
-        <select id="eleve" class="form-select">
-          <option value="">-- Sélectionner d'abord la Classe --</option>
-        </select>
+      <div class="utilisateur d-flex align-items-center gap-2">
+        <button class="btn-langue" data-lang="fr">FR</button>
+        <button class="btn-langue" data-lang="en">EN</button>
+        <button class="btn-langue" data-lang="ar">AR</button>
+        <i class="bi bi-person-circle fs-4 ms-2"></i>
+        <span id="nom-prof"></span>
+        <button class="btn btn-deco ms-2" onclick="deconnexion()">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="txt-fr"> Déconnexion</span>
+          <span class="txt-en"> Logout</span>
+          <span class="txt-ar"> تسجيل الخروج</span>
+        </button>
       </div>
     </div>
-    <div class="mb-3">
-      <label class="form-label fw-bold">
-        <span class="lang-fr">📌 Sujet</span>
-        <span class="lang-en">📌 Subject</span>
-        <span class="lang-ar">📌 الموضوع</span>
-      </label>
-      <input type="text" id="sujet" class="form-control" placeholder="Ex: Absence, Retard, Note importante...">
+
+    <!-- ✅ LIEN RETOUR -->
+    <a href="dashboard-prof.html" class="btn btn-outline-secondary mb-4">
+      <i class="bi bi-arrow-left"></i>
+      <span class="txt-fr"> Retour au Tableau de Bord</span>
+      <span class="txt-en"> Back to Dashboard</span>
+      <span class="txt-ar"> الرجوع إلى لوحة التحكم</span>
+    </a>
+
+    <!-- ⚠️ ZONE DE MESSAGES -->
+    <div id="zone-message"></div>
+
+    <!-- ✅ FORMULAIRE -->
+    <div class="carte">
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">🏫 Classe</span>
+            <span class="txt-en">🏫 Class</span>
+            <span class="txt-ar">🏫 الفصل</span>
+          </label>
+          <select id="classe" class="form-select" onchange="chargerEleves()">
+            <option value="">
+              <span class="txt-fr">-- Chargement... --</span>
+              <span class="txt-en">-- Loading... --</span>
+              <span class="txt-ar">-- جار التحميل... --</span>
+            </option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold">
+            <span class="txt-fr">👤 Élève</span>
+            <span class="txt-en">👤 Student</span>
+            <span class="txt-ar">👤 التلميذ</span>
+          </label>
+          <select id="eleve" class="form-select">
+            <option value="">
+              <span class="txt-fr">-- Sélectionner d'abord la Classe --</span>
+              <span class="txt-en">-- Choose Class First --</span>
+              <span class="txt-ar">-- اختر الفصل أولاً --</span>
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">📌 Sujet</span>
+          <span class="txt-en">📌 Subject</span>
+          <span class="txt-ar">📌 الموضوع</span>
+        </label>
+        <input type="text" id="sujet" class="form-control" placeholder="Ex: Absence, Retard, Note importante...">
+      </div>
+      <div class="mb-4">
+        <label class="form-label fw-bold">
+          <span class="txt-fr">✉️ Message</span>
+          <span class="txt-en">✉️ Message</span>
+          <span class="txt-ar">✉️ الرسالة</span>
+        </label>
+        <textarea id="message" class="form-control" rows="5" placeholder="Saisissez votre message..."></textarea>
+      </div>
+      <button class="btn btn-valide w-100 fw-bold" onclick="envoyerMessage()">
+        <i class="bi bi-send me-2"></i>
+        <span class="txt-fr">Envoyer le Message</span>
+        <span class="txt-en">Send Message</span>
+        <span class="txt-ar">إرسال الرسالة</span>
+      </button>
     </div>
-    <div class="mb-4">
-      <label class="form-label fw-bold">
-        <span class="lang-fr">✉️ Message</span>
-        <span class="lang-en">✉️ Message</span>
-        <span class="lang-ar">✉️ الرسالة</span>
-      </label>
-      <textarea id="message" class="form-control" rows="5" placeholder="Saisis ton message..."></textarea>
-    </div>
-    <button class="btn btn-valide w-100 fw-bold" onclick="envoyerMessage()">
-      <i class="bi bi-send me-2"></i>
-      <span class="lang-fr">Envoyer le Message</span>
-      <span class="lang-en">Send Message</span>
-      <span class="lang-ar">إرسال الرسالة</span>
-    </button>
-  </div>
+  </main>
 </div>
 
 <script>
+// ==================================================
+// ✅ CONFIGURATION & SÉCURITÉ
+// ==================================================
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+const id_utilisateur = localStorage.getItem('id_utilisateur');
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+
+console.log("🔑 Token :", token ? "PRÉSENT ✅" : "MANQUANT ❌");
+console.log("👤 Rôle :", role);
+
+if (!token || role !== 'prof') {
+  alert("⛔ Accès réservé aux Enseignants. Veuillez vous reconnecter.");
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  location.href = 'connexion.html';
+}
+
+// ✅ Afficher nom de l'enseignant
+document.getElementById('nom-prof').textContent = 
+  (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || 'Enseignant');
+
+// ==================================================
+// 🗣️ GESTION DE LA LANGUE — Conforme au standard
+// ==================================================
+function appliquerLangue(lang) {
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + lang);
+  localStorage.setItem('langue', lang);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-lang="${lang}"]`)?.classList.add('active');
+}
+
+const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+appliquerLangue(langueSauvegardee);
+document.querySelectorAll('.btn-langue').forEach(btn => {
+  btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
+});
+
+// ==================================================
+// 💬 AFFICHAGE DES MESSAGES
+// ==================================================
+function afficherMessage(texte, type = 'info') {
+  const zone = document.getElementById('zone-message');
+  const style = type === 'succes' ? 'border-success bg-success bg-opacity-10 text-success' :
+                type === 'erreur' ? 'border-danger bg-danger bg-opacity-10 text-danger' :
+                'border-info bg-info bg-opacity-10 text-info';
+  zone.innerHTML = `<div class="alert ${style} border-2">${texte}</div>`;
+  setTimeout(() => zone.innerHTML = '', 10000);
+}
+
+// ==================================================
+// 📥 CHARGER CLASSES — Route corrigée
+// ==================================================
+async function chargerClasses() {
+  try {
+    const reponse = await fetch(`${API_URL}/notes/mes-classes-matieres`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (reponse.status === 401) {
+      throw new Error("⛔ Autorisation refusée. Votre session a peut-être expiré.");
+    }
+
+    const res = await reponse.json();
+    const sel = document.getElementById('classe');
+    const liste = res.classes || res.lignes || [];
+
+    sel.innerHTML = '<option value="">-- Sélectionner une Classe --</option>';
+    if (liste.length > 0) {
+      liste.forEach(c => {
+        sel.innerHTML += `<option value="${c.id_classe}">${c.libelle_classe}</option>`;
+      });
+    } else {
+      sel.innerHTML += '<option value="" disabled>⚠️ Aucune classe affectée</option>';
+      afficherMessage("⚠️ Aucune classe ne vous est affectée. Veuillez contacter l'administrateur.", 'info');
+    }
+  } catch (erreur) {
+    console.error("❌ Erreur chargement classes :", erreur);
+    afficherMessage("❌ Erreur de chargement des classes.", 'erreur');
+    document.getElementById('classe').innerHTML = '<option value="">❌ Erreur</option>';
+  }
+}
+
+// ==================================================
+// 👤 CHARGER ÉLÈVES D'UNE CLASSE — Route corrigée
+// ==================================================
 let eleves = [];
-
-async function chargerClasses(){
-  try {
-    const r = await fetch('/api/notes/mes-classes-matieres', {headers:{'Authorization':`Bearer ${token}`}});
-    const res = await r.json();
-    if(res.ok){
-      const classes = res.classes || res.lignes || [];
-      document.getElementById('classe').innerHTML = '<option value="">-- Sélectionner --</option>' +
-        classes.map(c=>`<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('');
-    }
-  } catch(e) { console.log("Erreur :", e); }
-}
-
-async function chargerEleves(){
+async function chargerEleves() {
   const id_classe = document.getElementById('classe').value;
-  if(!id_classe) return;
+  const sel = document.getElementById('eleve');
+
+  if (!id_classe) {
+    sel.innerHTML = '<option value="">-- Sélectionner une Classe d\'abord --</option>';
+    return;
+  }
+
+  sel.innerHTML = '<option value="">-- Chargement... --</option>';
   try {
-    const r = await fetch(`/api/notes/eleves-classe/${id_classe}`, {headers:{'Authorization':`Bearer ${token}`}});
-    const res = await r.json();
-    if(res.ok){
-      eleves = res.eleves || res.lignes || [];
-      document.getElementById('eleve').innerHTML = '<option value="">-- Tous les parents --</option>' +
-        eleves.map(e=>`<option value="${e.id_utilisateur || e.id_eleve}">${e.nom} ${e.prenoms || e.prenom}</option>`).join('');
+    const reponse = await fetch(`${API_URL}/notes/eleves-classe/${id_classe}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (reponse.status === 401) {
+      throw new Error("⛔ Autorisation refusée.");
     }
-  } catch(e) { console.log("Erreur :", e); }
+
+    const res = await reponse.json();
+    eleves = res.eleves || res.lignes || [];
+
+    sel.innerHTML = '<option value="">-- Tous les parents de la classe --</option>';
+    if (eleves.length > 0) {
+      eleves.forEach(e => {
+        const id = e.id_utilisateur || e.id_eleve;
+        const nom = (e.nom || '') + ' ' + (e.prenoms || e.prenom || '');
+        sel.innerHTML += `<option value="${id}">${nom}</option>`;
+      });
+    } else {
+      sel.innerHTML = '<option value="">-- Aucun élève trouvé --</option>';
+    }
+  } catch (erreur) {
+    console.error("❌ Erreur chargement élèves :", erreur);
+    sel.innerHTML = '<option value="">-- Erreur --</option>';
+  }
 }
 
-async function envoyerMessage(){
+// ==================================================
+// ✉️ ENVOYER MESSAGE AUX PARENTS — Route corrigée
+// ==================================================
+async function envoyerMessage() {
   const id_classe = document.getElementById('classe').value;
   const id_eleve = document.getElementById('eleve').value;
   const sujet = document.getElementById('sujet').value.trim();
   const message = document.getElementById('message').value.trim();
 
-  if(!id_classe || !sujet || !message){
-    alert("⚠️ Remplis Classe, Sujet et Message !"); return;
+  if (!id_classe || !sujet || !message) {
+    afficherMessage("⚠️ Veuillez renseigner la Classe, le Sujet et le Message.", 'erreur');
+    return;
   }
 
   try {
-    const r = await fetch('/api/messages/envoyer-parents', {
+    const reponse = await fetch(`${API_URL}/messages/envoyer-parents`, {
       method: 'POST',
-      headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({ id_classe, id_eleve, sujet, message })
     });
-    const res = await r.json();
-    if(res.ok){
-      alert("✅ Message envoyé aux parents !");
+
+    if (reponse.status === 401) {
+      throw new Error("⛔ Autorisation refusée.");
+    }
+
+    const res = await reponse.json();
+    if (res.ok) {
+      afficherMessage("✅ Message envoyé aux parents avec succès !", 'succes');
       document.getElementById('sujet').value = '';
       document.getElementById('message').value = '';
     } else {
-      alert("❌ " + (res.erreur || "Erreur"));
+      afficherMessage("❌ " + (res.erreur || "Erreur inconnue"), 'erreur');
     }
-  } catch(e) { alert("❌ Erreur Réseau : " + e.message); }
+  } catch (erreur) {
+    console.error("❌ Erreur envoi message :", erreur);
+    afficherMessage("❌ Erreur réseau.", 'erreur');
+  }
 }
 
-function changerLangue(langue) {
-  document.body.className = 'lang-' + langue;
-  localStorage.setItem('langue', langue);
-  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-'+langue).classList.add('active');
+// ==================================================
+// ✅ DÉCONNEXION SÉCURISÉE
+// ==================================================
+function deconnexion() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  localStorage.removeItem('prenoms');
+  location.href = 'connexion.html';
 }
 
-let langue = localStorage.getItem('langue') || 'fr';
-document.body.className = 'lang-' + langue;
-document.getElementById('btn-'+langue).classList.add('active');
-chargerClasses();
+// ✅ LANCER AU CHARGEMENT
+document.addEventListener('DOMContentLoaded', chargerClasses);
 </script>
+
 </body>
 </html>
