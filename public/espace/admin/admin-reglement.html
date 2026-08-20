@@ -3,70 +3,267 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Administration — Règlement Intérieur</title>
+  <title>
+    <span class="lang-fr">Administration — Règlement Intérieur</span>
+    <span class="lang-en">Administration — Internal Rules</span>
+    <span class="lang-ar">الإدارة — النظام الداخلي</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-    body { background: #f0f4f8; padding: 20px; }
-    .container { max-width: 1000px; margin: 0 auto; }
-    h1 { color: #1e40af; margin-bottom: 25px; }
-    .barre { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    button { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
-    .btn-ajouter { background: #16a34a; color: white; }
-    .btn-modif { background: #f59e0b; color: white; padding: 6px 12px; font-size: 14px; margin-right: 5px; }
-    .btn-suppr { background: #ef4444; color: white; padding: 6px 12px; font-size: 14px; }
-    .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    .card h3 { color: #1e293b; margin-bottom: 8px; }
-    .card .contenu { color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-wrap; margin-bottom: 10px; }
-    .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-    .badge.publie { background: #dcfce7; color: #166534; }
-    .badge-brouillon { background: #fef3c7; color: #92400e; }
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 100; }
-    .modal.active { display: flex; }
-    .modal-contenu { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 650px; max-height: 90vh; overflow-y: auto; }
-    .modal-contenu h2 { margin-bottom: 20px; color: #1e40af; }
-    input, textarea { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
-    textarea { min-height: 100px; }
-    .ligne { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
-    .btn-fermer { background: #e2e8f0; color: #334155; }
-    .btn-valider { background: #1e40af; color: white; }
-    .message { margin-top: 15px; padding: 10px; border-radius: 6px; display: none; }
-    .message.succes { background: #dcfce7; color: #166534; display: block; }
-    .message.erreur { background: #fee2e2; color: #991b1b; display: block; }
+    :root {
+      --sombre: #0f172a; --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b; --vert: #10b981;
+      --rouge: #ef4444; --bleu: #3b82f6;
+      --texte: #f8fafc;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;transition:all 0.2s ease}
+    body{background:var(--sombre);color:var(--texte);min-height:100vh;font-family:'Segoe UI',sans-serif;}
+    .entete-page{background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.2rem 0}
+    .carte{background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);padding:1.5rem;margin-bottom:1.5rem}
+    .form-control,.form-select{background:#0f172a;border:1px solid #334155;color:white;border-radius:8px}
+    .form-control:focus,.form-select:focus{background:#0f172a;border-color:var(--bord-orange);color:white;box-shadow:0 0 0 0.25rem rgba(245,158,11,0.25)}
+    .btn-valide{background:var(--vert);color:white;border-radius:8px;border:none;padding:0.5rem 1rem;}
+    .btn-valide:hover{box-shadow:0 0 15px rgba(16,185,129,0.4);transform:translateY(-1px)}
+    .btn-modif{background:var(--bord-orange);color:white;padding:6px 12px;font-size:14px;border-radius:6px;border:none;}
+    .btn-modif:hover{background:#d97706;}
+    .btn-suppr{background:var(--rouge);color:white;padding:6px 12px;font-size:14px;border-radius:6px;border:none;}
+    .btn-suppr:hover{background:#dc2626;}
+    .badge-publie{background:rgba(16,185,129,0.15);color:#34d399;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;}
+    .badge-brouillon{background:rgba(245,158,11,0.15);color:#fbbf24;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;}
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;z-index:1050}
+    .modal.active{display:flex}
+    .modal-contenu{background:var(--sombre-clair);padding:1.8rem;border-radius:12px;width:92%;max-width:680px;max-height:92vh;overflow-y:auto;border:1px solid #334155}
+    .modal-contenu h2{color:var(--bord-orange);margin-bottom:1.2rem}
+    .ligne{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:1rem}
+    .btn-fermer{background:#475569;color:white;border-radius:6px;border:none;padding:0.5rem 1rem;}
+    .btn-enregistrer{background:var(--bleu);color:white;border-radius:6px;border:none;padding:0.5rem 1rem;}
+    .btn-enregistrer:hover{background:#2563eb;color:white}
+    .message{margin-top:1rem;padding:0.75rem;border-radius:6px;display:none}
+    .message.succes{background:rgba(16,185,129,0.1);color:#34d399;display:block}
+    .message.erreur{background:rgba(239,68,68,0.1);color:#fca5a5;display:block}
+    .alerte-api{border-left:3px solid var(--rouge);background:rgba(239,68,68,0.1);border-radius:8px;padding:0.75rem 1rem;margin-bottom:1rem;}
+    .btn-langue.active{background:var(--bord-orange);color:#000;border-color:var(--bord-orange);font-weight:bold;}
+    .contenu-article{color:#cbd5e1;line-height:1.7;white-space:pre-wrap;margin-top:0.5rem}
+
+    /* 🗣️ GESTION DES LANGUES */
+    .lang-en, .lang-ar { display: none; }
+    body.lang-fr .lang-fr { display: inline; }
+    body.lang-en { direction: ltr; }
+    body.lang-en .lang-fr, body.lang-en .lang-ar { display: none; }
+    body.lang-en .lang-en { display: inline; }
+    body.lang-ar { direction: rtl; }
+    body.lang-ar .lang-fr, body.lang-ar .lang-en { display: none; }
+    body.lang-ar .lang-ar { display: inline; }
   </style>
 </head>
-<body>
-<div class="container">
-  <h1>📄 Gestion du Règlement Intérieur</h1>
-  <div class="barre">
-    <p id="compteur"></p>
-    <button class="btn-ajouter" onclick="ouvrirFormulaire()">➕ Ajouter un article</button>
+<body class="lang-fr">
+
+<!-- 🔗 CONFIGURATION API & SÉCURITÉ -->
+<script>
+  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api/reglement'
+    : 'https://mama-zoumana-api.onrender.com/api/reglement';
+
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  let langue = localStorage.getItem('langue') || 'fr';
+  let modeLocal = false;
+
+  // 💾 STOCKAGE LOCAL
+  function obtenirArticlesLocaux() { return JSON.parse(localStorage.getItem('reglement_articles') || '[]'); }
+  function sauvegarderArticlesLocaux(liste) { localStorage.setItem('reglement_articles', JSON.stringify(liste)); }
+
+  // 🗣️ TRADUCTIONS
+  const MSG = {
+    fr: {
+      accesReserve: "⛔ Accès réservé à l'Administrateur",
+      serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
+      compteur: "article(s)",
+      ajouterTitre: "Ajouter un article",
+      modifierTitre: "Modifier un article",
+      titreFR: "Titre (FR) *",
+      titreEN: "Titre (EN)",
+      titreAR: "Titre (AR)",
+      contenuFR: "Contenu (FR) *",
+      contenuEN: "Contenu (EN)",
+      contenuAR: "Contenu (AR)",
+      ordre: "Ordre",
+      publie: "Publié",
+      brouillon: "📄 Brouillon",
+      estPublie: "✅ Publié",
+      annuler: "Annuler",
+      enregistrer: "Enregistrer",
+      ajouterOk: "✅ Article ajouté !",
+      modifierOk: "✅ Article modifié !",
+      erreur: "❌ Erreur : ",
+      confirmerSuppr: "Confirmer la suppression ?",
+      supprOk: "✅ Article supprimé !",
+      ajouterBtn: "➕ Ajouter un article",
+      modifierBtn: "✏️ Modifier",
+      supprimerBtn: "🗑️ Supprimer",
+      retour: "Retour",
+      aucunArticle: "Aucun article enregistré"
+    },
+    en: {
+      accesReserve: "⛔ Access restricted to Administrator",
+      serveurIndispo: "⚠️ Server offline — Local mode active",
+      compteur: "article(s)",
+      ajouterTitre: "Add an article",
+      modifierTitre: "Edit article",
+      titreFR: "Title (FR) *",
+      titreEN: "Title (EN)",
+      titreAR: "Title (AR)",
+      contenuFR: "Content (FR) *",
+      contenuEN: "Content (EN)",
+      contenuAR: "Content (AR)",
+      ordre: "Order",
+      publie: "Published",
+      brouillon: "📄 Draft",
+      estPublie: "✅ Published",
+      annuler: "Cancel",
+      enregistrer: "Save",
+      ajouterOk: "✅ Article added!",
+      modifierOk: "✅ Article updated!",
+      erreur: "❌ Error: ",
+      confirmerSuppr: "Confirm deletion?",
+      supprOk: "✅ Article deleted!",
+      ajouterBtn: "➕ Add article",
+      modifierBtn: "✏️ Edit",
+      supprimerBtn: "🗑️ Delete",
+      retour: "Back",
+      aucunArticle: "No article registered"
+    },
+    ar: {
+      accesReserve: "⛔ الوصول مقصور على المدير",
+      serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
+      compteur: "مادة",
+      ajouterTitre: "إضافة مادة",
+      modifierTitre: "تعديل المادة",
+      titreFR: "العنوان (فرنسي) *",
+      titreEN: "العنوان (إنجليزي)",
+      titreAR: "العنوان (عربي) *",
+      contenuFR: "المحتوى (فرنسي) *",
+      contenuEN: "المحتوى (إنجليزي)",
+      contenuAR: "المحتوى (عربي)",
+      ordre: "الترتيب",
+      publie: "منشور",
+      brouillon: "📄 مسودة",
+      estPublie: "✅ منشور",
+      annuler: "إلغاء",
+      enregistrer: "حفظ",
+      ajouterOk: "✅ تمت إضافة المادة!",
+      modifierOk: "✅ تم تعديل المادة!",
+      erreur: "❌ خطأ: ",
+      confirmerSuppr: "تأكيد الحذف؟",
+      supprOk: "✅ تم حذف المادة!",
+      ajouterBtn: "➕ إضافة مادة",
+      modifierBtn: "✏️ تعديل",
+      supprimerBtn: "🗑️ حذف",
+      retour: "عودة",
+      aucunArticle: "لا توجد مواد مسجلة"
+    }
+  };
+  function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
+
+  // 🔒 SÉCURITÉ
+  if(!token || !['admin','super_admin'].includes(role)){
+    alert(m('accesReserve'));
+    localStorage.clear();
+    location.href = 'connexion.html';
+  }
+
+  document.body.classList.add('lang-' + langue);
+</script>
+
+<!-- 📌 EN-TÊTE -->
+<div class="entete-page">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div>
+      <h3 class="mb-1">
+        <i class="bi bi-file-text me-2" style="color:var(--bord-orange)"></i>
+        <span class="lang-fr">Gestion du Règlement Intérieur</span>
+        <span class="lang-en">Internal Rules Management</span>
+        <span class="lang-ar">إدارة النظام الداخلي</span>
+      </h3>
+      <p class="mb-0 opacity-75 small">
+        <span class="lang-fr">Publier et organiser les articles du règlement</span>
+        <span class="lang-en">Publish and organize rule articles</span>
+        <span class="lang-ar">نشر وتنظيم مواد النظام الداخلي</span>
+      </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('fr')" id="btn-fr">FR</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('en')" id="btn-en">EN</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('ar')" id="btn-ar">AR</button>
+      <a href="dashboard.html" class="btn btn-outline-light btn-sm ms-2">
+        <i class="bi bi-arrow-left"></i>
+        <span class="lang-fr"> Retour</span>
+        <span class="lang-en"> Back</span>
+        <span class="lang-ar"> عودة</span>
+      </a>
+    </div>
   </div>
+</div>
+
+<div class="container py-4">
+
+  <!-- ⚠️ ALERTE MODE LOCAL -->
+  <div id="alerteApi" class="alerte-api d-none">
+    <i class="bi bi-wifi-off me-2"></i>
+    <span id="texteAlerteApi"></span>
+  </div>
+
+  <!-- BARRE D'ACTION -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <p class="mb-0 fw-bold"><span id="compteur">0</span> <span class="lang-fr">article(s)</span><span class="lang-en">article(s)</span><span class="lang-ar">مادة</span></p>
+    <button class="btn btn-valide" onclick="ouvrirFormulaire()">
+      <i class="bi bi-plus-lg"></i>
+      <span class="lang-fr"> Ajouter un article</span>
+      <span class="lang-en"> Add article</span>
+      <span class="lang-ar"> إضافة مادة</span>
+    </button>
+  </div>
+
+  <!-- 📋 LISTE DES ARTICLES -->
   <div id="liste"></div>
 </div>
 
+<!-- 📝 MODAL FORMULAIRE -->
 <div class="modal" id="formModal">
   <div class="modal-contenu">
-    <h2 id="titreForm">Ajouter un article</h2>
+    <h2 id="titreForm">...</h2>
     <form id="formArticle">
       <input type="hidden" id="id">
-      <input type="text" id="titre_fr" placeholder="Titre (FR) *" required>
+      <input type="text" id="titre_fr" class="form-control" placeholder="Titre (FR) *" required>
       <div class="ligne">
-        <input type="text" id="titre_en" placeholder="Titre (EN)">
-        <input type="text" id="titre_ar" placeholder="Titre (AR)">
+        <input type="text" id="titre_en" class="form-control" placeholder="Titre (EN)">
+        <input type="text" id="titre_ar" class="form-control" placeholder="Titre (AR)">
       </div>
-      <textarea id="contenu_fr" rows="5" placeholder="Contenu (FR) *" required></textarea>
-      <textarea id="contenu_en" rows="4" placeholder="Contenu (EN)"></textarea>
-      <textarea id="contenu_ar" rows="4" placeholder="Contenu (AR)"></textarea>
-      <div class="ligne">
-        <input type="number" id="ordre" placeholder="Ordre" value="1">
-        <label style="display:flex;align-items:center;gap:6px;margin-top:8px;">
-          <input type="checkbox" id="est_publie" checked> Publié
+      <textarea id="contenu_fr" class="form-control" rows="5" placeholder="Contenu (FR) *" required></textarea>
+      <textarea id="contenu_en" class="form-control" rows="4" placeholder="Contenu (EN)"></textarea>
+      <textarea id="contenu_ar" class="form-control" rows="4" placeholder="Contenu (AR)"></textarea>
+      <div class="ligne align-items-center">
+        <input type="number" id="ordre" class="form-control" placeholder="Ordre" value="1">
+        <label style="display:flex;align-items:center;gap:8px;margin-bottom:0;color:var(--texte)">
+          <input type="checkbox" id="est_publie" checked>
+          <span class="lang-fr"> Publié</span>
+          <span class="lang-en"> Published</span>
+          <span class="lang-ar"> منشور</span>
         </label>
       </div>
       <div class="actions">
-        <button type="button" class="btn-fermer" onclick="fermerFormulaire()">Annuler</button>
-        <button type="submit" class="btn-valider">Enregistrer</button>
+        <button type="button" class="btn-fermer" onclick="fermerFormulaire()">
+          <span class="lang-fr">Annuler</span>
+          <span class="lang-en">Cancel</span>
+          <span class="lang-ar">إلغاء</span>
+        </button>
+        <button type="submit" class="btn-enregistrer">
+          <span class="lang-fr">Enregistrer</span>
+          <span class="lang-en">Save</span>
+          <span class="lang-ar">حفظ</span>
+        </button>
       </div>
       <div class="message" id="message"></div>
     </form>
@@ -74,65 +271,107 @@
 </div>
 
 <script>
-const API = '/api/reglement';
 let listeArticles = [];
 
-async function chargerListe() {
-  const res = await fetch(`${API}/liste?tout=1`);
-  const data = await res.json();
-  listeArticles = data.articles || [];
-  document.getElementById('compteur').textContent = `${listeArticles.length} article(s)`;
+// 📡 ALERTE MODE LOCAL
+function basculerModeLocal(actif) {
+  modeLocal = actif;
+  const alerte = document.getElementById('alerteApi');
+  document.getElementById('texteAlerteApi').textContent = m('serveurIndispo');
+  alerte.classList.toggle('d-none', !actif);
+}
+
+// 🗣️ CHANGEMENT DE LANGUE
+function changerLangue(nouvelleLangue) {
+  langue = nouvelleLangue;
+  localStorage.setItem('langue', langue);
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + langue);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + langue).classList.add('active');
   afficherListe();
 }
 
+// 📋 CHARGER LA LISTE
+async function chargerListe(forcerLocal = false) {
+  let liste = [];
+  if (!forcerLocal) {
+    try {
+      const res = await fetch(`${API_URL}/liste?tout=1`, { headers:{'Authorization':`Bearer ${token}`} });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      liste = data.articles || [];
+      sauvegarderArticlesLocaux(liste);
+      basculerModeLocal(false);
+    } catch {
+      forcerLocal = true;
+    }
+  }
+  if (forcerLocal) {
+    basculerModeLocal(true);
+    liste = obtenirArticlesLocaux();
+  }
+  listeArticles = liste;
+  document.getElementById('compteur').textContent = liste.length;
+  afficherListe();
+}
+
+// 🖥️ AFFICHER LA LISTE
 function afficherListe() {
   const conteneur = document.getElementById('liste');
+  if (!listeArticles.length) {
+    conteneur.innerHTML = `<div class="carte text-center py-4 text-muted">${m('aucunArticle')}</div>`;
+    return;
+  }
   conteneur.innerHTML = '';
-  listeArticles.forEach(a => {
+  listeArticles.sort((a,b) => a.ordre - b.ordre).forEach(a => {
     conteneur.innerHTML += `
-      <div class="card">
-        <h3>${a.ordre}. ${a.titre_fr} 
-          <span class="badge ${a.est_publie ? 'publie' : 'badge-brouillon'}">
-            ${a.est_publie ? '✅ Publié' : '📄 Brouillon'}
+      <div class="carte">
+        <h5 class="fw-bold mb-2">
+          ${a.ordre}. ${a.titre_fr || ''}
+          <span class="${a.est_publie ? 'badge-publie' : 'badge-brouillon'} ms-2">
+            ${a.est_publie ? m('estPublie') : m('brouillon')}
           </span>
-        </h3>
-        <div class="contenu">${a.contenu_fr}</div>
-        <div style="margin-top:8px">
-          <button class="btn-modif" onclick="modifier(${a.id})">✏️ Modifier</button>
-          <button class="btn-suppr" onclick="supprimer(${a.id})">🗑️ Supprimer</button>
+        </h5>
+        <div class="contenu-article">${(a.contenu_fr || '').replace(/</g,'&lt;')}</div>
+        <div class="mt-3">
+          <button class="btn-modif" onclick="modifier(${a.id})">✏️ ${m('modifierBtn')}</button>
+          <button class="btn-suppr" onclick="supprimer(${a.id})">🗑️ ${m('supprimerBtn')}</button>
         </div>
-      </div>
-    `;
+      </div>`;
   });
 }
 
+// 📝 OUVRIR FORMULAIRE
 function ouvrirFormulaire() {
   document.getElementById('formArticle').reset();
   document.getElementById('id').value = '';
-  document.getElementById('titreForm').textContent = 'Ajouter un article';
+  document.getElementById('titreForm').textContent = m('ajouterTitre');
   document.getElementById('est_publie').checked = true;
   document.getElementById('formModal').classList.add('active');
 }
 
+// ✏️ MODIFIER ARTICLE
 function modifier(id) {
-  const a = listeArticles.find(x => x.id === id);
-  Object.keys(a).forEach(k => {
+  const a = listeArticles.find(x => Number(x.id) === Number(id));
+  if(!a) return;
+  ['id','titre_fr','titre_en','titre_ar','contenu_fr','contenu_en','contenu_ar','ordre'].forEach(k => {
     const el = document.getElementById(k);
-    if (el) {
-      if (el.type === 'checkbox') el.checked = a[k];
-      else el.value = a[k] || '';
-    }
+    if(el) el.value = a[k] || '';
   });
-  document.getElementById('titreForm').textContent = 'Modifier un article';
+  document.getElementById('est_publie').checked = Boolean(a.est_publie);
+  document.getElementById('titreForm').textContent = m('modifierTitre');
   document.getElementById('formModal').classList.add('active');
 }
 
+// ❌ FERMER FORMULAIRE
 function fermerFormulaire() {
   document.getElementById('formModal').classList.remove('active');
   document.getElementById('message').className = 'message';
   document.getElementById('message').textContent = '';
 }
 
+// 💾 ENREGISTRER ARTICLE
 document.getElementById('formArticle').addEventListener('submit', async e => {
   e.preventDefault();
   const id = document.getElementById('id').value;
@@ -143,38 +382,74 @@ document.getElementById('formArticle').addEventListener('submit', async e => {
     contenu_fr: document.getElementById('contenu_fr').value,
     contenu_en: document.getElementById('contenu_en').value,
     contenu_ar: document.getElementById('contenu_ar').value,
-    ordre: parseInt(document.getElementById('ordre').value),
+    ordre: parseInt(document.getElementById('ordre').value) || 1,
     est_publie: document.getElementById('est_publie').checked
   };
 
-  const url = id ? `${API}/${id}` : `${API}/ajouter`;
-  const methode = id ? 'PUT' : 'POST';
-  const res = await fetch(url, {
-    method: methode,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(donnees)
-  });
-  const rep = await res.json();
-
   const msg = document.getElementById('message');
-  if (rep.ok) {
+  try {
+    const url = id ? `${API_URL}/${id}` : `${API_URL}/ajouter`;
+    const methode = id ? 'PUT' : 'POST';
+    const res = await fetch(url, {
+      method: methode,
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(donnees)
+    });
+    const rep = await res.json();
+    if (rep.ok) {
+      msg.className = 'message succes';
+      msg.textContent = id ? m('modifierOk') : m('ajouterOk');
+      await chargerListe();
+      setTimeout(fermerFormulaire, 1200);
+    } else {
+      throw new Error(rep.erreur || 'Erreur serveur');
+    }
+  } catch (err) {
+    // 📴 Mode local
+    let liste = obtenirArticlesLocaux();
+    donnees.id = id ? Number(id) : Date.now();
+    if (id) {
+      liste = liste.map(a => Number(a.id) === Number(id) ? {...a, ...donnees} : a);
+    } else {
+      liste.push(donnees);
+    }
+    sauvegarderArticlesLocaux(liste);
+    listeArticles = liste;
+    basculerModeLocal(true);
     msg.className = 'message succes';
-    msg.textContent = id ? '✅ Article modifié !' : '✅ Article ajouté !';
-    await chargerListe();
+    msg.textContent = (id ? m('modifierOk') : m('ajouterOk')) + " (local)";
+    afficherListe();
     setTimeout(fermerFormulaire, 1200);
-  } else {
-    msg.className = 'message erreur';
-    msg.textContent = `❌ ${rep.erreur}`;
   }
 });
 
+// 🗑️ SUPPRIMER ARTICLE
 async function supprimer(id) {
-  if (!confirm('Confirmer la suppression ?')) return;
-  await fetch(`${API}/${id}`, { method: 'DELETE' });
-  await chargerListe();
+  if (!confirm(m('confirmerSuppr'))) return;
+  try {
+    const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers:{'Authorization':`Bearer ${token}`} });
+    const rep = await res.json();
+    if (rep.ok) {
+      await chargerListe();
+      alert(m('supprOk'));
+    } else {
+      throw new Error(rep.erreur);
+    }
+  } catch {
+    let liste = obtenirArticlesLocaux().filter(a => Number(a.id) !== Number(id));
+    sauvegarderArticlesLocaux(liste);
+    listeArticles = liste;
+    basculerModeLocal(true);
+    afficherListe();
+    alert(m('supprOk') + " (local)");
+  }
 }
 
-chargerListe();
+// 🚀 INITIALISATION
+window.onload = async function() {
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('active', b.id === 'btn-' + langue));
+  await chargerListe();
+};
 </script>
 </body>
 </html>
