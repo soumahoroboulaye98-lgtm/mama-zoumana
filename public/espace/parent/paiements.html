@@ -13,6 +13,7 @@
   <style>
     :root {
       --primaire: #0c4a6e;
+      --secondaire: #0369a1;
       --succes: #10b981;
       --alerte: #f59e0b;
       --danger: #ef4444;
@@ -44,13 +45,17 @@
       border-radius: 16px;
       backdrop-filter: blur(10px);
       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      transition: transform 0.25s;
     }
+    .carte:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
 
     .titre-section { color: var(--texte-dore); font-weight: 600; }
-    .btn-primaire { background: linear-gradient(135deg, var(--primaire), #0369a1); border: none; color: white; }
-    .btn-primaire:hover { background: linear-gradient(135deg, #0369a1, var(--primaire)); color: white; }
-    .btn-succes { background: linear-gradient(135deg, var(--succes), #059669); border: none; color: white; }
-    .btn-accent { background: linear-gradient(135deg, var(--alerte), #d97706); border: none; color: #000; font-weight: 500; }
+    .btn-primaire { background: linear-gradient(135deg, var(--primaire), #0369a1); border: none; color: white; border-radius: 10px; }
+    .btn-primaire:hover { background: linear-gradient(135deg, #0369a1, var(--primaire)); color: white; transform: translateY(-1px); }
+    .btn-succes { background: linear-gradient(135deg, var(--succes), #059669); border: none; color: white; border-radius: 10px; }
+    .btn-succes:hover { color: white; transform: translateY(-1px); }
+    .btn-accent { background: linear-gradient(135deg, var(--alerte), #d97706); border: none; color: #000; font-weight: 500; border-radius: 10px; }
+    .btn-accent:hover { transform: translateY(-1px); }
 
     .badge-attente { background: #6b7280; }
     .badge-partiel { background: #f59e0b; color: #000; }
@@ -69,12 +74,17 @@
     .btn-lang.active { background: var(--alerte); color: #000; border-color: var(--alerte); }
 
     .montant { font-family: 'Segoe UI Mono', monospace; font-weight: 600; }
-    .ligne-non-modifiable { opacity: 0.85; }
+    .ligne-non-modifiable { opacity: 0.95; }
+
+    form label { font-weight: 500; }
+    .form-select, .form-control { background: rgba(15,23,42,0.6); color: white; border: 1px solid rgba(245,158,11,0.2); border-radius: 8px; }
+    .form-select:focus, .form-control:focus { background: rgba(15,23,42,0.8); color: white; border-color: var(--alerte); box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.25); }
 
     @media print {
       body { background: #fff; color: #000; }
       .no-print { display: none !important; }
       .recus-border { border-color: #000; }
+      .carte { background: #fff; border: 1px solid #ddd; box-shadow: none; }
     }
   </style>
 </head>
@@ -158,10 +168,10 @@
           <span class="txt-ar">حالة الدفع</span>
         </label>
         <select id="filtreStatut" class="form-select">
-          <option value="">Tous les statuts</option>
-          <option value="en_attente">⚪ En attente</option>
-          <option value="partiel">🟠 Partiel</option>
-          <option value="paye">🟢 Payé en totalité</option>
+          <option value=""><span class="txt-fr">Tous les statuts</span><span class="txt-en">All statuses</span><span class="txt-ar">جميع الحالات</span></option>
+          <option value="en_attente">⚪ <span class="txt-fr">En attente</span><span class="txt-en">Pending</span><span class="txt-ar">قيد الانتظار</span></option>
+          <option value="partiel">🟠 <span class="txt-fr">Partiel</span><span class="txt-en">Partially paid</span><span class="txt-ar">جزئي</span></option>
+          <option value="paye">🟢 <span class="txt-fr">Payé en totalité</span><span class="txt-en">Paid in full</span><span class="txt-ar">مدفوع بالكامل</span></option>
         </select>
       </div>
       <div class="col-md-4">
@@ -171,7 +181,7 @@
           <span class="txt-ar">السنة الدراسية</span>
         </label>
         <select id="filtreAnnee" class="form-select">
-          <option value="">Toutes les années</option>
+          <option value=""><span class="txt-fr">Toutes les années</span><span class="txt-en">All years</span><span class="txt-ar">جميع السنوات</span></option>
           <option value="2025">2025-2026</option>
           <option value="2024">2024-2025</option>
         </select>
@@ -202,7 +212,7 @@
 </div>
 
 <!-- 🧾 MODALE REÇU EN LECTURE SEULE -->
-<div class="modal fade" id="modalRecu" tabindex="-1" aria-labelledby="modalRecuTitre" aria-hidden="false">
+<div class="modal fade" id="modalRecu" tabindex="-1" aria-labelledby="modalRecuTitre" aria-hidden="true">
   <div class="modal-dialog modal-md">
     <div class="modal-content">
       <div class="modal-header no-print">
@@ -211,7 +221,7 @@
           <span class="txt-en">Payment Receipt</span>
           <span class="txt-ar">إيصال الدفع</span>
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body recus-content" id="contenuRecu">
         <!-- Rempli dynamiquement -->
@@ -229,7 +239,7 @@
           <span class="txt-en"> Download</span>
           <span class="txt-ar"> تحميل</span>
         </button>
-        <button class="btn btn-secondary" data-bs-dismiss="modal">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
           <span class="txt-fr">Fermer</span>
           <span class="txt-en">Close</span>
           <span class="txt-ar">إغلاق</span>
@@ -298,7 +308,7 @@ async function chargerPaiements() {
     // Construction de l'URL avec filtres
     const statut = document.getElementById('filtreStatut').value;
     const annee = document.getElementById('filtreAnnee').value;
-    let url = API_URL + '?';
+    let url = API_URL + '/paiements?';
     if (statut) url += `statut=${encodeURIComponent(statut)}&`;
     if (annee) url += `annee=${annee}&`;
 
@@ -372,26 +382,39 @@ function afficherListePaiements(liste) {
     espece: 'Espèces', don: 'Don / Versement Libre'
   };
   const libellesStatuts = {
-    en_attente: { texte: 'En attente', classe: 'badge-attente' },
-    partiel: { texte: 'Partiel', classe: 'badge-partiel' },
-    paye: { texte: 'Payé', classe: 'badge-paye' },
-    annule: { texte: 'Annulé', classe: 'badge-annule' }
+    en_attente: {
+      fr: 'En attente', en: 'Pending', ar: 'قيد الانتظار',
+      classe: 'badge-attente'
+    },
+    partiel: {
+      fr: 'Partiel', en: 'Partiel', ar: 'جزئي',
+      classe: 'badge-partiel'
+    },
+    paye: {
+      fr: 'Payé', en: 'Paid', ar: 'مدفوع',
+      classe: 'badge-paye'
+    },
+    annule: {
+      fr: 'Annulé', en: 'Cancelled', ar: 'ملغى',
+      classe: 'badge-annule'
+    }
   };
 
   conteneur.innerHTML = liste.map(paiement => {
-    const statut = libellesStatuts[paiement.statut] || { texte: paiement.statut, classe: 'badge-attente' };
+    const statut = libellesStatuts[paiement.statut] || { fr: paiement.statut, en: paiement.statut, ar: paiement.statut, classe: 'badge-attente' };
+    const texteStatut = statut[langueActuelle] || statut.fr;
     const icone = iconesMoyens[paiement.moyen_paiement] || '💳';
     const moyen = libellesMoyens[paiement.moyen_paiement] || paiement.moyen_paiement;
     const pourcentage = parseFloat(paiement.pourcentage_paiement || 0);
     const classeBarre = pourcentage >= 100 ? 'progress-bar-paye' : 'progress-bar-partiel';
-    const date = new Date(paiement.date_paiement).toLocaleDateString('fr-CA');
+    const date = paiement.date_paiement ? new Date(paiement.date_paiement).toLocaleDateString('fr-CA') : '—';
 
     return `
       <div class="col-md-6 col-lg-4">
         <div class="carte p-3 h-100 ligne-non-modifiable">
           <!-- En-tête carte -->
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="badge ${statut.classe}">${statut.texte}</span>
+            <span class="badge ${statut.classe}">${texteStatut}</span>
             <span class="small text-muted">${icone} ${moyen}</span>
           </div>
 
@@ -455,7 +478,7 @@ function afficherListePaiements(liste) {
 window.voirRecu = async function(idPaiement) {
   try {
     // Récupération du paiement concerné
-    const reponse = await fetch(API_URL, {
+    const reponse = await fetch(`${API_URL}/paiements`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const donnees = await reponse.json();
@@ -477,7 +500,7 @@ window.voirRecu = async function(idPaiement) {
 
     const icone = iconesMoyens[paiementCourant.moyen_paiement] || '💳';
     const moyen = libellesMoyens[paiementCourant.moyen_paiement] || paiementCourant.moyen_paiement;
-    const date = new Date(paiementCourant.date_paiement).toLocaleDateString('fr-CA');
+    const date = paiementCourant.date_paiement ? new Date(paiementCourant.date_paiement).toLocaleDateString('fr-CA') : '—';
     const pourcentage = parseFloat(paiementCourant.pourcentage_paiement || 0).toFixed(1);
 
     // Génération du reçu
@@ -503,7 +526,7 @@ window.voirRecu = async function(idPaiement) {
             <span class="txt-en">For :</span>
             <span class="txt-ar">لـ :</span>
           </div>
-          <div class="col-7">${paiementCourant.reference_externe || 'Non spécifié'}</div>
+          <div class="col-7">${paiementCourant.reference_externe || '<span class="txt-fr">Non spécifié</span><span class="txt-en">Not specified</span><span class="txt-ar">غير محدد</span>'}</div>
         </div>
 
         <div class="row mb-2">
@@ -572,7 +595,7 @@ window.voirRecu = async function(idPaiement) {
             <span class="txt-en">Automatically generated document — Digital signature</span>
             <span class="txt-ar">وثيقة مولدة آلياً — توقيع رقمي</span>
           </p>
-          <p class="fw-bold mt-2">ÉTABLISSEMENT SCOLAIRE</p>
+          <p class="fw-bold mt-2">MAMA-ZOUMANA</p>
         </div>
       </div>`;
 
@@ -595,7 +618,12 @@ window.imprimerRecu = function() {
 // 📤 TÉLÉCHARGER LE REÇU
 // ==================================================
 window.telechargerRecu = function() {
-  alert("✅ Le reçu est prêt !\n\n→ Utilisez la fonction « Imprimer » puis choisissez « Enregistrer au format PDF » dans la liste des imprimantes.");
+  const messages = {
+    fr: "✅ Le reçu est prêt !\n\n→ Utilisez la fonction « Imprimer » puis choisissez « Enregistrer au format PDF » dans la liste des imprimantes.",
+    en: "✅ The receipt is ready!\n\n→ Use the « Print » function then choose « Save as PDF » in the printer list.",
+    ar: "✅ الإيصال جاهز !\n\n→ استخدم دالة « طباعة » ثم اختر « حفظ بصيغة PDF » من قائمة الطابعات."
+  };
+  alert(messages[langueActuelle] || messages.fr);
   window.print();
 };
 
@@ -616,4 +644,4 @@ document.getElementById('btnReinitialiser').addEventListener('click', () => {
 chargerPaiements();
 </script>
 </body>
-</html> 
+</html>
