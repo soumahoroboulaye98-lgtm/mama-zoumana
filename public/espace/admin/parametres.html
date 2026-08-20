@@ -1,91 +1,420 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="lang-fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Paramètres Généraux — MAMA-ZOUMANA</title>
+  <title>
+    <span class="txt-fr">Paramètres Généraux — MAMA-ZOUMANA</span>
+    <span class="txt-en">General Settings — MAMA-ZOUMANA</span>
+    <span class="txt-ar">الإعدادات العامة — ماما زومانا</span>
+  </title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    :root { --sidebar-fond:#0f172a; --bord-orange:#f59e0b; --blanc:#fff; --fond-page:#f8fafc; }
-    *{border-radius:12px !important}
-    body{background:var(--fond-page);font-family:system-ui,sans-serif}
-    .sidebar{background:var(--sidebar-fond);min-height:100vh;width:260px;position:fixed;left:0;top:0;padding:1.5rem 0}
-    .contenu{margin-left:260px;padding:2rem}
-    .logo{color:var(--bord-orange);font-weight:800;font-size:1.4rem;padding:0 1.5rem;margin-bottom:2rem}
-    .menu-item{display:flex;align-items:center;gap:0.75rem;padding:0.85rem 1.5rem;color:#cbd5e1;text-decoration:none;transition:0.25s;margin:0.25rem 1rem}
-    .menu-item:hover{background:rgba(245,158,11,0.15);color:var(--bord-orange);transform:translateX(4px)}
-    .menu-item.actif{background:rgba(245,158,11,0.1);color:var(--bord-orange);border-left:3px solid var(--bord-orange)}
-    .carte{background:white;padding:1.5rem;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.05)}
-    .btn-orange{background:var(--bord-orange);border:none;color:black;font-weight:500}
-    .btn-orange:hover{background:#d97706;color:white}
+    :root { 
+      --sidebar-fond: #0f172a; 
+      --bord-orange: #f59e0b; 
+      --blanc: #fff; 
+      --fond-page: #f8fafc; 
+      --primaire: #0c4a6e;
+      --succes: #10b981;
+    }
+
+    /* ✅ TRILINGUE */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar { direction: rtl; }
+    body.lang-ar .form-label,
+    body.lang-ar h5,
+    body.lang-ar h3,
+    body.lang-ar .menu-item { text-align: right; }
+
+    * { border-radius: 12px !important; }
+    body { background: var(--fond-page); font-family: system-ui, sans-serif; }
+
+    .sidebar {
+      background: var(--sidebar-fond);
+      min-height: 100vh;
+      width: 260px;
+      position: fixed;
+      left: 0;
+      top: 0;
+      padding: 1.5rem 0;
+    }
+    body.lang-ar .sidebar { left: auto; right: 0; }
+
+    .contenu { margin-left: 260px; padding: 2rem; min-height: 100vh; }
+    body.lang-ar .contenu { margin-left: 0; margin-right: 260px; }
+
+    .logo {
+      color: var(--bord-orange);
+      font-weight: 800;
+      font-size: 1.4rem;
+      padding: 0 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.85rem 1.5rem;
+      color: #cbd5e1;
+      text-decoration: none;
+      transition: 0.25s;
+      margin: 0.25rem 1rem;
+    }
+    .menu-item:hover {
+      background: rgba(245,158,11,0.15);
+      color: var(--bord-orange);
+      transform: translateX(4px);
+    }
+    body.lang-ar .menu-item:hover { transform: translateX(-4px); }
+    .menu-item.actif {
+      background: rgba(245,158,11,0.1);
+      color: var(--bord-orange);
+      border-left: 3px solid var(--bord-orange);
+    }
+    body.lang-ar .menu-item.actif { border-left: none; border-right: 3px solid var(--bord-orange); }
+
+    .carte {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin-bottom: 1.5rem;
+    }
+
+    .btn-orange {
+      background: var(--bord-orange);
+      border: none;
+      color: black;
+      font-weight: 600;
+    }
+    .btn-orange:hover {
+      background: #d97706;
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(245,158,11,0.25);
+    }
+
+    .btn-langue {
+      border-radius: 50px !important;
+      border: 2px solid transparent;
+      margin: 0 2px;
+      padding: 0.35rem 0.9rem;
+      font-weight: 600;
+      transition: all 0.25s;
+      background: white;
+      color: #475569;
+    }
+    .btn-langue.actif {
+      background: var(--bord-orange);
+      color: #000;
+      border-color: var(--bord-orange);
+      box-shadow: 0 0 12px rgba(245,158,11,0.4);
+    }
+
+    .form-label { font-weight: 600; color: #334155; }
+    .form-control, .form-select {
+      border: 1px solid #cbd5e1;
+      padding: 0.65rem 1rem;
+    }
+    .form-control:focus, .form-select:focus {
+      box-shadow: 0 0 0 3px rgba(12,74,110,0.15);
+      border-color: var(--primaire);
+    }
+
+    .alerte-succes { display: none; }
+    .alerte-succes.montre { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+
+    @media (max-width: 991px) {
+      .sidebar { position: relative; width: 100%; min-height: auto; }
+      .contenu { margin: 0 !important; padding: 1rem; }
+    }
   </style>
 </head>
 <body>
+
 <script>
-if(!localStorage.getItem('token') || localStorage.getItem('role')!=='admin'){alert("Accès réservé");location.href='../connexion.html'}
+  // 🔐 SÉCURITÉ
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+
+  if (!token || !['admin','super_admin'].includes(role)) {
+    alert("⛔ Accès réservé à l'Administrateur !");
+    location.href = '../connexion.html';
+  }
+
+  // 🌍 GESTION DE LA LANGUE
+  let langue = localStorage.getItem('langue') || 'fr';
+  document.body.classList.add('lang-' + langue);
+
+  const T = {
+    fr: { 
+      confirmer: "Êtes-vous sûr ?", 
+      sauvegarde: "✅ Paramètres enregistrés !" 
+    },
+    en: { 
+      confirmer: "Are you sure?", 
+      sauvegarde: "✅ Settings saved!" 
+    },
+    ar: { 
+      confirmer: "هل أنت متأكد؟", 
+      sauvegarde: "✅ تم حفظ الإعدادات!" 
+    }
+  };
+  function t(key) { return T[langue]?.[key] || key; }
+
+  window.appliquerLangue = function(lang) {
+    localStorage.setItem('langue', lang);
+    document.body.classList.remove('lang-fr','lang-en','lang-ar');
+    document.body.classList.add('lang-' + lang);
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('actif'));
+    event.currentTarget.classList.add('actif');
+    langue = lang;
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('actif', b.dataset.lang === langue));
+    chargerParametres();
+  });
 </script>
 
+
+<!-- 📋 MENU LATÉRAL -->
 <div class="sidebar">
-  <div class="logo"><i class="bi bi-building"></i> MAMA-ZOUMANA</div>
-  <a href="dashboard.html" class="menu-item"><i class="bi bi-speedometer2"></i> <span data-fr="Tableau de bord" data-ar="لوحة التحكم" data-en="Dashboard">Tableau de bord</span></a>
-  <a href="parametres.html" class="menu-item actif"><i class="bi bi-gear"></i> <span data-fr="Paramètres Généraux" data-ar="الإعدادات العامة" data-en="General Settings">Paramètres Généraux</span></a>
-  <a href="parametres-securite.html" class="menu-item"><i class="bi bi-shield-lock"></i> <span data-fr="Paramètres Sécurité" data-ar="إعدادات الأمان" data-en="Security Settings">Paramètres Sécurité</span></a>
-  <a href="../deconnexion.html" class="menu-item text-danger"><i class="bi bi-box-arrow-right"></i> <span data-fr="Déconnexion" data-ar="تسجيل الخروج" data-en="Logout">Déconnexion</span></a>
+  <a href="dashboard.html" class="logo"><i class="bi bi-building"></i> MAMA-ZOUMANA</a>
+  <a href="dashboard.html" class="menu-item">
+    <i class="bi bi-speedometer2"></i>
+    <span class="txt-fr">Tableau de bord</span><span class="txt-en">Dashboard</span><span class="txt-ar">لوحة التحكم</span>
+  </a>
+  <a href="config-site.html" class="menu-item actif">
+    <i class="bi bi-gear"></i>
+    <span class="txt-fr">Paramètres Généraux</span><span class="txt-en">General Settings</span><span class="txt-ar">الإعدادات العامة</span>
+  </a>
+  <a href="personnaliser-site.html" class="menu-item">
+    <i class="bi bi-palette"></i>
+    <span class="txt-fr">Personnalisation</span><span class="txt-en">Customization</span><span class="txt-ar">تخصيص الموقع</span>
+  </a>
+  <a href="annonces.html" class="menu-item">
+    <i class="bi bi-megaphone"></i>
+    <span class="txt-fr">Annonces & Actualités</span><span class="txt-en">Announcements</span><span class="txt-ar">الإعلانات والأخبار</span>
+  </a>
+  <a href="../changer-mot-de-passe.html" class="menu-item">
+    <i class="bi bi-key"></i>
+    <span class="txt-fr">Changer mot de passe</span><span class="txt-en">Change Password</span><span class="txt-ar">تغيير كلمة المرور</span>
+  </a>
+  <a href="#" onclick="deconnecter(); return false;" class="menu-item text-danger mt-4">
+    <i class="bi bi-box-arrow-right"></i>
+    <span class="txt-fr">Déconnexion</span><span class="txt-en">Log out</span><span class="txt-ar">تسجيل الخروج</span>
+  </a>
 </div>
 
+<script>
+  window.deconnecter = function() {
+    const msg = { 
+      ar: 'هل تريد تسجيل الخروج ؟', 
+      en: 'Are you sure you want to log out?', 
+      fr: 'Êtes-vous sûr de vouloir vous déconnecter ?' 
+    }[langue];
+    if (confirm(msg)) { localStorage.clear(); location.href = '../connexion.html'; }
+  };
+</script>
+
+
+<!-- 📄 CONTENU PRINCIPAL -->
 <div class="contenu">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3><span data-fr="Paramètres Généraux de l'Établissement" data-ar="الإعدادات العامة للمؤسسة" data-en="General Establishment Settings">Paramètres Généraux</span></h3>
-    <div class="d-flex gap-2">
-      <button class="btn btn-sm btn-warning fw-bold" onclick="document.documentElement.lang='fr'">FR</button>
-      <button class="btn btn-sm btn-outline-secondary" onclick="document.documentElement.lang='en'">EN</button>
-      <button class="btn btn-sm btn-outline-secondary" onclick="document.documentElement.lang='ar'">AR</button>
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h3 class="fw-bold text-primary">
+      <span class="txt-fr">⚙️ Paramètres Généraux de l'Établissement</span>
+      <span class="txt-en">⚙️ General Establishment Settings</span>
+      <span class="txt-ar">⚙️ الإعدادات العامة للمؤسسة</span>
+    </h3>
+    <div class="d-flex align-items-center gap-2">
+      <button data-lang="fr" class="btn btn-langue btn-sm" onclick="appliquerLangue('fr')">FR</button>
+      <button data-lang="en" class="btn btn-langue btn-sm" onclick="appliquerLangue('en')">EN</button>
+      <button data-lang="ar" class="btn btn-langue btn-sm" onclick="appliquerLangue('ar')">AR</button>
     </div>
   </div>
 
+  <div id="msg-succes" class="alert alert-success alerte-succes mb-4 rounded-3">
+    <i class="bi bi-check-circle me-2"></i>
+    <span class="txt-fr">✅ Paramètres enregistrés avec succès !</span>
+    <span class="txt-en">✅ Settings saved successfully!</span>
+    <span class="txt-ar">✅ تم حفظ الإعدادات بنجاح!</span>
+  </div>
+
+  <!-- 🏫 INFOS ÉTABLISSEMENT -->
   <div class="carte mb-4">
-    <h5 class="mb-3"><span data-fr="Informations de l'école" data-ar="معلومات المؤسسة" data-en="School Information">Informations de l'école</span></h5>
+    <h5 class="mb-4 fw-bold">🏫 
+      <span class="txt-fr">Informations de l'Établissement</span>
+      <span class="txt-en">Establishment Information</span>
+      <span class="txt-ar">معلومات المؤسسة</span>
+    </h5>
     <div class="row g-3">
       <div class="col-md-6">
-        <label class="form-label"><span data-fr="Nom de l'établissement" data-ar="اسم المؤسسة" data-en="Establishment Name">Nom de l'établissement</span></label>
-        <input type="text" class="form-control" value="MAMA-ZOUMANA">
+        <label class="form-label">
+          <span class="txt-fr">Nom de l'établissement</span>
+          <span class="txt-en">Establishment Name</span>
+          <span class="txt-ar">اسم المؤسسة</span>
+        </label>
+        <input type="text" id="etab_nom" class="form-control" value="MAMA-ZOUMANA">
       </div>
       <div class="col-md-6">
-        <label class="form-label"><span data-fr="Année scolaire en cours" data-ar="السنة الدراسية الحالية" data-en="Current School Year">Année scolaire</span></label>
-        <input type="text" class="form-control" value="2026-2027">
+        <label class="form-label">
+          <span class="txt-fr">Année scolaire en cours</span>
+          <span class="txt-en">Current School Year</span>
+          <span class="txt-ar">السنة الدراسية الحالية</span>
+        </label>
+        <input type="text" id="etab_annee" class="form-control" placeholder="2026-2027">
       </div>
       <div class="col-md-6">
-        <label class="form-label"><span data-fr="Adresse complète" data-ar="العنوان الكامل" data-en="Full Address">Adresse</span></label>
-        <input type="text" class="form-control" value="Abidjan, Côte d'Ivoire">
+        <label class="form-label">
+          <span class="txt-fr">Adresse complète</span>
+          <span class="txt-en">Full Address</span>
+          <span class="txt-ar">العنوان الكامل</span>
+        </label>
+        <input type="text" id="etab_adresse" class="form-control" placeholder="Ville, Pays">
       </div>
       <div class="col-md-6">
-        <label class="form-label"><span data-fr="Contact" data-ar="الهاتف" data-en="Phone">Contact</span></label>
-        <input type="text" class="form-control" value="0700000000">
+        <label class="form-label">
+          <span class="txt-fr">Téléphone</span>
+          <span class="txt-en">Phone Number</span>
+          <span class="txt-ar">الهاتف</span>
+        </label>
+        <input type="tel" id="etab_telephone" class="form-control" placeholder="+225 XX XX XX XX">
       </div>
-      <div class="col-md-12">
-        <button class="btn btn-orange"><span data-fr="Enregistrer modifications" data-ar="حفظ التغييرات" data-en="Save Changes">Enregistrer modifications</span></button>
+      <div class="col-md-6">
+        <label class="form-label">
+          <span class="txt-fr">Email de contact</span>
+          <span class="txt-en">Contact Email</span>
+          <span class="txt-ar">البريد الإلكتروني</span>
+        </label>
+        <input type="email" id="etab_email" class="form-control" placeholder="contact@ecole.ci">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">
+          <span class="txt-fr">Site web</span>
+          <span class="txt-en">Website</span>
+          <span class="txt-ar">الموقع الإلكتروني</span>
+        </label>
+        <input type="url" id="etab_siteweb" class="form-control" placeholder="https://www.mama-zoumana.ci">
       </div>
     </div>
   </div>
 
-  <div class="carte">
-    <h5 class="mb-3"><span data-fr="Langue par défaut" data-ar="اللغة الافتراضية" data-en="Default Language">Langue par défaut</span></h5>
-    <div class="d-flex gap-3">
-      <div class="form-check">
-        <input class="form-check-input" type="radio" name="langue_defaut" id="fr" checked>
-        <label class="form-check-label" for="fr">Français</label>
+  <!-- 🌍 LANGUE PAR DÉFAUT -->
+  <div class="carte mb-4">
+    <h5 class="mb-4 fw-bold">🌐 
+      <span class="txt-fr">Langue par Défaut</span>
+      <span class="txt-en">Default Language</span>
+      <span class="txt-ar">اللغة الافتراضية</span>
+    </h5>
+    <div class="d-flex gap-4">
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="langue_defaut" id="defaut_fr" value="fr">
+        <label class="form-check-label" for="defaut_fr">🇫🇷 Français</label>
       </div>
-      <div class="form-check">
-        <input class="form-check-input" type="radio" name="langue_defaut" id="en">
-        <label class="form-check-label" for="en">English</label>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="langue_defaut" id="defaut_en" value="en">
+        <label class="form-check-label" for="defaut_en">🇬🇧 English</label>
       </div>
-      <div class="form-check">
-        <input class="form-check-input" type="radio" name="langue_defaut" id="ar">
-        <label class="form-check-label" for="ar">العربية</label>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="langue_defaut" id="defaut_ar" value="ar">
+        <label class="form-check-label" for="defaut_ar">🇸🇦 العربية</label>
       </div>
     </div>
   </div>
+
+  <!-- 💾 BOUTON SAUVEGARDER -->
+  <div class="text-center mt-4">
+    <button class="btn btn-orange px-5 py-2" onclick="sauvegarderParametres()">
+      <i class="bi bi-save2 me-2"></i>
+      <span class="txt-fr">💾 ENREGISTRER LES MODIFICATIONS</span>
+      <span class="txt-en">💾 SAVE CHANGES</span>
+      <span class="txt-ar">💾 حفظ التغييرات</span>
+    </button>
+  </div>
 </div>
+
+
+<script>
+  // 📥 CHARGER LES PARAMÈTRES SAUVEGARDÉS
+  async function chargerParametres() {
+    const cfg = JSON.parse(localStorage.getItem('config_etablissement') || '{}');
+
+    document.getElementById('etab_nom').value = cfg.nom || 'MAMA-ZOUMANA';
+    document.getElementById('etab_annee').value = cfg.annee_scolaire || '2026-2027';
+    document.getElementById('etab_adresse').value = cfg.adresse || '';
+    document.getElementById('etab_telephone').value = cfg.telephone || '';
+    document.getElementById('etab_email').value = cfg.email || '';
+    document.getElementById('etab_siteweb').value = cfg.siteweb || '';
+
+    // Langue par défaut
+    const langDefaut = cfg.langue_defaut || 'fr';
+    document.getElementById('defaut_fr').checked = langDefaut === 'fr';
+    document.getElementById('defaut_en').checked = langDefaut === 'en';
+    document.getElementById('defaut_ar').checked = langDefaut === 'ar';
+  }
+
+  // 💾 SAUVEGARDER LES PARAMÈTRES
+  async function sauvegarderParametres() {
+    // Récupérer la langue par défaut sélectionnée
+    const langueDefaut = document.querySelector('input[name="langue_defaut"]:checked')?.value || 'fr';
+
+    const donnees = {
+      nom: document.getElementById('etab_nom').value.trim(),
+      annee_scolaire: document.getElementById('etab_annee').value.trim(),
+      adresse: document.getElementById('etab_adresse').value.trim(),
+      telephone: document.getElementById('etab_telephone').value.trim(),
+      email: document.getElementById('etab_email').value.trim(),
+      siteweb: document.getElementById('etab_siteweb').value.trim(),
+      langue_defaut: langueDefaut,
+      date_mise_a_jour: new Date().toISOString()
+    };
+
+    // ✅ Validation minimale
+    if (!donnees.nom) {
+      alert(langue==='ar'?'اسم المؤسسة مطلوب!':langue==='en'?'Establishment name is required!':'Le nom de l\'établissement est obligatoire !');
+      return;
+    }
+
+    // ✅ Sauvegarde locale
+    localStorage.setItem('config_etablissement', JSON.stringify(donnees));
+
+    // ✅ Appliquer immédiatement la langue par défaut du site
+    localStorage.setItem('langue', langueDefaut);
+
+    // ✅ Message de succès
+    const msgBox = document.getElementById('msg-succes');
+    msgBox.classList.add('montre');
+    setTimeout(() => msgBox.classList.remove('montre'), 6000);
+
+    // 🔄 Envoyer au serveur si API disponible
+    try {
+      await fetch(API_URL + '/config/etablissement', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify(donnees)
+      });
+    } catch(e) { /* API non disponible → localStorage fonctionne seul */ }
+  }
+</script>
+
 </body>
 </html>
