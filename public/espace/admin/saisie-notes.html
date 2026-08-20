@@ -6,7 +6,7 @@
   <title>
     <span class="txt-fr">Administration — Saisie des Notes & Bulletins</span>
     <span class="txt-en">Administration — Grades & Reports</span>
-    <span class="txt-ar">الإدارة — الدرجات والشهادات</span>
+    <span class="txt-ar">الإدارة — إدخال الدرجات والشهادات</span>
   </title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -147,6 +147,7 @@
 </head>
 <body>
 
+
 <div class="container-fluid">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <a href="dashboard-admin.html" class="btn btn-outline-light btn-sm">
@@ -285,9 +286,9 @@
 
   <div class="alert alert-info py-2 border-2">
     <i class="bi bi-info-circle me-2"></i>
-    <span class="txt-fr">📝 Note 1 + 📋 Note 2 + 📄 Note 3 + 📄 Note 4 + 📄 Note 5 → Moyenne calculée automatiquement</span>
-    <span class="txt-en">📝 Grade 1 + 📋 Grade 2 + 📄 Grade 3 + 📄 Grade 4 + 📄 Grade 5 → Average calculated automatically</span>
-    <span class="txt-ar">📝 الدرجة 1 + 📋 الدرجة 2 + 📄 الدرجة 3 + 📄 الدرجة 4 + 📄 الدرجة 5 → يحسب المعدل تلقائياً</span>
+    <span class="txt-fr">📝 Note 1 + 📋 Note 2 + 📄 Note 3 + 📄 Note 4 + 📄 Note 5 → Moyenne calculée automatiquement / Coefficients : Note 1×3, Note 2×3, Notes 3-4-5 ×2</span>
+    <span class="txt-en">📝 Grade 1 + 📋 Grade 2 + 📄 Grade 3 + 📄 Grade 4 + 📄 Grade 5 → Average calculated automatically / Weights: Grade 1×3, Grade 2×3, Grades 3-4-5 ×2</span>
+    <span class="txt-ar">📝 الدرجة 1 + 📋 الدرجة 2 + 📄 الدرجة 3 + 📄 الدرجة 4 + 📄 الدرجة 5 → يحسب المعدل تلقائياً / المعاملات: الدرجة 1×3، الدرجة 2×3، الباقي ×2</span>
   </div>
 
   <div class="carte">
@@ -303,11 +304,11 @@
           <tr>
             <th class="text-center">#</th>
             <th><span class="txt-fr">Élève / Matricule</span><span class="txt-en">Student / ID</span><span class="txt-ar">التلميذ / الرقم</span></th>
-            <th class="text-center"><span class="txt-fr">Note 1</span><br><span class="coef-badge">×1</span></th>
-            <th class="text-center"><span class="txt-fr">Note 2</span><br><span class="coef-badge">×1</span></th>
-            <th class="text-center"><span class="txt-fr">Note 3</span><br><span class="coef-badge">×1</span></th>
-            <th class="text-center"><span class="txt-fr">Note 4</span><br><span class="coef-badge">×1</span></th>
-            <th class="text-center"><span class="txt-fr">Note 5</span><br><span class="coef-badge">×1</span></th>
+            <th class="text-center"><span class="txt-fr">Note 1</span><br><span class="coef-badge">×3</span></th>
+            <th class="text-center"><span class="txt-fr">Note 2</span><br><span class="coef-badge">×3</span></th>
+            <th class="text-center"><span class="txt-fr">Note 3</span><br><span class="coef-badge">×2</span></th>
+            <th class="text-center"><span class="txt-fr">Note 4</span><br><span class="coef-badge">×2</span></th>
+            <th class="text-center"><span class="txt-fr">Note 5</span><br><span class="coef-badge">×2</span></th>
             <th class="text-center"><span class="txt-fr">⭐ Moyenne</span><span class="txt-en">⭐ Average</span><span class="txt-ar">⭐ المعدل</span></th>
             <th class="text-center">✅</th>
           </tr>
@@ -327,6 +328,8 @@
   </div>
 </div>
 
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
@@ -342,6 +345,71 @@ const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 let anneeScolaire = "2026-2027";
 let listeEleves = [];
 
+const textes = {
+  fr: {
+    chargement_classes: "Chargement des classes...",
+    aucune_classe: "Aucune classe trouvée dans la base",
+    classe_chargee: "classe(s) chargée(s)",
+    aucune_matiere: "Aucune matière trouvée",
+    eleves_charge: "élève(s) chargé(s)",
+    aucun_eleve_classe: "⚠️ Aucun élève dans cette classe",
+    erreur_chargement: "❌ Erreur chargement",
+    selectionner_classe_matiere: "⚠️ Sélectionne Classe ET Matière d'abord !",
+    note_chargee: "note(s) chargée(s)",
+    aucune_note: "ℹ️ Aucune note existante — prêt pour la saisie",
+    saisir_classe: "⚠️ Sélectionne une Classe d'abord !",
+    notes_enregistrees: "✅ note(s) enregistrée(s) !",
+    erreur_enregistrement: "❌ Erreur : ",
+    bulletins_generes: "✅ Bulletins générés ! Va sur 'Voir / Imprimer Bulletins'",
+    erreur_connexion: "❌ Erreur connexion serveur",
+    notes_remplies: "✅ Notes remplies par ",
+    notes_effacees: "✅ Notes effacées"
+  },
+  en: {
+    chargement_classes: "Loading classes...",
+    aucune_classe: "No class found in database",
+    classe_chargee: "class(es) loaded",
+    aucune_matiere: "No subject found",
+    eleves_charge: "student(s) loaded",
+    aucun_eleve_classe: "⚠️ No student in this class",
+    erreur_chargement: "❌ Loading error",
+    selectionner_classe_matiere: "⚠️ Select Class AND Subject first!",
+    note_chargee: "grade(s) loaded",
+    aucune_note: "ℹ️ No existing grades — ready to enter",
+    saisir_classe: "⚠️ Select a Class first!",
+    notes_enregistrees: "✅ grade(s) saved!",
+    erreur_enregistrement: "❌ Error: ",
+    bulletins_generes: "✅ Reports generated! Go to 'View / Print Reports'",
+    erreur_connexion: "❌ Server connection error",
+    notes_remplies: "✅ Grades filled with ",
+    notes_effacees: "✅ Grades cleared"
+  },
+  ar: {
+    chargement_classes: "جار تحميل الأقسام...",
+    aucune_classe: "لم يتم العثور على أقسام في قاعدة البيانات",
+    classe_chargee: "قسم(ات) محملة",
+    aucune_matiere: "لم يتم العثور على مواد دراسية",
+    eleves_charge: "تلميذ(ات) محملون",
+    aucun_eleve_classe: "⚠️ لا تلاميذ في هذا القسم",
+    erreur_chargement: "❌ خطأ في التحميل",
+    selectionner_classe_matiere: "⚠️ اختر القسم والمادة أولاً!",
+    note_chargee: "درجة(ات) محملة",
+    aucune_note: "ℹ️ لا توجد درجات — جاهز للإدخال",
+    saisir_classe: "⚠️ اختر القسم أولاً!",
+    notes_enregistrees: "✅ تم حفظ الدرجات!",
+    erreur_enregistrement: "❌ خطأ: ",
+    bulletins_generes: "✅ تم إنشاء الشهادات! اذهب إلى 'عرض / طباعة الشهادات'",
+    erreur_connexion: "❌ خطأ في الاتصال بالخادم",
+    notes_remplies: "✅ تم ملء الدرجات بـ ",
+    notes_effacees: "✅ تم مسح الدرجات"
+  }
+};
+
+function T(cle) {
+  const langue = localStorage.getItem('langue') || 'fr';
+  return textes[langue][cle] || cle;
+}
+
 function afficherMessage(texte, type = 'info') {
   const zone = document.getElementById('zone-message');
   const icone = type === 'succes' ? '<i class="bi bi-check-circle-fill me-2"></i>' :
@@ -350,7 +418,7 @@ function afficherMessage(texte, type = 'info') {
   const style = type === 'succes' ? 'alert-success border-success' :
                 type === 'erreur' ? 'alert-danger border-danger' : 'alert-info border-info';
   zone.innerHTML = `<div class="alert ${style} border-2">${icone}${texte}</div>`;
-  setTimeout(() => zone.innerHTML = '', 10000);
+  setTimeout(function(){ zone.innerHTML = ''; }, 10000);
 }
 
 function changerLangue(langue) {
@@ -366,22 +434,15 @@ changerLangue(langue);
 window.onload = chargerMesClasses;
 
 // ==================================================
-// ✅ CHARGER TOUTES LES CLASSES (ADMIN) OU SES CLASSES (PROF)
+// ✅ CHARGER TOUTES LES CLASSES (ADMIN)
 // ==================================================
 async function chargerMesClasses() {
   try {
-    console.log("🔄 Chargement des classes...");
-    let url;
-
-    // ✅ SI ADMIN → CHARGER TOUTES LES CLASSES
-    if (role === 'admin') {
-      url = `${API_URL}/toutes-classes`; // ⭐ NOUVELLE ROUTE
-    } else {
-      url = `${API_URL}/mes-classes`;
-    }
+    console.log("🔄 " + T('chargement_classes'));
+    const url = API_URL + '/toutes-classes';
 
     const r = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: 'Bearer ' + token }
     });
     const res = await r.json();
     console.log("📦 Classes :", res);
@@ -390,19 +451,19 @@ async function chargerMesClasses() {
     let listeClasses = res.classes || res.lignes || [];
 
     if (listeClasses.length === 0) {
-      sel.innerHTML = '<option value="">-- Aucune Classe --</option>';
-      afficherMessage("⚠️ Aucune classe trouvée dans la base", 'info');
+      sel.innerHTML = '<option value="">-- ' + T('aucune_classe') + ' --</option>';
+      afficherMessage(T('aucune_classe'), 'info');
       return;
     }
 
     sel.innerHTML = '<option value="">-- Sélectionner une Classe --</option>' +
-      listeClasses.map(c => `<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('');
+      listeClasses.map(c => '<option value="' + c.id_classe + '">' + c.libelle_classe + '</option>').join('');
     
-    afficherMessage(`✅ ${listeClasses.length} classe(s) chargée(s)`, 'succes');
+    afficherMessage("✅ " + listeClasses.length + " " + T('classe_chargee'), 'succes');
 
   } catch(e) {
     console.error("❌ Erreur :", e);
-    afficherMessage("❌ Erreur chargement : " + e.message, 'erreur');
+    afficherMessage(T('erreur_chargement') + " : " + e.message, 'erreur');
   }
 }
 
@@ -412,38 +473,32 @@ async function chargerMatieresEtEleves() {
   
   if (!id_classe) {
     selMat.innerHTML = '<option value="">-- Choisis d\'abord la classe --</option>';
-    document.getElementById('corps-tableau').innerHTML = `
-      <tr><td colspan="9" class="text-center text-muted py-5">
-        <i class="bi bi-arrow-up-circle d-block mb-2 fs-4"></i>
-        <span class="txt-fr">Sélectionne une Classe d'abord</span>
-        <span class="txt-en">Select a Class first</span>
-        <span class="txt-ar">اختر القسم أولاً</span>
-      </td></tr>`;
+    document.getElementById('corps-tableau').innerHTML = 
+      '<tr><td colspan="9" class="text-center text-muted py-5">' +
+        '<i class="bi bi-arrow-up-circle d-block mb-2 fs-4"></i>' +
+        '<span class="txt-fr">Sélectionne une Classe d\'abord</span>' +
+        '<span class="txt-en">Select a Class first</span>' +
+        '<span class="txt-ar">اختر القسم أولاً</span>' +
+      '</td></tr>';
     listeEleves = [];
     return;
   }
 
   // ✅ Charger matières
   try {
-    let urlMat;
-    if (role === 'admin') {
-      urlMat = `${API_URL}/toutes-matieres`;
-    } else {
-      urlMat = `${API_URL}/mes-matieres`;
-    }
-
+    const urlMat = API_URL + '/toutes-matieres';
     const r = await fetch(urlMat, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: 'Bearer ' + token }
     });
     const res = await r.json();
     let matieres = res.matieres || res.lignes || [];
 
     if (matieres.length === 0) {
-      selMat.innerHTML = '<option value="">-- Aucune matière --</option>';
-      afficherMessage("⚠️ Aucune matière trouvée", 'info');
+      selMat.innerHTML = '<option value="">-- ' + T('aucune_matiere') + ' --</option>';
+      afficherMessage(T('aucune_matiere'), 'info');
     } else {
       selMat.innerHTML = '<option value="">-- Sélectionner une Matière --</option>' +
-        matieres.map(m => `<option value="${m.id_matiere}">${m.libelle_matiere}</option>`).join('');
+        matieres.map(m => '<option value="' + m.id_matiere + '">' + m.libelle_matiere + '</option>').join('');
     }
   } catch(e) { 
     console.error("❌ Erreur matières :", e); 
@@ -454,27 +509,27 @@ async function chargerMatieresEtEleves() {
 
 async function chargerListeEleves(id_classe) {
   try {
-    const r = await fetch(`${API_URL}/eleves-classe/${id_classe}`, {
-      headers: { Authorization: `Bearer ${token}` }
+    const r = await fetch(API_URL + '/eleves-classe/' + id_classe, {
+      headers: { Authorization: 'Bearer ' + token }
     });
     const res = await r.json();
     
     listeEleves = res.eleves || res.lignes || [];
 
     if (listeEleves.length === 0) {
-      document.getElementById('corps-tableau').innerHTML = `
-        <tr><td colspan="9" class="text-center text-warning py-5">
-          <i class="bi bi-exclamation-triangle d-block mb-2 fs-4"></i>
-          <span class="txt-fr">⚠️ Aucun élève dans cette classe</span>
-          <span class="txt-en">⚠️ No student in this class</span>
-          <span class="txt-ar">⚠️ لا تلاميذ في هذا القسم</span>
-        </td></tr>`;
+      document.getElementById('corps-tableau').innerHTML = 
+        '<tr><td colspan="9" class="text-center text-warning py-5">' +
+          '<i class="bi bi-exclamation-triangle d-block mb-2 fs-4"></i>' +
+          '<span class="txt-fr">⚠️ Aucun élève dans cette classe</span>' +
+          '<span class="txt-en">⚠️ No student in this class</span>' +
+          '<span class="txt-ar">⚠️ لا تلاميذ في هذا القسم</span>' +
+        '</td></tr>';
       listeEleves = [];
       return;
     }
 
     afficherTableauNotes();
-    afficherMessage(`✅ ${listeEleves.length} élève(s) chargé(s)`, 'succes');
+    afficherMessage("✅ " + listeEleves.length + " " + T('eleves_charge'), 'succes');
 
   } catch(e) {
     console.error("❌ Erreur élèves :", e);
@@ -482,23 +537,22 @@ async function chargerListeEleves(id_classe) {
 }
 
 function afficherTableauNotes() {
-  document.getElementById('corps-tableau').innerHTML = listeEleves.map((el, i) => {
+  document.getElementById('corps-tableau').innerHTML = listeEleves.map(function(el, i) {
     const id = el.id_utilisateur || el.id_eleve;
-    const nomComplet = `${el.nom || ''} ${el.prenoms || ''}`;
+    const nomComplet = (el.nom || '') + ' ' + (el.prenoms || '');
     const matricule = el.matricule || '---';
 
-    return `
-    <tr data-eleve="${id}">
-      <td class="fw-bold text-center">${i + 1}</td>
-      <td><div class="fw-bold">${nomComplet}</div><small class="text-muted">📋 ${matricule}</small></td>
-      <td class="text-center"><input type="number" class="form-control form-control-sm note-input" min="0" max="20" step="0.25" data-n1="${id}" oninput="calculerMoyenne(${id})" placeholder="--"></td>
-      <td class="text-center"><input type="number" class="form-control form-control-sm note-input" min="0" max="20" step="0.25" data-n2="${id}" oninput="calculerMoyenne(${id})" placeholder="--"></td>
-      <td class="text-center"><input type="number" class="form-control form-control-sm note-input" min="0" max="20" step="0.25" data-n3="${id}" oninput="calculerMoyenne(${id})" placeholder="--"></td>
-      <td class="text-center"><input type="number" class="form-control form-control-sm note-input" min="0" max="20" step="0.25" data-n4="${id}" oninput="calculerMoyenne(${id})" placeholder="--"></td>
-      <td class="text-center"><input type="number" class="form-control form-control-sm note-input" min="0" max="20" step="0.25" data-n5="${id}" oninput="calculerMoyenne(${id})" placeholder="--"></td>
-      <td class="text-center fw-bold text-success" id="moy-${id}">--</td>
-      <td class="text-center fs-6" id="statut-${id}">💾</td>
-    </tr>`;
+    return '<tr data-eleve="' + id + '">' +
+      '<td class="fw-bold text-center">' + (i + 1) + '</td>' +
+      '<td><div class="fw-bold">' + nomComplet + '</div><small class="text-muted">📋 ' + matricule + '</small></td>' +
+      '<td class="text-center"><input type="number" class="form-control form-control-sm note-input" min="0" max="20" step="0.25" data-n1="' + id + '" oninput="calculerMoyenne(' + id + ')" placeholder="--"></td>' +
+      '<td class="text-center"><input type="number" class="form-control form-control-sm note-input" min="0" max="20" step="0.25" data-n2="' + id + '" oninput="calculerMoyenne(' + id + ')" placeholder="--"></td>' +
+      '<td class="text-center"><input type="number" class="form-control form-control-sm note-input" min="0" max="20" step="0.25" data-n3="' + id + '" oninput="calculerMoyenne(' + id + ')" placeholder="--"></td>' +
+      '<td class="text-center"><input type="number" class="form-control form-control-sm note-input" min="0" max="20" step="0.25" data-n4="' + id + '" oninput="calculerMoyenne(' + id + ')" placeholder="--"></td>' +
+      '<td class="text-center"><input type="number" class="form-control form-control-sm note-input" min="0" max="20" step="0.25" data-n5="' + id + '" oninput="calculerMoyenne(' + id + ')" placeholder="--"></td>' +
+      '<td class="text-center fw-bold text-success" id="moy-' + id + '">--</td>' +
+      '<td class="text-center fs-6" id="statut-' + id + '">💾</td>' +
+    '</tr>';
   }).join('');
 }
 
@@ -509,31 +563,31 @@ async function chargerNotesExistantes() {
   const annee = document.getElementById('annee_scolaire').value;
 
   if (!id_classe || !id_matiere) {
-    afficherMessage("⚠️ Sélectionne Classe ET Matière d'abord !", 'erreur');
+    afficherMessage(T('selectionner_classe_matiere'), 'erreur');
     return;
   }
 
   try {
-    const r = await fetch(`${API_URL}/consulter`, {
+    const r = await fetch(API_URL + '/consulter', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ id_classe, id_matiere, trimestre, annee_scolaire: annee })
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ id_classe: id_classe, id_matiere: id_matiere, trimestre: trimestre, annee_scolaire: annee })
     });
     const res = await r.json();
     
     if (res.ok) {
       const notes = res.notes || res.lignes || [];
       if (notes.length === 0) {
-        afficherMessage("ℹ️ Aucune note existante — prêt pour la saisie", 'info');
+        afficherMessage(T('aucune_note'), 'info');
         return;
       }
-      notes.forEach(n => {
+      notes.forEach(function(n) {
         const id = n.id_eleve;
-        const c1 = document.querySelector(`[data-n1="${id}"]`);
-        const c2 = document.querySelector(`[data-n2="${id}"]`);
-        const c3 = document.querySelector(`[data-n3="${id}"]`);
-        const c4 = document.querySelector(`[data-n4="${id}"]`);
-        const c5 = document.querySelector(`[data-n5="${id}"]`);
+        const c1 = document.querySelector('[data-n1="' + id + '"]');
+        const c2 = document.querySelector('[data-n2="' + id + '"]');
+        const c3 = document.querySelector('[data-n3="' + id + '"]');
+        const c4 = document.querySelector('[data-n4="' + id + '"]');
+        const c5 = document.querySelector('[data-n5="' + id + '"]');
         if (c1) c1.value = n.note1 ?? '';
         if (c2) c2.value = n.note2 ?? '';
         if (c3) c3.value = n.note3 ?? '';
@@ -541,37 +595,46 @@ async function chargerNotesExistantes() {
         if (c5) c5.value = n.note5 ?? '';
         calculerMoyenne(id);
       });
-      afficherMessage(`✅ ${notes.length} note(s) chargée(s)`, 'succes');
+      afficherMessage("✅ " + notes.length + " " + T('note_chargee'), 'succes');
     }
   } catch(e) {
-    afficherMessage("❌ Erreur chargement notes", 'erreur');
+    afficherMessage(T('erreur_chargement'), 'erreur');
   }
 }
 
+// ✅ CALCUL MOYENNE AVEC COEFFICIENTS : Note1×3, Note2×3, Note3×2, Note4×2, Note5×2 → Total = 10
 function calculerMoyenne(idEleve) {
-  const n1 = parseFloat(document.querySelector(`[data-n1="${idEleve}"]`)?.value) || null;
-  const n2 = parseFloat(document.querySelector(`[data-n2="${idEleve}"]`)?.value) || null;
-  const n3 = parseFloat(document.querySelector(`[data-n3="${idEleve}"]`)?.value) || null;
-  const n4 = parseFloat(document.querySelector(`[data-n4="${idEleve}"]`)?.value) || null;
-  const n5 = parseFloat(document.querySelector(`[data-n5="${idEleve}"]`)?.value) || null;
+  const n1 = parseFloat(document.querySelector('[data-n1="' + idEleve + '"]')?.value) || null;
+  const n2 = parseFloat(document.querySelector('[data-n2="' + idEleve + '"]')?.value) || null;
+  const n3 = parseFloat(document.querySelector('[data-n3="' + idEleve + '"]')?.value) || null;
+  const n4 = parseFloat(document.querySelector('[data-n4="' + idEleve + '"]')?.value) || null;
+  const n5 = parseFloat(document.querySelector('[data-n5="' + idEleve + '"]')?.value) || null;
 
-  const valeurs = [n1, n2, n3, n4, n5].filter(v => v !== null && !isNaN(v));
-  const moy = valeurs.length > 0 ? (valeurs.reduce((a,b) => a + b, 0) / valeurs.length).toFixed(2) : '--';
+  let sommePoints = 0;
+  let totalCoef = 0;
+
+  if (n1 !== null && !isNaN(n1)) { sommePoints += n1 * 3; totalCoef += 3; }
+  if (n2 !== null && !isNaN(n2)) { sommePoints += n2 * 3; totalCoef += 3; }
+  if (n3 !== null && !isNaN(n3)) { sommePoints += n3 * 2; totalCoef += 2; }
+  if (n4 !== null && !isNaN(n4)) { sommePoints += n4 * 2; totalCoef += 2; }
+  if (n5 !== null && !isNaN(n5)) { sommePoints += n5 * 2; totalCoef += 2; }
+
+  const moy = totalCoef > 0 ? (sommePoints / totalCoef).toFixed(2) : '--';
   
-  document.getElementById(`moy-${idEleve}`).textContent = moy;
-  document.getElementById(`statut-${idEleve}`).textContent = "⚠️";
+  document.getElementById('moy-' + idEleve).textContent = moy;
+  document.getElementById('statut-' + idEleve).textContent = "⚠️";
 }
 
 function remplirNotes(valeur) {
-  document.querySelectorAll('.note-input').forEach(i => i.value = valeur);
-  listeEleves.forEach(el => calculerMoyenne(el.id_utilisateur || el.id_eleve));
-  afficherMessage(`✅ Notes remplies par ${valeur}`, 'succes');
+  document.querySelectorAll('.note-input').forEach(function(i){ i.value = valeur; });
+  listeEleves.forEach(function(el){ calculerMoyenne(el.id_utilisateur || el.id_eleve); });
+  afficherMessage(T('notes_remplies') + valeur, 'succes');
 }
 function viderNotes() {
-  document.querySelectorAll('.note-input').forEach(i => i.value = '');
-  document.querySelectorAll('[id^="moy-"]').forEach(el => el.textContent = '--');
-  document.querySelectorAll('[id^="statut-"]').forEach(el => el.textContent = '💾');
-  afficherMessage("✅ Notes effacées", 'succes');
+  document.querySelectorAll('.note-input').forEach(function(i){ i.value = ''; });
+  document.querySelectorAll('[id^="moy-"]').forEach(function(el){ el.textContent = '--'; });
+  document.querySelectorAll('[id^="statut-"]').forEach(function(el){ el.textContent = '💾'; });
+  afficherMessage(T('notes_effacees'), 'succes');
 }
 
 async function enregistrerTout() {
@@ -581,48 +644,52 @@ async function enregistrerTout() {
   const annee = document.getElementById('annee_scolaire').value;
 
   if (!id_classe || !id_matiere || listeEleves.length === 0) {
-    afficherMessage("⚠️ Sélectionne Classe, Matière et charge les élèves d'abord !", 'erreur');
+    afficherMessage(T('selectionner_classe_matiere'), 'erreur');
     return;
   }
 
-  const notesCompletes = listeEleves.map(el => {
+  const notesCompletes = listeEleves.map(function(el) {
     const id = el.id_utilisateur || el.id_eleve;
-    const n1 = document.querySelector(`[data-n1="${id}"]`)?.value || null;
-    const n2 = document.querySelector(`[data-n2="${id}"]`)?.value || null;
-    const n3 = document.querySelector(`[data-n3="${id}"]`)?.value || null;
-    const n4 = document.querySelector(`[data-n4="${id}"]`)?.value || null;
-    const n5 = document.querySelector(`[data-n5="${id}"]`)?.value || null;
+    const n1 = document.querySelector('[data-n1="' + id + '"]')?.value || null;
+    const n2 = document.querySelector('[data-n2="' + id + '"]')?.value || null;
+    const n3 = document.querySelector('[data-n3="' + id + '"]')?.value || null;
+    const n4 = document.querySelector('[data-n4="' + id + '"]')?.value || null;
+    const n5 = document.querySelector('[data-n5="' + id + '"]')?.value || null;
     
-    const valeurs = [n1, n2, n3, n4, n5].filter(v => v !== null && v !== '' && !isNaN(parseFloat(v)));
-    const moyenne_matiere = valeurs.length > 0 
-      ? parseFloat((valeurs.reduce((a,b) => parseFloat(a) + parseFloat(b), 0) / valeurs.length).toFixed(2))
-      : null;
+    let sommePoints = 0;
+    let totalCoef = 0;
+    if (n1 !== null && n1 !== '' && !isNaN(parseFloat(n1))) { sommePoints += parseFloat(n1) * 3; totalCoef += 3; }
+    if (n2 !== null && n2 !== '' && !isNaN(parseFloat(n2))) { sommePoints += parseFloat(n2) * 3; totalCoef += 3; }
+    if (n3 !== null && n3 !== '' && !isNaN(parseFloat(n3))) { sommePoints += parseFloat(n3) * 2; totalCoef += 2; }
+    if (n4 !== null && n4 !== '' && !isNaN(parseFloat(n4))) { sommePoints += parseFloat(n4) * 2; totalCoef += 2; }
+    if (n5 !== null && n5 !== '' && !isNaN(parseFloat(n5))) { sommePoints += parseFloat(n5) * 2; totalCoef += 2; }
+    const moyenne_matiere = totalCoef > 0 ? parseFloat((sommePoints / totalCoef).toFixed(2)) : null;
 
     return {
-      id_eleve: id, id_classe, id_matiere, trimestre, annee_scolaire: annee,
+      id_eleve: id, id_classe: id_classe, id_matiere: id_matiere, trimestre: trimestre, annee_scolaire: annee,
       note1: n1, note2: n2, note3: n3, note4: n4, note5: n5,
-      moyenne_matiere, saisi_par: id_utilisateur
+      moyenne_matiere: moyenne_matiere, saisi_par: id_utilisateur
     };
   });
 
   try {
-    const r = await fetch(`${API_URL}/saisir`, {
+    const r = await fetch(API_URL + '/saisir', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
       body: JSON.stringify({ notes: notesCompletes })
     });
     const res = await r.json();
 
     if (res.ok) {
-      afficherMessage(`✅ ${notesCompletes.length} note(s) enregistrée(s) !`, 'succes');
-      listeEleves.forEach(el => {
-        document.getElementById(`statut-${el.id_utilisateur || el.id_eleve}`).textContent = "✅";
+      afficherMessage("✅ " + notesCompletes.length + " " + T('notes_enregistrees'), 'succes');
+      listeEleves.forEach(function(el) {
+        document.getElementById('statut-' + (el.id_utilisateur || el.id_eleve)).textContent = "✅";
       });
     } else {
-      afficherMessage("❌ Erreur : " + (res.erreur || "Erreur inconnue"), 'erreur');
+      afficherMessage(T('erreur_enregistrement') + (res.erreur || 'Erreur inconnue'), 'erreur');
     }
   } catch(e) {
-    afficherMessage("❌ Erreur réseau", 'erreur');
+    afficherMessage(T('erreur_connexion'), 'erreur');
   }
 }
 
@@ -631,24 +698,24 @@ async function genererBulletins() {
   const trimestre = document.getElementById('trimestre').value;
 
   if (!id_classe) { 
-    afficherMessage("⚠️ Sélectionne une Classe d'abord !", 'erreur'); 
+    afficherMessage(T('saisir_classe'), 'erreur'); 
     return; 
   }
 
   try {
-    const r = await fetch(`${API_URL}/generer-bulletin/${id_classe}/${trimestre}`, {
+    const r = await fetch(API_URL + '/generer-bulletin/' + id_classe + '/' + trimestre, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: 'Bearer ' + token }
     });
     const res = await r.json();
     
     if (res.ok) {
-      afficherMessage("✅ Bulletins générés ! Va sur 'Voir / Imprimer Bulletins'", 'succes');
+      afficherMessage(T('bulletins_generes'), 'succes');
     } else {
-      afficherMessage("❌ Erreur : " + (res.erreur || "Erreur inconnue"), 'erreur');
+      afficherMessage(T('erreur_enregistrement') + (res.erreur || 'Erreur inconnue'), 'erreur');
     }
   } catch(e) {
-    afficherMessage("❌ Erreur connexion serveur", 'erreur');
+    afficherMessage(T('erreur_connexion'), 'erreur');
   }
 }
 </script>
