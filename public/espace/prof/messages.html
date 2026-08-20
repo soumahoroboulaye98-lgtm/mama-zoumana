@@ -1,15 +1,18 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="lang-fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>
-    <span class="lang-fr">Messagerie</span>
-    <span class="lang-en">Messages</span>
-    <span class="lang-ar">الرسائل</span>
+    <span class="lang-fr">Messagerie — Enseignant — MAMA-ZOUMANA</span>
+    <span class="lang-en">Messages — Teacher — MAMA-ZOUMANA</span>
+    <span class="lang-ar">الرسائل — المعلم — ماما زومانا</span>
   </title>
+
+  <!-- URLs vérifiées et harmonisées -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
   <style>
     :root {
       --sombre: #0f172a;
@@ -18,18 +21,82 @@
       --bleu: #3b82f6;
       --texte: #f8fafc;
     }
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{background:var(--sombre);color:var(--texte);min-height:100vh;font-family:'Segoe UI',sans-serif;}
-    .entete-page{background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.2rem 0}
-    .carte{background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);padding:1.2rem;}
-    .ligne-msg{border-bottom:1px solid #334155;padding:1rem;cursor:pointer;transition:background 0.2s;}
-    .ligne-msg:hover{background:rgba(245,158,11,0.08);border-radius:6px;}
-    .ligne-msg.non-lu{border-left:3px solid var(--bord-orange);background:rgba(245,158,11,0.05);}
-    .btn-action{background:var(--bleu);color:white;border-radius:8px;border:none;}
-    .btn-langue.active{background:var(--bord-orange);color:#000;border-color:var(--bord-orange);font-weight:bold;}
 
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: all 0.25s ease;
+    }
+
+    body {
+      background: var(--sombre);
+      color: var(--texte);
+      min-height: 100vh;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    .entete-page {
+      background: var(--sombre-clair);
+      border-bottom: 3px solid var(--bord-orange);
+      padding: 1.2rem 0;
+      margin-bottom: 2rem;
+    }
+
+    .carte {
+      background: var(--sombre-clair);
+      border-radius: 14px;
+      border-left: 4px solid var(--bord-orange);
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .ligne-msg {
+      border-bottom: 1px solid #334155;
+      padding: 1rem;
+      cursor: pointer;
+      border-radius: 8px;
+      margin-bottom: 0.3rem;
+    }
+
+    .ligne-msg:hover {
+      background: rgba(245,158,11,0.08);
+    }
+
+    .ligne-msg.non-lu {
+      border-left: 4px solid var(--bord-orange);
+      background: rgba(245,158,11,0.08);
+    }
+
+    .btn-action {
+      background: var(--bleu);
+      color: white;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+    }
+
+    .btn-action:hover {
+      background: #2563eb;
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .btn-langue {
+      border-radius: 8px;
+    }
+
+    .btn-langue.active {
+      background: var(--bord-orange);
+      color: #000;
+      border-color: var(--bord-orange);
+      font-weight: 700;
+    }
+
+    /* ✅ GESTION DES LANGUES — CONFORME AU STANDARD DU PROJET */
     .lang-en, .lang-ar { display: none; }
     body.lang-fr .lang-fr { display: inline; }
+    body.lang-fr .lang-en, body.lang-fr .lang-ar { display: none; }
     body.lang-en { direction: ltr; }
     body.lang-en .lang-fr, body.lang-en .lang-ar { display: none; }
     body.lang-en .lang-en { display: inline; }
@@ -40,20 +107,28 @@
 </head>
 <body class="lang-fr">
 
+<!-- 🔐 SÉCURITÉ & CONFIGURATION -->
 <script>
 const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
-if(!token || role !== 'prof'){
-  alert("⛔ Accès réservé aux enseignants");
-  localStorage.clear();
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+
+if (!token || role !== 'prof') {
+  alert("⛔ Accès réservé aux Enseignants. Veuillez vous reconnecter.");
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
   location.href = 'connexion.html';
 }
 </script>
 
+<!-- 📌 EN-TÊTE -->
 <div class="entete-page">
-  <div class="container d-flex justify-content-between align-items-center">
+  <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
     <div>
-      <h3 class="mb-1">
+      <h3 class="mb-1 fw-bold">
+        <i class="bi bi-envelope-paper me-2" style="color:var(--bord-orange)"></i>
         <span class="lang-fr">📬 Messagerie</span>
         <span class="lang-en">📬 Messages</span>
         <span class="lang-ar">📬 الرسائل</span>
@@ -65,31 +140,40 @@ if(!token || role !== 'prof'){
       </p>
     </div>
     <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-sm btn-outline-light btn-langue active" onclick="changerLangue('fr')" id="btn-fr">FR</button>
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('en')" id="btn-en">EN</button>
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('ar')" id="btn-ar">AR</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('ar')" id="btn-ar">🇸🇦 AR</button>
       <a href="contacter-parents.html" class="btn btn-action ms-2">
         <i class="bi bi-plus-lg"></i>
         <span class="lang-fr"> Nouveau</span>
         <span class="lang-en"> New</span>
         <span class="lang-ar"> جديد</span>
       </a>
-      <a href="dashboard.html" class="btn btn-outline-light ms-2">
-        <i class="bi bi-arrow-left"></i>
+      <a href="dashboard-prof.html" class="btn btn-outline-light ms-2">
+        <i class="bi bi-arrow-left-circle"></i>
+        <span class="lang-fr"> Retour</span>
+        <span class="lang-en"> Back</span>
+        <span class="lang-ar"> عودة</span>
       </a>
     </div>
   </div>
 </div>
 
 <div class="container py-4">
+  <!-- ⚠️ ZONE DE MESSAGES -->
+  <div id="zone-message"></div>
+
+  <!-- 📋 LISTE DES MESSAGES -->
   <div class="carte">
-    <h5 class="mb-3">
+    <h5 class="mb-3 fw-bold">
+      <i class="bi bi-inbox me-2" style="color:var(--bord-orange)"></i>
       <span class="lang-fr">📋 Messages Reçus</span>
       <span class="lang-en">📋 Inbox</span>
       <span class="lang-ar">📋 الوارد</span>
     </h5>
     <div id="listeMessages">
       <div class="text-center py-4 text-muted">
+        <div class="spinner-border spinner-border-sm me-2"></div>
         <span class="lang-fr">Chargement...</span>
         <span class="lang-en">Loading...</span>
         <span class="lang-ar">جار التحميل...</span>
@@ -99,36 +183,79 @@ if(!token || role !== 'prof'){
 </div>
 
 <script>
-const BASE_URL = "/api/messages";
+// ==================================================
+// 🗣️ GESTION DE LA LANGUE — Conforme au standard
+// ==================================================
+function changerLangue(langue) {
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + langue);
+  localStorage.setItem('langue', langue);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + langue)?.classList.add('active');
+}
 
-async function chargerMessages(){
+const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+changerLangue(langueSauvegardee);
+
+// ==================================================
+// 💬 AFFICHAGE DES MESSAGES
+// ==================================================
+function afficherMessage(texte, type = 'info') {
+  const zone = document.getElementById('zone-message');
+  const style = type === 'succes' ? 'border-success bg-success bg-opacity-10 text-success' :
+                type === 'erreur' ? 'border-danger bg-danger bg-opacity-10 text-danger' :
+                'border-info bg-info bg-opacity-10 text-info';
+  zone.innerHTML = `<div class="alert ${style} border-2">${texte}</div>`;
+  setTimeout(() => zone.innerHTML = '', 8000);
+}
+
+// ==================================================
+// 📥 CHARGER LES MESSAGES REÇUS
+// ==================================================
+async function chargerMessages() {
   try {
-    const r = await fetch(BASE_URL + '/recus', {headers:{'Authorization':`Bearer ${token}`}});
-    const res = await r.json();
+    console.log("📡 Chargement des messages...");
+    const reponse = await fetch(`${API_URL}/messages/recus`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const res = await reponse.json();
+    console.log("📡 Messages reçus :", res);
+
     const liste = document.getElementById('listeMessages');
-    if(res.ok && res.lignes.length > 0){
-      liste.innerHTML = res.lignes.map(m=>`
-        <div class="ligne-msg ${m.lu==0?'non-lu':''}">
+    let messages = [];
+    if (res.lignes && Array.isArray(res.lignes)) messages = res.lignes;
+    else if (res.messages && Array.isArray(res.messages)) messages = res.messages;
+
+    if (messages.length > 0) {
+      liste.innerHTML = messages.map(m => `
+        <div class="ligne-msg ${m.lu == 0 ? 'non-lu' : ''}" title="${m.contenu || ''}">
           <div class="d-flex justify-content-between align-items-start">
-            <div>
+            <div class="flex-grow-1">
               <h6 class="mb-1 fw-bold">${m.sujet || 'Sans sujet'}</h6>
-              <p class="mb-1 small opacity-75">${m.expediteur || 'Expéditeur inconnu'}</p>
-              <p class="mb-0 text-truncate opacity-75">${(m.contenu||'').substring(0,80)}...</p>
+              <p class="mb-1 small opacity-75">
+                <i class="bi bi-person me-1"></i>${m.expediteur || 'Expéditeur inconnu'}
+              </p>
+              <p class="mb-0 text-truncate opacity-75 small">${(m.contenu || '').substring(0, 85)}...</p>
             </div>
-            <div class="small opacity-50 text-nowrap ms-2">${m.date_envoi || ''}</div>
+            <div class="small opacity-50 text-nowrap ms-3">
+              ${m.date_envoi || ''}
+              ${m.lu == 0 ? '<span class="badge bg-warning text-dark ms-2">Nouveau</span>' : ''}
+            </div>
           </div>
         </div>
       `).join('');
     } else {
       liste.innerHTML = `<div class="text-center py-4 text-muted">
+        <i class="bi bi-inbox fs-2 mb-2 d-block"></i>
         <span class="lang-fr">Aucun message</span>
         <span class="lang-en">No messages</span>
         <span class="lang-ar">لا توجد رسائل</span>
       </div>`;
     }
-  } catch(e) { 
-    console.log("❌ Erreur chargement messages :", e);
-    document.getElementById('listeMessages').innerHTML = `<div class="text-center py-4 text-muted">
+  } catch (erreur) {
+    console.log("❌ Erreur chargement messages :", erreur);
+    document.getElementById('listeMessages').innerHTML = `<div class="text-center py-4 text-danger">
+      <i class="bi bi-exclamation-triangle fs-2 mb-2 d-block"></i>
       <span class="lang-fr">Erreur de chargement</span>
       <span class="lang-en">Load error</span>
       <span class="lang-ar">خطأ في التحميل</span>
@@ -136,20 +263,8 @@ async function chargerMessages(){
   }
 }
 
-function changerLangue(langue) {
-  document.body.className = 'lang-' + langue;
-  localStorage.setItem('langue', langue);
-  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-'+langue).classList.add('active');
-}
-
-// 🚀 Au chargement
-let langue = localStorage.getItem('langue') || 'fr';
-document.body.className = 'lang-' + langue;
-document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
-document.getElementById('btn-'+langue).classList.add('active');
-
-chargerMessages();
+// 🚀 INITIALISATION AU CHARGEMENT
+document.addEventListener('DOMContentLoaded', chargerMessages);
 </script>
 
 </body>
