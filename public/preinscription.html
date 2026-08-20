@@ -1,16 +1,29 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="lang-fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Préinscription — SALAF SALEH</title>
+  <title>
+    <span class="txt-fr">Préinscription — MAMA-ZOUMANA</span>
+    <span class="txt-en">Pre-Registration — MAMA-ZOUMANA</span>
+    <span class="txt-ar">التسجيل المسبق — ماما زومانا</span>
+  </title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    :root { --primaire: #0c4a6e; --secondaire: #0369a1; --accent: #f59e0b; --sombre: #0f172a; --sombre-clair: #1e293b; --clair: #f8fafc; --succes: #10b981; --danger: #ef4444; }
+    :root { 
+      --primaire: #0c4a6e; 
+      --secondaire: #0369a1; 
+      --accent: #f59e0b; 
+      --sombre: #0f172a; 
+      --sombre-clair: #1e293b; 
+      --clair: #f8fafc; 
+      --succes: #10b981; 
+      --danger: #ef4444; 
+    }
     *{margin:0;padding:0;box-sizing:border-box}
     body{background:var(--sombre);color:var(--clair);font-family:'Segoe UI',sans-serif;min-height:100vh}
-    body.lang-ar{font-family:'Segoe UI Tahoma',sans-serif;direction:rtl;text-align:right}
+    body.lang-ar{font-family:'Segoe UI', Tahoma, sans-serif;direction:rtl;text-align:right}
 
     /* ===== CADRE BRILLANT TOURNANT ===== */
     .cadre-form{position:relative;max-width:850px;margin:40px auto;padding:35px;background:rgba(15,23,42,0.95);border-radius:20px;overflow:hidden;box-shadow:0 0 30px rgba(245,158,11,0.25)}
@@ -35,11 +48,15 @@
     .classe-complete{background:rgba(239,68,68,0.1);border:1px solid var(--danger);color:#fca5a5}
     option:disabled{color:#ef4444 !important;font-weight:bold;background:rgba(239,68,68,0.1)}
 
-    /* ✅ AFFICHAGE PAR LANGUE */
-    .txt-fr,.txt-en,.txt-ar{display:none !important}
-    body.lang-fr .txt-fr{display:inline !important}
-    body.lang-en .txt-en{display:inline !important}
-    body.lang-ar .txt-ar{display:inline !important}
+    /* ✅ MODÈLE TRILINGUE HARMONISÉ */
+    .txt-en, .txt-ar { display: none !important; }
+    body.lang-fr .txt-fr { display: inline !important; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none !important; }
+    body.lang-en .txt-en { display: inline !important; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none !important; }
+    body.lang-ar .txt-ar { display: inline !important; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none !important; }
+
     .btn-langue{background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:5px 12px;margin:0 3px}
     .btn-langue.actif{background:var(--accent);color:var(--sombre)}
     .champ-cache{display:none}
@@ -60,9 +77,9 @@
       <span class="txt-ar">العودة للرئيسية</span>
     </a>
     <div class="mt-2">
-      <button class="btn-langue actif" onclick="changerLangue('fr')">FR</button>
-      <button class="btn-langue" onclick="changerLangue('en')">EN</button>
-      <button class="btn-langue" onclick="changerLangue('ar')">AR</button>
+      <button class="btn-langue" data-lang="fr">FR</button>
+      <button class="btn-langue" data-lang="en">EN</button>
+      <button class="btn-langue" data-lang="ar">AR</button>
     </div>
   </div>
 
@@ -81,12 +98,12 @@
     </div>
 
     <div class="onglets">
-      <button class="btn-onglet actif" onclick="choisirType('nouveau')">
+      <button class="btn-onglet actif" data-type="nouveau">
         <span class="txt-fr">🆕 Nouvelle Préinscription</span>
         <span class="txt-en">🆕 New Pre-Registration</span>
         <span class="txt-ar">🆕 تسجيل مسبق جديد</span>
       </button>
-      <button class="btn-onglet" onclick="choisirType('reinscrit')">
+      <button class="btn-onglet" data-type="reinscrit">
         <span class="txt-fr">🔄 Réinscription</span>
         <span class="txt-en">🔄 Re-Registration</span>
         <span class="txt-ar">🔄 إعادة تسجيل</span>
@@ -186,7 +203,7 @@
         </div>
       </div>
 
-      <!-- ✅ CHAMPS ÉLÈVE — LISTE DES CLASSES CHARGÉE DEPUIS LA BASE -->
+      <!-- ✅ CHAMPS ÉLÈVE -->
       <div id="champsEleve" class="champ-cache">
         <div class="form-groupe">
           <label for="id_classe">
@@ -201,7 +218,6 @@
               <span class="txt-ar">-- جارٍ التحميل... --</span>
             </option>
           </select>
-          <!-- ✅ Affichage dynamique des places restantes -->
           <div id="infoPlaces" class="chargement-classe mt-2">
             <span class="txt-fr">Chargement des disponibilités...</span>
             <span class="txt-en">Loading availability...</span>
@@ -294,21 +310,40 @@
 </div>
 
 <script>
-// 🌐 Changement de langue
-function changerLangue(lang) {
-  document.body.classList.remove('lang-fr','lang-en','lang-ar');
-  document.body.classList.add('lang-'+lang);
-  document.querySelectorAll('.btn-langue').forEach(b=>b.classList.remove('actif'));
-  event.target.classList.add('actif');
+// ==================================================
+// ⚙️ CONFIGURATION — 100% HARMONISÉE ✅
+// ==================================================
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+let langue = localStorage.getItem('langue') || 'fr';
+
+// 🗣️ GESTION DE LA LANGUE ✅
+function appliquerLangue(lang) {
+  langue = lang;
   localStorage.setItem('langue', lang);
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + lang);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('actif'));
+  document.querySelector(`.btn-langue[data-lang="${lang}"]`)?.classList.add('actif');
 }
 
-// 🔄 Choix type d'inscription
-function choisirType(type){
-  document.getElementById('typeIns').value = type;
-  document.querySelectorAll('.btn-onglet').forEach(b=>b.classList.remove('actif'));
-  event.target.classList.add('actif');
-}
+// ✅ Écouteurs boutons langue
+document.querySelectorAll('.btn-langue').forEach(btn => {
+  btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
+});
+
+// ✅ Restaurer langue sauvegardée au chargement
+window.addEventListener('DOMContentLoaded', () => {
+  appliquerLangue(localStorage.getItem('langue') || 'fr');
+});
+
+// 🔄 Choix type d'inscription ✅
+document.querySelectorAll('.btn-onglet').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('typeIns').value = btn.dataset.type;
+    document.querySelectorAll('.btn-onglet').forEach(b => b.classList.remove('actif'));
+    btn.classList.add('actif');
+  });
+});
 
 // 📋 Afficher les champs selon le profil
 function afficherChampsParProfil(){
@@ -318,7 +353,7 @@ function afficherChampsParProfil(){
   document.getElementById('infoPlaces').innerHTML = '';
   if(p === 'eleve'){
     document.getElementById('champsEleve').classList.remove('champ-cache');
-    chargerListeClasses(); // ✅ Charger la liste quand ÉLÈVE est sélectionné
+    chargerListeClasses();
   }else if(p === 'prof'){
     document.getElementById('champsProf').classList.remove('champ-cache');
   }
@@ -327,17 +362,16 @@ function afficherChampsParProfil(){
 // 📦 Stocker toutes les classes chargées
 let listeClasses = [];
 
-// ✅ CHARGER LA LISTE DES CLASSES DEPUIS LA BASE — URL CORRIGÉE
+// ✅ CHARGER LA LISTE DES CLASSES — API_URL HARMONISÉ ✅
 async function chargerListeClasses(){
   const selectClasse = document.getElementById('id_classe');
   const infoPlaces = document.getElementById('infoPlaces');
 
   try {
-    // ✅ URL HARMONISÉE avec ta route existante
-    const res = await fetch('/api/classes');
+    const res = await fetch(`${API_URL}/classes`);
     const data = await res.json();
 
-    if(data.ok && data.classes.length > 0){
+    if(data.ok && data.classes?.length > 0){
       listeClasses = data.classes;
       selectClasse.innerHTML = '<option value="">-- Sélectionnez une classe --</option>';
 
@@ -345,13 +379,11 @@ async function chargerListeClasses(){
         const option = document.createElement('option');
         option.value = classe.id;
 
-        // ✅ Afficher le nom de la classe + places restantes
         const textePlaces = classe.places_restantes > 0 
           ? `✅ ${classe.nom} — ${classe.places_restantes} place(s) disponible(s)`
           : `❌ ${classe.nom} — COMPLET`;
         option.textContent = textePlaces;
 
-        // ⛔ Classe complète = non sélectionnable
         if(classe.places_restantes <= 0){
           option.disabled = true;
         }
@@ -366,11 +398,11 @@ async function chargerListeClasses(){
   } catch (erreur) {
     console.error("Erreur chargement classes :", erreur);
     selectClasse.innerHTML = '<option value="">-- Erreur de chargement --</option>';
-    infoPlaces.innerHTML = `<span class="txt-fr text-danger">❌ Serveur indisponible — ${erreur.message}</span><span class="txt-en text-danger">❌ Server unavailable</span><span class="txt-ar text-danger">❌ الخادم غير متاح</span>`;
+    infoPlaces.innerHTML = `<span class="txt-fr text-danger">❌ Serveur indisponible</span><span class="txt-en text-danger">❌ Server unavailable</span><span class="txt-ar text-danger">❌ الخادم غير متاح</span>`;
   }
 }
 
-// ✅ AFFICHER LES PLACES EN DESSOUS DU SÉLECTEUR
+// ✅ AFFICHER LES PLACES RESTANTES
 function afficherPlacesRestantes(){
   const idChoisi = document.getElementById('id_classe').value;
   const infoPlaces = document.getElementById('infoPlaces');
@@ -382,15 +414,15 @@ function afficherPlacesRestantes(){
       infoPlaces.innerHTML = `✅ <span class="txt-fr">${classe.places_restantes} place(s) restante(s) sur ${classe.capacite_totale}</span><span class="txt-en">${classe.places_restantes} place(s) remaining out of ${classe.capacite_totale}</span><span class="txt-ar">${classe.places_restantes} مقعداً متاحاً من أصل ${classe.capacite_totale}</span>`;
     } else {
       infoPlaces.className = 'info-classe classe-complete';
-      infoPlaces.innerHTML = `❌ <span class="txt-fr">Cette classe est COMPLETE (${classe.capacite_totale} places au total)</span><span class="txt-en">This class is FULL (${classe.capacite_totale} places total)</span><span class="txt-ar">هذا الفصل مكتمل (${classe.capacite_totale} مقعد)</span>`;
+      infoPlaces.innerHTML = `❌ <span class="txt-fr">Cette classe est COMPLÈTE (${classe.capacite_totale} places au total)</span><span class="txt-en">This class is FULL (${classe.capacite_totale} places total)</span><span class="txt-ar">هذا الفصل مكتمل (${classe.capacite_totale} مقعد)</span>`;
     }
   } else {
     infoPlaces.innerHTML = '';
   }
 }
 
-// 📤 Soumission du formulaire
-document.getElementById('formPreinscription').addEventListener('submit', async e=>{
+// 📤 Soumission du formulaire — API_URL HARMONISÉ ✅
+document.getElementById('formPreinscription').addEventListener('submit', async e => {
   e.preventDefault();
   const msgConf = document.getElementById('messageConfirmation');
   const form = e.target;
@@ -418,7 +450,7 @@ document.getElementById('formPreinscription').addEventListener('submit', async e
   donnees.append('profil', document.getElementById('profil').value);
 
   try {
-    const res = await fetch('/api/preinscription', {
+    const res = await fetch(`${API_URL}/preinscription`, {
       method: 'POST',
       body: donnees
     });
@@ -439,15 +471,6 @@ document.getElementById('formPreinscription').addEventListener('submit', async e
     btn.disabled = false;
     btn.innerHTML = "<span class='txt-fr'>✅ Envoyer ma demande</span><span class='txt-en'>✅ Submit my request</span><span class='txt-ar'>✅ إرسال طلبي</span>";
   }
-});
-
-// ✅ Appliquer la langue sauvegardée au chargement
-window.addEventListener('DOMContentLoaded', () => {
-  const langue = localStorage.getItem('langue') || 'fr';
-  document.body.classList.remove('lang-fr','lang-en','lang-ar');
-  document.body.classList.add('lang-'+langue);
-  document.querySelectorAll('.btn-langue').forEach(b=>b.classList.remove('actif'));
-  document.querySelector(`.btn-langue[onclick*="${langue}"]`)?.classList.add('actif');
 });
 </script>
 </body>
