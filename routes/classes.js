@@ -1,14 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const verifadmin = require('../middleware/verifadmin');
-const verifprof = require('../middleware/verifprof');
+const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté systématiquement
+const verifadmin = require('../middleware/verifadmin');   // ✅ Administrateur seul
+const verifprof = require('../middleware/verifprof');     // ✅ Professeur seul
+
+// ✅ Protections groupées uniformes
+const protegerAdmin = [veriftoken, verifadmin];
+const protegerProf = [veriftoken, verifprof];
 
 
 // ==================================================
-// 📚 CLASSES — LISTE POUR PRÉINSCRIPTION (AVEC PLACES)
+// 📚 LISTE DES CLASSES POUR PRÉINSCRIPTION (Ouvertes uniquement — Publique)
 // ==================================================
-
 router.get('/', async (req, res) => {
   try {
     const requete = `
@@ -27,48 +31,62 @@ router.get('/', async (req, res) => {
       ORDER BY libelle_classe
     `;
     const resultat = await pool.query(requete);
+
+    console.log(`✅ Liste des classes ouvertes consultée — ${resultat.rows.length} classe(s)`);
     res.json({ ok: true, classes: resultat.rows });
+
   } catch (erreur) {
-    console.error("❌ ERREUR CLASSES :", erreur.message);
-    res.json({ ok: false, erreur: "Impossible de charger les classes" });
+    console.error("❌ ERREUR CHARGEMENT CLASSES :", erreur.message);
+    res.json({ ok: false, erreur: "⚠️ Impossible de charger les classes" });
   }
 });
 
 
 // ==================================================
-// 📚 CLASSES — ADMIN (Gestion complète)
+// 📚 TOUTES LES CLASSES — Administration
 // ==================================================
-
-router.get('/toutes', async (req, res) => {
+router.get('/toutes', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
       SELECT *, (capacite_max - places_occupees) AS places_restantes 
       FROM classes ORDER BY libelle_classe
     `);
+
+    console.log(`✅ Liste complète des classes consultée — ${r.rows.length} classe(s)`);
     res.json({ ok: true, lignes: r.rows });
-  } catch (e) { 
-    console.log("❌ ERREUR CLASSE :", e.message);
-    res.json({ ok: false, erreur: e.message }); 
+
+  } catch (e) {
+    console.error("❌ ERREUR CHARGEMENT TOUTES CLASSES :", e.message);
+    res.json({ ok: false, erreur: e.message });
   }
 });
 
 
-router.get('/liste', async (req, res) => {
+// ==================================================
+// 📚 LISTE SIMPLIFIÉE DES CLASSES — Administration
+// ==================================================
+router.get('/liste', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
       SELECT id_classe, libelle_classe, libelle_classe_ar, libelle_classe_en, 
              cycle, capacite_max, statut
       FROM classes ORDER BY libelle_classe
     `);
+
+    console.log(`✅ Liste simplifiée des classes consultée — ${r.rows.length} classe(s)`);
     res.json({ ok: true, liste: r.rows });
-  } catch (e) { 
-    console.log("❌ ERREUR CLASSE/LISTE :", e.message);
-    res.json({ ok: false, erreur: e.message }); 
+
+  } catch (e) {
+    console.error("❌ ERREUR CHARGEMENT LISTE CLASSES :", e.message);
+    res.json({ ok: false, erreur: e.message });
   }
 });
 
 
-router.post('/init-classes', verifadmin, async (req, res) => {
+// ==================================================
+// 📚 INITIALISATION DES CLASSES — Administrateur seul
+// ==================================================
+router.post('/init-classes', protegerAdmin, async (req, res) => {
   try {
     const classes = [
       [1, 'CP1', 'الصف الأول ابتدائي', 'First Year Primary', 'primaire', 35],
@@ -127,25 +145,31 @@ router.post('/init-classes', verifadmin, async (req, res) => {
       }
     }
 
+    console.log(`✅ Initialisation classes terminée — ${inseres} classe(s) créée(s)`);
     res.json({ ok: true, message: `✅ ${inseres} classes créées !`, creees: inseres });
-  } catch (e) { 
-    console.log("❌ ERREUR INIT CLASSES :", e.message);
-    res.json({ ok: false, erreur: e.message }); 
+
+  } catch (e) {
+    console.error("❌ ERREUR INITIALISATION CLASSES :", e.message);
+    res.json({ ok: false, erreur: e.message });
   }
 });
 
 
-router.post('/', verifadmin, async (req, res) => {
+// ==================================================
+// 📚 CRÉER UNE CLASSE — Administrateur seul
+// ==================================================
+router.post('/', protegerAdmin, async (req, res) => {
   try {
     const { libelle_classe, cycle, capacite_max, salle, statut } = req.body;
 
+    // Validations
     if (!libelle_classe || libelle_classe.trim() === '') {
       return res.json({ ok: false, erreur: "⚠️ Indiquez le nom de la classe !" });
     }
-    if (!cycle || !['maternelle','primaire','college','lycee','superieur'].includes(cycle)) {
+    if (!cycle || !['maternelle', 'primaire', 'college', 'lycee', 'superieur'].includes(cycle)) {
       return res.json({ ok: false, erreur: "⚠️ Cycle invalide ! Valeurs : maternelle, primaire, college, lycee, superieur" });
     }
-    if (!statut || !['ouverte','complete','fermee'].includes(statut)) {
+    if (!statut || !['ouverte', 'complete', 'fermee'].includes(statut)) {
       return res.json({ ok: false, erreur: "⚠️ Statut invalide ! Valeurs : ouverte, complete, fermee" });
     }
 
@@ -154,6 +178,7 @@ router.post('/', verifadmin, async (req, res) => {
       return res.json({ ok: false, erreur: "⚠️ Capacité doit être entre 10 et 80 !" });
     }
 
+    // Génération du prochain identifiant
     const maxId = await pool.query('SELECT COALESCE(MAX(id_classe), 0) + 1 AS prochain FROM classes');
     const prochainId = maxId.rows[0].prochain;
 
@@ -162,19 +187,29 @@ router.post('/', verifadmin, async (req, res) => {
       VALUES ($1, $2, $3, $4, 0, $5, $6)
     `, [prochainId, libelle_classe.trim(), cycle, cap, salle || null, statut || 'ouverte']);
 
+    console.log(`✅ Classe créée — ID: ${prochainId}, Nom: ${libelle_classe.trim()}`);
     res.json({ ok: true, message: "✅ Classe enregistrée !", id_classe: prochainId });
-  } catch (e) { 
-    console.log("❌ ERREUR CLASSE :", e.code, "|", e.message);
+
+  } catch (e) {
+    console.error("❌ ERREUR CRÉATION CLASSE :", e.code, "|", e.message);
     if (e.code === '23514') {
       return res.json({ ok: false, erreur: "⚠️ Capacité doit être entre 10 et 80 !" });
     }
-    res.json({ ok: false, erreur: e.message }); 
+    res.json({ ok: false, erreur: e.message });
   }
 });
 
 
-router.put('/:id', verifadmin, async (req, res) => {
+// ==================================================
+// 📚 MODIFIER UNE CLASSE — Administrateur seul
+// ==================================================
+router.put('/:id', protegerAdmin, async (req, res) => {
   try {
+    const id_classe = parseInt(req.params.id);
+    if (isNaN(id_classe)) {
+      return res.json({ ok: false, erreur: "⚠️ Identifiant de classe invalide" });
+    }
+
     const { libelle_classe, cycle, capacite_max, salle, statut } = req.body;
 
     if (!libelle_classe || libelle_classe.trim() === '') {
@@ -190,58 +225,78 @@ router.put('/:id', verifadmin, async (req, res) => {
       SET libelle_classe = $1, cycle = $2, capacite_max = $3, salle = $4, statut = $5
       WHERE id_classe = $6
       RETURNING id_classe
-    `, [libelle_classe.trim(), cycle, cap, salle || null, statut || 'ouverte', req.params.id]);
+    `, [libelle_classe.trim(), cycle, cap, salle || null, statut || 'ouverte', id_classe]);
 
     if (r.rowCount === 0) {
-      return res.json({ ok: false, erreur: "Classe introuvable" });
+      return res.json({ ok: false, erreur: "⚠️ Classe introuvable" });
     }
+
+    console.log(`✅ Classe mise à jour — ID: ${id_classe}`);
     res.json({ ok: true, message: "✅ Classe mise à jour !" });
-  } catch (e) { 
-    console.log("❌ ERREUR MODIFICATION CLASSE :", e.message);
+
+  } catch (e) {
+    console.error("❌ ERREUR MODIFICATION CLASSE :", e.message);
     if (e.code === '23514') {
       return res.json({ ok: false, erreur: "⚠️ Capacité doit être entre 10 et 80 !" });
     }
-    res.json({ ok: false, erreur: e.message }); 
+    res.json({ ok: false, erreur: e.message });
   }
 });
 
 
-router.delete('/:id', verifadmin, async (req, res) => {
+// ==================================================
+// 📚 SUPPRIMER UNE CLASSE — Administrateur seul
+// ==================================================
+router.delete('/:id', protegerAdmin, async (req, res) => {
   try {
-    const r = await pool.query('DELETE FROM classes WHERE id_classe = $1 RETURNING id_classe', [req.params.id]);
-    if (r.rowCount === 0) {
-      return res.json({ ok: false, erreur: "Classe introuvable" });
+    const id_classe = parseInt(req.params.id);
+    if (isNaN(id_classe)) {
+      return res.json({ ok: false, erreur: "⚠️ Identifiant de classe invalide" });
     }
+
+    const r = await pool.query('DELETE FROM classes WHERE id_classe = $1 RETURNING id_classe', [id_classe]);
+
+    if (r.rowCount === 0) {
+      return res.json({ ok: false, erreur: "⚠️ Classe introuvable" });
+    }
+
+    console.log(`✅ Classe supprimée — ID: ${id_classe}`);
     res.json({ ok: true, message: "✅ Classe supprimée !" });
-  } catch (e) { 
-    console.log("❌ ERREUR SUPPRESSION CLASSE :", e.message);
+
+  } catch (e) {
+    console.error("❌ ERREUR SUPPRESSION CLASSE :", e.message);
     if (e.code === '23503') {
       return res.json({ ok: false, erreur: "⚠️ Impossible : classe utilisée dans des inscriptions" });
     }
-    res.json({ ok: false, erreur: e.message }); 
+    res.json({ ok: false, erreur: e.message });
   }
 });
 
 
 // ==================================================
-// 📖 MATIÈRES
+// 📖 LISTE DES MATIÈRES — Publique
 // ==================================================
-
 router.get('/matieres', async (req, res) => {
   try {
     const r = await pool.query(`
       SELECT id_matiere, libelle_matiere, coefficient, volume_horaire, langue_ens
       FROM matieres ORDER BY libelle_matiere
     `);
+
+    console.log(`✅ Liste des matières consultée — ${r.rows.length} matière(s)`);
     res.json({ ok: true, lignes: r.rows });
-  } catch (e) { 
-    console.log("❌ ERREUR MATIÈRE :", e.message);
-    res.json({ ok: false, erreur: e.message }); 
+
+  } catch (e) {
+    console.error("❌ ERREUR CHARGEMENT MATIÈRES :", e.message);
+    res.json({ ok: false, erreur: e.message });
   }
 });
 
 
-router.post('/matieres', verifadmin, async (req, res) => {
+// ==================================================
+// 📖 CRÉER OU METTRE À JOUR UNE MATIÈRE — Administrateur seul
+// ==================================================
+router.post('/matieres', protegerAdmin, async (req, res) => {
   try {
     const { libelle_matiere, coefficient, volume_horaire, langue_ens } = req.body;
 
@@ -252,7 +307,6 @@ router.post('/matieres', verifadmin, async (req, res) => {
     if (coef <= 0) {
       return res.json({ ok: false, erreur: "⚠️ Le coefficient doit être supérieur à 0 !" });
     }
-
     const vol = Number(volume_horaire) || 0;
     const langue = langue_ens || 'fr';
 
@@ -265,16 +319,26 @@ router.post('/matieres', verifadmin, async (req, res) => {
         langue_ens = EXCLUDED.langue_ens
     `, [libelle_matiere.trim(), coef, vol, langue]);
 
+    console.log(`✅ Matière enregistrée — Nom: ${libelle_matiere.trim()}`);
     res.json({ ok: true, message: "✅ Matière enregistrée !" });
-  } catch (e) { 
-    console.log("❌ ERREUR MATIÈRE :", e.message);
-    res.json({ ok: false, erreur: e.message }); 
+
+  } catch (e) {
+    console.error("❌ ERREUR CRÉATION MATIÈRE :", e.message);
+    res.json({ ok: false, erreur: e.message });
   }
 });
 
 
-router.put('/matieres/:id', verifadmin, async (req, res) => {
+// ==================================================
+// 📖 MODIFIER UNE MATIÈRE — Administrateur seul
+// ==================================================
+router.put('/matieres/:id', protegerAdmin, async (req, res) => {
   try {
+    const id_matiere = parseInt(req.params.id);
+    if (isNaN(id_matiere)) {
+      return res.json({ ok: false, erreur: "⚠️ Identifiant de matière invalide" });
+    }
+
     const { libelle_matiere, coefficient, volume_horaire, langue_ens } = req.body;
     const coef = Number(coefficient) || 1;
     const vol = Number(volume_horaire) || 0;
@@ -285,41 +349,55 @@ router.put('/matieres/:id', verifadmin, async (req, res) => {
       SET libelle_matiere = $1, coefficient = $2, volume_horaire = $3, langue_ens = $4
       WHERE id_matiere = $5
       RETURNING id_matiere
-    `, [libelle_matiere.trim(), coef, vol, langue, req.params.id]);
+    `, [libelle_matiere.trim(), coef, vol, langue, id_matiere]);
 
     if (r.rowCount === 0) {
-      return res.json({ ok: false, erreur: "Matière introuvable" });
+      return res.json({ ok: false, erreur: "⚠️ Matière introuvable" });
     }
+
+    console.log(`✅ Matière mise à jour — ID: ${id_matiere}`);
     res.json({ ok: true, message: "✅ Matière mise à jour !" });
-  } catch (e) { 
-    console.log("❌ ERREUR MODIFICATION MATIÈRE :", e.message);
-    res.json({ ok: false, erreur: e.message }); 
+
+  } catch (e) {
+    console.error("❌ ERREUR MODIFICATION MATIÈRE :", e.message);
+    res.json({ ok: false, erreur: e.message });
   }
 });
 
 
-router.delete('/matieres/:id', verifadmin, async (req, res) => {
+// ==================================================
+// 📖 SUPPRIMER UNE MATIÈRE — Administrateur seul
+// ==================================================
+router.delete('/matieres/:id', protegerAdmin, async (req, res) => {
   try {
-    const r = await pool.query('DELETE FROM matieres WHERE id_matiere = $1 RETURNING id_matiere', [req.params.id]);
-    if (r.rowCount === 0) {
-      return res.json({ ok: false, erreur: "Matière introuvable" });
+    const id_matiere = parseInt(req.params.id);
+    if (isNaN(id_matiere)) {
+      return res.json({ ok: false, erreur: "⚠️ Identifiant de matière invalide" });
     }
+
+    const r = await pool.query('DELETE FROM matieres WHERE id_matiere = $1 RETURNING id_matiere', [id_matiere]);
+
+    if (r.rowCount === 0) {
+      return res.json({ ok: false, erreur: "⚠️ Matière introuvable" });
+    }
+
+    console.log(`✅ Matière supprimée — ID: ${id_matiere}`);
     res.json({ ok: true, message: "✅ Matière supprimée !" });
-  } catch (e) { 
-    console.log("❌ ERREUR SUPPRESSION MATIÈRE :", e.message);
+
+  } catch (e) {
+    console.error("❌ ERREUR SUPPRESSION MATIÈRE :", e.message);
     if (e.code === '23503') {
       return res.json({ ok: false, erreur: "⚠️ Impossible : matière utilisée dans des notes ou affectations" });
     }
-    res.json({ ok: false, erreur: e.message }); 
+    res.json({ ok: false, erreur: e.message });
   }
 });
 
 
 // ==================================================
-// 🧑‍🏫 AFFECTATIONS ENSEIGNANTS
+// 🧑‍🏫 LISTE DES AFFECTATIONS D'ENSEIGNANTS — Administrateur seul
 // ==================================================
-
-router.get('/affectations', verifadmin, async (req, res) => {
+router.get('/affectations', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
       SELECT a.*, 
@@ -332,51 +410,73 @@ router.get('/affectations', verifadmin, async (req, res) => {
       LEFT JOIN matieres m ON a.id_matiere = m.id_matiere
       ORDER BY u.nom, c.libelle_classe
     `);
+
+    console.log(`✅ Liste des affectations consultée — ${r.rows.length} affectation(s)`);
     res.json({ ok: true, lignes: r.rows });
-  } catch (e) { 
-    console.log("❌ ERREUR AFFECTATION :", e.message);
-    res.json({ ok: false, erreur: e.message }); 
+
+  } catch (e) {
+    console.error("❌ ERREUR CHARGEMENT AFFECTATIONS :", e.message);
+    res.json({ ok: false, erreur: e.message });
   }
 });
 
 
-router.post('/affectations', verifadmin, async (req, res) => {
+// ==================================================
+// 🧑‍🏫 CRÉER UNE AFFECTATION — Administrateur seul
+// ==================================================
+router.post('/affectations', protegerAdmin, async (req, res) => {
   try {
     const { id_prof, id_classe, id_matiere, annee_scolaire } = req.body;
 
     if (!id_prof || !id_classe || !id_matiere) {
-      return res.json({ ok: false, erreur: "⚠️ Remplis tous les champs !" });
+      return res.json({ ok: false, erreur: "⚠️ Remplissez tous les champs !" });
     }
 
     await pool.query(`
       INSERT INTO affectations_ens(id_prof, id_classe, id_matiere, annee_scolaire)
       VALUES ($1, $2, $3, $4)
     `, [id_prof, id_classe, id_matiere, annee_scolaire || '2026-2027']);
-    
+
+    console.log(`✅ Affectation créée — Prof: ${id_prof}, Classe: ${id_classe}, Matière: ${id_matiere}`);
     res.json({ ok: true, message: "✅ Affectation enregistrée !" });
+
   } catch (e) {
-    console.log("❌ ERREUR AFFECTATION :", e.message);
+    console.error("❌ ERREUR CRÉATION AFFECTATION :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 
-router.delete('/affectations/:id', verifadmin, async (req, res) => {
+// ==================================================
+// 🧑‍🏫 SUPPRIMER UNE AFFECTATION — Administrateur seul
+// ==================================================
+router.delete('/affectations/:id', protegerAdmin, async (req, res) => {
   try {
-    await pool.query('DELETE FROM affectations_ens WHERE id_affectation = $1', [req.params.id]);
+    const id_affectation = parseInt(req.params.id);
+    if (isNaN(id_affectation)) {
+      return res.json({ ok: false, erreur: "⚠️ Identifiant d'affectation invalide" });
+    }
+
+    const r = await pool.query('DELETE FROM affectations_ens WHERE id_affectation = $1 RETURNING id_affectation', [id_affectation]);
+
+    if (r.rowCount === 0) {
+      return res.json({ ok: false, erreur: "⚠️ Affectation introuvable" });
+    }
+
+    console.log(`✅ Affectation supprimée — ID: ${id_affectation}`);
     res.json({ ok: true, message: "✅ Affectation supprimée !" });
-  } catch (e) { 
-    console.log("❌ ERREUR SUPPRESSION AFFECTATION :", e.message);
-    res.json({ ok: false, erreur: e.message }); 
+
+  } catch (e) {
+    console.error("❌ ERREUR SUPPRESSION AFFECTATION :", e.message);
+    res.json({ ok: false, erreur: e.message });
   }
 });
 
 
 // ==================================================
-// 👨‍🏫 MES CLASSES — POUR LE PROFESSEUR CONNECTÉ
+// 👨‍🏫 MES CLASSES — Pour le professeur connecté
 // ==================================================
-
-router.get('/prof/classes', verifprof, async (req, res) => {
+router.get('/prof/classes', protegerProf, async (req, res) => {
   try {
     const id_prof = req.user.id_utilisateur;
 
@@ -395,20 +495,20 @@ router.get('/prof/classes', verifprof, async (req, res) => {
       ORDER BY c.libelle_classe
     `, [id_prof]);
 
-    res.json({
-      ok: true,
-      classes: r.rows,
-      lignes: r.rows
-    });
+    console.log(`✅ Liste des classes du professeur ${id_prof} — ${r.rows.length} classe(s)`);
+    res.json({ ok: true, classes: r.rows, lignes: r.rows });
 
-  } catch (e) { 
-    console.log("❌ ERREUR MES CLASSES PROF :", e.message);
-    res.json({ ok: false, erreur: e.message }); 
+  } catch (e) {
+    console.error("❌ ERREUR CHARGEMENT MES CLASSES :", e.message);
+    res.json({ ok: false, erreur: e.message });
   }
 });
 
 
-router.get('/prof/matieres', verifprof, async (req, res) => {
+// ==================================================
+// 👨‍🏫 MES MATIÈRES — Pour le professeur connecté
+// ==================================================
+router.get('/prof/matieres', protegerProf, async (req, res) => {
   try {
     const id_prof = req.user.id_utilisateur;
 
@@ -425,10 +525,12 @@ router.get('/prof/matieres', verifprof, async (req, res) => {
       ORDER BY m.libelle_matiere
     `, [id_prof]);
 
+    console.log(`✅ Liste des matières du professeur ${id_prof} — ${r.rows.length} matière(s)`);
     res.json({ ok: true, lignes: r.rows });
-  } catch (e) { 
-    console.log("❌ ERREUR MES MATIÈRES PROF :", e.message);
-    res.json({ ok: false, erreur: e.message }); 
+
+  } catch (e) {
+    console.error("❌ ERREUR CHARGEMENT MES MATIÈRES :", e.message);
+    res.json({ ok: false, erreur: e.message });
   }
 });
 
