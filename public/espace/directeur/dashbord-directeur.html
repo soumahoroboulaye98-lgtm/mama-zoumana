@@ -13,6 +13,7 @@
   <style>
     :root {
       --primaire: #0c4a6e;
+      --secondaire: #0369a1;
       --succes: #10b981;
       --info: #3b82f6;
       --alerte: #f59e0b;
@@ -30,7 +31,8 @@
     body.lang-en .txt-fr,body.lang-en .txt-ar{display:none}
     body.lang-ar .txt-ar{display:inline}
     body.lang-ar .txt-fr,body.lang-ar .txt-en{display:none}
-    body.lang-ar .titre-section{text-align:right}
+    body.lang-ar .titre-section,
+    body.lang-ar .text-end-ar{text-align:right}
 
     body {
       background: linear-gradient(135deg, var(--sombre), var(--sombre-clair));
@@ -52,15 +54,19 @@
       box-shadow: 0 8px 25px rgba(245, 158, 11, 0.15);
     }
 
-    .btn-primaire { background: linear-gradient(135deg, var(--primaire), #0369a1); border:none; color:white; }
-    .btn-primaire:hover { background: linear-gradient(135deg, #0369a1, var(--primaire)); color:white; }
-    .btn-succes { background: linear-gradient(135deg, var(--succes), #059669); border:none; color:white; }
-    .btn-info { background: linear-gradient(135deg, var(--info), #2563eb); border:none; color:white; }
-    .btn-accent { background: linear-gradient(135deg, var(--alerte), #d97706); border:none; color:#000; font-weight:500; }
+    .btn-primaire {
+      background: linear-gradient(135deg, var(--primaire), var(--secondaire));
+      border:none; color:white; border-radius: 10px;
+    }
+    .btn-primaire:hover { background: linear-gradient(135deg, var(--secondaire), var(--primaire)); color:white; transform: translateY(-1px); }
+    .btn-succes { background: linear-gradient(135deg, var(--succes), #059669); border:none; color:white; border-radius: 10px; }
+    .btn-info { background: linear-gradient(135deg, var(--info), #2563eb); border:none; color:white; border-radius: 10px; }
+    .btn-accent { background: linear-gradient(135deg, var(--alerte), #d97706); border:none; color:#000; font-weight:500; border-radius: 10px; }
+    .btn-succes:hover, .btn-danger:hover, .btn-accent:hover { transform: translateY(-1px); }
 
     .titre-section { color: var(--texte-dore); font-weight:600; }
 
-    .stat-valeur { font-size:1.8rem; font-weight:700; }
+    .stat-valeur { font-size:1.8rem; font-weight:700; line-height:1; }
     .stat-icone { font-size:2rem; opacity:0.8; }
 
     .onglet {
@@ -90,6 +96,8 @@
     .badge-attente { background: #f59e0b; color:#000; }
     .badge-valide { background: #10b981; }
     .badge-refuse { background: #ef4444; }
+
+    .table-dark { --bs-table-bg: rgba(15,23,42,0.5); --bs-table-striped-bg: rgba(30,41,59,0.4); }
   </style>
 </head>
 <body>
@@ -111,13 +119,13 @@
       </p>
     </div>
     <div class="d-flex gap-2 align-items-center">
-      <span class="badge bg-info me-2" id="nomDirecteur">—</span>
+      <span class="badge bg-info text-dark me-2" id="nomDirecteur">Directeur</span>
       <button class="btn btn-lang active" data-lang="fr">FR</button>
       <button class="btn btn-lang" data-lang="en">EN</button>
       <button class="btn btn-lang" data-lang="ar">ع</button>
-      <a href="connexion.html" class="btn btn-outline-danger btn-sm ms-2">
+      <button onclick="deconnexion()" class="btn btn-outline-danger btn-sm ms-2">
         <i class="bi bi-box-arrow-right"></i>
-      </a>
+      </button>
     </div>
   </div>
 
@@ -212,7 +220,11 @@
         <span class="txt-ar">التسجيلات في انتظار المصادقة</span>
       </h5>
       <div id="listeInscriptions">
-        <p class="text-center text-muted">Chargement...</p>
+        <p class="text-center text-muted">
+          <span class="txt-fr">Chargement...</span>
+          <span class="txt-en">Loading...</span>
+          <span class="txt-ar">جارٍ التحميل...</span>
+        </p>
       </div>
     </div>
   </div>
@@ -228,14 +240,26 @@
       <div class="row g-2 mb-3">
         <div class="col-md-4">
           <select id="filtreClasseBulletin" class="form-select">
-            <option value="">— Classe —</option>
+            <option value="">— <span class="txt-fr">Classe</span><span class="txt-en">Class</span> —</option>
           </select>
         </div>
         <div class="col-md-4">
           <select id="filtreTrimestreBulletin" class="form-select">
-            <option value="1">1er Trimestre</option>
-            <option value="2">2ème Trimestre</option>
-            <option value="3">3ème Trimestre</option>
+            <option value="1">
+              <span class="txt-fr">1er Trimestre</span>
+              <span class="txt-en">1st Term</span>
+              <span class="txt-ar">الفصل الأول</span>
+            </option>
+            <option value="2">
+              <span class="txt-fr">2ème Trimestre</span>
+              <span class="txt-en">2nd Term</span>
+              <span class="txt-ar">الفصل الثاني</span>
+            </option>
+            <option value="3">
+              <span class="txt-fr">3ème Trimestre</span>
+              <span class="txt-en">3rd Term</span>
+              <span class="txt-ar">الفصل الثالث</span>
+            </option>
           </select>
         </div>
         <div class="col-md-4">
@@ -247,7 +271,10 @@
         </div>
       </div>
       <div id="listeBulletins">
-        <p class="text-center text-muted">Sélectionnez une classe et un trimestre</p>
+        <p class="text-center text-muted">
+          <span class="txt-fr">Sélectionnez une classe et un trimestre</span>
+          <span class="txt-en">Select a class and a term</span>
+        </p>
       </div>
     </div>
   </div>
@@ -261,9 +288,33 @@
         <span class="txt-ar">ملخص المدفوعات</span>
       </h5>
       <div class="row g-2 mb-3">
-        <div class="col-md-4"><div class="bg-danger bg-opacity-25 p-3 rounded text-center"><span class="small">Total Dû</span><h4 class="text-danger" id="totalDu">—</h4></div></div>
-        <div class="col-md-4"><div class="bg-success bg-opacity-25 p-3 rounded text-center"><span class="small">Perçu</span><h4 class="text-success" id="totalPaye">—</h4></div></div>
-        <div class="col-md-4"><div class="bg-warning bg-opacity-25 p-3 rounded text-center"><span class="small">Restant</span><h4 class="text-warning" id="totalRestant">—</h4></div></div>
+        <div class="col-md-4">
+          <div class="bg-danger bg-opacity-25 p-3 rounded text-center">
+            <span class="small">
+              <span class="txt-fr">Total Dû</span>
+              <span class="txt-en">Total Due</span>
+            </span>
+            <h4 class="text-danger" id="totalDu">—</h4>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="bg-success bg-opacity-25 p-3 rounded text-center">
+            <span class="small">
+              <span class="txt-fr">Perçu</span>
+              <span class="txt-en">Received</span>
+            </span>
+            <h4 class="text-success" id="totalPaye">—</h4>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="bg-warning bg-opacity-25 p-3 rounded text-center">
+            <span class="small">
+              <span class="txt-fr">Restant</span>
+              <span class="txt-en">Remaining</span>
+            </span>
+            <h4 class="text-warning" id="totalRestant">—</h4>
+          </div>
+        </div>
       </div>
       <div id="listePaiementsDirecteur"></div>
     </div>
@@ -278,7 +329,11 @@
         <span class="txt-ar">قائمة الإعلانات</span>
       </h5>
       <div id="listeAnnoncesDirecteur">
-        <p class="text-center text-muted">Chargement...</p>
+        <p class="text-center text-muted">
+          <span class="txt-fr">Chargement...</span>
+          <span class="txt-en">Loading...</span>
+          <span class="txt-ar">جارٍ التحميل...</span>
+        </p>
       </div>
     </div>
   </div>
@@ -292,7 +347,11 @@
         <span class="txt-ar">جدول الفعاليات</span>
       </h5>
       <div id="listeEvenements">
-        <p class="text-center text-muted">Chargement...</p>
+        <p class="text-center text-muted">
+          <span class="txt-fr">Chargement...</span>
+          <span class="txt-en">Loading...</span>
+          <span class="txt-ar">جارٍ التحميل...</span>
+        </p>
       </div>
     </div>
   </div>
@@ -304,6 +363,54 @@
 const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 const token = localStorage.getItem('token');
 let langueActuelle = 'fr';
+
+// Messages multilingues
+const MSG = {
+  fr: {
+    authRequired: "Accès réservé aux directeurs — veuillez vous connecter.",
+    confirmValidate: "Confirmer la validation ?",
+    confirmRefuse: "Confirmer le refus ?",
+    selectClass: "Sélectionnez une classe",
+    noPending: "✅ Aucune inscription en attente",
+    noAnnouncement: "Aucune annonce",
+    noEvent: "Aucun événement programmé",
+    error: "Erreur"
+  },
+  en: {
+    authRequired: "Access reserved for principals — please log in.",
+    confirmValidate: "Confirm validation?",
+    confirmRefuse: "Confirm refusal?",
+    selectClass: "Select a class",
+    noPending: "✅ No pending registration",
+    noAnnouncement: "No announcements",
+    noEvent: "No scheduled events",
+    error: "Error"
+  },
+  ar: {
+    authRequired: "الوصول مخصص للمديرين — الرجاء تسجيل الدخول.",
+    confirmValidate: "تأكيد المصادقة؟",
+    confirmRefuse: "تأكيد الرفض؟",
+    selectClass: "اختر فصلاً",
+    noPending: "✅ لا يوجد تسجيل في الانتظار",
+    noAnnouncement: "لا توجد إعلانات",
+    noEvent: "لا توجد فعاليات مقررة",
+    error: "خطأ"
+  }
+};
+
+function msg(key) { return MSG[langueActuelle]?.[key] || MSG.fr[key]; }
+
+// 🔒 Vérification accès
+if (!token || localStorage.getItem('profil') !== 'directeur') {
+  alert(msg('authRequired'));
+  location.href = '../../connexion.html';
+}
+
+// 🚪 Déconnexion
+function deconnexion(){
+  localStorage.clear();
+  location.href = '../../connexion.html';
+}
 
 // 🌐 LANGUE
 document.querySelectorAll('.btn-lang').forEach(btn => {
@@ -336,12 +443,20 @@ async function chargerStats(){
   try{
     const r = await fetch(`${API_URL}/statistiques`, {headers:{'Authorization':`Bearer ${token}`}});
     const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
+    if(!res.ok) throw new Error(res.erreur || msg('error'));
+
     document.getElementById('nbEleves').textContent = res.eleves || 0;
     document.getElementById('nbProfs').textContent = res.profs || 0;
     document.getElementById('nbClasses').textContent = res.classes || 0;
     document.getElementById('nbAttente').textContent = res.attente || 0;
     document.getElementById('nomDirecteur').textContent = `${res.directeur?.prenoms||''} ${res.directeur?.nom||''}`.trim() || 'Directeur';
+
+    // Charger la liste des classes dans le select
+    if(res.liste_classes?.length){
+      const select = document.getElementById('filtreClasseBulletin');
+      select.innerHTML = `<option value="">— <span class="txt-fr">Classe</span><span class="txt-en">Class</span> —</option>`
+        + res.liste_classes.map(c => `<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('');
+    }
   }catch(err){ console.error("Stats :", err.message); }
 }
 
@@ -350,48 +465,63 @@ async function chargerInscriptions(){
   try{
     const r = await fetch(`${API_URL}/inscriptions-attente`, {headers:{'Authorization':`Bearer ${token}`}});
     const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
+    if(!res.ok) throw new Error(res.erreur || msg('error'));
+
     const c = document.getElementById('listeInscriptions');
-    if(!res.inscriptions.length){
-      c.innerHTML=`<p class="text-center text-success">✅ Aucune inscription en attente</p>`;
+    if(!res.inscriptions?.length){
+      c.innerHTML = `<p class="text-center text-success">${msg('noPending')}</p>`;
       return;
     }
+
     c.innerHTML = `<div class="table-responsive"><table class="table table-dark table-striped table-hover">
       <thead class="table-warning text-dark"><tr>
-        <th>Élève</th><th>Classe</th><th>Date</th><th>Statut</th><th>Actions</th>
+        <th><span class="txt-fr">Élève</span><span class="txt-en">Student</span></th>
+        <th><span class="txt-fr">Classe</span><span class="txt-en">Class</span></th>
+        <th><span class="txt-fr">Date</span><span class="txt-en">Date</span></th>
+        <th><span class="txt-fr">Statut</span><span class="txt-en">Status</span></th>
+        <th><span class="txt-fr">Actions</span><span class="txt-en">Actions</span></th>
       </tr></thead><tbody>` + res.inscriptions.map(i => `
       <tr>
-        <td>${i.prenoms} ${i.nom}</td>
+        <td>${i.prenoms||''} ${i.nom||''}</td>
         <td>${i.libelle_classe||'—'}</td>
-        <td>${new Date(i.date_inscription).toLocaleDateString('fr-CA')}</td>
-        <td><span class="badge badge-attente">En attente</span></td>
+        <td>${i.date_inscription ? new Date(i.date_inscription).toLocaleDateString('fr-CA') : '—'}</td>
+        <td><span class="badge badge-attente">
+          <span class="txt-fr">En attente</span>
+          <span class="txt-en">Pending</span>
+        </span></td>
         <td>
-          <button class="btn btn-sm btn-succes" onclick="validerInscription(${i.id_inscription})">✅ Valider</button>
-          <button class="btn btn-sm btn-danger" onclick="refuserInscription(${i.id_inscription})">❌ Refuser</button>
+          <button class="btn btn-sm btn-succes" onclick="validerInscription(${i.id_inscription})">✅ <span class="txt-fr">Valider</span><span class="txt-en">Approve</span></button>
+          <button class="btn btn-sm btn-danger" onclick="refuserInscription(${i.id_inscription})">❌ <span class="txt-fr">Refuser</span><span class="txt-en">Reject</span></button>
         </td>
       </tr>`).join('') + `</tbody></table></div>`;
-  }catch(err){ document.getElementById('listeInscriptions').innerHTML=`<p class="text-center text-danger">${err.message}</p>`; }
+  }catch(err){
+    document.getElementById('listeInscriptions').innerHTML = `<p class="text-center text-danger">${err.message}</p>`;
+  }
 }
 
 // ✅ VALIDER INSCRIPTION
 window.validerInscription = async function(id){
-  if(!confirm("Confirmer la validation ?")) return;
+  if(!confirm(msg('confirmValidate'))) return;
   try{
-    const r = await fetch(`${API_URL}/valider-inscription/${id}`, {method:'PATCH', headers:{'Authorization':`Bearer ${token}`}});
+    const r = await fetch(`${API_URL}/valider-inscription/${id}`, {
+      method:'PATCH', headers:{'Authorization':`Bearer ${token}`}
+    });
     const res = await r.json();
-    if(res.ok) chargerInscriptions();
-    else alert(res.erreur);
+    if(res.ok) { chargerInscriptions(); chargerStats(); }
+    else alert(res.erreur || msg('error'));
   }catch(err){ alert(err.message); }
 };
 
 // ❌ REFUSER INSCRIPTION
 window.refuserInscription = async function(id){
-  if(!confirm("Confirmer le refus ?")) return;
+  if(!confirm(msg('confirmRefuse'))) return;
   try{
-    const r = await fetch(`${API_URL}/refuser-inscription/${id}`, {method:'PATCH', headers:{'Authorization':`Bearer ${token}`}});
+    const r = await fetch(`${API_URL}/refuser-inscription/${id}`, {
+      method:'PATCH', headers:{'Authorization':`Bearer ${token}`}
+    });
     const res = await r.json();
-    if(res.ok) chargerInscriptions();
-    else alert(res.erreur);
+    if(res.ok) { chargerInscriptions(); chargerStats(); }
+    else alert(res.erreur || msg('error'));
   }catch(err){ alert(err.message); }
 };
 
@@ -399,13 +529,15 @@ window.refuserInscription = async function(id){
 async function chargerBulletins(){
   const id_classe = document.getElementById('filtreClasseBulletin').value;
   const trimestre = document.getElementById('filtreTrimestreBulletin').value;
-  if(!id_classe) return alert("Sélectionnez une classe");
+  if(!id_classe) return alert(msg('selectClass'));
   try{
     const r = await fetch(`${API_URL}/bulletins?classe=${id_classe}&trimestre=${trimestre}`, {headers:{'Authorization':`Bearer ${token}`}});
     const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
-    document.getElementById('listeBulletins').innerHTML = res.html||`<pre>${JSON.stringify(res,null,2)}</pre>`;
-  }catch(err){ document.getElementById('listeBulletins').innerHTML=`<p class="text-center text-danger">${err.message}</p>`; }
+    if(!res.ok) throw new Error(res.erreur || msg('error'));
+    document.getElementById('listeBulletins').innerHTML = res.html || `<pre class="text-white small">${JSON.stringify(res,null,2)}</pre>`;
+  }catch(err){
+    document.getElementById('listeBulletins').innerHTML = `<p class="text-center text-danger">${err.message}</p>`;
+  }
 }
 
 // 💰 CHARGER PAIEMENTS
@@ -413,11 +545,31 @@ async function chargerPaiements(){
   try{
     const r = await fetch(`${API_URL}/paiements-synthese`, {headers:{'Authorization':`Bearer ${token}`}});
     const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
-    document.getElementById('totalDu').textContent = format(res.totale);
-    document.getElementById('totalPaye').textContent = format(res.paye);
-    document.getElementById('totalRestant').textContent = format(res.restant);
-  }catch(err){ alert(err.message); }
+    if(!res.ok) throw new Error(res.erreur || msg('error'));
+    document.getElementById('totalDu').textContent = format(res.totale || res.total_du || 0);
+    document.getElementById('totalPaye').textContent = format(res.paye || res.total_paye || 0);
+    document.getElementById('totalRestant').textContent = format(res.restant || res.total_restant || 0);
+    document.getElementById('listePaiementsDirecteur').innerHTML = res.details?.length ? `
+      <h6 class="text-muted small mb-2">
+        <span class="txt-fr">Détails des paiements récents</span>
+        <span class="txt-en">Recent payment details</span>
+      </h6>
+      <div class="table-responsive"><table class="table table-dark table-striped table-hover">
+        <thead class="table-warning text-dark"><tr>
+          <th><span class="txt-fr">Élève</span><span class="txt-en">Student</span></th>
+          <th><span class="txt-fr">Libellé</span><span class="txt-en">Label</span></th>
+          <th class="text-center"><span class="txt-fr">Montant</span><span class="txt-en">Amount</span></th>
+          <th class="text-center"><span class="txt-fr">Date</span><span class="txt-en">Date</span></th>
+        </tr></thead><tbody>` + res.details.map(p => `
+        <tr>
+          <td>${p.prenoms_eleve||''} ${p.nom_eleve||''}</td>
+          <td>${p.libelle||'—'}</td>
+          <td class="text-center">${format(p.montant||0)}</td>
+          <td class="text-center">${p.date_paiement ? new Date(p.date_paiement).toLocaleDateString('fr-CA') : '—'}</td>
+        </tr>`).join('') + `</tbody></table></div>` : '';
+  }catch(err){
+    document.getElementById('listePaiementsDirecteur').innerHTML = `<p class="text-center text-danger">${err.message}</p>`;
+  }
 }
 
 // 📢 CHARGER ANNONCES
@@ -425,16 +577,23 @@ async function chargerAnnonces(){
   try{
     const r = await fetch(`${API_URL}/annonces`, {headers:{'Authorization':`Bearer ${token}`}});
     const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
+    if(!res.ok) throw new Error(res.erreur || msg('error'));
+
     const c = document.getElementById('listeAnnoncesDirecteur');
-    if(!res.annonces.length){ c.innerHTML=`<p class="text-center text-muted">Aucune annonce</p>`; return; }
+    if(!res.annonces?.length){
+      c.innerHTML = `<p class="text-center text-muted">${msg('noAnnouncement')}</p>`;
+      return;
+    }
+
     c.innerHTML = res.annonces.map(a => `
     <div class="alert alert-secondary mb-2">
-      <h6 class="mb-1">${a.titre_fr||a.titre}</h6>
-      <p class="mb-1 small">${(a.contenu_fr||a.contenu||'').substring(0,120)}...</p>
-      <span class="small text-muted">${new Date(a.date_publication).toLocaleDateString('fr-CA')} — ${a.public_cible||'Tous'}</span>
+      <h6 class="mb-1">${a.titre_fr||a.titre||'—'}</h6>
+      <p class="mb-1 small">${(a.contenu_fr||a.contenu||'').substring(0,150)}...</p>
+      <span class="small text-muted">${a.date_publication ? new Date(a.date_publication).toLocaleDateString('fr-CA') : ''} — ${a.public_cible||'Tous'}</span>
     </div>`).join('');
-  }catch(err){ document.getElementById('listeAnnoncesDirecteur').innerHTML=`<p class="text-center text-danger">${err.message}</p>`; }
+  }catch(err){
+    document.getElementById('listeAnnoncesDirecteur').innerHTML = `<p class="text-center text-danger">${err.message}</p>`;
+  }
 }
 
 // 📅 CHARGER ÉVÉNEMENTS
@@ -442,19 +601,28 @@ async function chargerEvenements(){
   try{
     const r = await fetch(`${API_URL}/evenements`, {headers:{'Authorization':`Bearer ${token}`}});
     const res = await r.json();
-    if(!res.ok) throw new Error(res.erreur);
+    if(!res.ok) throw new Error(res.erreur || msg('error'));
+
     const c = document.getElementById('listeEvenements');
-    if(!res.evenements.length){ c.innerHTML=`<p class="text-center text-muted">Aucun événement programmé</p>`; return; }
+    if(!res.evenements?.length){
+      c.innerHTML = `<p class="text-center text-muted">${msg('noEvent')}</p>`;
+      return;
+    }
+
     c.innerHTML = res.evenements.map(e => `
     <div class="alert alert-info mb-2">
-      <h6 class="mb-1">📅 ${e.libelle_fr||e.libelle}</h6>
+      <h6 class="mb-1">📅 ${e.libelle_fr||e.libelle||'—'}</h6>
       <p class="mb-1 small">${e.description_fr||e.description||''}</p>
-      <span class="small text-muted">${new Date(e.date_evenement).toLocaleDateString('fr-CA')} — ${e.type_evenement||'Général'}</span>
+      <span class="small text-muted">${e.date_evenement ? new Date(e.date_evenement).toLocaleDateString('fr-CA') : ''} — ${e.type_evenement||'Général'}</span>
     </div>`).join('');
-  }catch(err){ document.getElementById('listeEvenements').innerHTML=`<p class="text-center text-danger">${err.message}</p>`; }
+  }catch(err){
+    document.getElementById('listeEvenements').innerHTML = `<p class="text-center text-danger">${err.message}</p>`;
+  }
 }
 
-function format(m){ return new Intl.NumberFormat('fr-FR').format(parseFloat(m)||0)+' F CFA'; }
+function format(m){
+  return new Intl.NumberFormat('fr-FR').format(parseFloat(m)||0)+' F CFA';
+}
 
 // 🚀 INIT
 chargerStats();
