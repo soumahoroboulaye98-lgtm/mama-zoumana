@@ -1,12 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const verifEleve = require('../middleware/verifprof'); // ✅ Même système de token
+const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté systématiquement
+const verifEleve = require('../middleware/verifEleve');   // ✅ Middleware spécifique élève
+
+// ✅ Protection groupée uniforme : token + vérification élève
+const protegerEleve = [veriftoken, verifEleve];
+
 
 // ==================================================
 // 👤 PROFIL DE L'ÉLÈVE
+// 🔒 Réservé : Élève authentifié
 // ==================================================
-router.get('/profil', verifEleve, async (req, res) => {
+router.get('/profil', protegerEleve, async (req, res) => {
   try {
     const id_eleve = req.user.id_utilisateur;
 
@@ -21,23 +27,32 @@ router.get('/profil', verifEleve, async (req, res) => {
       ORDER BY i.date_inscription DESC LIMIT 1
     `, [id_eleve]);
 
-    if (!utilisateur.rows.length) return res.json({ ok: false, erreur: "Profil introuvable" });
+    if (!utilisateur.rows.length) {
+      return res.json({ ok: false, erreur: "⚠️ Profil introuvable" });
+    }
 
-    res.json({ 
-      ok: true, 
+    console.log(`✅ Profil consulté — Élève ID: ${id_eleve}`);
+    res.json({
+      ok: true,
       utilisateur: utilisateur.rows[0],
       classe: { libelle_classe: utilisateur.rows[0].libelle_classe },
       date_inscription: utilisateur.rows[0].date_inscription,
       parent: utilisateur.rows[0].parent,
       annee_scolaire: '2025-2026'
     });
-  } catch (e) { res.json({ ok: false, erreur: e.message }); }
+
+  } catch (e) {
+    console.error("❌ ERREUR CHARGEMENT PROFIL :", e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
 });
+
 
 // ==================================================
 // 📝 MES NOTES
+// 🔒 Réservé : Élève authentifié
 // ==================================================
-router.get('/notes', verifEleve, async (req, res) => {
+router.get('/notes', protegerEleve, async (req, res) => {
   try {
     const id_eleve = req.user.id_utilisateur;
     const trimestre = req.query.trimestre || '1';
@@ -60,6 +75,7 @@ router.get('/notes', verifEleve, async (req, res) => {
     });
     const moyenne_generale = sommeCoef > 0 ? (sommePoints / sommeCoef).toFixed(2) : null;
 
+    // Attribution de la mention
     let mention = '';
     if (moyenne_generale >= 18) mention = '🏆 EXCELLENT';
     else if (moyenne_generale >= 16) mention = '⭐ TRÈS BIEN';
@@ -68,25 +84,36 @@ router.get('/notes', verifEleve, async (req, res) => {
     else if (moyenne_generale >= 10) mention = '🟡 PASSABLE';
     else if (moyenne_generale) mention = '🔴 INSUFFISANT';
 
+    console.log(`✅ Notes consultées — Élève ID: ${id_eleve}, Trimestre: ${trimestre}`);
     res.json({ ok: true, notes: notes.rows, moyenne_generale, mention });
-  } catch (e) { res.json({ ok: false, erreur: e.message }); }
+
+  } catch (e) {
+    console.error("❌ ERREUR CHARGEMENT NOTES :", e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
 });
+
 
 // ==================================================
 // 📅 MON EMPLOI DU TEMPS
+// 🔒 Réservé : Élève authentifié
 // ==================================================
-router.get('/edt', verifEleve, async (req, res) => {
+router.get('/edt', protegerEleve, async (req, res) => {
   try {
     const id_eleve = req.user.id_utilisateur;
 
-    // Récupérer la classe de l'élève
+    // Récupérer la classe de l'élève depuis sa dernière inscription
     const classe = await pool.query(`
       SELECT i.id_classe FROM inscriptions i
       WHERE i.id_eleve = $1 ORDER BY i.date_inscription DESC LIMIT 1
     `, [id_eleve]);
-    if (!classe.rows.length) return res.json({ ok: false, erreur: "Classe non trouvée" });
+
+    if (!classe.rows.length) {
+      return res.json({ ok: false, erreur: "⚠️ Classe non trouvée" });
+    }
     const id_classe = classe.rows[0].id_classe;
 
+    // Récupérer les séances de la classe
     const seances = await pool.query(`
       SELECT j.*, m.libelle_matiere, s.libelle_salle
       FROM emploi j
@@ -97,44 +124,54 @@ router.get('/edt', verifEleve, async (req, res) => {
         CASE j.jour 
           WHEN 'Lundi' THEN 1 WHEN 'Mardi' THEN 2 
           WHEN 'Mercredi' THEN 3 WHEN 'Jeudi' THEN 4 
-          WHEN 'Vendredi' THEN 5 WHEN 'Samedi' THEN 6 END,
+          WHEN 'Vendredi' THEN 5 WHEN 'Samedi' THEN 6 
+        END,
         j.heure_debut
     `, [id_classe]);
 
-    // Construction tableau HTML
-    const jours = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-    const heures = ['07:30','08:20','09:10','10:00','10:50','11:40','12:30','13:20','14:10','15:00','15:50'];
+    // Construction du tableau HTML préformaté
+    const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+    const heures = ['07:30', '08:20', '09:10', '10:00', '10:50', '11:40', '12:30', '13:20', '14:10', '15:00', '15:50'];
+
     let html = `<table class="table table-dark table-bordered table-sm">
-      <thead><tr><th>Heure</th>${jours.map(j=>`<th>${j}</th>`).join('')}</tr></thead><tbody>`;
+      <thead><tr><th>Heure</th>${jours.map(j => `<th>${j}</th>`).join('')}</tr></thead><tbody>`;
     heures.forEach(h => {
       html += `<tr><td><strong>${h}</strong></td>`;
       jours.forEach(j => {
-        const c = seances.rows.find(s => s.jour === j && s.heure_debut.startsWith(h.substring(0,5)));
-        html += c 
-          ? `<td class="table-primary small">${c.libelle_matiere}<br>${c.heure_debut.substring(0,5)}-${c.heure_fin.substring(0,5)}<br>${c.libelle_salle||''}</td>`
+        const c = seances.rows.find(s => s.jour === j && s.heure_debut.startsWith(h.substring(0, 5)));
+        html += c
+          ? `<td class="table-primary small">${c.libelle_matiere}<br>${c.heure_debut.substring(0, 5)}-${c.heure_fin.substring(0, 5)}<br>${c.libelle_salle || ''}</td>`
           : `<td class="table-secondary bg-opacity-10"></td>`;
       });
       html += `</tr>`;
     });
     html += `</tbody></table>`;
 
+    console.log(`✅ EDT consulté — Élève ID: ${id_eleve}, Classe: ${id_classe}`);
     res.json({ ok: true, seances: seances.rows, html });
-  } catch (e) { res.json({ ok: false, erreur: e.message }); }
+
+  } catch (e) {
+    console.error("❌ ERREUR CHARGEMENT EDT ÉLÈVE :", e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
 });
 
+
 // ==================================================
-// 📢 ANNONCES VISIBLES PAR L'ÉLÈVE
+// 📢 ANNONCES CIBLÉES POUR L'ÉLÈVE
+// 🔒 Réservé : Élève authentifié
 // ==================================================
-router.get('/annonces', verifEleve, async (req, res) => {
+router.get('/annonces', protegerEleve, async (req, res) => {
   try {
     const id_eleve = req.user.id_utilisateur;
 
-    // Récupérer classe et rôle pour filtrage
+    // Récupérer la classe de l'élève pour le filtrage
     const infos = await pool.query(`
       SELECT i.id_classe FROM inscriptions i WHERE i.id_eleve = $1 ORDER BY i.date_inscription DESC LIMIT 1
     `, [id_eleve]);
     const id_classe = infos.rows[0]?.id_classe || null;
 
+    // Sélectionner les annonces selon la cible : tous / élèves / cette classe
     const annonces = await pool.query(`
       SELECT * FROM annonces 
       WHERE public_cible = 'tous' 
@@ -143,8 +180,14 @@ router.get('/annonces', verifEleve, async (req, res) => {
       ORDER BY date_publication DESC LIMIT 15
     `, [id_classe]);
 
+    console.log(`✅ Annonces consultées — Élève ID: ${id_eleve}, ${annonces.rows.length} annonce(s)`);
     res.json({ ok: true, annonces: annonces.rows });
-  } catch (e) { res.json({ ok: false, erreur: e.message }); }
+
+  } catch (e) {
+    console.error("❌ ERREUR CHARGEMENT ANNONCES :", e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
 });
+
 
 module.exports = router;
