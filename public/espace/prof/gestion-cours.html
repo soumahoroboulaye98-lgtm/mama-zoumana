@@ -4,12 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>
-    <span class="txt-fr">Gestion Cours — Enseignant</span>
-    <span class="txt-en">Course Management — Teacher</span>
-    <span class="txt-ar">إدارة الدروس — المعلم</span>
+    <span class="txt-fr">Gestion Cours — Enseignant — MAMA-ZOUMANA</span>
+    <span class="txt-en">Course Management — Teacher — MAMA-ZOUMANA</span>
+    <span class="txt-ar">إدارة الدروس — المعلم — ماما زومانا</span>
   </title>
+
+  <!-- URLs vérifiées et harmonisées -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
   <style>
     :root {
       --primaire: #0c4a6e;
@@ -21,44 +24,154 @@
       --rouge: #ef4444;
       --bleu: #3b82f6;
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #f1f5f9; font-family: 'Segoe UI', 'Roboto', sans-serif; min-height: 100vh; }
 
-    .menu-gauche { background: linear-gradient(180deg, var(--sombre), var(--primaire)); min-height: 100vh; width: 260px; position: fixed; padding: 0; overflow-y: auto; }
-    .entete-menu { padding: 25px 20px; border-bottom: 1px solid rgba(245,158,11,0.15); }
-    .logo-menu { color: var(--accent); font-weight: 800; font-size: 1.3rem; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: all 0.25s ease;
+    }
+
+    body {
+      background: #f1f5f9;
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ✅ MENU LATÉRAL */
+    .menu-gauche {
+      background: linear-gradient(180deg, var(--sombre), var(--primaire));
+      min-height: 100vh;
+      width: 260px;
+      position: fixed;
+      padding: 0;
+      overflow-y: auto;
+    }
+
+    .entete-menu {
+      padding: 25px 20px;
+      border-bottom: 1px solid rgba(245,158,11,0.15);
+    }
+
+    .logo-menu {
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 1.3rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     .logo-menu i { font-size: 1.6rem; }
+
     .nav-menu { padding: 20px 12px; }
-    .lien-nav { display: flex; align-items: center; gap: 12px; padding: 12px 15px; margin-bottom: 6px; color: #cbd5e1; text-decoration: none; border-radius: 10px; transition: all 0.25s ease; }
-    .lien-nav:hover, .lien-nav.actif { background: rgba(245,158,11,0.08); color: var(--accent); }
 
-    .contenu-principal { margin-left: 260px; padding: 25px 30px; min-height: 100vh; }
-    .barre-haut { background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-    .btn-langue { background: rgba(12,74,110,0.08); border: 1px solid var(--primaire); border-radius: 20px; padding: 5px 12px; font-size: 0.85rem; cursor: pointer; margin: 0 2px; color: var(--primaire); font-weight: 600; }
-    .btn-langue.active { background: var(--accent); color: #000; border-color: var(--accent); }
-    .btn-deco { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 6px 12px; border-radius: 8px; transition: all 0.2s; }
-    .btn-deco:hover { background: var(--accent); color: #000; }
+    .lien-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 15px;
+      margin-bottom: 6px;
+      color: #cbd5e1;
+      text-decoration: none;
+      border-radius: 10px;
+    }
 
-    .carte { background: white; border-radius: 14px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 4px solid var(--accent); margin-bottom: 1.5rem; }
-    .form-control, .form-select { background: #f8fafc; border: 1px solid #cbd5e1; color: #1e293b; border-radius: 8px; }
-    .form-control:focus, .form-select:focus { border-color: var(--bord-orange); box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15); }
+    .lien-nav:hover, .lien-nav.actif {
+      background: rgba(245,158,11,0.08);
+      color: var(--accent);
+    }
 
-    /* ✅ MODÈLE DE LANGUE UNIFORME */
+    /* ✅ CONTENU PRINCIPAL */
+    .contenu-principal {
+      margin-left: 260px;
+      padding: 25px 30px;
+      min-height: 100vh;
+    }
+
+    .barre-haut {
+      background: white;
+      padding: 15px 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .btn-langue {
+      background: rgba(12,74,110,0.08);
+      border: 1px solid var(--primaire);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin: 0 2px;
+      color: var(--primaire);
+      font-weight: 600;
+    }
+
+    .btn-langue.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    .btn-deco {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 6px 12px;
+      border-radius: 8px;
+    }
+
+    .btn-deco:hover {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .carte {
+      background: white;
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border-left: 4px solid var(--accent);
+      margin-bottom: 1.5rem;
+    }
+
+    .form-control, .form-select {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+      border-radius: 8px;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--bord-orange);
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
+      outline: none;
+    }
+
+    /* ✅ GESTION DES LANGUES — CONFORME AU STANDARD DU PROJET */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
     body.lang-en .txt-en { display: inline; }
     body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-en { direction: ltr; }
     body.lang-ar .txt-ar { display: inline; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
-    body.lang-ar .titre-section { text-align: right; }
     body.lang-ar { direction: rtl; }
   </style>
 </head>
 <body>
 
 <div class="d-flex">
-  <!-- ✅ MENU LATÉRAL IDENTIQUE AUX AUTRES PAGES -->
+  <!-- ✅ MENU LATÉRAL -->
   <aside class="menu-gauche">
     <div class="entete-menu">
       <a href="dashboard-prof.html" class="logo-menu">
@@ -90,7 +203,7 @@
         <span class="txt-en">Enter Grades</span>
         <span class="txt-ar">إدخال الدرجات</span>
       </a>
-      <a href="#" class="lien-nav actif">
+      <a href="cours.html" class="lien-nav actif">
         <i class="bi bi-journal-text"></i>
         <span class="txt-fr">Gestion Cours</span>
         <span class="txt-en">Course Management</span>
@@ -134,9 +247,9 @@
         <span id="nom-prof"></span>
         <button class="btn btn-deco ms-2" onclick="deconnexion()">
           <i class="bi bi-box-arrow-right"></i>
-          <span class="txt-fr">Déconnexion</span>
-          <span class="txt-en">Logout</span>
-          <span class="txt-ar">تسجيل الخروج</span>
+          <span class="txt-fr"> Déconnexion</span>
+          <span class="txt-en"> Logout</span>
+          <span class="txt-ar"> تسجيل الخروج</span>
         </button>
       </div>
     </div>
@@ -144,10 +257,13 @@
     <!-- ✅ LIEN RETOUR -->
     <a href="dashboard-prof.html" class="btn btn-outline-secondary mb-4">
       <i class="bi bi-arrow-left"></i>
-      <span class="txt-fr">Retour au Tableau de Bord</span>
-      <span class="txt-en">Back to Dashboard</span>
-      <span class="txt-ar">الرجوع إلى لوحة التحكم</span>
+      <span class="txt-fr"> Retour au Tableau de Bord</span>
+      <span class="txt-en"> Back to Dashboard</span>
+      <span class="txt-ar"> الرجوع إلى لوحة التحكم</span>
     </a>
+
+    <!-- ⚠️ ZONE DE MESSAGES -->
+    <div id="zone-message"></div>
 
     <div class="row g-4">
       <!-- ✅ SÉLECTION CLASSE / MATIÈRE / DATE -->
@@ -277,7 +393,7 @@
             <div class="text-center py-4 text-muted">
               <span class="txt-fr">Sélectionnez une classe et une date puis cliquez sur "Charger la liste"</span>
               <span class="txt-en">Select a class and date then click "Load List"</span>
-              <span class="txt-ar">اختر القسم والتاريخ ثم انقر "تحميل القائمة"</span>
+              <span class="txt-ar">اختر قسماً وتاريخاً ثم انقر "تحميل القائمة"</span>
             </div>
           </div>
         </div>
@@ -288,34 +404,38 @@
 
 <script>
 // ==================================================
-// ✅ SÉCURITÉ
+// ✅ CONFIGURATION & SÉCURITÉ
 // ==================================================
 const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
-const API_NOTES = 'https://mama-zoumana-api.onrender.com/api';
+const id_utilisateur = localStorage.getItem('id_utilisateur');
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 
-console.log("🔑 Token :", token ? "PRÉSENT" : "MANQUANT");
+console.log("🔑 Token :", token ? "PRÉSENT ✅" : "MANQUANT ❌");
 console.log("👤 Rôle :", role);
 
-if(!token || role !== 'prof'){
-  alert("⛔ Accès réservé aux Enseignants — Reconnecte-toi");
-  localStorage.clear();
-  location.href = '/connexion.html';
+if (!token || role !== 'prof') {
+  alert("⛔ Accès réservé aux Enseignants. Veuillez vous reconnecter.");
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  location.href = 'connexion.html';
 }
 
 // ✅ Afficher nom de l'enseignant
 document.getElementById('nom-prof').textContent = 
-  (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || '');
+  (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || 'Enseignant');
 
 // ✅ Date du jour par défaut
 document.getElementById('date-sel').value = new Date().toISOString().split('T')[0];
 
 // ==================================================
-// 🗣️ GESTION DE LA LANGUE — INSTANTANÉE
+// 🗣️ GESTION DE LA LANGUE — Conforme au standard
 // ==================================================
 function appliquerLangue(lang) {
   document.body.classList.remove('lang-fr','lang-en','lang-ar');
-  document.body.classList.add('lang-'+lang);
+  document.body.classList.add('lang-' + lang);
   localStorage.setItem('langue', lang);
   document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
   document.querySelector(`[data-lang="${lang}"]`)?.classList.add('active');
@@ -328,58 +448,101 @@ document.querySelectorAll('.btn-langue').forEach(btn => {
 });
 
 // ==================================================
-// 📥 CHARGER MES CLASSES & MATIÈRES
+// 💬 AFFICHAGE DES MESSAGES
 // ==================================================
-async function chargerListes(){
+function afficherMessage(texte, type = 'info') {
+  const zone = document.getElementById('zone-message');
+  const style = type === 'succes' ? 'border-success bg-success bg-opacity-10 text-success' :
+                type === 'erreur' ? 'border-danger bg-danger bg-opacity-10 text-danger' :
+                'border-info bg-info bg-opacity-10 text-info';
+  zone.innerHTML = `<div class="alert ${style} border-2">${texte}</div>`;
+  setTimeout(() => zone.innerHTML = '', 10000);
+}
+
+// ==================================================
+// 📥 CHARGER CLASSES & MATIÈRES — Route corrigée
+// ==================================================
+async function chargerListes() {
   try {
     console.log("📡 Chargement classes & matières...");
-    const res = await fetch(`${API_NOTES}/mes-classes-matieres`, {
+    const reponse = await fetch(`${API_URL}/presences/mes-classes-matieres`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const data = await res.json();
+
+    if (reponse.status === 401) {
+      throw new Error("⛔ Autorisation refusée. Votre session a peut-être expiré.");
+    }
+
+    const data = await reponse.json();
     console.log("📊 Données reçues :", data);
 
     const selCl = document.getElementById('sel-cl');
     const selMat = document.getElementById('sel-mat');
 
-    if(!data.ok) throw new Error("Erreur chargement");
+    let listeClasses = [], listeMatieres = [];
+    if (data.classes && Array.isArray(data.classes)) listeClasses = data.classes;
+    else if (data.lignes && Array.isArray(data.lignes)) listeClasses = data.lignes;
+    if (data.matieres && Array.isArray(data.matieres)) listeMatieres = data.matieres;
 
     // ✅ Remplir Classes
-    selCl.innerHTML = '<option value="">---</option>' + 
-      (data.classes || []).map(c => `<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('');
+    selCl.innerHTML = '<option value="">--- Sélectionner une classe ---</option>';
+    if (listeClasses.length > 0) {
+      listeClasses.forEach(c => {
+        selCl.innerHTML += `<option value="${c.id_classe}">${c.libelle_classe}</option>`;
+      });
+    } else {
+      selCl.innerHTML += '<option value="" disabled>⚠️ Aucune classe affectée</option>';
+    }
 
     // ✅ Remplir Matières
-    selMat.innerHTML = '<option value="">---</option>' + 
-      (data.matieres || []).map(m => `<option value="${m.id_matiere}">${m.libelle_matiere}</option>`).join('');
+    selMat.innerHTML = '<option value="">--- Sélectionner une matière ---</option>';
+    if (listeMatieres.length > 0) {
+      listeMatieres.forEach(m => {
+        selMat.innerHTML += `<option value="${m.id_matiere}">${m.libelle_matiere}</option>`;
+      });
+    } else {
+      selMat.innerHTML += '<option value="" disabled>⚠️ Aucune matière trouvée</option>';
+    }
 
-  } catch (e) {
-    console.error("❌ Erreur chargement listes :", e);
-    document.getElementById('sel-cl').innerHTML = '<option value="">⚠️ Erreur</option>';
-    document.getElementById('sel-mat').innerHTML = '<option value="">⚠️ Erreur</option>';
+  } catch (erreur) {
+    console.error("❌ Erreur chargement listes :", erreur);
+    afficherMessage("❌ Erreur de chargement : " + erreur.message, 'erreur');
+    document.getElementById('sel-cl').innerHTML = '<option value="">❌ Erreur</option>';
+    document.getElementById('sel-mat').innerHTML = '<option value="">❌ Erreur</option>';
   }
 }
 
 // ==================================================
 // 📋 CHARGER ÉLÈVES DE LA CLASSE
 // ==================================================
-async function chargerListeEleves(){
+async function chargerListeEleves() {
   const id_classe = document.getElementById('sel-cl').value;
   const date = document.getElementById('date-sel').value;
 
-  if(!id_classe || !date) {
-    alert("⚠️ Sélectionnez une classe et une date");
+  if (!id_classe || !date) {
+    afficherMessage("⚠️ Veuillez sélectionner une classe et une date.", 'erreur');
     return;
   }
 
   try {
-    const res = await fetch(`${API_NOTES}/eleves-classe/${id_classe}`, {
+    const reponse = await fetch(`${API_URL}/presences/eleves-classe/${id_classe}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const data = await res.json();
+
+    if (reponse.status === 401) {
+      throw new Error("⛔ Autorisation refusée.");
+    }
+
+    const data = await reponse.json();
     const conteneur = document.getElementById('liste-presences');
 
-    if(!data.ok || !data.eleves || data.eleves.length === 0){
-      conteneur.innerHTML = `<div class="text-center opacity-75 py-4">
+    let listeEleves = [];
+    if (data.eleves && Array.isArray(data.eleves)) listeEleves = data.eleves;
+    else if (data.lignes && Array.isArray(data.lignes)) listeEleves = data.lignes;
+
+    if (listeEleves.length === 0) {
+      conteneur.innerHTML = `<div class="text-center py-4 text-muted">
+        <i class="bi bi-inbox fs-2 mb-2 d-block"></i>
         <span class="txt-fr">Aucun élève dans cette classe</span>
         <span class="txt-en">No students in this class</span>
         <span class="txt-ar">لا يوجد تلاميذ في هذا القسم</span>
@@ -389,14 +552,14 @@ async function chargerListeEleves(){
 
     // ✅ Remplit liste déroulante pour note
     document.getElementById('sel-eleve').innerHTML = 
-      '<option value="">---</option>' +
-      data.eleves.map(e => `<option value="${e.id_utilisateur}">${e.nom} ${e.prenoms}</option>`).join('');
+      '<option value="">--- Sélectionner un élève ---</option>' +
+      listeEleves.map(e => `<option value="${e.id_utilisateur}">${e.nom} ${e.prenoms || ''}</option>`).join('');
 
     // ✅ Affiche la liste complète avec présence
-    conteneur.innerHTML = data.eleves.map(e => `
+    conteneur.innerHTML = listeEleves.map(e => `
       <div class="d-flex justify-content-between align-items-center p-3 mb-2 rounded bg-light border">
         <div>
-          <strong>${e.nom} ${e.prenoms}</strong>
+          <strong>${e.nom} ${e.prenoms || ''}</strong>
           ${e.matricule ? `<span class="badge bg-secondary ms-2">${e.matricule}</span>` : ''}
         </div>
         <select class="form-select form-select-sm w-auto" onchange="enregPresence(${e.id_utilisateur}, this.value)">
@@ -409,18 +572,16 @@ async function chargerListeEleves(){
       </div>
     `).join('');
 
-  } catch (e) {
-    console.error("❌ Erreur chargement élèves :", e);
-    document.getElementById('liste-presences').innerHTML = `<div class="alert alert-danger">
-      <span class="txt-fr">Erreur de chargement des élèves</span>
-      <span class="txt-en">Error loading students</span>
-      <span class="txt-ar">خطأ في تحميل التلاميذ</span>
-    </div>`;
+    afficherMessage(`✅ ${listeEleves.length} élève(s) chargé(s)`, 'succes');
+
+  } catch (erreur) {
+    console.error("❌ Erreur chargement élèves :", erreur);
+    afficherMessage("❌ Erreur de chargement des élèves.", 'erreur');
   }
 }
 
 // ==================================================
-// ✅ ENREGISTRER NOTE — CONFORME À TA ROUTE
+// ✅ ENREGISTRER NOTE — Route corrigée
 // ==================================================
 document.getElementById('formNote').addEventListener('submit', async e => {
   e.preventDefault();
@@ -430,20 +591,21 @@ document.getElementById('formNote').addEventListener('submit', async e => {
     id_eleve: formData.get('id_eleve'),
     id_matiere: document.getElementById('sel-mat').value,
     id_classe: document.getElementById('sel-cl').value,
-    note1: formData.get('note'),
+    note1: parseFloat(formData.get('note')),
     note2: null,
     note3: null,
     trimestre: formData.get('trimestre'),
-    annee_scolaire: '2026-2027'
+    annee_scolaire: '2026-2027',
+    saisi_par: id_utilisateur
   };
 
-  if(!noteData.id_eleve || !noteData.id_matiere || !noteData.trimestre) {
-    alert("⚠️ Remplissez tous les champs obligatoires");
+  if (!noteData.id_eleve || !noteData.id_matiere || !noteData.id_classe || !noteData.trimestre) {
+    afficherMessage("⚠️ Veuillez remplir tous les champs obligatoires.", 'erreur');
     return;
   }
 
   try {
-    const res = await fetch(`${API_NOTES}/saisir`, {
+    const reponse = await fetch(`${API_URL}/notes/saisir`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json', 
@@ -451,38 +613,47 @@ document.getElementById('formNote').addEventListener('submit', async e => {
       },
       body: JSON.stringify(noteData)
     });
-    const r = await res.json();
 
-    if(r.ok) {
-      alert("✅ Note enregistrée ! Moyenne : " + (r.moyenne || '--'));
-      e.target.reset();
-      document.getElementById('sel-eleve').innerHTML = '<option value="">---</option>';
-    } else {
-      alert("❌ Erreur : " + (r.erreur || "Inconnu"));
+    if (reponse.status === 401) {
+      throw new Error("⛔ Autorisation refusée.");
     }
-  } catch (err) {
-    alert("❌ Erreur réseau");
+
+    const r = await reponse.json();
+
+    if (r.ok) {
+      afficherMessage(`✅ Note enregistrée ! Moyenne : ${r.moyenne || '--'}`, 'succes');
+      e.target.reset();
+      document.getElementById('sel-eleve').innerHTML = '<option value="">--- Sélectionner un élève ---</option>';
+    } else {
+      afficherMessage("❌ Erreur : " + (r.erreur || "Erreur inconnue"), 'erreur');
+    }
+  } catch (erreur) {
+    afficherMessage("❌ Erreur réseau. Vérifiez votre connexion.", 'erreur');
   }
 });
 
 // ==================================================
 // ⚠️ ENREGISTRER PRÉSENCE — À CONNECTER PLUS TARD
 // ==================================================
-async function enregPresence(id_eleve, statut){
-  if(!statut) return;
-  alert("✅ Présence enregistrée : " + statut + "\n(La route sera connectée prochainement)");
+async function enregPresence(id_eleve, statut) {
+  if (!statut) return;
+  afficherMessage(`✅ Présence enregistrée : ${statut} (route en attente)`, 'succes');
 }
 
 // ==================================================
-// ✅ DÉCONNEXION
+// ✅ DÉCONNEXION SÉCURISÉE
 // ==================================================
-function deconnexion(){
-  localStorage.clear();
-  location.href = '/connexion.html';
+function deconnexion() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('id_utilisateur');
+  localStorage.removeItem('role');
+  localStorage.removeItem('nom');
+  localStorage.removeItem('prenoms');
+  location.href = 'connexion.html';
 }
 
 // ✅ LANCER AU CHARGEMENT
-chargerListes();
+document.addEventListener('DOMContentLoaded', chargerListes);
 </script>
 
 </body>
