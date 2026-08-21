@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté systématiquement
-const verifEleve = require('../middleware/verifEleve');   // ✅ Middleware spécifique élève
 
-// ✅ Protection groupée uniforme : token + vérification élève
+// ✅ Import des middlewares — Vérifie que les noms correspondent EXACTEMENT aux fichiers
+const veriftoken = require('../middleware/veriftoken');
+const verifEleve = require('../middleware/verifEleve');
+
+// ✅ Protection groupée : token valide + rôle élève
 const protegerEleve = [veriftoken, verifEleve];
 
 
