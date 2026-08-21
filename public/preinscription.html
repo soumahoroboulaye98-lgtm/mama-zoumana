@@ -67,8 +67,8 @@
 
     /* ===== FICHE OFFICIELLE D'INSCRIPTION ===== */
     .fiche-officielle{background:#fff;color:#0f172a;border-radius:15px;padding:30px;border:3px solid var(--accent);box-shadow:0 0 25px rgba(245,158,11,0.2);margin-top:25px}
-    .cadre-photo{width:150px;height:180px;border:3px solid var(--accent);border-radius:10px;overflow:hidden;margin:0 auto;background:#e2e8f0}
-    .cadre-photo img{width:100%;height:100%;object-fit:cover}
+    .cadre-photo{width:150px;height:180px;border:3px solid var(--accent);border-radius:10px;overflow:hidden;margin:0 auto;background:#e2e8f0;display:flex;align-items:center;justify-content:center;}
+    .cadre-photo i{font-size:48px; color:var(--accent);}
     .bloc-matricule{background:rgba(245,158,11,0.1);border:2px solid var(--accent);border-radius:10px;padding:10px}
     .valeur-matricule{font-weight:900;font-size:1.3rem;color:#b45309;letter-spacing:2px;font-family:monospace}
     .ligne-info{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #cbd5e1;flex-wrap:wrap;gap:5px}
@@ -221,7 +221,7 @@
         </div>
       </div>
 
-      <!-- ✅ CHAMPS ÉLÈVE -->
+      <!-- ✅ CHAMPS ÉLÈVE — CORRIGÉ : required géré par JS selon visibilité -->
       <div id="champsEleve" class="champ-cache">
         <div class="form-groupe">
           <label for="id_classe">
@@ -229,7 +229,7 @@
             <span class="txt-en">Desired Class / Level</span>
             <span class="txt-ar">المستوى المرغوب فيه</span>
           </label>
-          <select name="id_classe" id="id_classe" required onchange="afficherPlacesRestantes()">
+          <select name="id_classe" id="id_classe" onchange="afficherPlacesRestantes()">
             <option value="">
               <span class="txt-fr">-- Chargement des classes... --</span>
               <span class="txt-en">-- Loading classes... --</span>
@@ -316,7 +316,7 @@
     <!-- ✅ FICHE D'INSCRIPTION OFFICIELLE -->
     <div id="ficheInscription" class="fiche-officielle d-none mt-5">
       <div class="entete-fiche text-center mb-4">
-        <h3 class="titre-prin mb-1">🏫 ÉCOLE MAMA-ZOUMANA</h3>
+        <h3 class="titre-prin mb-1 text-dark">🏫 ÉCOLE MAMA-ZOUMANA</h3>
         <p class="text-dark opacity-75 mb-0">
           <span class="txt-fr">Fiche d'Inscription Officielle</span>
           <span class="txt-en">Official Registration Form</span>
@@ -329,7 +329,7 @@
         <!-- 📸 PHOTO + MATRICULE -->
         <div class="col-md-4 text-center">
           <div class="cadre-photo mb-3">
-            <img id="photoFiche" src="" alt="Photo identité" onerror="this.src='https://via.placeholder.com/150x180/1e293b/f59e0b?text=📷'">
+            <i id="photoFiche" class="bi bi-person-badge"></i>
           </div>
           
           <div class="bloc-matricule mt-3">
@@ -481,16 +481,24 @@ document.querySelectorAll('.btn-onglet').forEach(btn => {
   });
 });
 
-// 📋 Afficher les champs selon le profil
+// 📋 Afficher les champs selon le profil + GESTION REQUIRED ✅
 function afficherChampsParProfil(){
   const p = document.getElementById('profil').value;
-  document.getElementById('champsEleve').classList.add('champ-cache');
+  const champsEleve = document.getElementById('champsEleve');
+  const idClasse = document.getElementById('id_classe');
+  
+  champsEleve.classList.add('champ-cache');
   document.getElementById('champsProf').classList.add('champ-cache');
   document.getElementById('infoPlaces').innerHTML = '';
+
+  // ✅ Supprimer required quand caché → PLUS D'ERREUR "not focusable"
+  idClasse.removeAttribute('required');
+
   if(p === 'eleve'){
-    document.getElementById('champsEleve').classList.remove('champ-cache');
+    champsEleve.classList.remove('champ-cache');
+    idClasse.setAttribute('required', 'required'); // ✅ Ajouté SEULEMENT quand visible
     chargerListeClasses();
-  }else if(p === 'prof'){
+  } else if(p === 'prof'){
     document.getElementById('champsProf').classList.remove('champ-cache');
   }
 }
@@ -569,6 +577,21 @@ document.getElementById('formPreinscription').addEventListener('submit', async e
   e.preventDefault();
   const form = e.target;
   const btn = form.querySelector('button[type="submit"]');
+  const profil = document.getElementById('profil').value;
+
+  // ✅ VALIDATION CÔTÉ CLIENT AVANT ENVOI
+  if(profil === 'eleve'){
+    const idClasse = document.getElementById('id_classe').value;
+    if(!idClasse){
+      alert("⚠️ Veuillez choisir une classe");
+      return;
+    }
+    const classeChoisie = listeClasses.find(c => String(c.id) === String(idClasse));
+    if(classeChoisie && classeChoisie.places_restantes <= 0){
+      alert("❌ Cette classe est complète, choisissez-en une autre.");
+      return;
+    }
+  }
 
   const mdp = form.mot_de_passe.value;
   const conf = form.confirmation_mdp.value;
@@ -577,21 +600,15 @@ document.getElementById('formPreinscription').addEventListener('submit', async e
     return;
   }
 
-  const idClasse = document.getElementById('id_classe').value;
-  const classeChoisie = listeClasses.find(c => String(c.id) === String(idClasse));
-  if(classeChoisie && classeChoisie.places_restantes <= 0){
-    alert("❌ Cette classe est complète, choisissez-en une autre.");
-    return;
-  }
-
   btn.disabled = true;
   btn.innerHTML = "<span class='txt-fr'>⏳ Envoi en cours...</span><span class='txt-en'>⏳ Sending...</span><span class='txt-ar'>⏳ جارٍ الإرسال...</span>";
 
   const donnees = new FormData(form);
-  donnees.append('profil', document.getElementById('profil').value);
+  donnees.append('profil', profil);
 
   try {
-    const res = await fetch(`${API_URL}/preinscription`, {
+    // ✅ ROUTE CORRIGÉE : /api/auth/preinscription/ajouter
+    const res = await fetch(`${API_URL}/auth/preinscription/ajouter`, {
       method: 'POST',
       body: donnees
     });
@@ -604,7 +621,7 @@ document.getElementById('formPreinscription').addEventListener('submit', async e
       document.querySelector('.info-delai').classList.add('d-none');
       document.getElementById('profil').closest('.form-groupe').classList.add('d-none');
 
-      // ✅ GÉNÉRER OU RÉCUPÉRER LE MATRICULE
+      // ✅ RÉCUPÉRER LE MATRICULE DU SERVEUR OU GÉNÉRÉ
       const matricule = rep.matricule || genererMatricule();
 
       // ✅ AFFICHER LA PHOTO DANS LA FICHE
@@ -612,7 +629,7 @@ document.getElementById('formPreinscription').addEventListener('submit', async e
       if(photoInput){
         const lecteur = new FileReader();
         lecteur.onload = e => {
-          document.getElementById('photoFiche').src = e.target.result;
+          document.getElementById('photoFiche').outerHTML = `<img src="${e.target.result}" alt="Photo" style="width:100%;height:100%;object-fit:cover;">`;
         };
         lecteur.readAsDataURL(photoInput);
       }
@@ -627,6 +644,8 @@ document.getElementById('formPreinscription').addEventListener('submit', async e
       document.getElementById('matriculeEleve').textContent = matricule;
       document.getElementById('ficheNom').textContent = `${donnees.get('nom')} ${donnees.get('prenoms')}`;
       document.getElementById('ficheSexe').textContent = sexeTexte;
+      const idClasse = donnees.get('id_classe');
+      const classeChoisie = listeClasses.find(c => String(c.id) === String(idClasse));
       document.getElementById('ficheClasse').textContent = classeChoisie?.nom || '---';
       document.getElementById('ficheEmail').textContent = donnees.get('email');
       document.getElementById('ficheTel').textContent = donnees.get('telephone');
@@ -639,10 +658,10 @@ document.getElementById('formPreinscription').addEventListener('submit', async e
       document.getElementById('ficheInscription').classList.remove('d-none');
 
     }else{
-      alert("❌ Erreur : " + rep.erreur);
+      alert("❌ Erreur : " + (rep.erreur || "Erreur inconnue"));
     }
   } catch {
-    alert("⚠️ Serveur indisponible — réessaie plus tard");
+    alert("⚠️ Serveur indisponible — réessayez plus tard");
   } finally {
     btn.disabled = false;
     btn.innerHTML = "<span class='txt-fr'>✅ Envoyer ma demande</span><span class='txt-en'>✅ Submit my request</span><span class='txt-ar'>✅ إرسال طلبي</span>";
