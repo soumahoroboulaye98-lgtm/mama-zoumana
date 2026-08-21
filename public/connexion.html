@@ -23,7 +23,7 @@
       --texte-dore: #fbbf24;
     }
 
-    /* ✅ MODÈLE DE LANGUE UNIFORME — Identique à la page Finances */
+    /* ✅ MODÈLE DE LANGUE UNIFORME */
     .txt-en, .txt-ar { display: none !important; }
     body.lang-fr .txt-fr { display: inline !important; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none !important; }
@@ -321,10 +321,9 @@
 
 <script>
 // ==================================================
-// ⚙️ CONFIGURATION — 100% HARMONISÉE ✅
+// ⚙️ CONFIGURATION API
 // ==================================================
 const API_URL = 'https://mama-zoumana-api.onrender.com/api';
-
 
 // 🗣️ CHANGEMENT DE LANGUE
 document.querySelectorAll('.btn-langue').forEach(btn => {
@@ -338,7 +337,6 @@ document.querySelectorAll('.btn-langue').forEach(btn => {
     btn.classList.add('active');
   });
 });
-
 
 // 🔄 CHANGER LE CHAMP IDENTIFIANT SELON LE RÔLE
 function changerChampIdentifiant() {
@@ -368,7 +366,6 @@ function changerChampIdentifiant() {
   }
 }
 
-
 // 👁️ VOIR / CACHER MOT DE PASSE
 let mdpVisible = false;
 function voirOuCacherMdp(){
@@ -379,8 +376,7 @@ function voirOuCacherMdp(){
   btn.textContent = mdpVisible ? '🙈' : '👁️';
 }
 
-
-// ✅ SOUMISSION FORMULAIRE — API_URL + ROUTE CORRIGÉES ✅
+// ✅ SOUMISSION FORMULAIRE — ROUTE CORRIGÉE : /auth/connexion ✅
 document.getElementById('formConnexion').addEventListener('submit', async e => {
   e.preventDefault();
   const msgErreur = document.getElementById('msgErreur');
@@ -410,8 +406,8 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
   }
 
   try {
-    // ✅ URL CORRIGÉE : API_URL + /connexion
-    const res = await fetch(`${API_URL}/connexion`, {
+    // ✅ LIGNE CORRIGÉE : /auth/connexion au lieu de /connexion
+    const res = await fetch(`${API_URL}/auth/connexion`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(donnees)
@@ -430,7 +426,7 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
       localStorage.setItem('role', data.role || role);
       localStorage.setItem('est_admin', estAdmin ? 'true' : 'false');
 
-      // ✅ REDIRECTIONS PAR PROFIL — harmonisées
+      // ✅ REDIRECTIONS PAR PROFIL
       switch(data.role || role){
         case 'admin':
         case 'super_admin':
@@ -473,12 +469,10 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
   }
 });
 
-
 // ✅ Affichage en temps réel du mot de passe
 document.getElementById('mdp').addEventListener('input', function(){
   document.getElementById('voirMdp').textContent = this.value;
 });
-
 
 // ✅ Restaurer langue sauvegardée
 const langueSauvegardee = localStorage.getItem('langue') || 'fr';
