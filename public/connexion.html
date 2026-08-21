@@ -259,12 +259,12 @@
       <!-- ✅ CHAMP IDENTIFIANT -->
       <div class="mb-3 champ-identifiant" id="zoneIdentifiant">
         <label class="form-label" id="labelIdentifiant">
-          <i class="bi bi-card-text me-1"></i>
-          <span class="txt-fr">Identifiant</span>
-          <span class="txt-en">Identifier</span>
-          <span class="txt-ar">معرّف</span>
+          <i class="bi bi-envelope me-1"></i>
+          <span class="txt-fr">Adresse Email</span>
+          <span class="txt-en">Email Address</span>
+          <span class="txt-ar">البريد الإلكتروني</span>
         </label>
-        <input type="text" id="identifiant" class="form-control" required placeholder="">
+        <input type="email" id="identifiant" class="form-control" required placeholder="exemple@domaine.ci">
         <div id="indiceIdentifiant" class="matricule-exemple d-none"></div>
       </div>
 
@@ -321,7 +321,7 @@
 
 <script>
 // ==================================================
-// ⚙️ CONFIGURATION API
+// ⚙️ CONFIGURATION API — HARMONISÉE AVEC TON SERVEUR ✅
 // ==================================================
 const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 
@@ -376,7 +376,7 @@ function voirOuCacherMdp(){
   btn.textContent = mdpVisible ? '🙈' : '👁️';
 }
 
-// ✅ SOUMISSION FORMULAIRE — ROUTE CORRIGÉE : /auth/connexion ✅
+// ✅ SOUMISSION FORMULAIRE — ROUTE CORRIGÉE ✅
 document.getElementById('formConnexion').addEventListener('submit', async e => {
   e.preventDefault();
   const msgErreur = document.getElementById('msgErreur');
@@ -397,16 +397,16 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
   texteBtn.classList.add('d-none');
   chargement.classList.remove('d-none');
 
-  // 📦 Préparer les données
+  // 📦 Préparer les données selon le rôle
   const donnees = { mot_de_passe, role };
   if (role === 'eleve') {
-    donnees.matricule = identifiant.toUpperCase();
+    donnees.matricule = identifiant.toUpperCase().trim();
   } else {
-    donnees.email = identifiant.toLowerCase();
+    donnees.email = identifiant.toLowerCase().trim();
   }
 
   try {
-    // ✅ LIGNE CORRIGÉE : /auth/connexion au lieu de /connexion
+    // ✅ ROUTE EXACTE : /auth/connexion
     const res = await fetch(`${API_URL}/auth/connexion`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -416,7 +416,7 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
     const data = await res.json();
 
     if(data.ok){
-      // ✅ SESSION UNIFIÉE
+      // ✅ SAUVEGARDE SESSION UNIFIÉE
       const estAdmin = (data.role === 'admin' || data.role === 'super_admin');
       localStorage.setItem('token', data.token || '');
       localStorage.setItem('id_utilisateur', data.id_utilisateur || '');
@@ -426,7 +426,7 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
       localStorage.setItem('role', data.role || role);
       localStorage.setItem('est_admin', estAdmin ? 'true' : 'false');
 
-      // ✅ REDIRECTIONS PAR PROFIL
+      // ✅ REDIRECTIONS PAR PROFIL — CHEMINS CORRIGÉS ✅
       switch(data.role || role){
         case 'admin':
         case 'super_admin':
@@ -456,13 +456,13 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
           localStorage.clear();
       }
     }else{
-      msgErreur.textContent = "❌ " + (data.erreur || "Échec de la connexion");
+      msgErreur.textContent = "❌ " + (data.erreur || "Échec de la connexion — Vérifiez vos identifiants");
       msgErreur.classList.remove('d-none');
     }
   } catch(err) {
-    msgErreur.textContent = "⛔ Serveur injoignable — Réessayez plus tard.";
+    msgErreur.textContent = "⛔ Serveur injoignable — Vérifiez votre connexion internet ou réessayez plus tard.";
     msgErreur.classList.remove('d-none');
-    console.error("Erreur :", err);
+    console.error("Erreur connexion :", err);
   } finally {
     texteBtn.classList.remove('d-none');
     chargement.classList.add('d-none');
@@ -474,13 +474,15 @@ document.getElementById('mdp').addEventListener('input', function(){
   document.getElementById('voirMdp').textContent = this.value;
 });
 
-// ✅ Restaurer langue sauvegardée
-const langueSauvegardee = localStorage.getItem('langue') || 'fr';
-document.body.classList.remove('lang-fr','lang-en','lang-ar');
-document.body.classList.add('lang-'+langueSauvegardee);
-document.querySelectorAll('.btn-langue').forEach(b => {
-  b.classList.remove('active');
-  if(b.dataset.lang === langueSauvegardee) b.classList.add('active');
+// ✅ Restaurer langue sauvegardée au chargement
+window.addEventListener('DOMContentLoaded', () => {
+  const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-'+langueSauvegardee);
+  document.querySelectorAll('.btn-langue').forEach(b => {
+    b.classList.remove('active');
+    if(b.dataset.lang === langueSauvegardee) b.classList.add('active');
+  });
 });
 </script>
 </body>
