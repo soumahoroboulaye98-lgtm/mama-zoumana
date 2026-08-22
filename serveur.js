@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 
+
 // ==============================================
 // 📁 CONFIGURATION — Téléversement de fichiers
 // ==============================================
@@ -16,12 +17,14 @@ const stockage = multer.diskStorage({
 });
 const upload = multer({ storage: stockage });
 
+
 // ==============================================
 // ✅ CRÉATION DE L'APPLICATION
 // ==============================================
 
 const app = express();
 const PORT = process.env.PORT || 10000;
+
 
 // ==============================================
 // 📦 MIDDLEWARES GLOBAUX
@@ -30,6 +33,7 @@ const PORT = process.env.PORT || 10000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 
 // ==============================================
 // 📁 DOSSIER PUBLIC — Fichiers statiques
@@ -40,6 +44,7 @@ console.log("📁 Dossier public :", dossierPublic);
 console.log("📂 Existe ?", fs.existsSync(dossierPublic) ? "✅ OUI" : "⚠️ NON");
 
 app.use(express.static(dossierPublic));
+
 
 // ==============================================
 // ⚙️ CONFIGURATION DU SITE
@@ -65,6 +70,7 @@ app.use((req, res, next) => {
   next();
 });
 
+
 // ==============================================
 // 🔐 DÉCLARATION DES ROUTES
 // ==============================================
@@ -84,6 +90,7 @@ app.use('/api/devoirs', require('./routes/devoirs'));
 app.use('/api/presences', require('./routes/presences'));
 app.use('/api/bulletins', require('./routes/bulletins'));
 app.use('/api/affectations', require('./routes/affectations'));
+app.use('/api/classe-emploi', require('./routes/classe_emploi'));
 
 // — Finances & Comptabilité
 app.use('/api/finances', require('./routes/finances'));
@@ -107,12 +114,28 @@ app.use('/api/calendrier', require('./routes/calendrier'));
 app.use('/api/reglement', require('./routes/reglement'));
 app.use('/api/equipe', require('./routes/equipe'));
 
+
 // ==============================================
-// 🔄 REDIRECTIONS & COMPATIBILITÉ
+// 🔄 ROUTE DE TEST API + COMPATIBILITÉ
 // ==============================================
 
+// ✅ Ajoutée pour éviter l'erreur 404 sur /api
+app.get('/api', (req, res) => {
+  res.json({
+    ok: true,
+    message: "✅ API MAMA-ZOUMANA opérationnelle",
+    routes_disponibles: [
+      "/api/admin", "/api/auth", "/api/classes", "/api/matieres",
+      "/api/emploi", "/api/notes", "/api/annonces", "/api/config",
+      "/api/eleve", "/api/parent", "/api/test"
+    ]
+  });
+});
+
+// Redirections
 app.get('/inscription.html', (req, res) => res.redirect('/preinscription.html'));
 app.use('/api/inscription', (req, res) => res.json({ ok: false, message: "⚠️ Utilisez /api/preinscription à la place" }));
+
 
 // ==============================================
 // 🏠 PAGE D'ACCUEIL
@@ -139,6 +162,7 @@ app.get('/', (req, res) => {
   }
 });
 
+
 // ==============================================
 // 🧪 TEST DE CONNEXION BASE DE DONNÉES
 // ==============================================
@@ -152,17 +176,21 @@ app.get('/api/test', async (req, res) => {
   }
 });
 
+
 // ==============================================
 // 🚀 DÉMARRAGE DU SERVEUR
 // ==============================================
 
-chargerConfig().then(() => {
-  app.listen(PORT, () => {
-    console.log(`\n🚀 Serveur démarré sur le port ${PORT}`);
-    console.log(`🌍 API : http://localhost:${PORT}/api/`);
-    console.log(`🏠 Accueil : http://localhost:${PORT}/\n`);
+chargerConfig()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`\n🚀 Serveur démarré sur le port ${PORT}`);
+      console.log(`🌍 API racine : http://localhost:${PORT}/api`);
+      console.log(`🧪 Test base  : http://localhost:${PORT}/api/test`);
+      console.log(`🏠 Accueil    : http://localhost:${PORT}/\n`);
+    });
+  })
+  .catch(err => {
+    console.error("❌ Erreur critique au démarrage :", err.message);
+    process.exit(1);
   });
-}).catch(err => {
-  console.error("❌ Erreur critique au démarrage :", err.message);
-  process.exit(1);
-});

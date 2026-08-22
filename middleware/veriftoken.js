@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config(); // ✅ Charge les variables d'environnement
 
-
 module.exports = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -14,10 +13,18 @@ module.exports = (req, res, next) => {
   try {
     // ✅ Vérifie le token avec la clé du fichier .env
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
-    req.user = decoded;
 
-    // Log pour le suivi
-    console.log(`🔑 TOKEN VALIDE — Utilisateur: ${decoded.nom || 'inconnu'}, Rôle: ${decoded.role}`);
+    // ✅ HARMONISÉ : utilise id et prenom (conforme à la base Neon)
+    req.user = {
+      id: decoded.id,           // ← CORRIGÉ : PAS id_utilisateur
+      nom: decoded.nom,
+      prenom: decoded.prenom,   // ← CORRIGÉ : PAS prenoms
+      role: decoded.role,
+      email: decoded.email
+    };
+
+    // ✅ Log harmonisé
+    console.log(`🔑 TOKEN VALIDE — Utilisateur: ${decoded.nom || 'Inconnu'} ${decoded.prenom || ''}, Rôle: ${decoded.role}`);
 
     next(); // ✅ Token valide → passe à la suite
 

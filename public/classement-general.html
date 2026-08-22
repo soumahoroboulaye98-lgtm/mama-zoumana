@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="classementGeneral">Classement Général</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-success">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">🏠 MAMA-ZOUMANA</a>
+    <select id="selecteurLangue" class="form-select form-select-sm w-auto ms-auto" onchange="changerLangue(this.value)">
+      <option value="fr">🇫🇷 Français</option>
+      <option value="en">🇬🇧 English</option>
+      <option value="ar">🇸🇦 العربية</option>
+    </select>
+  </div>
+</nav>
+
+<div class="container py-4">
+  <h2 class="text-center mb-4">📊 <span data-i18n="classementGeneral">Classement Général des Élèves</span></h2>
+
+  <div class="alert alert-success text-center mb-4">
+    <strong data-i18n="totalEleves">Total Élèves</strong> : <span id="totalEleves">0</span>
+  </div>
+
+  <div class="card">
+    <div class="card-header bg-dark text-white fw-bold">📋 Liste complète</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th>#</th>
+              <th data-i18n="classe">Classe</th>
+              <th data-i18n="matricule">Matricule</th>
+              <th data-i18n="nomPrenoms">Nom & Prénoms</th>
+              <th data-i18n="contact">Contact</th>
+            </tr>
+          </thead>
+          <tbody id="corpsClassement">
+            <tr><td colspan="5" class="text-center text-muted py-4" data-i18n="chargement">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-3 text-center">
+    <a href="classe-emploi.html" class="btn btn-primary">↩️ <span data-i18n="retour">Retour par Classe</span></a>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="lang-config.js"></script>
+<script>
+const API = `${API_URL}/classe-emploi`;
+
+window.onload = async () => {
+  document.getElementById('selecteurLangue').value = langueActuelle;
+  appliquerTraductions();
+  chargerClassement();
+};
+
+async function chargerClassement() {
+  const t = traductions[langueActuelle];
+  try {
+    const res = await fetch(`${API}/classement-general`);
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById('totalEleves').textContent = data.total_eleves;
+      let html = '';
+      let numero = 1, derniereClasse = '';
+      data.classement.forEach(e => {
+        if (e.libelle_classe !== derniereClasse) {
+          derniereClasse = e.libelle_classe;
+          html += `<tr class="table-active fw-semibold"><td colspan="5" class="bg-primary text-white">📚 ${e.libelle_classe} — ${t.niveau} ${e.niveau}</td></tr>`;
+        }
+        html += `<tr><td>${numero}</td><td>${e.libelle_classe}</td><td><code>${e.matricule}</code></td><td>${e.nom} ${e.prenoms}</td><td>${e.email || e.telephone || '-'}</td></tr>`;
+        numero++;
+      });
+      document.getElementById('corpsClassement').innerHTML = html || `<tr><td colspan="5" class="text-center">${t.aucuneDonnee}</td></tr>`;
+    }
+  } catch (e) {
+    document.getElementById('corpsClassement').innerHTML = `<tr><td colspan="5" class="text-center text-danger">❌ ${e.erreur || t.erreurChargement}</td></tr>`;
+  }
+}
+</script>
+</body>
+</html>

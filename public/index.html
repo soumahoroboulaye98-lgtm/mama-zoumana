@@ -11,6 +11,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
+
   <script>
     let configSite = {
       couleur_primaire: '#0c4a6e',
@@ -19,9 +20,11 @@
       couleur_texte: '#f8fafc',
       couleur_accent: '#f59e0b',
 
+
       image_fond: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1920&q=80',
-      image_entete: 'https://via.placeholder.com/80/0c4a6e/ffffff?text=LOGO',
-      image_pied: 'https://via.placeholder.com/120/0c4a6e/ffffff?text=LOGO',
+      image_entete: '',
+      image_pied: '',
+
 
       police_titres: '"Segoe UI", sans-serif',
       police_texte: '"Segoe UI", sans-serif',
@@ -58,7 +61,9 @@
       lien_video_accueil: ''
     };
 
+
     let LANG = localStorage.getItem('langue_site') || 'fr';
+
 
     function appliquerCouleurs(cfg) {
       document.documentElement.style.setProperty('--primaire', cfg.couleur_primaire);
@@ -69,6 +74,7 @@
       document.documentElement.style.setProperty('--police-titres', cfg.police_titres);
       document.documentElement.style.setProperty('--police-texte', cfg.police_texte);
     }
+
 
     function appliquerFond(cfg) {
       const imageFond = document.getElementById('image-fond-affichee');
@@ -88,14 +94,17 @@
       }
     }
 
+
     function appliquerTextesEtLiens(cfg) {
       document.querySelectorAll('.texte-entete .txt-fr').forEach(el => el.textContent = cfg.texte_entete_fr);
       document.querySelectorAll('.texte-entete .txt-en').forEach(el => el.textContent = cfg.texte_entete_en);
       document.querySelectorAll('.texte-entete .txt-ar').forEach(el => el.textContent = cfg.texte_entete_ar);
 
+
       document.querySelectorAll('.bandeau-defilant .txt-fr').forEach(el => el.textContent = cfg.bandeau_defilant_fr);
       document.querySelectorAll('.bandeau-defilant .txt-en').forEach(el => el.textContent = cfg.bandeau_defilant_en);
       document.querySelectorAll('.bandeau-defilant .txt-ar').forEach(el => el.textContent = cfg.bandeau_defilant_ar);
+
 
       document.querySelectorAll('.titre-banniere .txt-fr').forEach(el => el.innerHTML = cfg.presentation_titre_fr);
       document.querySelectorAll('.titre-banniere .txt-en').forEach(el => el.innerHTML = cfg.presentation_titre_en);
@@ -104,17 +113,21 @@
       document.querySelectorAll('.desc-banniere .txt-en').forEach(el => el.textContent = cfg.presentation_desc_en);
       document.querySelectorAll('.desc-banniere .txt-ar').forEach(el => el.textContent = cfg.presentation_desc_ar);
 
+
       document.querySelectorAll('.texte-apropos .txt-fr').forEach(el => el.textContent = cfg.apropos_fr);
       document.querySelectorAll('.texte-apropos .txt-en').forEach(el => el.textContent = cfg.apropos_en);
       document.querySelectorAll('.texte-apropos .txt-ar').forEach(el => el.textContent = cfg.apropos_ar);
+
 
       document.querySelectorAll('.texte-admission .txt-fr').forEach(el => el.textContent = cfg.admission_fr);
       document.querySelectorAll('.texte-admission .txt-en').forEach(el => el.textContent = cfg.admission_en);
       document.querySelectorAll('.texte-admission .txt-ar').forEach(el => el.textContent = cfg.admission_ar);
 
+
       document.querySelectorAll('.texte-pied .txt-fr').forEach(el => el.textContent = cfg.texte_pied_fr);
       document.querySelectorAll('.texte-pied .txt-en').forEach(el => el.textContent = cfg.texte_pied_en);
       document.querySelectorAll('.texte-pied .txt-ar').forEach(el => el.textContent = cfg.texte_pied_ar);
+
 
       document.querySelectorAll('.lien-facebook').forEach(el => el.href = cfg.lien_facebook || '#');
       document.querySelectorAll('.lien-whatsapp').forEach(el => {
@@ -126,11 +139,13 @@
       document.querySelectorAll('.lien-instagram').forEach(el => el.href = cfg.lien_instagram || '#');
       document.querySelectorAll('.lien-email').forEach(el => el.href = cfg.lien_email ? 'mailto:' + cfg.lien_email : '#');
 
+
       document.querySelectorAll('.tel1').forEach(el => el.textContent = cfg.telephone1 || '---');
       document.querySelectorAll('.tel2').forEach(el => el.textContent = cfg.telephone2 || '---');
       document.querySelectorAll('.iframe-maps').forEach(el => el.src = cfg.lien_google_maps || '');
       document.querySelectorAll('.iframe-video-accueil').forEach(el => el.src = cfg.lien_video_accueil || '');
     }
+
 
     async function chargerAnnonces() {
       const zone = document.getElementById('zone-annonces');
@@ -174,6 +189,7 @@
       }
     }
 
+
     async function chargerActualites() {
       const zone = document.getElementById('zone-actualites');
       if (!zone) return;
@@ -193,6 +209,7 @@
         }
       } catch {}
     }
+
 
     async function chargerEvenements() {
       const zone = document.getElementById('zone-evenements');
@@ -214,6 +231,7 @@
         }
       } catch {}
     }
+
 
     async function chargerGalerie() {
       const zone = document.getElementById('zone-galerie');
@@ -238,19 +256,23 @@
       }
     }
 
+
     function appliquerLangue(lang) {
       LANG = lang;
       document.body.classList.remove('lang-fr', 'lang-en', 'lang-ar');
       document.body.classList.add('lang-' + lang);
       document.documentElement.lang = lang;
+      document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
       document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
       document.querySelector(`.btn-langue[data-lang="${lang}"]`)?.classList.add('active');
       chargerAnnonces();
     }
 
+
     document.addEventListener('DOMContentLoaded', async () => {
       LANG = localStorage.getItem('langue_site') || 'fr';
       appliquerLangue(LANG);
+
 
       const cfgLocale = JSON.parse(localStorage.getItem('config_site') || '{}');
       if (Object.keys(cfgLocale).length > 0) {
@@ -259,6 +281,7 @@
         appliquerFond(configSite);
         appliquerTextesEtLiens(configSite);
       }
+
 
       try {
         const resConfig = await fetch('/api/config');
@@ -277,10 +300,12 @@
         console.log("ℹ️ Mode local utilisé");
       }
 
+
       chargerAnnonces();
       chargerActualites();
       chargerEvenements();
       chargerGalerie();
+
 
       document.querySelectorAll('.btn-langue').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -288,6 +313,7 @@
           localStorage.setItem('langue_site', btn.dataset.lang);
         });
       });
+
 
       document.addEventListener('click', (e) => {
         const menu = document.getElementById('menu-mobile-deroulant');
@@ -297,7 +323,7 @@
         }
       });
 
-      // Bouton retour en haut
+
       window.addEventListener('scroll', () => {
         const btn = document.getElementById('btn-retour-haut');
         if (btn) {
@@ -309,14 +335,14 @@
         }
       });
 
-      // Fermer menu mobile au clic sur lien
+
       document.querySelectorAll('#menu-mobile-deroulant a').forEach(lien => {
         lien.addEventListener('click', () => {
           document.getElementById('menu-mobile-deroulant')?.classList.remove('ouvert');
         });
       });
 
-      // Formulaire contact
+
       document.addEventListener('submit', e => {
         const form = e.target;
         if (form.tagName !== 'FORM') return;
@@ -331,11 +357,13 @@
       });
     });
 
+
     function basculerMenuMobile() {
       const menu = document.getElementById('menu-mobile-deroulant');
       menu.classList.toggle('ouvert');
     }
   </script>
+
 
   <style>
     :root {
@@ -352,10 +380,12 @@
       --police-texte: 'Segoe UI', sans-serif;
     }
 
+
     * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 12px !important; }
     body { font-family: var(--police-texte); background: var(--clair); color: var(--sombre); }
     body.lang-ar { font-family: 'Segoe UI', Tahoma, sans-serif; direction: rtl; text-align: right; }
     h1, h2, h3, h4, h5, h6 { font-family: var(--police-titres); }
+
 
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
@@ -365,6 +395,7 @@
     body.lang-ar .txt-ar { display: inline; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
     body.lang-ar .titre-section { text-align: right; }
+
 
     .entete-fixe {
       background: linear-gradient(135deg, var(--primaire), var(--secondaire));
@@ -379,6 +410,7 @@
     .logo-entete-img { height: 45px; width: auto; display: none; border-radius: 8px !important; }
     .logo-icone { font-size: 1.8rem; }
 
+
     .nav-menu { display: flex; gap: 4px; }
     .menu-item { position: relative; }
     .menu-bouton {
@@ -388,7 +420,7 @@
     }
     .menu-bouton:hover { color: var(--accent); }
     .sous-menu {
-      position: absolute; top: 100%; left: 0; min-width: 220px;
+      position: absolute; top: 100%; left: 0; min-width: 240px;
       background: rgba(15,23,42,0.98); box-shadow: 0 10px 25px rgba(0,0,0,0.3);
       opacity: 0; visibility: hidden; transform: translateY(-10px);
       transition: all 0.3s ease; padding: 10px 0; z-index: 999;
@@ -401,6 +433,7 @@
       text-decoration: none; transition: all 0.2s; font-size: 0.95rem;
     }
     .sous-menu a:hover { background: rgba(245,158,11,0.18); color: var(--accent); }
+
 
     .btn-menu-mobile {
       display: none; background: rgba(255,255,255,0.15);
@@ -426,6 +459,7 @@
     .menu-mobile-deroulant a:hover,
     .menu-mobile-deroulant button:hover { background: rgba(245,158,11,0.18); color: var(--accent); }
 
+
     .btn-langue {
       background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25);
       border-radius: 20px; padding: 5px 10px; font-size: 0.85rem; cursor: pointer;
@@ -440,6 +474,7 @@
     }
     .btn-connexion:hover { transform: translateY(-2px); }
     .btn-connexion.clair { background: rgba(255,255,255,0.2); color: white; }
+
 
     .banniere {
       position: relative; height: 85vh; overflow: hidden;
@@ -466,6 +501,7 @@
     .btn-action:hover { transform: translateY(-3px); box-shadow: 0 6px 25px rgba(245,158,11,0.5); color: var(--sombre); }
     .btn-action.clair { background: white; color: var(--primaire); }
 
+
     .bande-info {
       background: var(--accent); color: var(--sombre); font-weight: 600;
       padding: 8px 0; overflow: hidden; white-space: nowrap;
@@ -473,8 +509,10 @@
     .defilement { display: inline-block; animation: defile 25s linear infinite; }
     @keyframes defile { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
+
     .annonce-affichee { transition: all 0.3s ease; }
     .annonce-affichee:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.08) !important; }
+
 
     .section { padding: 50px 20px; }
     .titre-section {
@@ -491,6 +529,7 @@
     }
     .carte:hover { transform: translateY(-5px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
     .carte h5 { color: var(--secondaire); font-weight: 600; font-size: 1.2rem; }
+
 
     .pied-page { background: var(--sombre); color: #cbd5e1; padding: 40px 20px 25px; font-size: 0.95rem; }
     .pied-page h6 { color: var(--accent); font-weight: 700; margin-bottom: 15px; font-size: 1rem; }
@@ -512,6 +551,7 @@
     .pied-page p { margin-bottom: 6px; }
     .tel1, .tel2 { font-weight: 500; color: #f8fafc; }
 
+
     .btn-retour-haut {
       position: fixed; bottom: 25px; right: 25px; width: 50px; height: 50px;
       background: var(--accent); color: var(--sombre); border-radius: 50%;
@@ -524,8 +564,11 @@
     .btn-retour-haut.visible { opacity: 1; visibility: visible; }
     .btn-retour-haut:hover { transform: translateY(-4px); color: var(--sombre); }
 
+
     form label { font-weight: 500; }
     form input, form textarea { border-radius: 8px !important; }
+
+    .lien-bloc { display: block; text-decoration: none; }
 
     @media (min-width: 992px) {
       .menu-mobile-deroulant, .btn-menu-mobile { display: none !important; }
@@ -546,6 +589,7 @@
 </head>
 <body class="lang-fr">
 
+
 <!-- 🧭 ENTÊTE -->
 <header class="entete-fixe">
   <div class="container d-flex justify-content-between align-items-center py-3 position-relative">
@@ -558,6 +602,7 @@
         <span class="txt-ar">ماما زومانا</span>
       </span>
     </a>
+
 
     <!-- 📋 MENU GRAND ÉCRAN -->
     <nav class="nav-menu d-none d-lg-flex">
@@ -586,6 +631,19 @@
       </div>
       <div class="menu-item">
         <button class="menu-bouton">
+          <span class="txt-fr">📊 Scolarité</span>
+          <span class="txt-en">📊 School Life</span>
+          <span class="txt-ar">📊 الدراسة</span>
+        </button>
+        <div class="sous-menu">
+          <a href="classe-emploi.html"><span class="txt-fr">📚 Emploi du Temps & Classe</span><span class="txt-en">📚 Timetable & Classes</span><span class="txt-ar">📚 الجداول والفصول</span></a>
+          <a href="classement-general.html"><span class="txt-fr">📋 Classement Général</span><span class="txt-en">📋 General Ranking</span><span class="txt-ar">📋 الترتيب العام</span></a>
+          <a href="classement-notes.html"><span class="txt-fr">🏅 Classement par Notes</span><span class="txt-en">🏅 Grades Ranking</span><span class="txt-ar">🏅 ترتيب الدرجات</span></a>
+          <a href="liens-resources.html"><span class="txt-fr">🔗 Ressources & Recherche</span><span class="txt-en">🔗 Resources & Search</span><span class="txt-ar">🔗 مصادر وبحث</span></a>
+        </div>
+      </div>
+      <div class="menu-item">
+        <button class="menu-bouton">
           <span class="txt-fr">📸 Galerie</span>
           <span class="txt-en">📸 Gallery</span>
           <span class="txt-ar">📸 معرض الصور</span>
@@ -593,17 +651,6 @@
         <div class="sous-menu">
           <a href="#galerie"><span class="txt-fr">Photos</span><span class="txt-en">Photos</span><span class="txt-ar">صور</span></a>
           <a href="#videos"><span class="txt-fr">Vidéos</span><span class="txt-en">Videos</span><span class="txt-ar">فيديوهات</span></a>
-        </div>
-      </div>
-      <div class="menu-item">
-        <button class="menu-bouton">
-          <span class="txt-fr">📊 Résultats</span>
-          <span class="txt-en">📊 Results</span>
-          <span class="txt-ar">📊 النتائج</span>
-        </button>
-        <div class="sous-menu">
-          <a href="#resultats"><span class="txt-fr">Examens</span><span class="txt-en">Exams</span><span class="txt-ar">الامتحانات</span></a>
-          <a href="#emploi"><span class="txt-fr">Emplois du temps</span><span class="txt-en">Timetables</span><span class="txt-ar">الجداول</span></a>
         </div>
       </div>
       <div class="menu-item">
@@ -619,12 +666,12 @@
       </div>
     </nav>
 
-    <!-- 📱 BOUTON MENU MOBILE -->
+
+    <!-- 📱 BOUTON MOBILE + LANGUES + CONNEXION -->
     <button class="btn-menu-mobile d-lg-none" id="btn-menu-mobile" onclick="basculerMenuMobile()">
       <i class="bi bi-list"></i>
     </button>
 
-    <!-- 🌐 LANGUES & BOUTONS -->
     <div class="d-flex align-items-center gap-2">
       <button class="btn-langue active" data-lang="fr">FR</button>
       <button class="btn-langue" data-lang="en">EN</button>
@@ -642,6 +689,7 @@
     </div>
   </div>
 
+
   <!-- 📱 MENU DÉROULANT MOBILE -->
   <nav id="menu-mobile-deroulant" class="menu-mobile-deroulant d-lg-none">
     <a href="#accueil"><span class="txt-fr">🏠 Accueil — Présentation</span><span class="txt-en">🏠 Home — Presentation</span><span class="txt-ar">🏠 الرئيسية — نبذة عنا</span></a>
@@ -649,14 +697,19 @@
     <a href="#apropos"><span class="txt-fr">ℹ️ À Propos</span><span class="txt-en">ℹ️ About Us</span><span class="txt-ar">ℹ️ من نحن</span></a>
     <a href="#admission"><span class="txt-fr">📝 Admission — Conditions</span><span class="txt-en">📝 Admission — Requirements</span><span class="txt-ar">📝 القبول — الشروط</span></a>
     <a href="preinscription.html"><span class="txt-fr">📝 Préinscription</span><span class="txt-en">📝 Register</span><span class="txt-ar">📝 التسجيل المسبق</span></a>
+    <hr style="border-color:rgba(255,255,255,0.15); margin: 8px 0;">
+    <a href="classe-emploi.html"><span class="txt-fr">📚 Emploi du Temps & Classe</span><span class="txt-en">📚 Timetable & Classes</span><span class="txt-ar">📚 الجداول والفصول</span></a>
+    <a href="classement-general.html"><span class="txt-fr">📋 Classement Général</span><span class="txt-en">📋 General Ranking</span><span class="txt-ar">📋 الترتيب العام</span></a>
+    <a href="classement-notes.html"><span class="txt-fr">🏅 Classement par Notes</span><span class="txt-en">🏅 Grades Ranking</span><span class="txt-ar">🏅 ترتيب الدرجات</span></a>
+    <a href="liens-resources.html"><span class="txt-fr">🔗 Ressources & Recherche</span><span class="txt-en">🔗 Resources & Search</span><span class="txt-ar">🔗 مصادر وبحث</span></a>
+    <hr style="border-color:rgba(255,255,255,0.15); margin: 8px 0;">
     <a href="#galerie"><span class="txt-fr">📸 Galerie</span><span class="txt-en">📸 Gallery</span><span class="txt-ar">📸 معرض الصور</span></a>
     <a href="#videos"><span class="txt-fr">🎥 Vidéos</span><span class="txt-en">🎥 Videos</span><span class="txt-ar">🎥 فيديوهات</span></a>
-    <a href="#resultats"><span class="txt-fr">📊 Résultats & Examens</span><span class="txt-en">📊 Results & Exams</span><span class="txt-ar">📊 النتائج والامتحانات</span></a>
-    <a href="#emploi"><span class="txt-fr">📅 Emplois du temps</span><span class="txt-en">📅 Timetables</span><span class="txt-ar">📅 الجداول</span></a>
     <a href="#contact"><span class="txt-fr">📞 Contact & Localisation</span><span class="txt-en">📞 Contact & Location</span><span class="txt-ar">📞 اتصل بنا والموقع</span></a>
     <a href="connexion.html"><span class="txt-fr">🔐 Espace Admin</span><span class="txt-en">🔐 Admin Portal</span><span class="txt-ar">🔐 لوحة الإدارة</span></a>
   </nav>
 </header>
+
 
 <!-- 📢 BANDEAU DÉFILANT -->
 <div class="bande-info">
@@ -668,6 +721,7 @@
     </span>
   </div>
 </div>
+
 
 <!-- 🎬 BANNIÈRE / PRÉSENTATION -->
 <section class="banniere" id="accueil">
@@ -699,6 +753,7 @@
   </div>
 </section>
 
+
 <!-- 📢 SECTION ANNONCES -->
 <section class="container mt-5 mb-5">
   <h3 class="mb-4">📢
@@ -709,11 +764,12 @@
   <div id="zone-annonces">
     <p class="text-center text-muted py-3">
       <span class="txt-fr">Chargement des annonces...</span>
-      <span class="txt-en">Loading announcements...</span>
+      <span class="txt-en">Loadingdes annonces...</span>
       <span class="txt-ar">جارٍ تحميل الإعلانات...</span>
     </p>
   </div>
 </section>
+
 
 <!-- 📰 ACTUALITÉS -->
 <section class="section bg-claire">
@@ -724,10 +780,15 @@
       <span class="txt-ar">الأخبار</span>
     </h2>
     <div id="zone-actualites" class="row g-4">
-      <p class="text-center text-muted"><span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جارٍ التحميل...</span></p>
+      <p class="text-center text-muted">
+        <span class="txt-fr">Chargement...</span>
+        <span class="txt-en">Loading...</span>
+        <span class="txt-ar">جارٍ التحميل...</span>
+      </p>
     </div>
-  </div></div>
+  </div>
 </section>
+
 
 <!-- 🖼️ GALERIE -->
 <section class="section bg-dark text-white" id="galerie">
@@ -738,10 +799,15 @@
       <span class="txt-ar">معرض الصور</span>
     </h2>
     <div id="zone-galerie" class="row g-3">
-      <p class="text-center text-muted"><span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جارٍ التحميل...</span></p>
+      <p class="text-center text-muted">
+        <span class="txt-fr">Chargement...</span>
+        <span class="txt-en">Loading...</span>
+        <span class="txt-ar">جارٍ التحميل...</span>
+      </p>
     </div>
   </div>
 </section>
+
 
 <!-- 🎥 VIDÉOS -->
 <section class="section" id="videos">
@@ -804,6 +870,7 @@
   </div>
 </section>
 
+
 <!-- 📝 ADMISSION -->
 <section class="section bg-claire" id="admission">
   <div class="container">
@@ -851,10 +918,10 @@
             <span class="txt-en">Steps to follow</span>
             <span class="txt-ar">خطوات الإجراء</span>
           </h5>
-          <p>
-            <span class="txt-fr">Remplissez le formulaire de préinscription en ligne, puis déposez vos documents au secrétariat de l'établissement. Notre équipe vous contactera pour finaliser votre dossier.</span>
-            <span class="txt-en">Fill out the online pre-registration form, then submit your documents at the school office. Our team will contact you to complete your file.</span>
-            <span class="txt-ar">املأ استمارة التسجيل المسبق عبر الإنترنت، ثم أودع المستندات في أمانة المؤسسة. سيتصل بك فريقنا لاستكمال ملفك.</span>
+          <p class="texte-admission">
+            <span class="txt-fr">Préinscriptions ouvertes toute l'année. Étude du dossier + entretien. Utilisez notre formulaire en ligne.</span>
+            <span class="txt-en">Pre-registration open all year. File review + interview. Use our online form.</span>
+            <span class="txt-ar">التسجيلات الأولية مفتوحة طوال العام — دراسة الملف والمقابلة — استخدموا نموذجنا الإلكتروني.</span>
           </p>
           <a href="preinscription.html" class="btn-action mt-2">
             <span class="txt-fr">Lancer la préinscription</span>
@@ -867,36 +934,80 @@
   </div>
 </section>
 
-<!-- 📊 RÉSULTATS & EMPLOIS DU TEMPS -->
-<section class="section" id="resultats">
-  <div class="container">
-    <h2 class="titre-section">📊
-      <span class="txt-fr">Résultats & Examens</span>
-      <span class="txt-en">Results & Exams</span>
-      <span class="txt-ar">النتائج والامتحانات</span>
-    </h2>
-    <div class="carte mb-4">
-      <p class="text-center py-3">
-        <span class="txt-fr">Les résultats des examens et évaluations seront publiés ici.</span>
-        <span class="txt-en">Exam and assessment results will be published here.</span>
-        <span class="txt-ar">ستُنشر نتائج الامتحانات والتقييمات هنا.</span>
-      </p>
-    </div>
 
-    <h3 class="titre-section h4" id="emploi">📅
-      <span class="txt-fr">Emplois du temps</span>
-      <span class="txt-en">Timetables</span>
-      <span class="txt-ar">الجداول الدراسية</span>
-    </h3>
-    <div class="carte">
-      <p class="text-center py-3">
-        <span class="txt-fr">Les emplois du temps par niveau seront disponibles prochainement.</span>
-        <span class="txt-en">Timetables by level will be available soon.</span>
-        <span class="txt-ar">جداول المستويات المختلفة ستكون متاحة قريباً.</span>
-      </p>
+<!-- 📚 ACCÈS RAPIDE SCOLARITÉ -->
+<section class="section">
+  <div class="container">
+    <h2 class="titre-section">📚
+      <span class="txt-fr">Espace Scolarité</span>
+      <span class="txt-en">School Services</span>
+      <span class="txt-ar">الخدمات المدرسية</span>
+    </h2>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <a href="classe-emploi.html" class="carte lien-bloc text-center">
+          <h5 class="text-primary">📚</h5>
+          <h5>
+            <span class="txt-fr">Emploi du Temps</span>
+            <span class="txt-en">Timetable</span>
+            <span class="txt-ar">الجدول الدراسي</span>
+          </h5>
+          <p class="text-muted small mb-0">
+            <span class="txt-fr">Consulter par niveau</span>
+            <span class="txt-en">View by level</span>
+            <span class="txt-ar">العرض حسب المستوى</span>
+          </p>
+        </a>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <a href="classement-general.html" class="carte lien-bloc text-center">
+          <h5 class="text-success">📋</h5>
+          <h5>
+            <span class="txt-fr">Classement Général</span>
+            <span class="txt-en">General Ranking</span>
+            <span class="txt-ar">الترتيب العام</span>
+          </h5>
+          <p class="text-muted small mb-0">
+            <span class="txt-fr">Toutes classes confondues</span>
+            <span class="txt-en">All levels combined</span>
+            <span class="txt-ar">لجميع الفصول</span>
+          </p>
+        </a>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <a href="classement-notes.html" class="carte lien-bloc text-center">
+          <h5 class="text-warning">🏅</h5>
+          <h5>
+            <span class="txt-fr">Classement par Notes</span>
+            <span class="txt-en">Grades Ranking</span>
+            <span class="txt-ar">ترتيب الدرجات</span>
+          </h5>
+          <p class="text-muted small mb-0">
+            <span class="txt-fr">Par matière et par élève</span>
+            <span class="txt-en">By subject and student</span>
+            <span class="txt-ar">حسب المادة والتلميذ</span>
+          </p>
+        </a>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <a href="liens-resources.html" class="carte lien-bloc text-center">
+          <h5 class="text-info">🔗</h5>
+          <h5>
+            <span class="txt-fr">Ressources & Recherche</span>
+            <span class="txt-en">Resources & Search</span>
+            <span class="txt-ar">مصادر وبحث</span>
+          </h5>
+          <p class="text-muted small mb-0">
+            <span class="txt-fr">Sites utiles et plateformes</span>
+            <span class="txt-en">Useful sites & platforms</span>
+            <span class="txt-ar">مواقع ومنصات مفيدة</span>
+          </p>
+        </a>
+      </div>
     </div>
   </div>
 </section>
+
 
 <!-- ℹ️ À PROPOS -->
 <section class="section bg-claire" id="apropos">
@@ -913,10 +1024,10 @@
           <span class="txt-en">Our Mission</span>
           <span class="txt-ar">مهمتنا</span>
         </h5>
-        <p>
-          <span class="txt-fr">L'École & Centre Islamique MAMA-ZOUMANA a pour mission de dispenser un enseignement de qualité alliant le programme officiel ivoirien et l'éducation islamique. Nous formons des élèves compétents, équilibrés et porteurs de valeurs de rigueur, de respect et de piété.</span>
-          <span class="txt-en">MAMA-ZOUMANA School & Islamic Center aims to provide quality education combining the Ivorian official curriculum with Islamic education. We train competent, balanced students who embody the values of diligence, respect, and piety.</span>
-          <span class="txt-ar">تسعى مدرسة ومركز ماما زومانا الإسلامي إلى تقديم تعليم جيد يجمع بين البرنامج الرسمي الإيفواري والتربية الإسلامية. نؤهل تلاميذ أكفاء متوازنين يحملون قيم الجدية والاحترام والتقوى.</span>
+        <p class="texte-apropos">
+          <span class="txt-fr">MAMA-ZOUMANA forme les générations dans un cadre alliant excellence académique et valeurs morales et religieuses.</span>
+          <span class="txt-en">MAMA-ZOUMANA educates generations combining academic excellence and moral & religious values.</span>
+          <span class="txt-ar">مؤسسة ماما زومانا تكوّن الأجيال بتميز دراسي وقيم أخلاقية ودينية.</span>
         </p>
       </div>
       <div class="col-md-6">
@@ -951,6 +1062,7 @@
     </div>
   </div>
 </section>
+
 
 <!-- 📞 CONTACT -->
 <section class="section" id="contact">
@@ -1028,6 +1140,7 @@
   </div>
 </section>
 
+
 <!-- 🛒 BOUTIQUE SCOLAIRE -->
 <section class="section bg-claire">
   <div class="container">
@@ -1051,6 +1164,7 @@
   </div>
 </section>
 
+
 <!-- 🦶 PIED DE PAGE -->
 <footer class="pied-page bg-dark text-white py-5">
   <div class="container">
@@ -1071,6 +1185,10 @@
         </h5>
         <ul class="list-unstyled">
           <li><a href="#accueil" class="text-white-50 text-decoration-none"><span class="txt-fr">Accueil</span><span class="txt-en">Home</span><span class="txt-ar">الرئيسية</span></a></li>
+          <li><a href="classe-emploi.html" class="text-white-50 text-decoration-none"><span class="txt-fr">Emploi du Temps</span><span class="txt-en">Timetable</span><span class="txt-ar">الجدول الدراسي</span></a></li>
+          <li><a href="classement-general.html" class="text-white-50 text-decoration-none"><span class="txt-fr">Classement Général</span><span class="txt-en">General Ranking</span><span class="txt-ar">الترتيب العام</span></a></li>
+          <li><a href="classement-notes.html" class="text-white-50 text-decoration-none"><span class="txt-fr">Classement par Notes</span><span class="txt-en">Grades Ranking</span><span class="txt-ar">ترتيب الدرجات</span></a></li>
+          <li><a href="liens-resources.html" class="text-white-50 text-decoration-none"><span class="txt-fr">Ressources</span><span class="txt-en">Resources</span><span class="txt-ar">المصادر</span></a></li>
           <li><a href="#admission" class="text-white-50 text-decoration-none"><span class="txt-fr">Admission</span><span class="txt-en">Admission</span><span class="txt-ar">القبول</span></a></li>
           <li><a href="#contact" class="text-white-50 text-decoration-none"><span class="txt-fr">Contact</span><span class="txt-en">Contact</span><span class="txt-ar">اتصل بنا</span></a></li>
           <li><a href="boutique.html" class="text-white-50 text-decoration-none"><span class="txt-fr">Boutique</span><span class="txt-en">Store</span><span class="txt-ar">المتجر</span></a></li>
@@ -1084,7 +1202,7 @@
         </h5>
         <p class="text-white-50">
           📧 contact@mama-zoumana.ci<br>
-          📞 +225 XX XX XX XX XX
+          📞 <span class="tel1">+225 XX XX XX XX XX</span>
         </p>
         <div class="reseaux">
           <a href="#" class="lien-facebook" title="Facebook"><i class="bi bi-facebook"></i></a>
@@ -1105,10 +1223,12 @@
   </div>
 </footer>
 
+
 <!-- ⬆️ BOUTON RETOUR EN HAUT -->
 <a href="#haut" class="btn-retour-haut" id="btn-retour-haut">
   <i class="bi bi-chevron-up"></i>
 </a>
+
 
 </body>
 </html>

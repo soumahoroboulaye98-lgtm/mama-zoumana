@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="gestionEmploi">Gestion Emploi du Temps — Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+  <div class="container">
+    <a class="navbar-brand" href="dashboard-admin.html">⚙️ Espace Admin</a>
+    <select id="selecteurLangue" class="form-select form-select-sm w-auto ms-2" onchange="changerLangue(this.value)">
+      <option value="fr">🇫🇷 Français</option>
+      <option value="en">🇬🇧 English</option>
+      <option value="ar">🇸🇦 العربية</option>
+    </select>
+    <div class="ms-auto"><a href="deconnexion.html" class="btn btn-outline-light btn-sm" data-i18n="deconnexion">Déconnexion</a></div>
+  </div>
+</nav>
+
+<div class="container py-4">
+  <h2 class="text-center mb-4" data-i18n="gestionEmploi">📅 Gestion de l'Emploi du Temps</h2>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <label class="form-label fw-bold" data-i18n="choisirClasse">1️⃣ Sélectionnez une classe :</label>
+      <select id="id_classe" class="form-select form-select-lg" onchange="chargerEmploi()">
+        <option value="" data-i18n="choisirClasse">-- Choisir une classe --</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card mb-4 border-primary">
+    <div class="card-header bg-primary text-white fw-bold" id="titreForm">➕ <span data-i18n="ajouterCours">Ajouter un Cours</span></div>
+    <div class="card-body">
+      <form id="formCours">
+        <input type="hidden" id="id_emploi">
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label class="form-label" data-i18n="jour">Jour</label>
+            <select id="jour" class="form-select" required>
+              <option value="Lundi" data-i18n="lundi">Lundi</option>
+              <option value="Mardi" data-i18n="mardi">Mardi</option>
+              <option value="Mercredi" data-i18n="mercredi">Mercredi</option>
+              <option value="Jeudi" data-i18n="jeudi">Jeudi</option>
+              <option value="Vendredi" data-i18n="vendredi">Vendredi</option>
+              <option value="Samedi" data-i18n="samedi">Samedi</option>
+            </select>
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label" data-i18n="heureDebut">Heure Début</label>
+            <input type="time" id="heure_debut" class="form-control" required>
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label" data-i18n="heureFin">Heure Fin</label>
+            <input type="time" id="heure_fin" class="form-control" required>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label class="form-label" data-i18n="matiere">Matière</label>
+            <input type="text" id="matiere" class="form-control" data-i18n-placeholder="matiere" placeholder="Matière" required>
+          </div>
+          <div class="col-md-5 mb-3">
+            <label class="form-label" data-i18n="professeur">Professeur</label>
+            <select id="id_professeur" class="form-select" required>
+              <option value="" data-i18n="choisirProf">-- Choisir --</option>
+            </select>
+          </div>
+          <div class="col-md-3 mb-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100 fw-bold" data-i18n="enregistrer">💾 Enregistrer</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header bg-dark text-white fw-bold" data-i18n="listeCours">📋 Emploi du Temps</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th data-i18n="jour">Jour</th>
+              <th data-i18n="horaires">Horaire</th>
+              <th data-i18n="matiere">Matière</th>
+              <th data-i18n="professeur">Professeur</th>
+              <th width="130" data-i18n="actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="corpsEmploi">
+            <tr><td colspan="5" class="text-center text-muted py-3" data-i18n="choisirClasse">Choisissez une classe...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="lang-config.js"></script>
+<script>
+const API = `${API_URL}/classe-emploi`;
+let listeCours = [];
+
+window.onload = async () => {
+  await chargerClasses();
+  await chargerProfesseurs();
+  document.getElementById('selecteurLangue').value = langueActuelle;
+  appliquerTraductions();
+};
+
+async function chargerClasses() {
+  const res = await fetch(`${API}/liste-classes`);
+  const d = await res.json();
+  if (d.ok) {
+    const sel = document.getElementById('id_classe');
+    sel.innerHTML = `<option value="">-- ${traductions[langueActuelle].choisirClasse} --</option>`;
+    d.classes.forEach(c => sel.innerHTML += `<option value="${c.id_classe}">${c.libelle_classe}</option>`);
+  }
+}
+
+async function chargerProfesseurs() {
+  const res = await fetch(`${API}/liste-professeurs`);
+  const d = await res.json();
+  if (d.ok) {
+    const sel = document.getElementById('id_professeur');
+    sel.innerHTML = `<option value="">-- ${traductions[langueActuelle].choisirProf} --</option>`;
+    d.professeurs.forEach(p => sel.innerHTML += `<option value="${p.id_utilisateur}">${p.nom} ${p.prenoms}</option>`);
+  }
+}
+
+async function chargerEmploi() {
+  const id = document.getElementById('id_classe').value;
+  if (!id) {
+    document.getElementById('corpsEmploi').innerHTML = `<tr><td colspan="5" class="text-center">-- ${traductions[langueActuelle].choisirClasse} --</td></tr>`;
+    return;
+  }
+  const res = await fetch(`${API}/emploi-temps/${id}`);
+  const d = await res.json();
+  if (d.ok) { listeCours = d.emploi_temps; afficherListe(); }
+}
+
+function afficherListe() {
+  const joursOrdre = {Lundi:1,Mardi:2,Mercredi:3,Jeudi:4,Vendredi:5,Samedi:6};
+  listeCours.sort((a,b) => joursOrdre[a.jour] - joursOrdre[b.jour] || a.heure_debut.localeCompare(b.heure_debut));
+  let html = '';
+  listeCours.forEach(c => {
+    html += `<tr>
+      <td class="fw-bold">${c.jour}</td>
+      <td>${c.heure_debut.slice(0,5)} — ${c.heure_fin.slice(0,5)}</td>
+      <td>${c.matiere}</td>
+      <td>${c.professeur}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-warning" onclick="modifier(${c.id_emploi})">✏️</button>
+        <button class="btn btn-sm btn-outline-danger" onclick="supprimer(${c.id_emploi})">🗑️</button>
+      </td>
+    </tr>`;
+  });
+  document.getElementById('corpsEmploi').innerHTML = html || `<tr><td colspan="5" class="text-center">${traductions[langueActuelle].aucuneDonnee}</td></tr>`;
+  reinitForm();
+}
+
+function reinitForm() {
+  document.getElementById('formCours').reset();
+  document.getElementById('id_emploi').value = '';
+  document.getElementById('titreForm').innerHTML = '➕ <span data-i18n="ajouterCours">' + traductions[langueActuelle].ajouterCours + '</span>';
+}
+
+function modifier(id) {
+  const c = listeCours.find(x => x.id_emploi === id);
+  if (!c) return;
+  document.getElementById('id_emploi').value = c.id_emploi;
+  document.getElementById('jour').value = c.jour;
+  document.getElementById('heure_debut').value = c.heure_debut.slice(0,5);
+  document.getElementById('heure_fin').value = c.heure_fin.slice(0,5);
+  document.getElementById('matiere').value = c.matiere;
+  document.getElementById('titreForm').innerHTML = '✏️ <span data-i18n="modifierCours">' + traductions[langueActuelle].modifierCours + '</span>';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+document.getElementById('formCours').onsubmit = async e => {
+  e.preventDefault();
+  const id_classe = document.getElementById('id_classe').value;
+  if (!id_classe) return alert(traductions[langueActuelle].selectionnerClasseDabord);
+  const id_emploi = document.getElementById('id_emploi').value;
+  const donnees = {
+    id_classe, id_professeur: document.getElementById('id_professeur').value,
+    jour: document.getElementById('jour').value,
+    heure_debut: document.getElementById('heure_debut').value,
+    heure_fin: document.getElementById('heure_fin').value,
+    matiere: document.getElementById('matiere').value
+  };
+  let res;
+  if (id_emploi) {
+    res = await fetch(`${API}/cours/modifier/${id_emploi}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}`},
+      body: JSON.stringify(donnees)
+    });
+  } else {
+    res = await fetch(`${API}/cours/ajouter`, {
+      method: 'POST', headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}`},
+      body: JSON.stringify(donnees)
+    });
+  }
+  const d = await res.json();
+  alert(d.message || d.erreur);
+  if (d.ok) chargerEmploi();
+};
+
+async function supprimer(id) {
+  if (!confirm(traductions[langueActuelle].confirmerSuppression)) return;
+  const res = await fetch(`${API}/cours/supprimer/${id}`, {
+    method: 'DELETE', headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`}
+  });
+  const d = await res.json();
+  alert(d.message || d.erreur);
+  if (d.ok) chargerEmploi();
+}
+</script>
+</body>
+</html>
