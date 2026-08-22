@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté systématiquement
+const veriftoken = require('../middleware/veriftoken');
 const verifadmin = require('../middleware/verifadmin');
 
 // ✅ Protection groupée uniforme
@@ -18,12 +18,10 @@ router.get('/liste', async (req, res) => {
     let conditions = [];
     let valeurs = [];
 
-    // Si tout=1 → renvoie toutes, sinon seulement celles publiées
     if (tout !== '1') {
       conditions.push('est_publie = true');
     }
 
-    // Filtre par catégorie si précisé
     if (categorie) {
       valeurs.push(categorie);
       conditions.push(`categorie = $${valeurs.length}`);
@@ -51,7 +49,9 @@ router.get('/liste', async (req, res) => {
 // ==================================================
 router.post('/ajouter', protegerAdmin, async (req, res) => {
   try {
-    const id_utilisateur = req.user?.id_utilisateur;
+    // ✅ CORRIGÉ : id_utilisateur → id
+    const id_utilisateur = req.user?.id;
+
     const {
       titre_fr, titre_en, titre_ar,
       description_fr, description_en, description_ar,
@@ -59,7 +59,6 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
       date_publication, ordre_affichage, est_publie
     } = req.body;
 
-    // ✅ Validation
     if (!type_media || !url_fichier) {
       return res.json({
         ok: false,

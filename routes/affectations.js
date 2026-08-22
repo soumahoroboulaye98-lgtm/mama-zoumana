@@ -15,11 +15,11 @@ router.get('/liste', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
       SELECT a.id_affectation,
-             u.nom AS nom_prof, u.prenoms AS prenoms_prof,
+             u.nom AS nom_prof, u.prenom AS prenoms_prof,
              c.libelle_classe AS classe,
              m.libelle_matiere AS matiere
       FROM affectations_ens a
-      JOIN utilisateurs u ON a.id_prof = u.id_utilisateur
+      JOIN utilisateurs u ON a.id_prof = u.id
       JOIN classes c ON a.id_classe = c.id_classe
       JOIN matieres m ON a.id_matiere = m.id_matiere
       ORDER BY u.nom, c.libelle_classe, m.libelle_matiere
