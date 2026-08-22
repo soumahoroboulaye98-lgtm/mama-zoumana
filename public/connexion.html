@@ -238,11 +238,6 @@
             <span class="txt-en">👨‍🏫 Teacher</span>
             <span class="txt-ar">👨‍🏫 المدرس</span>
           </option>
-          <option value="secretaire">
-            <span class="txt-fr">📝 Secrétaire</span>
-            <span class="txt-en">📝 Secretary</span>
-            <span class="txt-ar">📝 السكرتير</span>
-          </option>
           <option value="eleve">
             <span class="txt-fr">🎓 Élève</span>
             <span class="txt-en">🎓 Student</span>
@@ -376,7 +371,7 @@ function voirOuCacherMdp(){
   btn.textContent = mdpVisible ? '🙈' : '👁️';
 }
 
-// ✅ SOUMISSION FORMULAIRE — ROUTE CORRIGÉE ✅
+// ✅ SOUMISSION FORMULAIRE — CHAMPS CORRIGÉS : id ET prenom ✅
 document.getElementById('formConnexion').addEventListener('submit', async e => {
   e.preventDefault();
   const msgErreur = document.getElementById('msgErreur');
@@ -416,13 +411,14 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
     const data = await res.json();
 
     if(data.ok){
-      // ✅ SAUVEGARDE SESSION UNIFIÉE
+      // ✅ SAUVEGARDE SESSION — id ET prenom CONFORMES À LA BASE NEON ✅
       const estAdmin = (data.role === 'admin' || data.role === 'super_admin');
       localStorage.setItem('token', data.token || '');
-      localStorage.setItem('id_utilisateur', data.id_utilisateur || '');
+      localStorage.setItem('id', data.id || '');           // ← id (PAS id_utilisateur) ✅
       localStorage.setItem('matricule', data.matricule || '');
       localStorage.setItem('nom', data.nom || 'Utilisateur');
-      localStorage.setItem('prenoms', data.prenoms || '');
+      localStorage.setItem('prenom', data.prenom || '');   // ← prenom (PAS prenoms) ✅
+      localStorage.setItem('email', data.email || '');
       localStorage.setItem('role', data.role || role);
       localStorage.setItem('est_admin', estAdmin ? 'true' : 'false');
 
@@ -446,9 +442,6 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
           break;
         case 'parent':
           location.href = 'espace/parent/dashboard.html';
-          break;
-        case 'secretaire':
-          location.href = 'espace/secretaire/dashboard.html';
           break;
         default:
           msgErreur.textContent = "⚠️ Profil inconnu : " + (data.role || role);
