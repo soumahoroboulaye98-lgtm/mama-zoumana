@@ -6,9 +6,11 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const nodemailer = require('nodemailer'); // ✅ Ajouté — manquant dans l'original
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
+// ✅ CLÉ UNIFIÉE — MÊME VALEUR PARTOUT
+const CLE_JWT = process.env.JWT_SECRET || 'ma_cle_secrete_pour_le_site_2026';
 
 // ✅ Middlewares importés selon la convention du projet
 const veriftoken = require('../middleware/veriftoken');
@@ -16,7 +18,6 @@ const verifadmin = require('../middleware/verifadmin');
 
 // ✅ Protection groupée uniforme
 const protegerAdmin = [veriftoken, verifadmin];
-
 
 // 📁 CONFIGURATION UPLOAD FICHIERS
 const dossierUpload = path.join(__dirname, '../public/uploads');
@@ -33,7 +34,6 @@ const stockage = multer.diskStorage({
 });
 const upload = multer({ storage: stockage, limits: { fileSize: 10 * 1024 * 1024 } });
 
-
 // 📧 CONFIGURATION EMAIL
 const transport = nodemailer.createTransport({
   service: 'gmail',
@@ -42,7 +42,6 @@ const transport = nodemailer.createTransport({
     pass: process.env.MAIL_PASS
   }
 });
-
 
 // ==================================================
 // 🆕 GÉNÉRER MATRICULE — FORMAT IVOIRIEN
@@ -78,7 +77,6 @@ async function genererMatricule(profil, id_classe = null) {
   return `${codeEcole}-${annee}-${codeClasse}-${numero}`;
 }
 
-
 // ==================================================
 // 🔐 CONNEXION — ÉLÈVE=MATRICULE / AUTRES=EMAIL
 // ✅ HARMONISÉ : id et prenom conformes à la base Neon
@@ -87,7 +85,6 @@ router.post('/connexion', async (req, res) => {
   try {
     const { email, matricule, mot_de_passe, role } = req.body;
 
-    // ✅ Validation des champs
     if (!mot_de_passe || !role) {
       return res.json({ ok: false, erreur: "⚠️ Identifiant, mot de passe et profil sont obligatoires" });
     }
@@ -98,7 +95,6 @@ router.post('/connexion', async (req, res) => {
       return res.json({ ok: false, erreur: "⚠️ L'email est obligatoire pour ce profil" });
     }
 
-    // 🔍 Recherche utilisateur — Colonnes harmonisées
     let r;
     if (role === 'eleve') {
       r = await pool.query(
@@ -135,12 +131,10 @@ router.post('/connexion', async (req, res) => {
 
     const u = r.rows[0];
 
-    // ⚠️ Vérification statut du compte
     if (u.statut_compte !== 'valide') {
       return res.json({ ok: false, erreur: "⚠️ Compte en attente de validation par l'administration" });
     }
 
-    // 🔒 Déverrouillage automatique après 30 min
     if (u.compte_verrouille) {
       const maintenant = new Date();
       if (maintenant < new Date(u.date_deverrouillage)) {
@@ -154,7 +148,6 @@ router.post('/connexion', async (req, res) => {
       }
     }
 
-    // ✅ Vérification du mot de passe
     let mdpValide = false;
     if (u.mot_de_passe && !u.mot_de_passe.startsWith('$2b$')) {
       mdpValide = (mot_de_passe === u.mot_de_passe);
@@ -179,16 +172,15 @@ router.post('/connexion', async (req, res) => {
       return res.json({ ok: false, erreur: `⚠️ Mot de passe incorrect — ${5 - essais} essai(s) restant(s)` });
     }
 
-    // ✅ Réinitialiser tentatives et mettre à jour connexion
     await pool.query(
       'UPDATE utilisateurs SET tentatives_connexion = 0, derniere_connexion = NOW() WHERE id = $1',
       [u.id]
     );
 
-    // 🪪 Générer le token JWT — ✅ HARMONISÉ : id et prenom
+    // 🪪 Générer le token JWT — ✅ MÊME CLÉ UNIFIÉE
     const token = jwt.sign(
       { id: u.id, nom: u.nom, prenom: u.prenom, role: u.role, email: u.email },
-      process.env.JWT_SECRET,
+      CLE_JWT, // ✅ CORRIGÉ : plus de valeur undefined
       { expiresIn: '8h' }
     );
 
@@ -210,7 +202,6 @@ router.post('/connexion', async (req, res) => {
   }
 });
 
-
 // ==================================================
 // 📝 PRÉINSCRIPTION — AVEC NOUVEAU MATRICULE
 // ==================================================
@@ -218,7 +209,6 @@ router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }
   try {
     const { nom, prenoms, email, telephone, role, id_classe, profil, mot_de_passe } = req.body;
 
-    // ✅ Validations
     if (!nom || !prenoms || !email || !mot_de_passe) {
       return res.json({ ok: false, erreur: "⚠️ Nom, prénoms, email et mot de passe sont obligatoires" });
     }
@@ -232,7 +222,6 @@ router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }
       return res.json({ ok: false, erreur: "⚠️ Cet email est déjà utilisé" });
     }
 
-    // ✅ Générer nouveau matricule
     const matricule = await genererMatricule(profil || role, id_classe);
     const hashMdp = await bcrypt.hash(mot_de_passe, 10);
 
@@ -258,7 +247,6 @@ router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }
     res.json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
-
 
 // ==================================================
 // 🔑 MOT DE PASSE OUBLIÉ — ✅ HARMONISÉ
@@ -311,7 +299,6 @@ router.post('/mot-de-passe-oublie', async (req, res) => {
   }
 });
 
-
 // ==================================================
 // 🔐 CHANGEMENT DE MOT DE PASSE — ✅ HARMONISÉ
 // ==================================================
@@ -355,7 +342,6 @@ router.post('/changer-mot-de-passe', async (req, res) => {
     res.json({ ok: false, erreur: "Erreur serveur" });
   }
 });
-
 
 // ==================================================
 // ✅ VALIDER UNE PRÉINSCRIPTION → CRÉER COMPTE
@@ -422,7 +408,6 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
   }
 });
 
-
 // ==================================================
 // ❌ REFUSER UNE PRÉINSCRIPTION
 // ==================================================
@@ -450,7 +435,6 @@ router.put('/preinscription/refuser/:id', protegerAdmin, async (req, res) => {
   }
 });
 
-
 // ==================================================
 // 📋 LISTER LES PRÉINSCRIPTIONS EN ATTENTE
 // ==================================================
@@ -473,7 +457,6 @@ router.get('/preinscription/liste', protegerAdmin, async (req, res) => {
   }
 });
 
-
 // ==================================================
 // 📋 LISTE TOUS LES UTILISATEURS — ✅ HARMONISÉ
 // ==================================================
@@ -492,7 +475,6 @@ router.get('/utilisateurs', protegerAdmin, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
-
 
 // ==================================================
 // 🔴 LIRE UN SEUL UTILISATEUR — ✅ HARMONISÉ
@@ -523,7 +505,6 @@ router.get('/utilisateur/:id', protegerAdmin, async (req, res) => {
   }
 });
 
-
 // ==================================================
 // ✏️ MODIFIER UN UTILISATEUR — ✅ HARMONISÉ
 // ==================================================
@@ -540,7 +521,6 @@ router.put('/utilisateur/:id', protegerAdmin, async (req, res) => {
       return res.json({ ok: false, erreur: "⚠️ Nom, prénoms et email sont obligatoires" });
     }
 
-    // Vérifier unicité email
     const emailNettoye = email.toLowerCase().trim();
     const exist = await pool.query(
       'SELECT id FROM utilisateurs WHERE LOWER(email) = $1 AND id != $2',
@@ -578,7 +558,6 @@ router.put('/utilisateur/:id', protegerAdmin, async (req, res) => {
   }
 });
 
-
 // ==================================================
 // 🗑️ SUPPRIMER UN UTILISATEUR — ✅ HARMONISÉ
 // ==================================================
@@ -609,6 +588,5 @@ router.delete('/utilisateur/:id', protegerAdmin, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
-
 
 module.exports = router;
