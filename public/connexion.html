@@ -316,9 +316,9 @@
 
 <script>
 // ==================================================
-// ⚙️ CONFIGURATION API — HARMONISÉE AVEC TON SERVEUR ✅
+// ⚙️ CONFIGURATION API — ✅ MISE À JOUR VERS LE NOUVEAU SERVEUR
 // ==================================================
-const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+const API_URL = 'https://mama-zoumana.onrender.com/api';
 
 // 🗣️ CHANGEMENT DE LANGUE
 document.querySelectorAll('.btn-langue').forEach(btn => {
@@ -371,7 +371,7 @@ function voirOuCacherMdp(){
   btn.textContent = mdpVisible ? '🙈' : '👁️';
 }
 
-// ✅ SOUMISSION FORMULAIRE — CHAMPS CORRIGÉS : id ET prenom ✅
+// ✅ SOUMISSION FORMULAIRE — id ET prenom CONFORMES À LA BASE NEON
 document.getElementById('formConnexion').addEventListener('submit', async e => {
   e.preventDefault();
   const msgErreur = document.getElementById('msgErreur');
@@ -411,18 +411,18 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
     const data = await res.json();
 
     if(data.ok){
-      // ✅ SAUVEGARDE SESSION — id ET prenom CONFORMES À LA BASE NEON ✅
+      // ✅ SAUVEGARDE SESSION — id ET prenom CONFORMES À LA BASE NEON
       const estAdmin = (data.role === 'admin' || data.role === 'super_admin');
       localStorage.setItem('token', data.token || '');
-      localStorage.setItem('id', data.id || '');           // ← id (PAS id_utilisateur) ✅
+      localStorage.setItem('id', data.id || '');
       localStorage.setItem('matricule', data.matricule || '');
       localStorage.setItem('nom', data.nom || 'Utilisateur');
-      localStorage.setItem('prenom', data.prenom || '');   // ← prenom (PAS prenoms) ✅
+      localStorage.setItem('prenom', data.prenom || '');
       localStorage.setItem('email', data.email || '');
       localStorage.setItem('role', data.role || role);
       localStorage.setItem('est_admin', estAdmin ? 'true' : 'false');
 
-      // ✅ REDIRECTIONS PAR PROFIL — CHEMINS CORRIGÉS ✅
+      // ✅ REDIRECTIONS PAR PROFIL
       switch(data.role || role){
         case 'admin':
         case 'super_admin':
