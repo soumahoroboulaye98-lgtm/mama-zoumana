@@ -8,6 +8,7 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
+
 // ✅ Middlewares importés et harmonisés
 const veriftoken = require('../middleware/veriftoken');
 const verifadmin = require('../middleware/verifadmin');
@@ -67,17 +68,18 @@ router.post('/', upload.fields([
 ]), async (req, res) => {
   try {
     const {
-      type_inscription, profil, nom, prenoms, sexe,
-      email, telephone, id_classe, mot_de_passe,
-      langue, date_naissance
+      profil, nom_famille, prenom, sexe, date_naissance, lieu_naissance,
+      nationalite, adresse, telephone, email,
+      nom_parent, telephone_parent, email_parent,
+      id_classe_souhaitee, observations
     } = req.body;
 
-    const id_classe_nombre = (id_classe && id_classe !== '' && !isNaN(Number(id_classe)))
-      ? Number(id_classe)
+    const id_classe_nombre = (id_classe_souhaitee && id_classe_souhaitee !== '' && !isNaN(Number(id_classe_souhaitee)))
+      ? Number(id_classe_souhaitee)
       : null;
 
     // ══════════════════════════════════════════════════
-    // ✅ ÉTAPE 1 : VÉRIFICATION DES PLACES DISPONIBLES
+    // ✅ ÉTAPE 1 : VÉRIFICATION DES PLACES DISPONIBLES (Élève seul)
     // ══════════════════════════════════════════════════
     let libelleClasse = null;
     let placesRestantes = null;
@@ -117,36 +119,28 @@ router.post('/', upload.fields([
     const bulletin = req.files?.bulletin ? 'uploads/' + req.files.bulletin[0].filename : null;
     const cv = req.files?.cv ? 'uploads/' + req.files.cv[0].filename : null;
 
-    const docsListe = [];
-    if (extrait_naissance) docsListe.push(extrait_naissance);
-    if (bulletin) docsListe.push(bulletin);
-    if (cv) docsListe.push(cv);
-    const documents = docsListe.join('|');
-
-    const hashMotDePasse = await bcrypt.hash(mot_de_passe, 10);
-
     // ══════════════════════════════════════════════════
-    // ✅ ENREGISTRER LA PRÉINSCRIPTION
+    // ✅ ENREGISTRER LA PRÉINSCRIPTION — COLONNES CONFORMES À LA BASE
     // ══════════════════════════════════════════════════
     const resultat = await pool.query(`
       INSERT INTO preinscriptions(
-        type_inscription, profil, nom, prenoms, sexe,
-        email, telephone, id_classe, mot_de_passe,
-        photo_identite, extrait_naissance, bulletin, cv, documents,
-        langue, date_naissance, statut_preinscription, date_preinscription
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'en_attente', CURRENT_TIMESTAMP)
-      RETURNING id_preinscription
+        nom_famille, prenom, sexe, date_naissance, lieu_naissance,
+        nationalite, adresse, telephone, email,
+        nom_parent, telephone_parent, email_parent,
+        id_classe_souhaitee, observations, statut, date_creation
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 'en_attente', CURRENT_TIMESTAMP)
+      RETURNING id
     `, [
-      type_inscription || 'nouveau', profil, nom, prenoms, sexe,
-      email, telephone, id_classe_nombre, hashMotDePasse,
-      photo_identite, extrait_naissance, bulletin, cv, documents,
-      langue || 'fr', date_naissance || null
+      nom_famille, prenom, sexe, date_naissance || null, lieu_naissance || null,
+      nationalite || null, adresse || null, telephone || null, email || null,
+      nom_parent || null, telephone_parent || null, email_parent || null,
+      id_classe_nombre || null, observations || null
     ]);
 
-    const idDemande = resultat.rows[0].id_preinscription;
+    const idDemande = resultat.rows[0].id;
 
     // ══════════════════════════════════════════════════
-    // ✅ RÉSERVER LA PLACE : DÉDUIRE 1 PLACE IMMÉDIATEMENT
+    // ✅ RÉSERVER LA PLACE (Élève seul)
     // ══════════════════════════════════════════════════
     if (profil === 'eleve' && id_classe_nombre && placesRestantes !== null) {
       const nouveauOccupees = placesOccupeesActuelles + 1;
@@ -155,7 +149,6 @@ router.post('/', upload.fields([
         SET places_occupees = $1
         WHERE id_classe = $2
       `, [nouveauOccupees, id_classe_nombre]);
-
       placesRestantes = capaciteMax - nouveauOccupees;
     }
 
@@ -163,20 +156,23 @@ router.post('/', upload.fields([
     // ✅ EMAIL DE CONFIRMATION
     // ══════════════════════════════════════════════════
     const infoClasse = libelleClasse
-      ? `🏫 Classe : ${libelleClasse}<br>📊 Places restantes dans la classe : <strong>${placesRestantes}</strong> place(s)`
+      ? `🏫 Classe demandée : ${libelleClasse}<br>📊 Places restantes : <strong>${placesRestantes}</strong> place(s)`
       : '';
 
-    await envoyerEmail(email, 'Préinscription enregistrée — MAMA-ZOUMANA', `
-      <h3>✅ Demande enregistrée</h3>
-      <p>Bonjour <strong>${prenoms} ${nom}</strong>,</p>
-      <p>Nous accusons réception de votre demande de préinscription.</p>
-      <p><strong>${infoClasse}</strong></p>
-      <p>Nous vous répondrons dans un délai de <strong>24 HEURES</strong> maximum.</p>
-      <p>À la validation définitive, vous recevrez votre <strong>matricule</strong>, un <strong>mot de passe provisoire</strong> et votre <strong>Code QR</strong>.</p>
-      <hr><p>Établissement MAMA-ZOUMANA</p>
-    `);
+    const destEmail = email || email_parent;
+    if (destEmail) {
+      await envoyerEmail(destEmail, 'Préinscription enregistrée — MAMA-ZOUMANA', `
+        <h3>✅ Demande enregistrée</h3>
+        <p>Bonjour <strong>${prenom} ${nom_famille}</strong>,</p>
+        <p>Nous accusons réception de votre demande de préinscription.</p>
+        <p><strong>Profil :</strong> ${profil}<br>${infoClasse}</p>
+        <p>Nous vous répondrons dans un délai de <strong>24 HEURES</strong> maximum.</p>
+        <p>À la validation définitive, vous recevrez votre <strong>matricule</strong> et vos identifiants de connexion.</p>
+        <hr><p>Établissement MAMA-ZOUMANA</p>
+      `);
+    }
 
-    console.log(`✅ PRÉINSCRIPTION ENREGISTRÉE — ID: ${idDemande}, Email: ${email}`);
+    console.log(`✅ PRÉINSCRIPTION ENREGISTRÉE — ID: ${idDemande}, Profil: ${profil}`);
 
     const messageClasse = libelleClasse
       ? `\n🏫 Classe : ${libelleClasse}\n📊 Places restantes : ${placesRestantes} place(s)`
@@ -209,11 +205,11 @@ router.get('/en-attente', protegerAdmin, async (req, res) => {
   try {
     const liste = await pool.query(`
       SELECT
-        id_preinscription, nom, prenoms, email, telephone,
-        profil, id_classe, matricule, date_preinscription, statut_preinscription
+        id, nom_famille, prenom, email, telephone,
+        nom_parent, telephone_parent, id_classe_souhaitee, statut, date_creation
       FROM preinscriptions
-      WHERE statut_preinscription = 'en_attente'
-      ORDER BY date_preinscription DESC
+      WHERE statut = 'en_attente'
+      ORDER BY date_creation DESC
     `);
 
     console.log(`📋 DEMANDES EN ATTENTE : ${liste.rows.length}`);
@@ -232,21 +228,21 @@ router.get('/liste', protegerAdmin, async (req, res) => {
   try {
     const liste = await pool.query(`
       SELECT
-        id_preinscription, nom, prenoms, email, telephone,
-        profil, id_classe, matricule, date_preinscription,
-        photo_identite, documents, statut_preinscription
+        id, nom_famille, prenom, sexe, date_naissance,
+        email, telephone, nom_parent, telephone_parent,
+        id_classe_souhaitee, statut, date_creation
       FROM preinscriptions
-      ORDER BY date_preinscription DESC
+      ORDER BY date_creation DESC
     `);
 
     const resultat = await Promise.all(liste.rows.map(async (dem) => {
       let libelleClasse = null;
-      if (dem.id_classe) {
+      if (dem.id_classe_souhaitee) {
         try {
-          const c = await pool.query('SELECT libelle_classe FROM classes WHERE id_classe = $1', [dem.id_classe]);
+          const c = await pool.query('SELECT libelle_classe FROM classes WHERE id_classe = $1', [dem.id_classe_souhaitee]);
           if (c.rows.length > 0) libelleClasse = c.rows[0].libelle_classe;
         } catch {
-          libelleClasse = `Classe #${dem.id_classe}`;
+          libelleClasse = `Classe #${dem.id_classe_souhaitee}`;
         }
       }
       return { ...dem, classe: libelleClasse };
@@ -268,75 +264,81 @@ router.put('/valider/:id', protegerAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const demande = await pool.query("SELECT * FROM preinscriptions WHERE id_preinscription = $1", [id]);
+    const demande = await pool.query("SELECT * FROM preinscriptions WHERE id = $1", [id]);
     if (demande.rows.length === 0) {
       return res.json({ ok: false, erreur: "❌ Demande introuvable !" });
     }
     const d = demande.rows[0];
 
-    const prefixe = d.profil === 'eleve' ? 'ELV'
-      : d.profil === 'prof' ? 'ENS'
-      : d.profil === 'parent' ? 'PAR' : 'VIS';
+    // Déterminer le profil à partir des informations saisies
+    let profil = 'visiteur';
+    if (d.nom_parent && d.nom_famille) profil = 'parent';
+    else if (d.id_classe_souhaitee) profil = 'eleve';
+
+    const prefixe = profil === 'eleve' ? 'ELV'
+      : profil === 'prof' ? 'ENS'
+      : profil === 'parent' ? 'PAR' : 'VIS';
     const annee = new Date().getFullYear();
-    const compteur = String(d.id_preinscription).padStart(5, '0');
+    const compteur = String(d.id).padStart(5, '0');
     const matricule = `${prefixe}-${annee}-${compteur}`;
 
     const motDePasseProvisoire = Math.random().toString(36).substring(2, 10).toUpperCase() + '@1A';
     const hashMdp = await bcrypt.hash(motDePasseProvisoire, 10);
-    const contenuQR = `MATRICULE:${matricule}|NOM:${d.nom} ${d.prenoms}|PROFIL:${d.profil}|EMAIL:${d.email}`;
 
+    // Mise à jour du statut
     await pool.query(`
       UPDATE preinscriptions
-      SET statut_preinscription = 'valide', matricule = $1
-      WHERE id_preinscription = $2
-    `, [matricule, id]);
+      SET statut = 'valide'
+      WHERE id = $1
+    `, [id]);
 
+    // Création compte utilisateur
     await pool.query(`
       INSERT INTO utilisateurs(
-        nom, prenoms, email, telephone, mot_de_passe,
-        role, matricule, id_classe, langue_defaut,
-        statut_compte, cle_validation, qr_code
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'valide', $10, $11)
+        nom, prenom, email, telephone, mot_de_passe,
+        role, matricule, id_classe, date_creation
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)
     `, [
-      d.nom, d.prenoms, d.email, d.telephone, hashMdp,
-      d.profil, matricule, d.id_classe || null, d.langue || 'fr',
-      motDePasseProvisoire, contenuQR
+      d.nom_famille, d.prenom, d.email || d.email_parent, d.telephone || d.telephone_parent, hashMdp,
+      profil, matricule, d.id_classe_souhaitee || null
     ]);
 
     // 📧 Email de validation
-    const htmlMail = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <style>
-        body { font-family: Arial, sans-serif; background: #f0f9ff; padding: 20px; }
-        .boite { background: white; padding: 25px; border-radius: 12px; border: 3px solid #f59e0b; max-width: 500px; }
-        h2 { color: #0c4a6e; text-align: center; }
-        .info { background: #f8fafc; padding: 12px; margin: 8px 0; border-radius: 8px; border-left: 4px solid #0369a1; }
-        .important { background: #fffbeb; border-left: 4px solid #f59e0b; font-weight: bold; }
-        .succes { background: #f0fdf4; border-left: 4px solid #10b981; }
-        code { background: #e2e8f0; padding: 4px 10px; border-radius: 4px; font-size: 16px; color: #0c4a6e; }
-      </style>
-    </head>
-    <body>
-      <div class="boite">
-        <h2>✅ INSCRIPTION VALIDÉE</h2>
-        <p>Bonjour <strong>${d.nom} ${d.prenoms}</strong>,</p>
-        <p>Votre demande de préinscription a été validée avec succès !</p>
-        <div class="info">📋 <strong>Matricule :</strong><br><code>${matricule}</code></div>
-        <div class="info important">🔑 <strong>Mot de passe provisoire :</strong><br><code>${motDePasseProvisoire}</code></div>
-        <div class="info">👤 <strong>Profil :</strong> ${d.profil.toUpperCase()}<br>📧 <strong>Email de connexion :</strong> ${d.email}</div>
-        <p style="color:#ef4444; font-weight:bold; margin-top:20px;">
-          ⚠️ Connectez-vous puis modifiez votre mot de passe. Votre QR Code est dans votre espace.
-        </p>
-        <hr><p style="text-align:center; color:#64748b;">Établissement MAMA-ZOUMANA — ${new Date().getFullYear()}</p>
-      </div>
-    </body>
-    </html>
-    `;
-
-    await envoyerEmail(d.email, '✅ INSCRIPTION VALIDÉE — MAMA-ZOUMANA', htmlMail);
+    const destEmail = d.email || d.email_parent;
+    if (destEmail) {
+      const htmlMail = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: Arial, sans-serif; background: #f0f9ff; padding: 20px; }
+          .boite { background: white; padding: 25px; border-radius: 12px; border: 3px solid #f59e0b; max-width: 500px; }
+          h2 { color: #0c4a6e; text-align: center; }
+          .info { background: #f8fafc; padding: 12px; margin: 8px 0; border-radius: 8px; border-left: 4px solid #0369a1; }
+          .important { background: #fffbeb; border-left: 4px solid #f59e0b; font-weight: bold; }
+          .succes { background: #f0fdf4; border-left: 4px solid #10b981; }
+          code { background: #e2e8f0; padding: 4px 10px; border-radius: 4px; font-size: 16px; color: #0c4a6e; }
+        </style>
+      </head>
+      <body>
+        <div class="boite">
+          <h2>✅ INSCRIPTION VALIDÉE</h2>
+          <p>Bonjour <strong>${d.prenom} ${d.nom_famille}</strong>,</p>
+          <p>Votre demande de préinscription a été validée avec succès !</p>
+          <div class="info">📋 <strong>Matricule :</strong><br><code>${matricule}</code></div>
+          <div class="info important">🔑 <strong>Mot de passe provisoire :</strong><br><code>${motDePasseProvisoire}</code></div>
+          <div class="info">👤 <strong>Profil :</strong> ${profil.toUpperCase()}<br>📧 <strong>Email de connexion :</strong> ${destEmail}</div>
+          <p style="color:#ef4444; font-weight:bold; margin-top:20px;">
+            ⚠️ Connectez-vous puis modifiez votre mot de passe provisoire.
+          </p>
+          <hr><p style="text-align:center; color:#64748b;">Établissement MAMA-ZOUMANA — ${new Date().getFullYear()}</p>
+        </div>
+      </body>
+      </html>
+      `;
+      await envoyerEmail(destEmail, '✅ INSCRIPTION VALIDÉE — MAMA-ZOUMANA', htmlMail);
+    }
 
     console.log(`✅ PRÉINSCRIPTION VALIDÉE — ID: ${id}, Matricule: ${matricule}`);
     res.json({ ok: true, message: "✅ Inscription validée ! Compte créé et email envoyé." });
@@ -355,14 +357,14 @@ router.put('/refuser/:id', protegerAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const demande = await pool.query("SELECT id_classe FROM preinscriptions WHERE id_preinscription = $1", [id]);
+    const demande = await pool.query("SELECT id_classe_souhaitee FROM preinscriptions WHERE id = $1", [id]);
     if (demande.rows.length === 0) {
       return res.json({ ok: false, erreur: "❌ Demande introuvable !" });
     }
 
-    const idClasse = demande.rows[0].id_classe;
+    const idClasse = demande.rows[0].id_classe_souhaitee;
 
-    // ✅ RENDRE LA PLACE DISPONIBLE
+    // ✅ RENDRE LA PLACE DISPONIBLE (si élève)
     if (idClasse) {
       await pool.query(`
         UPDATE classes
@@ -371,7 +373,7 @@ router.put('/refuser/:id', protegerAdmin, async (req, res) => {
       `, [idClasse]);
     }
 
-    await pool.query(`UPDATE preinscriptions SET statut_preinscription = 'refusee' WHERE id_preinscription = $1`, [id]);
+    await pool.query(`UPDATE preinscriptions SET statut = 'refusee' WHERE id = $1`, [id]);
 
     console.log(`🗑️ PRÉINSCRIPTION REFUSÉE — ID: ${id}, Classe: ${idClasse || 'aucune'}`);
     res.json({ ok: true, message: "✅ Demande refusée. Place rendue disponible dans la classe." });
@@ -389,17 +391,18 @@ router.put('/refuser/:id', protegerAdmin, async (req, res) => {
 router.get('/detail/:id', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
-      SELECT id_preinscription, nom, prenoms, email, telephone, profil, id_classe,
-             matricule, photo_identite, documents, date_preinscription, statut_preinscription
-      FROM preinscriptions WHERE id_preinscription = $1
+      SELECT id, nom_famille, prenom, sexe, date_naissance,
+             email, telephone, nom_parent, telephone_parent,
+             id_classe_souhaitee, statut, date_creation
+      FROM preinscriptions WHERE id = $1
     `, [req.params.id]);
 
     if (r.rows.length === 0) return res.json({ ok: false, erreur: "Préinscription introuvable" });
 
     const d = r.rows[0];
     let nomClasse = null;
-    if (d.id_classe) {
-      const c = await pool.query('SELECT libelle_classe FROM classes WHERE id_classe = $1', [d.id_classe]);
+    if (d.id_classe_souhaitee) {
+      const c = await pool.query('SELECT libelle_classe FROM classes WHERE id_classe = $1', [d.id_classe_souhaitee]);
       if (c.rows.length > 0) nomClasse = c.rows[0].libelle_classe;
     }
 
