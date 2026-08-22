@@ -9,8 +9,8 @@ const fs = require('fs');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-// ✅ CLÉ UNIFIÉE — MÊME VALEUR PARTOUT
-const CLE_JWT = process.env.JWT_SECRET || 'ma_cle_secrete_pour_le_site_2026';
+// ✅ CLÉ EN DUR — JAMAIS VIDE, MÊME SI Render n'a pas la variable
+const CLE_JWT = 'ma_cle_secrete_pour_le_site_2026';
 
 // ✅ Middlewares importés selon la convention du projet
 const veriftoken = require('../middleware/veriftoken');
@@ -177,10 +177,10 @@ router.post('/connexion', async (req, res) => {
       [u.id]
     );
 
-    // 🪪 Générer le token JWT — ✅ MÊME CLÉ UNIFIÉE
+    // 🪪 Générer le token JWT — ✅ CLÉ EN DUR, JAMAIS VIDE
     const token = jwt.sign(
       { id: u.id, nom: u.nom, prenom: u.prenom, role: u.role, email: u.email },
-      CLE_JWT, // ✅ CORRIGÉ : plus de valeur undefined
+      CLE_JWT,
       { expiresIn: '8h' }
     );
 

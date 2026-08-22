@@ -1,35 +1,34 @@
 const jwt = require('jsonwebtoken');
-require('dotenv').config(); // ✅ Charge les variables d'environnement
+require('dotenv').config();
 
-// ✅ Clé unifiée : même valeur partout
-const CLE_JWT = process.env.JWT_SECRET || 'ma_cle_secrete_pour_le_site_2026';
+// ✅ CLÉ EN DUR — JAMAIS VIDE, MÊME SI Render n'a pas la variable
+const CLE_JWT = 'ma_cle_secrete_pour_le_site_2026';
 
 module.exports = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
-  // ❌ Pas de token → renvoie une erreur 401
+  // ❌ Pas de token → erreur 401
   if (!token) {
     return res.status(401).json({ erreur: "⛔ Token manquant — Connectez-vous !" });
   }
 
   try {
-    // ✅ Vérifie le token avec la clé unifiée
+    // ✅ Vérifie avec la clé EN DUR
     const decoded = jwt.verify(token, CLE_JWT);
 
-    // ✅ HARMONISÉ : utilise id et prenom (conforme à la base Neon)
+    // ✅ HARMONISÉ : champs conformes à la base Neon (id / prenom)
     req.user = {
-      id: decoded.id,           // ← id (PAS id_utilisateur)
+      id: decoded.id,
       nom: decoded.nom,
-      prenom: decoded.prenom,   // ← prenom (PAS prenoms)
+      prenom: decoded.prenom,
       role: decoded.role,
       email: decoded.email
     };
 
-    // ✅ Log harmonisé
-    console.log(`🔑 TOKEN VALIDE — Utilisateur: ${decoded.nom || 'Inconnu'} ${decoded.prenom || ''}, Rôle: ${decoded.role}`);
+    console.log(`🔑 TOKEN VALIDE — ${decoded.nom || 'Inconnu'} ${decoded.prenom || ''}, Rôle: ${decoded.role}`);
 
-    next(); // ✅ Token valide → passe à la suite
+    next();
 
   } catch (e) {
     console.log("❌ TOKEN INVALIDE ou expiré :", e.message);
