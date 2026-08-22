@@ -6,13 +6,13 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const nodemailer = require('nodemailer'); // ✅ Ajouté — manquant dans l'original
 require('dotenv').config();
 
 
 // ✅ Middlewares importés selon la convention du projet
 const veriftoken = require('../middleware/veriftoken');
 const verifadmin = require('../middleware/verifadmin');
-
 
 // ✅ Protection groupée uniforme
 const protegerAdmin = [veriftoken, verifadmin];
@@ -81,7 +81,7 @@ async function genererMatricule(profil, id_classe = null) {
 
 // ==================================================
 // 🔐 CONNEXION — ÉLÈVE=MATRICULE / AUTRES=EMAIL
-// ✅ CORRIGÉ : id → id_utilisateur, prenom → prenoms
+// ✅ HARMONISÉ : id et prenom conformes à la base Neon
 // ==================================================
 router.post('/connexion', async (req, res) => {
   try {
@@ -98,11 +98,11 @@ router.post('/connexion', async (req, res) => {
       return res.json({ ok: false, erreur: "⚠️ L'email est obligatoire pour ce profil" });
     }
 
-    // 🔍 Recherche selon le profil — ✅ COLONNES CORRIGÉES
+    // 🔍 Recherche utilisateur — Colonnes harmonisées
     let r;
     if (role === 'eleve') {
       r = await pool.query(
-        `SELECT id AS id_utilisateur, nom, prenom AS prenoms, email, matricule, role, mot_de_passe,
+        `SELECT id, nom, prenom, email, matricule, role, mot_de_passe,
                 COALESCE(statut_compte, 'valide') AS statut_compte,
                 COALESCE(compte_verrouille, false) AS compte_verrouille,
                 COALESCE(tentatives_connexion, 0) AS tentatives_connexion,
@@ -113,7 +113,7 @@ router.post('/connexion', async (req, res) => {
       );
     } else {
       r = await pool.query(
-        `SELECT id AS id_utilisateur, nom, prenom AS prenoms, email, matricule, role, mot_de_passe,
+        `SELECT id, nom, prenom, email, matricule, role, mot_de_passe,
                 COALESCE(statut_compte, 'valide') AS statut_compte,
                 COALESCE(compte_verrouille, false) AS compte_verrouille,
                 COALESCE(tentatives_connexion, 0) AS tentatives_connexion,
@@ -149,7 +149,7 @@ router.post('/connexion', async (req, res) => {
       } else {
         await pool.query(
           'UPDATE utilisateurs SET compte_verrouille = false, tentatives_connexion = 0 WHERE id = $1',
-          [u.id_utilisateur]
+          [u.id]
         );
       }
     }
@@ -168,13 +168,13 @@ router.post('/connexion', async (req, res) => {
         const fin = new Date(Date.now() + 30 * 60000);
         await pool.query(
           'UPDATE utilisateurs SET tentatives_connexion = $1, compte_verrouille = true, date_deverrouillage = $2 WHERE id = $3',
-          [essais, fin, u.id_utilisateur]
+          [essais, fin, u.id]
         );
         return res.json({ ok: false, erreur: "⚠️ 5 essais échoués — Compte verrouillé 30 min" });
       }
       await pool.query(
         'UPDATE utilisateurs SET tentatives_connexion = $1 WHERE id = $2',
-        [essais, u.id_utilisateur]
+        [essais, u.id]
       );
       return res.json({ ok: false, erreur: `⚠️ Mot de passe incorrect — ${5 - essais} essai(s) restant(s)` });
     }
@@ -182,12 +182,12 @@ router.post('/connexion', async (req, res) => {
     // ✅ Réinitialiser tentatives et mettre à jour connexion
     await pool.query(
       'UPDATE utilisateurs SET tentatives_connexion = 0, derniere_connexion = NOW() WHERE id = $1',
-      [u.id_utilisateur]
+      [u.id]
     );
 
-    // 🪪 Générer le token JWT
+    // 🪪 Générer le token JWT — ✅ HARMONISÉ : id et prenom
     const token = jwt.sign(
-      { id_utilisateur: u.id_utilisateur, role: u.role },
+      { id: u.id, nom: u.nom, prenom: u.prenom, role: u.role, email: u.email },
       process.env.JWT_SECRET,
       { expiresIn: '8h' }
     );
@@ -196,9 +196,9 @@ router.post('/connexion', async (req, res) => {
     res.json({
       ok: true,
       token,
-      id_utilisateur: u.id_utilisateur,
+      id: u.id,
       nom: u.nom,
-      prenoms: u.prenoms,
+      prenom: u.prenom,
       email: u.email,
       matricule: u.matricule,
       role: u.role
@@ -261,7 +261,7 @@ router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }
 
 
 // ==================================================
-// 🔑 MOT DE PASSE OUBLIÉ — ✅ COLONNES CORRIGÉES
+// 🔑 MOT DE PASSE OUBLIÉ — ✅ HARMONISÉ
 // ==================================================
 router.post('/mot-de-passe-oublie', async (req, res) => {
   try {
@@ -271,7 +271,7 @@ router.post('/mot-de-passe-oublie', async (req, res) => {
     }
 
     const utilisateur = await pool.query(
-      `SELECT id AS id_utilisateur, nom, prenom AS prenoms, email
+      `SELECT id, nom, prenom, email
        FROM utilisateurs
        WHERE LOWER(email) = LOWER($1) AND COALESCE(statut_compte, 'valide') = 'valide'`,
       [email.trim()]
@@ -287,7 +287,7 @@ router.post('/mot-de-passe-oublie', async (req, res) => {
 
     await pool.query(
       'UPDATE utilisateurs SET mot_de_passe = $1 WHERE id = $2',
-      [motDePasseCrypte, user.id_utilisateur]
+      [motDePasseCrypte, user.id]
     );
 
     await transport.sendMail({
@@ -295,7 +295,7 @@ router.post('/mot-de-passe-oublie', async (req, res) => {
       to: user.email,
       subject: '🔑 Récupération — MAMA-ZOUMANA',
       html: `
-        <h2>Bonjour ${user.nom} ${user.prenoms},</h2>
+        <h2>Bonjour ${user.nom} ${user.prenom},</h2>
         <p>Nous avons reçu une demande de réinitialisation de mot de passe.</p>
         <p>Votre nouveau mot de passe temporaire est :</p>
         <h3 style="background:#f59e0b; padding:12px; border-radius:6px; font-size:20px; text-align:center;">${motDePasseTemp}</h3>
@@ -313,13 +313,13 @@ router.post('/mot-de-passe-oublie', async (req, res) => {
 
 
 // ==================================================
-// 🔐 CHANGEMENT DE MOT DE PASSE — ✅ CORRIGÉ
+// 🔐 CHANGEMENT DE MOT DE PASSE — ✅ HARMONISÉ
 // ==================================================
 router.post('/changer-mot-de-passe', async (req, res) => {
   try {
-    const { id_utilisateur, ancien_mot_de_passe, nouveau_mot_de_passe } = req.body;
+    const { id, ancien_mot_de_passe, nouveau_mot_de_passe } = req.body;
 
-    if (!id_utilisateur || !ancien_mot_de_passe || !nouveau_mot_de_passe) {
+    if (!id || !ancien_mot_de_passe || !nouveau_mot_de_passe) {
       return res.json({ ok: false, erreur: "⚠️ Tous les champs sont obligatoires" });
     }
     if (nouveau_mot_de_passe.length < 6) {
@@ -327,8 +327,8 @@ router.post('/changer-mot-de-passe', async (req, res) => {
     }
 
     const userResult = await pool.query(
-      'SELECT mot_de_passe, nom, prenom AS prenoms FROM utilisateurs WHERE id = $1',
-      [id_utilisateur]
+      'SELECT mot_de_passe, nom, prenom FROM utilisateurs WHERE id = $1',
+      [id]
     );
 
     if (userResult.rows.length === 0) {
@@ -345,10 +345,10 @@ router.post('/changer-mot-de-passe', async (req, res) => {
     const nouveauCrypte = await bcrypt.hash(nouveau_mot_de_passe, 10);
     await pool.query(
       'UPDATE utilisateurs SET mot_de_passe = $1 WHERE id = $2',
-      [nouveauCrypte, id_utilisateur]
+      [nouveauCrypte, id]
     );
 
-    console.log(`✅ Mot de passe modifié — ${utilisateur.nom} ${utilisateur.prenoms}`);
+    console.log(`✅ Mot de passe modifié — ${utilisateur.nom} ${utilisateur.prenom}`);
     res.json({ ok: true, message: "✅ Mot de passe modifié avec succès !" });
   } catch (e) {
     console.error("❌ ERREUR CHANGEMENT MDP :", e.message);
@@ -475,12 +475,12 @@ router.get('/preinscription/liste', protegerAdmin, async (req, res) => {
 
 
 // ==================================================
-// 📋 LISTE TOUS LES UTILISATEURS — ✅ CORRIGÉ
+// 📋 LISTE TOUS LES UTILISATEURS — ✅ HARMONISÉ
 // ==================================================
 router.get('/utilisateurs', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(
-      `SELECT id AS id_utilisateur, nom, prenom AS prenoms, email, matricule, telephone, role, COALESCE(statut_compte, 'valide') AS statut_compte, date_creation
+      `SELECT id, nom, prenom, email, matricule, telephone, role, COALESCE(statut_compte, 'valide') AS statut_compte, date_creation
        FROM utilisateurs
        ORDER BY nom, prenom`
     );
@@ -495,7 +495,7 @@ router.get('/utilisateurs', protegerAdmin, async (req, res) => {
 
 
 // ==================================================
-// 🔴 LIRE UN SEUL UTILISATEUR — ✅ CORRIGÉ
+// 🔴 LIRE UN SEUL UTILISATEUR — ✅ HARMONISÉ
 // ==================================================
 router.get('/utilisateur/:id', protegerAdmin, async (req, res) => {
   try {
@@ -505,7 +505,7 @@ router.get('/utilisateur/:id', protegerAdmin, async (req, res) => {
     }
 
     const r = await pool.query(
-      `SELECT id AS id_utilisateur, nom, prenom AS prenoms, email, matricule, telephone, role, COALESCE(statut_compte, 'valide') AS statut_compte
+      `SELECT id, nom, prenom, email, matricule, telephone, role, COALESCE(statut_compte, 'valide') AS statut_compte
        FROM utilisateurs
        WHERE id = $1`,
       [id]
@@ -525,7 +525,7 @@ router.get('/utilisateur/:id', protegerAdmin, async (req, res) => {
 
 
 // ==================================================
-// ✏️ MODIFIER UN UTILISATEUR — ✅ CORRIGÉ
+// ✏️ MODIFIER UN UTILISATEUR — ✅ HARMONISÉ
 // ==================================================
 router.put('/utilisateur/:id', protegerAdmin, async (req, res) => {
   try {
@@ -580,7 +580,7 @@ router.put('/utilisateur/:id', protegerAdmin, async (req, res) => {
 
 
 // ==================================================
-// 🗑️ SUPPRIMER UN UTILISATEUR — ✅ CORRIGÉ
+// 🗑️ SUPPRIMER UN UTILISATEUR — ✅ HARMONISÉ
 // ==================================================
 router.delete('/utilisateur/:id', protegerAdmin, async (req, res) => {
   try {
@@ -590,7 +590,7 @@ router.delete('/utilisateur/:id', protegerAdmin, async (req, res) => {
     }
 
     const r = await pool.query(
-      'DELETE FROM utilisateurs WHERE id = $1 RETURNING nom, prenom AS prenoms, matricule',
+      'DELETE FROM utilisateurs WHERE id = $1 RETURNING nom, prenom, matricule',
       [id]
     );
 
