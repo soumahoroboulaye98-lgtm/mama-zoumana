@@ -1,6 +1,10 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
+// ✅ Valeur par défaut si la variable d'environnement est absente
+const CLEF_SECRETE = process.env.JWT_SECRET || 'ma_cle_secrete_pour_le_site_2026';
+
+
 module.exports = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -11,8 +15,8 @@ module.exports = (req, res, next) => {
       return res.status(401).json({ erreur: "⛔ Token manquant — Connectez-vous !" });
     }
 
-    // ✅ Vérification du token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // ✅ Vérification du token avec la clé sécurisée
+    const decoded = jwt.verify(token, CLEF_SECRETE);
 
     // 🔒 Vérification du rôle : admin OU élève autorisé
     const rolesAutorises = ['admin', 'eleve'];
