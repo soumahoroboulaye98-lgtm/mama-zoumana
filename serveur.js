@@ -7,9 +7,11 @@ const fs = require('fs');
 const multer = require('multer');
 
 
+
 // ==============================================
 // 📁 CONFIGURATION — Téléversement de fichiers
 // ==============================================
+
 
 const stockage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, path.join(__dirname, 'public', 'uploads')),
@@ -18,39 +20,49 @@ const stockage = multer.diskStorage({
 const upload = multer({ storage: stockage });
 
 
+
 // ==============================================
 // ✅ CRÉATION DE L'APPLICATION
 // ==============================================
 
+
 const app = express();
 const PORT = process.env.PORT || 10000;
+
 
 
 // ==============================================
 // 📦 MIDDLEWARES GLOBAUX
 // ==============================================
 
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 
 
 // ==============================================
 // 📁 DOSSIER PUBLIC — Fichiers statiques
 // ==============================================
 
+
 const dossierPublic = path.join(__dirname, 'public');
 console.log("📁 Dossier public :", dossierPublic);
 console.log("📂 Existe ?", fs.existsSync(dossierPublic) ? "✅ OUI" : "⚠️ NON");
 
+
 app.use(express.static(dossierPublic));
+
 
 
 // ==============================================
 // ⚙️ CONFIGURATION DU SITE
 // ==============================================
 
+
 let configSite = {};
+
 
 async function chargerConfig() {
   try {
@@ -64,6 +76,7 @@ async function chargerConfig() {
   }
 }
 
+
 // Rendre la config accessible dans toutes les réponses
 app.use((req, res, next) => {
   res.locals.configSite = configSite;
@@ -71,15 +84,18 @@ app.use((req, res, next) => {
 });
 
 
+
 // ==============================================
 // 🔐 DÉCLARATION DES ROUTES
 // ==============================================
+
 
 // — Administration & Utilisateurs
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/utilisateurs', require('./routes/utilisateurs'));
 app.use('/api/preinscription', require('./routes/preinscription'));
 app.use('/api/auth', require('./routes/auth'));
+
 
 // — Scolaire
 app.use('/api/classes', require('./routes/classes'));
@@ -92,10 +108,12 @@ app.use('/api/bulletins', require('./routes/bulletins'));
 app.use('/api/affectations', require('./routes/affectations'));
 app.use('/api/classe-emploi', require('./routes/classe_emploi'));
 
+
 // — Finances & Comptabilité
 app.use('/api/finances', require('./routes/finances'));
 app.use('/api/paiements', require('./routes/paiements'));
 app.use('/api/comptabilite', require('./routes/comptabilite'));
+
 
 // — Communication & Contenu
 app.use('/api/annonces', require('./routes/annonces'));
@@ -105,9 +123,11 @@ app.use('/api/medias', require('./routes/medias'));
 app.use('/api/config', require('./routes/config'));
 app.use('/api/boutique', require('./routes/boutique'));
 
+
 // — Espace Élève / Parent
 app.use('/api/eleve', require('./routes/eleve'));
 app.use('/api/parent', require('./routes/parent'));
+
 
 // — Pages Informations
 app.use('/api/calendrier', require('./routes/calendrier'));
@@ -115,9 +135,11 @@ app.use('/api/reglement', require('./routes/reglement'));
 app.use('/api/equipe', require('./routes/equipe'));
 
 
+
 // ==============================================
 // 🔄 ROUTE DE TEST API + COMPATIBILITÉ
 // ==============================================
+
 
 // ✅ Ajoutée pour éviter l'erreur 404 sur /api
 app.get('/api', (req, res) => {
@@ -132,14 +154,17 @@ app.get('/api', (req, res) => {
   });
 });
 
+
 // Redirections
 app.get('/inscription.html', (req, res) => res.redirect('/preinscription.html'));
 app.use('/api/inscription', (req, res) => res.json({ ok: false, message: "⚠️ Utilisez /api/preinscription à la place" }));
 
 
+
 // ==============================================
 // 🏠 PAGE D'ACCUEIL
 // ==============================================
+
 
 app.get('/', (req, res) => {
   const indexChemin = path.join(__dirname, 'public', 'index.html');
@@ -163,9 +188,11 @@ app.get('/', (req, res) => {
 });
 
 
+
 // ==============================================
 // 🧪 TEST DE CONNEXION BASE DE DONNÉES
 // ==============================================
+
 
 app.get('/api/test', async (req, res) => {
   try {
@@ -177,13 +204,16 @@ app.get('/api/test', async (req, res) => {
 });
 
 
+
 // ==============================================
-// 🚀 DÉMARRAGE DU SERVEUR
+// 🚀 DÉMARRAGE DU SERVEUR — CORRIGÉ POUR RENDER ✅
 // ==============================================
+
 
 chargerConfig()
   .then(() => {
-    app.listen(PORT, () => {
+    // ✅ OBLIGATOIRE SUR RENDER : ajouter '0.0.0.0'
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`\n🚀 Serveur démarré sur le port ${PORT}`);
       console.log(`🌍 API racine : http://localhost:${PORT}/api`);
       console.log(`🧪 Test base  : http://localhost:${PORT}/api/test`);
