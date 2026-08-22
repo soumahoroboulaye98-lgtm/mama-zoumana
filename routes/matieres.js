@@ -72,7 +72,7 @@ router.get('/', protegerAdmin, async (req, res) => {
 // ==================================================
 router.get('/mes-matieres', protegerProf, async (req, res) => {
   try {
-    const id_prof = req.user.id_utilisateur;
+    const id_prof = req.user.id;
     const id_classe = req.query.classe;
 
     console.log("🔍 Chargement matières — id_prof:", id_prof, "| id_classe:", id_classe);
@@ -116,7 +116,7 @@ router.get('/prof', protegerProf, async (req, res) => {
       JOIN affectations a ON m.id_matiere = a.id_matiere
       WHERE a.id_prof = $1
       ORDER BY m.libelle_matiere
-    `, [req.user.id_utilisateur]);
+    `, [req.user.id]);
     console.log("✅ Matières du professeur chargées :", r.rows.length);
     res.json({ ok: true, matieres: r.rows });
   } catch (e) {

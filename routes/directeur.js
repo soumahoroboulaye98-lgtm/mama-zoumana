@@ -22,7 +22,7 @@ router.get('/statistiques', protegerDirecteur, async (req, res) => {
     // Informations du directeur connecté
     const directeur = await pool.query(`
       SELECT prenoms, nom FROM utilisateurs WHERE id_utilisateur = $1
-    `, [req.user.id_utilisateur]);
+    `, [req.user.id]);
 
     console.log("✅ Statistiques globales consultées");
     res.json({
@@ -48,9 +48,9 @@ router.get('/statistiques', protegerDirecteur, async (req, res) => {
 router.get('/inscriptions-attente', protegerDirecteur, async (req, res) => {
   try {
     const r = await pool.query(`
-      SELECT i.*, u.nom, u.prenoms, c.libelle_classe
+      SELECT i.*, u.nom, u.prenom, c.libelle_classe
       FROM inscriptions i
-      JOIN utilisateurs u ON i.id_eleve = u.id_utilisateur
+      JOIN utilisateurs u ON i.id_eleve = u.id
       LEFT JOIN classes c ON i.id_classe = c.id_classe
       WHERE i.statut = 'en_attente'
       ORDER BY i.date_inscription DESC
@@ -82,7 +82,7 @@ router.patch('/valider-inscription/:id', protegerDirecteur, async (req, res) => 
       SET statut = 'validee', date_validation = NOW(), valide_par = $1
       WHERE id_inscription = $2 AND statut = 'en_attente'
       RETURNING *
-    `, [req.user.id_utilisateur, idInscription]);
+    `, [req.user.id, idInscription]);
 
     if (!r.rows.length) {
       return res.json({ ok: false, erreur: "⚠️ Inscription introuvable ou déjà traitée" });
@@ -114,7 +114,7 @@ router.patch('/refuser-inscription/:id', protegerDirecteur, async (req, res) => 
       SET statut = 'refusee', date_validation = NOW(), valide_par = $1
       WHERE id_inscription = $2 AND statut = 'en_attente'
       RETURNING *
-    `, [req.user.id_utilisateur, idInscription]);
+    `, [req.user.id, idInscription]);
 
     if (!r.rows.length) {
       return res.json({ ok: false, erreur: "⚠️ Inscription introuvable ou déjà traitée" });
@@ -144,13 +144,13 @@ router.get('/bulletins', protegerDirecteur, async (req, res) => {
     }
 
     const bulletins = await pool.query(`
-      SELECT n.id_eleve, u.nom, u.prenoms,
+      SELECT n.id_eleve, u.nom, u.prenom,
              AVG(n.moyenne) AS moyenne_generale,
              COUNT(DISTINCT n.id_matiere) AS nb_matieres
       FROM notes n
-      JOIN utilisateurs u ON n.id_eleve = u.id_utilisateur
+      JOIN utilisateurs u ON n.id_eleve = u.id
       WHERE n.id_classe = $1 AND n.trimestre = $2
-      GROUP BY n.id_eleve, u.nom, u.prenoms
+      GROUP BY n.id_eleve, u.nom, u.prenom
       ORDER BY moyenne_generale DESC
     `, [id_classe, trimestre]);
 

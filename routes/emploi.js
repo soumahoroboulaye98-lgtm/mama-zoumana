@@ -80,11 +80,11 @@ router.get('/tout', protegerAdmin, async (req, res) => {
         e.salle,
         c.libelle_classe,
         m.libelle_matiere,
-        CONCAT(u.nom, ' ', u.prenoms) AS professeur
+        CONCAT(u.nom, ' ', u.prenom) AS professeur
       FROM emploi_temps e
       JOIN classes c ON e.id_classe = c.id_classe
       JOIN matieres m ON e.id_matiere = m.id_matiere
-      JOIN utilisateurs u ON e.id_prof = u.id_utilisateur
+      JOIN utilisateurs u ON e.id_prof = u.id
       ORDER BY 
         CASE e.jour 
           WHEN 'Lundi' THEN 1 WHEN 'Mardi' THEN 2 
@@ -112,7 +112,7 @@ router.get('/prof', protegerProf, async (req, res) => {
   try {
     // Priorité : token décodé → sinon en-tête x-id-utilisateur
     const id_prof = req.user?.id_utilisateur
-      ? parseInt(req.user.id_utilisateur)
+      ? parseInt(req.user.id)
       : parseInt(req.headers['x-id-utilisateur']);
 
     console.log("📋 Chargement EDT pour id_prof =", id_prof);
@@ -172,11 +172,11 @@ router.get('/classe/:id_classe', async (req, res) => {
       SELECT e.id_emploi, e.jour, e.heure_debut, e.heure_fin, e.salle,
              c.libelle_classe,
              m.libelle_matiere,
-             CONCAT(u.nom, ' ', u.prenoms) AS nom_prof
+             CONCAT(u.nom, ' ', u.prenom) AS nom_prof
       FROM emploi_temps e
       JOIN classes c ON e.id_classe = c.id_classe
       JOIN matieres m ON e.id_matiere = m.id_matiere
-      JOIN utilisateurs u ON e.id_prof = u.id_utilisateur
+      JOIN utilisateurs u ON e.id_prof = u.id
       WHERE e.id_classe = $1
       ORDER BY 
         CASE e.jour 
@@ -241,11 +241,11 @@ router.get('/global', async (req, res) => {
         c.heure_fin,
         cl.libelle_classe,
         m.libelle_matiere,
-        CONCAT(u.nom, ' ', u.prenoms) AS professeur
+        CONCAT(u.nom, ' ', u.prenom) AS professeur
       FROM emploi_temps c
       JOIN classes cl ON c.id_classe = cl.id_classe
       JOIN matieres m ON c.id_matiere = m.id_matiere
-      JOIN utilisateurs u ON c.id_prof = u.id_utilisateur
+      JOIN utilisateurs u ON c.id_prof = u.id
       ORDER BY
         CASE c.jour
           WHEN 'Lundi' THEN 1 WHEN 'Mardi' THEN 2 

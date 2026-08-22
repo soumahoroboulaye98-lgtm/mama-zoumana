@@ -250,14 +250,14 @@ router.post('/consulter', protegerProf, async (req, res) => {
       SELECT
         n.id_eleve, n.note1, n.note2, n.note3, n.note4, n.note5,
         n.moyenne_matiere, n.rang, n.mention, n.tableau_honneur, n.appreciation,
-        u.nom, u.prenoms, u.matricule, u.photo_profil,
+        u.nom, u.prenom, u.matricule, u.photo_profil,
         m.libelle_matiere, m.coefficient
       FROM notes n
-      JOIN utilisateurs u ON n.id_eleve = u.id_utilisateur
+      JOIN utilisateurs u ON n.id_eleve = u.id
       JOIN matieres m ON n.id_matiere = m.id_matiere
       WHERE n.id_classe = $1 AND n.id_matiere = $2
         AND n.trimestre = $3 AND n.annee_scolaire = $4
-      ORDER BY u.nom, u.prenoms
+      ORDER BY u.nom, u.prenom
     `, [id_classe, id_matiere, trimestre, annee]);
 
     console.log(`✅ Notes chargées — Classe ${id_classe}, Matière ${id_matiere}, Trimestre ${trimestre}`);

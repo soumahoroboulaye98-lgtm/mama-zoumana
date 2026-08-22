@@ -98,7 +98,7 @@ router.get('/ecritures', protegerLecture, async (req, res) => {
 router.post('/ecritures/enregistrer', protegerEcriture, async (req, res) => {
   try {
     const { date_ecriture, id_journal, libelle, reference, lignes } = req.body;
-    const id_utilisateur = req.user.id_utilisateur;
+    const id_utilisateur = req.user.id;
 
     // Vérification de l'équilibre Débit / Crédit
     let totalDebit = 0, totalCredit = 0;
@@ -163,7 +163,7 @@ router.post('/ecritures/valider/:id', protegerAdminSeul, async (req, res) => {
       SET statut = 'valide', date_validation = NOW(), id_valideur = $1
       WHERE id_ecriture = $2 AND statut = 'brouillon'
       RETURNING *
-    `, [req.user.id_utilisateur, id_ecriture]);
+    `, [req.user.id, id_ecriture]);
 
     if (!r.rows.length) {
       return res.json({ ok: false, erreur: "⚠️ Écriture introuvable ou déjà validée" });
@@ -427,7 +427,7 @@ router.post('/exercices/cloturer/:id', protegerAdminSeul, async (req, res) => {
     if (isNaN(id_exercice)) {
       return res.json({ ok: false, erreur: "⚠️ Identifiant d'exercice invalide" });
     }
-    const id_utilisateur = req.user.id_utilisateur;
+    const id_utilisateur = req.user.id;
 
     // Vérification de l'exercice
     const ex = await pool.query('SELECT * FROM exercices_comptables WHERE id_exercice = $1', [id_exercice]);

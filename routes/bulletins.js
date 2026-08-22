@@ -100,7 +100,7 @@ router.post('/calculer', protegerAdminOuProf, async (req, res) => {
       SELECT DISTINCT 
         n.id_eleve,
         u.nom,
-        u.prenoms,
+        u.prenom,
         u.matricule,
         u.photo_profil,
         u.qr_code,
@@ -108,11 +108,11 @@ router.post('/calculer', protegerAdminOuProf, async (req, res) => {
         u.telephone,
         c.libelle_classe
       FROM notes n
-      JOIN utilisateurs u ON n.id_eleve = u.id_utilisateur
+      JOIN utilisateurs u ON n.id_eleve = u.id
       JOIN classes c ON n.id_classe = c.id_classe
       WHERE n.id_classe = $1 AND n.trimestre = $2 AND n.annee_scolaire = $3
         AND u.role = 'eleve'
-      ORDER BY u.nom, u.prenoms
+      ORDER BY u.nom, u.prenom
     `, [id_classe, trimestre, annee]);
 
     if (resultatsEleves.rows.length === 0) {
@@ -212,12 +212,12 @@ router.get('/voir/:id_eleve', async (req, res) => {
     // ✅ Infos élève complètes depuis utilisateurs
     const eleve = await pool.query(`
       SELECT 
-        u.nom, u.prenoms, u.matricule, u.photo_profil, u.qr_code,
+        u.nom, u.prenom, u.matricule, u.photo_profil, u.qr_code,
         u.email, u.telephone,
         c.libelle_classe
       FROM utilisateurs u
       JOIN classes c ON u.id_classe = c.id_classe
-      WHERE u.id_utilisateur = $1 AND u.role = 'eleve'
+      WHERE u.id = $1 AND u.role = 'eleve'
     `, [id_eleve]);
 
     if (eleve.rows.length === 0) {
@@ -273,9 +273,9 @@ router.get('/classement', protegerAdminOuProf, async (req, res) => {
     const r = await pool.query(`
       SELECT 
         b.*,
-        u.nom, u.prenoms, u.matricule, u.photo_profil, u.qr_code
+        u.nom, u.prenom, u.matricule, u.photo_profil, u.qr_code
       FROM bulletins b
-      JOIN utilisateurs u ON b.id_eleve = u.id_utilisateur
+      JOIN utilisateurs u ON b.id_eleve = u.id
       WHERE b.id_classe = $1 AND b.trimestre = $2 AND b.annee_scolaire = $3
       ORDER BY b.moyenne_generale DESC
     `, [id_classe, trimestre, annee]);

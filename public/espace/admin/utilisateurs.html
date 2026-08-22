@@ -328,7 +328,7 @@ async function chargerUtilisateurs(){
     let utilisateurs = data.lignes;
     if(recherche){
       utilisateurs = utilisateurs.filter(u => 
-        ((u.nom||'')+' '+(u.prenoms||'')).toLowerCase().includes(recherche) ||
+        ((u.nom||'')+' '+(u.prenom||'')).toLowerCase().includes(recherche) ||
         ((u.email||'').toLowerCase().includes(recherche))
       );
     }
@@ -339,8 +339,8 @@ async function chargerUtilisateurs(){
       const statutActuel = u.statut_compte || 'en_attente';
       const classeStatut = statutActuel==='valide'?'statut-actif':statutActuel==='refusee'?'statut-refuse':'statut-attente';
       const libelleStatut = statutActuel==='valide'?'✅ Actif':statutActuel==='refusee'?'❌ Refusé':'⏳ En attente';
-      const nomComplet = `${u.nom||''} ${u.prenoms||''}`;
-      const id = u.id_utilisateur;
+      const nomComplet = `${u.nom||''} ${u.prenom||''}`;
+      const id = u.id;
       const roleLabel = {
         admin:'🔧 Admin', directeur:'🏫 Directeur', prof:'👨‍🏫 Enseignant',
         comptable:'💰 Comptable', secretaire:'📝 Secrétaire', eleve:'🎓 Élève', parent:'👨‍👩‍👧 Parent'
@@ -357,7 +357,7 @@ async function chargerUtilisateurs(){
             <button class="btn btn-sm btn-modifier-lumineux" onclick="modifierUtilisateur(${id})" title="Modifier">
               <i class="bi bi-pencil"></i>
             </button>
-            <button class="btn btn-sm btn-info-lumineux" onclick="envoyerInfosEmail('${u.email||''}', '${(u.nom||'')} ${(u.prenoms||'')}', '${roleLabel}')" title="Renvoyer Email">
+            <button class="btn btn-sm btn-info-lumineux" onclick="envoyerInfosEmail('${u.email||''}', '${(u.nom||'')} ${(u.prenom||'')}', '${roleLabel}')" title="Renvoyer Email">
               <i class="bi bi-envelope"></i>
             </button>
             <button class="btn btn-sm btn-refuse-lumineux" onclick="supprimerUtilisateur(${id}, '${nomComplet.replace(/'/g, "\\'")}')" title="Supprimer">

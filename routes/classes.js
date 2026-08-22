@@ -401,11 +401,11 @@ router.get('/affectations', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
       SELECT a.*, 
-             u.nom || ' ' || u.prenoms AS nom_prof,
+             u.nom || ' ' || u.prenom AS nom_prof,
              c.libelle_classe,
              m.libelle_matiere
       FROM affectations_ens a
-      JOIN utilisateurs u ON a.id_prof = u.id_utilisateur
+      JOIN utilisateurs u ON a.id_prof = u.id
       JOIN classes c ON a.id_classe = c.id_classe
       LEFT JOIN matieres m ON a.id_matiere = m.id_matiere
       ORDER BY u.nom, c.libelle_classe
@@ -478,7 +478,7 @@ router.delete('/affectations/:id', protegerAdmin, async (req, res) => {
 // ==================================================
 router.get('/prof/classes', protegerProf, async (req, res) => {
   try {
-    const id_prof = req.user.id_utilisateur;
+    const id_prof = req.user.id;
 
     const r = await pool.query(`
       SELECT DISTINCT 
@@ -510,7 +510,7 @@ router.get('/prof/classes', protegerProf, async (req, res) => {
 // ==================================================
 router.get('/prof/matieres', protegerProf, async (req, res) => {
   try {
-    const id_prof = req.user.id_utilisateur;
+    const id_prof = req.user.id;
 
     const r = await pool.query(`
       SELECT DISTINCT 

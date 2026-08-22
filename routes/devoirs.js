@@ -24,7 +24,7 @@ router.post('/creer', protegerProf, async (req, res) => {
       description
     } = req.body;
 
-    const id_prof = req.user.id_utilisateur;
+    const id_prof = req.user.id;
 
     // Validation des champs obligatoires
     if (!id_classe || !id_matiere || !titre || titre.trim() === '') {
@@ -77,7 +77,7 @@ router.post('/creer', protegerProf, async (req, res) => {
 // ==================================================
 router.get('/', protegerProf, async (req, res) => {
   try {
-    const id_prof = req.user.id_utilisateur;
+    const id_prof = req.user.id;
 
     const r = await pool.query(`
       SELECT d.*, c.libelle_classe, m.libelle_matiere
@@ -110,7 +110,7 @@ router.put('/:id_devoir', protegerProf, async (req, res) => {
     }
 
     const { titre, type_devoir, date_publication, date_echeance, description } = req.body;
-    const id_prof = req.user.id_utilisateur;
+    const id_prof = req.user.id;
 
     if (!titre || titre.trim() === '') {
       return res.json({ ok: false, erreur: "⚠️ Le titre est obligatoire" });
@@ -148,7 +148,7 @@ router.delete('/:id_devoir', protegerProf, async (req, res) => {
       return res.json({ ok: false, erreur: "⚠️ Identifiant de devoir invalide" });
     }
 
-    const id_prof = req.user.id_utilisateur;
+    const id_prof = req.user.id;
 
     const r = await pool.query(`
       DELETE FROM devoirs

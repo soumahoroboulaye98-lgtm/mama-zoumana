@@ -283,7 +283,7 @@
     sel.innerHTML = `<option value="">${m('selectionner')}</option>`;
     if(liste.length > 0){
       liste.forEach(u => {
-        sel.innerHTML += `<option value="${u.id_utilisateur}">${u.nom} ${u.prenoms}</option>`;
+        sel.innerHTML += `<option value="${u.id}">${u.nom} ${u.prenom}</option>`;
       });
     } else {
       sel.innerHTML += `<option value="" disabled>${m('aucunProf')}</option>`;

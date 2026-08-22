@@ -18,10 +18,10 @@ router.get('/classement/:id_classe', protegerTous, async (req, res) => {
     if (isNaN(id_classe)) return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
 
     const r = await pool.query(`
-      SELECT u.id_utilisateur, u.matricule, u.nom, u.prenoms, u.email, u.telephone
+      SELECT u.id, u.matricule, u.nom, u.prenom, u.email, u.telephone
       FROM utilisateurs u
       WHERE u.role = 'eleve' AND u.id_classe = $1 AND u.statut_compte = 'valide'
-      ORDER BY u.nom ASC, u.prenoms ASC
+      ORDER BY u.nom ASC, u.prenom ASC
     `, [id_classe]);
 
     const classe = await pool.query(`SELECT libelle_classe, niveau FROM classes WHERE id_classe = $1`, [id_classe]);
@@ -49,9 +49,9 @@ router.get('/emploi-temps/:id_classe', protegerTous, async (req, res) => {
 
     const r = await pool.query(`
       SELECT et.id_emploi, et.jour, et.heure_debut, et.heure_fin, et.matiere,
-             u.nom || ' ' || u.prenoms AS professeur, s.libelle_classe
+             u.nom || ' ' || u.prenom AS professeur, s.libelle_classe
       FROM emploi_temps et
-      JOIN utilisateurs u ON et.id_professeur = u.id_utilisateur
+      JOIN utilisateurs u ON et.id_professeur = u.id
       JOIN classes s ON et.id_classe = s.id_classe
       WHERE et.id_classe = $1
       ORDER BY 
@@ -181,10 +181,10 @@ router.get('/classement-general', protegerTous, async (req, res) => {
   try {
     const r = await pool.query(`
       SELECT 
-        u.id_utilisateur,
+        u.id,
         u.matricule,
         u.nom,
-        u.prenoms,
+        u.prenom,
         u.email,
         u.telephone,
         c.id_classe,
@@ -198,7 +198,7 @@ router.get('/classement-general', protegerTous, async (req, res) => {
         c.niveau ASC,
         c.libelle_classe ASC,
         u.nom ASC,
-        u.prenoms ASC
+        u.prenom ASC
     `);
 
     const total = await pool.query(`
@@ -229,18 +229,18 @@ router.get('/classement-notes/classe/:id_classe', protegerTous, async (req, res)
 
     const r = await pool.query(`
       SELECT 
-        u.id_utilisateur,
+        u.id,
         u.matricule,
         u.nom,
-        u.prenoms,
+        u.prenom,
         ROUND(AVG(n.note), 2) AS moyenne,
         COUNT(n.id_note) AS nb_matiere
       FROM utilisateurs u
-      LEFT JOIN notes n ON u.id_utilisateur = n.id_utilisateur
+      LEFT JOIN notes n ON u.id = n.id_utilisateur
       WHERE u.role = 'eleve' 
         AND u.id_classe = $1 
         AND u.statut_compte = 'valide'
-      GROUP BY u.id_utilisateur, u.matricule, u.nom, u.prenoms
+      GROUP BY u.id, u.matricule, u.nom, u.prenom
       ORDER BY moyenne DESC NULLS LAST, u.nom ASC
     `, [id_classe]);
 
@@ -267,20 +267,20 @@ router.get('/classement-notes/general', protegerTous, async (req, res) => {
   try {
     const r = await pool.query(`
       SELECT 
-        u.id_utilisateur,
+        u.id,
         u.matricule,
         u.nom,
-        u.prenoms,
+        u.prenom,
         c.libelle_classe,
         c.niveau,
         ROUND(AVG(n.note), 2) AS moyenne,
         COUNT(n.id_note) AS nb_matiere
       FROM utilisateurs u
       JOIN classes c ON u.id_classe = c.id_classe
-      LEFT JOIN notes n ON u.id_utilisateur = n.id_utilisateur
+      LEFT JOIN notes n ON u.id = n.id_utilisateur
       WHERE u.role = 'eleve' 
         AND u.statut_compte = 'valide'
-      GROUP BY u.id_utilisateur, u.matricule, u.nom, u.prenoms, c.libelle_classe, c.niveau
+      GROUP BY u.id, u.matricule, u.nom, u.prenom, c.libelle_classe, c.niveau
       ORDER BY moyenne DESC NULLS LAST, c.niveau ASC, u.nom ASC
     `);
 

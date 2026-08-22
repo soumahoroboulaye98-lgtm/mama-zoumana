@@ -31,9 +31,9 @@ router.get('/liste', protegerLecture, async (req, res) => {
     const whereComplet = `WHERE o.statut = 'valide' AND ${whereBase}`;
 
     const operations = await pool.query(`
-      SELECT o.*, u.nom, u.prenoms, u.email
+      SELECT o.*, u.nom, u.prenom, u.email
       FROM operations_financieres o
-      LEFT JOIN utilisateurs u ON o.id_utilisateur = u.id_utilisateur
+      LEFT JOIN utilisateurs u ON o.id_utilisateur = u.id
       ${whereComplet}
       ORDER BY o.date_operation DESC, o.date_creation DESC
     `, params);
@@ -122,12 +122,12 @@ router.get('/liste', protegerLecture, async (req, res) => {
     }
 
     const operateurs = await pool.query(`
-      SELECT DISTINCT o.id_utilisateur, u.nom, u.prenoms, COUNT(*) AS nb_ops
+      SELECT DISTINCT o.id_utilisateur, u.nom, u.prenom, COUNT(*) AS nb_ops
       FROM operations_financieres o
-      LEFT JOIN utilisateurs u ON o.id_utilisateur = u.id_utilisateur
+      LEFT JOIN utilisateurs u ON o.id_utilisateur = u.id
       WHERE o.statut = 'valide'
       ${conditions.length ? 'AND ' + conditions.join(' AND ') : ''}
-      GROUP BY o.id_utilisateur, u.nom, u.prenoms
+      GROUP BY o.id_utilisateur, u.nom, u.prenom
       ORDER BY nb_ops DESC
     `, params);
 

@@ -11,17 +11,17 @@ const protegerParent = [veriftoken, verifparent];          // ✅ Protection gro
 // ==================================================
 router.get('/mes-enfants', protegerParent, async (req, res) => {
   try {
-    const id_parent = req.user.id_utilisateur;
+    const id_parent = req.user.id;
     console.log("🔍 Chargement enfants pour ID Parent =", id_parent);
 
     const r = await pool.query(`
-      SELECT DISTINCT u.id_utilisateur, u.nom, u.prenoms, u.photo_profil,
+      SELECT DISTINCT u.id, u.nom, u.prenom, u.photo_profil,
              c.libelle_classe, c.id_classe
       FROM utilisateurs u
-      LEFT JOIN inscriptions i ON u.id_utilisateur = i.id_eleve
+      LEFT JOIN inscriptions i ON u.id = i.id_eleve
       LEFT JOIN classes c ON i.id_classe = c.id_classe
       WHERE u.id_parent = $1
-      ORDER BY u.prenoms, u.nom
+      ORDER BY u.prenom, u.nom
     `, [id_parent]);
 
     console.log(`✅ Enfants trouvés : ${r.rows.length}`);
@@ -44,7 +44,7 @@ router.get('/notes/:id_eleve', protegerParent, async (req, res) => {
     // ✅ Vérifie que l'enfant appartient bien au parent
     const verif = await pool.query(`
       SELECT 1 FROM utilisateurs WHERE id_utilisateur = $1 AND id_parent = $2
-    `, [id_eleve, req.user.id_utilisateur]);
+    `, [id_eleve, req.user.id]);
     if (!verif.rows.length) {
       return res.json({ ok: false, erreur: "⛔ Accès refusé — Ce n'est pas votre enfant" });
     }
@@ -93,7 +93,7 @@ router.get('/edt/:id_eleve', protegerParent, async (req, res) => {
       FROM inscriptions i
       WHERE i.id_eleve = $1 
         AND EXISTS(SELECT 1 FROM utilisateurs WHERE id_utilisateur = $1 AND id_parent = $2)
-    `, [id_eleve, req.user.id_utilisateur]);
+    `, [id_eleve, req.user.id]);
 
     if (!verif.rows.length) {
       return res.json({ ok: false, erreur: "⛔ Accès refusé" });
@@ -133,7 +133,7 @@ router.get('/paiements/:id_eleve', protegerParent, async (req, res) => {
     // ✅ Vérifie appartenance
     const verif = await pool.query(`
       SELECT 1 FROM utilisateurs WHERE id_utilisateur = $1 AND id_parent = $2
-    `, [id_eleve, req.user.id_utilisateur]);
+    `, [id_eleve, req.user.id]);
     if (!verif.rows.length) {
       return res.json({ ok: false, erreur: "⛔ Accès refusé" });
     }

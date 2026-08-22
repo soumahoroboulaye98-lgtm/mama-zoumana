@@ -29,9 +29,9 @@ router.get('/liste', protegerAdmin, async (req, res) => {
     const r = await pool.query(`
       SELECT p.*,
         CASE WHEN p.montant_total > 0 THEN ROUND((p.montant_paye / p.montant_total) * 100, 1) ELSE 0 END AS pourcentage_paiement_calcule,
-        u.nom, u.prenoms, u.email
+        u.nom, u.prenom, u.email
       FROM paiements p
-      LEFT JOIN utilisateurs u ON p.id_utilisateur = u.id_utilisateur
+      LEFT JOIN utilisateurs u ON p.id_utilisateur = u.id
       ${where}
       ORDER BY p.date_paiement DESC, p.date_creation DESC
     `, params);
@@ -71,7 +71,7 @@ router.get('/liste', protegerAdmin, async (req, res) => {
 // ==================================================
 router.post('/enregistrer', protegerAdmin, async (req, res) => {
   try {
-    const id_utilisateur = req.user.id_utilisateur;
+    const id_utilisateur = req.user.id;
     const {
       reference_externe, libelle, montant_total, montant_paye = 0,
       moyen_paiement, date_paiement, date_echeance,

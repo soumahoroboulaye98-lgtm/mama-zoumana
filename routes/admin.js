@@ -99,9 +99,9 @@ router.get('/alertes', protegerAdmin, async (req, res) => {
 
   try {
     const sansAffectation = await pool.query(`
-      SELECT COUNT(DISTINCT u.id_utilisateur) 
+      SELECT COUNT(DISTINCT u.id) 
       FROM utilisateurs u
-      LEFT JOIN affectations_ens a ON u.id_utilisateur = a.id_prof
+      LEFT JOIN affectations_ens a ON u.id = a.id_prof
       WHERE u.role = 'prof' AND a.id_prof IS NULL
     `);
     const nbSansAff = parseInt(sansAffectation.rows[0].count, 10);
@@ -127,7 +127,7 @@ router.get('/alertes', protegerAdmin, async (req, res) => {
 router.get('/repartition-eleves', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
-      SELECT c.libelle_classe, COUNT(u.id_utilisateur) AS nombre
+      SELECT c.libelle_classe, COUNT(u.id) AS nombre
       FROM classes c
       LEFT JOIN utilisateurs u ON c.id_classe = u.id_classe AND u.role = 'eleve'
       GROUP BY c.id_classe, c.libelle_classe
@@ -189,7 +189,7 @@ router.get('/activite-recente', protegerAdmin, async (req, res) => {
 
       activite.push({
         icone: u.role === 'eleve' ? 'bi-person' : u.role === 'prof' ? 'bi-person-badge' : 'bi-shield-lock',
-        texte: `${roleLabel} : ${u.nom} ${u.prenoms}`,
+        texte: `${roleLabel} : ${u.nom} ${u.prenom}`,
         date: u.date_creation
       });
     });

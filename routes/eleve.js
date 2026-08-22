@@ -16,16 +16,16 @@ const protegerEleve = [veriftoken, verifEleve];
 // ==================================================
 router.get('/profil', protegerEleve, async (req, res) => {
   try {
-    const id_eleve = req.user.id_utilisateur;
+    const id_eleve = req.user.id;
 
     const utilisateur = await pool.query(`
       SELECT u.*, c.libelle_classe, i.date_inscription,
              p.prenoms||' '||p.nom AS parent
       FROM utilisateurs u
-      LEFT JOIN inscriptions i ON u.id_utilisateur = i.id_eleve
+      LEFT JOIN inscriptions i ON u.id = i.id_eleve
       LEFT JOIN classes c ON i.id_classe = c.id_classe
       LEFT JOIN utilisateurs p ON u.id_parent = p.id_utilisateur
-      WHERE u.id_utilisateur = $1
+      WHERE u.id = $1
       ORDER BY i.date_inscription DESC LIMIT 1
     `, [id_eleve]);
 
@@ -56,7 +56,7 @@ router.get('/profil', protegerEleve, async (req, res) => {
 // ==================================================
 router.get('/notes', protegerEleve, async (req, res) => {
   try {
-    const id_eleve = req.user.id_utilisateur;
+    const id_eleve = req.user.id;
     const trimestre = req.query.trimestre || '1';
 
     const notes = await pool.query(`
@@ -102,7 +102,7 @@ router.get('/notes', protegerEleve, async (req, res) => {
 // ==================================================
 router.get('/edt', protegerEleve, async (req, res) => {
   try {
-    const id_eleve = req.user.id_utilisateur;
+    const id_eleve = req.user.id;
 
     // Récupérer la classe de l'élève depuis sa dernière inscription
     const classe = await pool.query(`
@@ -165,7 +165,7 @@ router.get('/edt', protegerEleve, async (req, res) => {
 // ==================================================
 router.get('/annonces', protegerEleve, async (req, res) => {
   try {
-    const id_eleve = req.user.id_utilisateur;
+    const id_eleve = req.user.id;
 
     // Récupérer la classe de l'élève pour le filtrage
     const infos = await pool.query(`

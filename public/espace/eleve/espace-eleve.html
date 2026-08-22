@@ -555,7 +555,7 @@ async function chargerInfos(){
           <span class="txt-fr">Prénoms :</span>
           <span class="txt-en">First Names :</span>
           <span class="txt-ar">الأسماء الأولى :</span>
-        </strong> ${u.prenoms || '—'}</p>
+        </strong> ${u.prenom || '—'}</p>
         <p><strong>
           <span class="txt-fr">Date de Naissance :</span>
           <span class="txt-en">Date of Birth :</span>
@@ -577,7 +577,7 @@ async function chargerInfos(){
           <span class="txt-fr">Matricule :</span>
           <span class="txt-en">Student ID :</span>
           <span class="txt-ar">الرقم الدراسي :</span>
-        </strong> ${u.matricule || u.id_utilisateur || msg('notSpecified')}</p>
+        </strong> ${u.matricule || u.id || msg('notSpecified')}</p>
         <p><strong>
           <span class="txt-fr">Date d'Inscription :</span>
           <span class="txt-en">Registration Date :</span>
