@@ -12,6 +12,7 @@ require('dotenv').config();
 // ✅ CLÉ EN DUR — JAMAIS VIDE, MÊME SI Render n'a pas la variable
 const CLE_JWT = 'ma_cle_secrete_pour_le_site_2026';
 
+
 // ✅ Middlewares importés selon la convention du projet
 const veriftoken = require('../middleware/veriftoken');
 const verifadmin = require('../middleware/verifadmin');

@@ -4,17 +4,46 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Déconnexion — MAMA-ZOUMANA</title>
+
+  <!-- URLs vérifiées, harmonisées et conformes -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
   <style>
     :root { --sombre: #0f172a; --bord-orange: #f59e0b; --texte: #f8fafc; }
-    body{background:var(--sombre);color:var(--texte);min-height:100vh;display:flex;align-items:center;justify-content:center}
-    .carte{background:#1e293b;padding:2.5rem;border-radius:16px;text-align:center;box-shadow:0 0 25px rgba(245,158,11,0.2)}
-    .btn-orange{background:var(--bord-orange);color:black;font-weight:600;border:none;border-radius:8px;padding:0.75rem 2rem}
-    .btn-orange:hover{background:#d97706;color:white;box-shadow:0 0 15px rgba(245,158,11,0.5)}
+    body {
+      background: var(--sombre);
+      color: var(--texte);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .carte {
+      background: #1e293b;
+      padding: 2.5rem;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: 0 0 25px rgba(245,158,11,0.2);
+    }
+    .btn-orange {
+      background: var(--bord-orange);
+      color: black;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 2rem;
+    }
+    .btn-orange:hover {
+      background: #d97706;
+      color: white;
+      box-shadow: 0 0 15px rgba(245,158,11,0.5);
+    }
+    .opacity-80 { opacity: 0.8; }
   </style>
 </head>
 <body>
+
 <div class="container">
   <div class="carte">
     <i class="bi bi-box-arrow-right fs-1 mb-3 d-block"></i>
@@ -25,10 +54,11 @@
 </div>
 
 <script>
-// SUPPRIME TOUTES LES DONNÉES DE CONNEXION
+// Suppression complète des données de session
 localStorage.removeItem('token');
 localStorage.removeItem('role');
 localStorage.removeItem('nom');
 </script>
+
 </body>
 </html>

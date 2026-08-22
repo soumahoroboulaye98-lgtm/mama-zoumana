@@ -12,12 +12,9 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
     :root {
-      --sombre: #0f172a;
-      --sombre-clair: #1e293b;
-      --bord-orange: #f59e0b;
-      --vert: #10b981;
-      --rouge: #ef4444;
-      --bleu: #3b82f6;
+      --sombre: #0f172a; --sombre-clair: #1e293b;
+      --bord-orange: #f59e0b; --vert: #10b981;
+      --rouge: #ef4444; --bleu: #3b82f6;
       --texte: #f8fafc;
     }
     *{margin:0;padding:0;box-sizing:border-box;transition:all 0.2s ease}
@@ -33,15 +30,14 @@
     .ligne-affectation{border-bottom:1px solid #334155;padding:1rem 0;transition:background 0.2s}
     .ligne-affectation:hover{background:rgba(245,158,11,0.05);border-radius:8px;}
     .btn-langue.active{background:var(--bord-orange);color:#000;border-color:var(--bord-orange);font-weight:bold;}
+    .alerte-api{border-left:3px solid var(--rouge);background:rgba(239,68,68,0.1);border-radius:8px;padding:0.75rem 1rem;margin-bottom:1rem;}
 
     /* ✅ GESTION DES LANGUES */
     .lang-en, .lang-ar { display: none; }
     body.lang-fr .lang-fr { display: inline; }
-
     body.lang-en { direction: ltr; }
     body.lang-en .lang-fr, body.lang-en .lang-ar { display: none; }
     body.lang-en .lang-en { display: inline; }
-
     body.lang-ar { direction: rtl; }
     body.lang-ar .lang-fr, body.lang-ar .lang-en { display: none; }
     body.lang-ar .lang-ar { display: inline; }
@@ -49,17 +45,84 @@
 </head>
 <body class="lang-fr">
 
-<!-- 🔐 SÉCURITÉ -->
+<!-- 🔗 URL ADAPTATIVE -->
 <script>
-const token = localStorage.getItem('token');
-const role = localStorage.getItem('role');
-const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'
+    : 'https://mama-zoumana-api.onrender.com/api';
 
-if(!token || role !== 'admin'){
-  alert("⛔ Accès réservé à l'Administrateur");
-  localStorage.clear();
-  location.href = 'connexion.html';
-}
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  let langue = localStorage.getItem('langue') || 'fr';
+
+  // 💾 STOCKAGE LOCAL
+  function obtenirAffectationsLocales() { return JSON.parse(localStorage.getItem('affectations') || '[]'); }
+  function sauvegarderAffectationsLocales(liste) { localStorage.setItem('affectations', JSON.stringify(liste)); }
+  function obtenirProfesseursLocaux() { return JSON.parse(localStorage.getItem('professeurs') || '[]'); }
+  function sauvegarderProfesseursLocaux(liste) { localStorage.setItem('professeurs', JSON.stringify(liste)); }
+  function obtenirClassesLocales() { return JSON.parse(localStorage.getItem('classes') || '[]'); }
+  function sauvegarderClassesLocales(liste) { localStorage.setItem('classes', JSON.stringify(liste)); }
+  function obtenirMatieresLocales() { return JSON.parse(localStorage.getItem('matieres') || '[]'); }
+  function sauvegarderMatieresLocales(liste) { localStorage.setItem('matieres', JSON.stringify(liste)); }
+
+  // 🗣️ MESSAGES TRADUITS
+  const MSG = {
+    fr: {
+      accesReserve: "⛔ Accès réservé à l'Administrateur",
+      serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
+      selectionner: "--- Sélectionner ---",
+      charger: "--- Chargement ---",
+      aucunProf: "⚠️ Aucun professeur trouvé",
+      aucuneClasse: "⚠️ Aucune classe trouvée",
+      aucuneMatiere: "⚠️ Aucune matière trouvée",
+      erreurChamps: "⚠️ Sélectionne Professeur, Classe et Matière !",
+      ajouterOk: "✅ Affectation enregistrée !",
+      supprConfirm: "⚠️ Confirmer la suppression ?",
+      supprOk: "✅ Supprimé !",
+      aucune: "Aucune affectation enregistrée",
+      erreurReseau: "❌ Erreur Réseau"
+    },
+    en: {
+      accesReserve: "⛔ Access restricted to Administrator",
+      serveurIndispo: "⚠️ Server offline — Local mode active",
+      selectionner: "--- Select ---",
+      charger: "--- Loading ---",
+      aucunProf: "⚠️ No teacher found",
+      aucuneClasse: "⚠️ No class found",
+      aucuneMatiere: "⚠️ No subject found",
+      erreurChamps: "⚠️ Select Teacher, Class and Subject!",
+      ajouterOk: "✅ Assignment saved!",
+      supprConfirm: "⚠️ Confirm deletion?",
+      supprOk: "✅ Deleted!",
+      aucune: "No assignment registered",
+      erreurReseau: "❌ Network Error"
+    },
+    ar: {
+      accesReserve: "⛔ الوصول مقصور على المدير",
+      serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
+      selectionner: "--- اختر ---",
+      charger: "--- جار التحميل ---",
+      aucunProf: "⚠️ لم يتم العثور على مدرسين",
+      aucuneClasse: "⚠️ لم يتم العثور على فصول",
+      aucuneMatiere: "⚠️ لم يتم العثور على مواد",
+      erreurChamps: "⚠️ اختر المدرس والفصل والمادة!",
+      ajouterOk: "✅ تم حفظ التكليف!",
+      supprConfirm: "⚠️ تأكيد الحذف؟",
+      supprOk: "✅ تم الحذف!",
+      aucune: "لا يوجد تكليفات مسجلة",
+      erreurReseau: "❌ خطأ في الشبكة"
+    }
+  };
+  function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
+
+  // 🔒 SÉCURITÉ
+  if(!token || !['admin','super_admin'].includes(role)){
+    alert(m('accesReserve'));
+    localStorage.clear();
+    location.href = 'connexion.html';
+  }
+
+  document.body.classList.add('lang-' + langue);
 </script>
 
 <!-- 📌 EN-TÊTE -->
@@ -79,7 +142,7 @@ if(!token || role !== 'admin'){
       </p>
     </div>
     <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-sm btn-outline-light btn-langue active" onclick="changerLangue('fr')" id="btn-fr">FR</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('fr')" id="btn-fr">FR</button>
       <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('en')" id="btn-en">EN</button>
       <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('ar')" id="btn-ar">AR</button>
       <a href="dashboard.html" class="btn btn-outline-light btn-sm ms-2">
@@ -93,6 +156,12 @@ if(!token || role !== 'admin'){
 </div>
 
 <div class="container py-4">
+
+  <!-- ⚠️ ALERTE MODE LOCAL -->
+  <div id="alerteApi" class="alerte-api d-none">
+    <i class="bi bi-wifi-off me-2"></i>
+    <span id="texteAlerteApi"></span>
+  </div>
 
   <!-- ➕ FORMULAIRE D'AJOUT -->
   <div class="carte">
@@ -161,261 +230,255 @@ if(!token || role !== 'admin'){
 
 </div>
 
-<script>// 🚀 AU CHARGEMENT
-window.onload = async function() {
-  await chargerProfesseurs();
-  await chargerClasses();
-  await chargerMatieres();
-  await chargerListeAffectations();
-};
+<script>
+  let modeLocal = false;
 
-// 👨‍🏫 CHARGER LA LISTE DES PROFESSEURS — UTILISE TA ROUTE EXISTANTE
-async function chargerProfesseurs(){
-  try {
-    const r = await fetch('https://mama-zoumana-api.onrender.com/api', {
-      headers:{'Authorization':`Bearer ${token}`}
-    });
-    const res = await r.json();
+  // 🗣️ CHANGEMENT DE LANGUE
+  function changerLangue(nouvelleLangue) {
+    langue = nouvelleLangue;
+    localStorage.setItem('langue', langue);
+    document.body.classList.remove('lang-fr','lang-en','lang-ar');
+    document.body.classList.add('lang-' + langue);
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + langue).classList.add('active');
+  }
+
+  // 📡 GESTION ALERTE
+  function basculerModeLocal(actif) {
+    modeLocal = actif;
+    const alerte = document.getElementById('alerteApi');
+    const texte = document.getElementById('texteAlerteApi');
+    if (actif) {
+      texte.textContent = m('serveurIndispo');
+      alerte.classList.remove('d-none');
+    } else {
+      alerte.classList.add('d-none');
+    }
+  }
+
+  // 👨‍🏫 CHARGER PROFESSEURS
+  async function chargerProfesseurs(forcerLocal = false){
     const sel = document.getElementById('professeur');
-    sel.innerHTML = '<option value="">--- Sélectionner ---</option>';
-    if(res.ok && res.lignes){
-      res.lignes.forEach(u => {
+    sel.innerHTML = `<option value="">${m('charger')}</option>`;
+    let liste = [];
+
+    if (!forcerLocal) {
+      try {
+        const r = await fetch(`${API_URL}/utilisateurs/professeurs`, { headers:{'Authorization':`Bearer ${token}`} });
+        if (!r.ok) throw new Error();
+        const res = await r.json();
+        liste = res.professeurs || res.lignes || [];
+        sauvegarderProfesseursLocaux(liste);
+        basculerModeLocal(false);
+      } catch {
+        forcerLocal = true;
+      }
+    }
+
+    if (forcerLocal) {
+      basculerModeLocal(true);
+      liste = obtenirProfesseursLocaux();
+    }
+
+    sel.innerHTML = `<option value="">${m('selectionner')}</option>`;
+    if(liste.length > 0){
+      liste.forEach(u => {
         sel.innerHTML += `<option value="${u.id_utilisateur}">${u.nom} ${u.prenoms}</option>`;
       });
     } else {
-      sel.innerHTML += '<option value="" disabled>⚠️ Aucun professeur trouvé</option>';
+      sel.innerHTML += `<option value="" disabled>${m('aucunProf')}</option>`;
     }
-  } catch(e) {
-    console.log("❌ Erreur professeurs :", e);
-    document.getElementById('professeur').innerHTML = '<option value="">⚠️ Erreur chargement</option>';
   }
-}
 
-// 🏫 CHARGER LA LISTE DES CLASSES — ROUTE SIMPLE SANS AFFECTATION
-async function chargerClasses(){
-  try {
-    const r = await fetch('https://mama-zoumana-api.onrender.com/api', {
-      headers:{'Authorization':`Bearer ${token}`}
-    });
-    const res = await r.json();
+  // 🏫 CHARGER CLASSES
+  async function chargerClasses(forcerLocal = false){
     const sel = document.getElementById('classe');
-    sel.innerHTML = '<option value="">--- Sélectionner ---</option>';
-    if(res.ok && res.lignes){
-      res.lignes.forEach(c => {
+    sel.innerHTML = `<option value="">${m('charger')}</option>`;
+    let liste = [];
+
+    if (!forcerLocal) {
+      try {
+        const r = await fetch(`${API_URL}/classes`, { headers:{'Authorization':`Bearer ${token}`} });
+        if (!r.ok) throw new Error();
+        const res = await r.json();
+        liste = res.classes || res.lignes || [];
+        sauvegarderClassesLocales(liste);
+        basculerModeLocal(false);
+      } catch {
+        forcerLocal = true;
+      }
+    }
+
+    if (forcerLocal) {
+      basculerModeLocal(true);
+      liste = obtenirClassesLocales();
+    }
+
+    sel.innerHTML = `<option value="">${m('selectionner')}</option>`;
+    if(liste.length > 0){
+      liste.forEach(c => {
         sel.innerHTML += `<option value="${c.id_classe}">${c.libelle_classe}</option>`;
       });
     } else {
-      sel.innerHTML += '<option value="" disabled>⚠️ Aucune classe trouvée</option>';
+      sel.innerHTML += `<option value="" disabled>${m('aucuneClasse')}</option>`;
     }
-  } catch(e) {
-    console.log("❌ Erreur classes :", e);
-    document.getElementById('classe').innerHTML = '<option value="">⚠️ Erreur chargement</option>';
   }
-}
 
-// 📚 CHARGER LA LISTE DES MATIÈRES — ROUTE SIMPLE SANS AFFECTATION
-async function chargerMatieres(){
-  try {
-    const r = await fetch('https://mama-zoumana-api.onrender.com/api', {
-      headers:{'Authorization':`Bearer ${token}`}
-    });
-    const res = await r.json();
+  // 📚 CHARGER MATIÈRES
+  async function chargerMatieres(forcerLocal = false){
     const sel = document.getElementById('matiere');
-    sel.innerHTML = '<option value="">--- Sélectionner ---</option>';
-    if(res.ok && res.lignes){
-      res.lignes.forEach(m => {
+    sel.innerHTML = `<option value="">${m('charger')}</option>`;
+    let liste = [];
+
+    if (!forcerLocal) {
+      try {
+        const r = await fetch(`${API_URL}/matieres`, { headers:{'Authorization':`Bearer ${token}`} });
+        if (!r.ok) throw new Error();
+        const res = await r.json();
+        liste = res.matieres || res.lignes || [];
+        sauvegarderMatieresLocales(liste);
+        basculerModeLocal(false);
+      } catch {
+        forcerLocal = true;
+      }
+    }
+
+    if (forcerLocal) {
+      basculerModeLocal(true);
+      liste = obtenirMatieresLocales();
+    }
+
+    sel.innerHTML = `<option value="">${m('selectionner')}</option>`;
+    if(liste.length > 0){
+      liste.forEach(m => {
         sel.innerHTML += `<option value="${m.id_matiere}">${m.libelle_matiere}</option>`;
       });
     } else {
-      sel.innerHTML += '<option value="" disabled>⚠️ Aucune matière trouvée</option>';
+      sel.innerHTML += `<option value="" disabled>${m('aucuneMatiere')}</option>`;
     }
-  } catch(e) {
-    console.log("❌ Erreur matières :", e);
-    document.getElementById('matiere').innerHTML = '<option value="">⚠️ Erreur chargement</option>';
   }
-}// 👨‍🏫 CHARGER LA LISTE DES PROFESSEURS — UTILISE TA ROUTE EXISTANTE
-async function chargerProfesseurs(){
-  try {
-    const r = await fetch('https://mama-zoumana-api.onrender.com/api', {
-      headers:{'Authorization':`Bearer ${token}`}
-    });
-    const res = await r.json();
-    const sel = document.getElementById('professeur');
-    sel.innerHTML = '<option value="">--- Sélectionner ---</option>';
-    if(res.ok && res.lignes){
-      res.lignes.forEach(u => {
-        sel.innerHTML += `<option value="${u.id_utilisateur}">${u.nom} ${u.prenoms}</option>`;
+
+  // 💾 ENREGISTRER AFFECTATION
+  async function enregistrerAffectation(){
+    const id_prof = document.getElementById('professeur').value;
+    const id_classe = document.getElementById('classe').value;
+    const id_matiere = document.getElementById('matiere').value;
+
+    if(!id_prof || !id_classe || !id_matiere){
+      alert(m('erreurChamps'));
+      return;
+    }
+
+    const nouvelle = {
+      id_affectation: Date.now(),
+      id_prof, id_classe, id_matiere,
+      nom_prof: document.querySelector(`#professeur option[value="${id_prof}"]`)?.textContent || '',
+      classe: document.querySelector(`#classe option[value="${id_classe}"]`)?.textContent || '',
+      matiere: document.querySelector(`#matiere option[value="${id_matiere}"]`)?.textContent || ''
+    };
+
+    let liste = obtenirAffectationsLocales();
+
+    try {
+      const r = await fetch(`${API_URL}/affectations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ id_prof, id_classe, id_matiere })
       });
-    } else {
-      sel.innerHTML += '<option value="" disabled>⚠️ Aucun professeur trouvé</option>';
-    }
-  } catch(e) {
-    console.log("❌ Erreur professeurs :", e);
-    document.getElementById('professeur').innerHTML = '<option value="">⚠️ Erreur chargement</option>';
-  }
-}
-
-// 🏫 CHARGER LA LISTE DES CLASSES — ROUTE SIMPLE SANS AFFECTATION
-async function chargerClasses(){
-  try {
-    const r = await fetch('https://mama-zoumana-api.onrender.com/api', {
-      headers:{'Authorization':`Bearer ${token}`}
-    });
-    const res = await r.json();
-    const sel = document.getElementById('classe');
-    sel.innerHTML = '<option value="">--- Sélectionner ---</option>';
-    if(res.ok && res.lignes){
-      res.lignes.forEach(c => {
-        sel.innerHTML += `<option value="${c.id_classe}">${c.libelle_classe}</option>`;
-      });
-    } else {
-      sel.innerHTML += '<option value="" disabled>⚠️ Aucune classe trouvée</option>';
-    }
-  } catch(e) {
-    console.log("❌ Erreur classes :", e);
-    document.getElementById('classe').innerHTML = '<option value="">⚠️ Erreur chargement</option>';
-  }
-}
-
-// 📚 CHARGER LA LISTE DES MATIÈRES — 100% ADAPTÉ À TA TABLE
-async function chargerMatieres(){
-  try {
-    const r = await fetch('https://mama-zoumana-api.onrender.com/api', {
-      headers:{'Authorization':`Bearer ${token}`}
-    });
-    const res = await r.json();
-    console.log("📦 Matières reçues :", res);
-
-    const sel = document.getElementById('matiere');
-    sel.innerHTML = '<option value="">--- Sélectionner ---</option>';
-
-    if(res.ok && res.lignes){
-      res.lignes.forEach(m => {
-        // ✅ TES COLONNES : id_matiere + libelle_matiere
-        sel.innerHTML += `<option value="${m.id_matiere}">${m.libelle_matiere}</option>`;
-      });
-    } else {
-      sel.innerHTML += '<option value="" disabled>⚠️ Aucune matière trouvée</option>';
-    }
-  } catch(e) {
-    console.log("❌ Erreur matières :", e);
-    document.getElementById('matiere').innerHTML = '<option value="">⚠️ Erreur chargement</option>';
-  }
-}
-
-// 💾 ENREGISTRER UNE NOUVELLE AFFECTATION
-async function enregistrerAffectation(){
-  const id_prof = document.getElementById('professeur').value;
-  const id_classe = document.getElementById('classe').value;
-  const id_matiere = document.getElementById('matiere').value;
-
-  if(!id_prof || !id_classe || !id_matiere){
-    alert("⚠️ Sélectionne Professeur, Classe et Matière !");
-    return;
-  }
-
-  try {
-    const r = await fetch(`${API_URL}/ajouter`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ id_prof, id_classe, id_matiere })
-    });
-
-    const res = await r.json();
-    if(res.ok){
-      alert("✅ Affectation enregistrée !");
+      if (!r.ok) throw new Error();
+      liste.unshift(nouvelle);
+      sauvegarderAffectationsLocales(liste);
+      alert(m('ajouterOk'));
       document.getElementById('professeur').value = '';
       document.getElementById('classe').value = '';
       document.getElementById('matiere').value = '';
-      await chargerListeAffectations();
-    } else {
-      alert("❌ " + (res.erreur || "Erreur lors de l'enregistrement"));
+      chargerListeAffectations();
+    } catch {
+      liste.unshift(nouvelle);
+      sauvegarderAffectationsLocales(liste);
+      alert(m('ajouterOk') + " (local)");
+      document.getElementById('professeur').value = '';
+      document.getElementById('classe').value = '';
+      document.getElementById('matiere').value = '';
+      chargerListeAffectations(true);
     }
-  } catch(e) {
-    alert("❌ Erreur Réseau : " + e.message);
   }
-}
 
-// 📋 CHARGER LA LISTE DES AFFECTATIONS
-async function chargerListeAffectations(){
-  try {
-    const r = await fetch(`${API_URL}/liste`, {
-      headers:{'Authorization':`Bearer ${token}`}
-    });
-    const res = await r.json();
+  // 📋 CHARGER LISTE AFFECTATIONS
+  async function chargerListeAffectations(forcerLocal = false){
     const zone = document.getElementById('listeAffectations');
+    let liste = [];
 
-    if(res.ok && res.lignes && res.lignes.length > 0){
-      zone.innerHTML = res.lignes.map(a => `
-        <div class="ligne-affectation row align-items-center" data-id="${a.id_affectation}">
-          <div class="col-md-4">
-            <div class="fw-bold">👨‍🏫 ${a.nom_prof} ${a.prenoms_prof}</div>
-          </div>
-          <div class="col-md-3 text-center">
-            <div>🏫 ${a.classe}</div>
-          </div>
-          <div class="col-md-3 text-center">
-            <div>📚 ${a.matiere}</div>
-          </div>
-          <div class="col-md-2 text-center">
-            <button class="btn btn-suppr btn-sm" onclick="supprimerAffectation(${a.id_affectation})">
-              <i class="bi bi-trash3"></i>
-              <span class="lang-fr"> Supprimer</span>
-              <span class="lang-en"> Delete</span>
-              <span class="lang-ar"> حذف</span>
-            </button>
-          </div>
+    if (!forcerLocal) {
+      try {
+        const r = await fetch(`${API_URL}/affectations`, { headers:{'Authorization':`Bearer ${token}`} });
+        if (!r.ok) throw new Error();
+        const res = await r.json();
+        liste = res.affectations || res.lignes || [];
+        sauvegarderAffectationsLocales(liste);
+        basculerModeLocal(false);
+      } catch {
+        forcerLocal = true;
+      }
+    }
+
+    if (forcerLocal) {
+      basculerModeLocal(true);
+      liste = obtenirAffectationsLocales();
+    }
+
+    if (liste.length === 0) {
+      zone.innerHTML = `<div class="text-center py-4 text-muted">${m('aucune')}</div>`;
+      return;
+    }
+
+    zone.innerHTML = liste.map(a => `
+      <div class="ligne-affectation row align-items-center" data-id="${a.id_affectation}">
+        <div class="col-md-4">
+          <div class="fw-bold">👨‍🏫 ${a.nom_prof || ''} ${a.prenoms_prof || ''}</div>
         </div>
-      `).join('');
-    } else {
-      zone.innerHTML = `
-        <div class="text-center py-4 text-muted">
-          <span class="lang-fr">Aucune affectation enregistrée</span>
-          <span class="lang-en">No assignment registered</span>
-          <span class="lang-ar">لا يوجد تكليفات مسجلة</span>
-        </div>`;
-    }
-  } catch(e) {
-    console.log("❌ Erreur liste :", e);
+        <div class="col-md-3 text-center">
+          <div>🏫 ${a.classe || a.libelle_classe || ''}</div>
+        </div>
+        <div class="col-md-3 text-center">
+          <div>📚 ${a.matiere || a.libelle_matiere || ''}</div>
+        </div>
+        <div class="col-md-2 text-center">
+          <button class="btn btn-suppr btn-sm" onclick="supprimerAffectation(${a.id_affectation})">
+            <i class="bi bi-trash3"></i>
+            <span class="lang-fr"> Supprimer</span>
+            <span class="lang-en"> Delete</span>
+            <span class="lang-ar"> حذف</span>
+          </button>
+        </div>
+      </div>`).join('');
   }
-}
 
-// 🗑️ SUPPRIMER UNE AFFECTATION
-async function supprimerAffectation(id){
-  if(!confirm("⚠️ Confirmer la suppression ?")) return;
+  // 🗑️ SUPPRIMER AFFECTATION
+  async function supprimerAffectation(id){
+    if(!confirm(m('supprConfirm'))) return;
+    let liste = obtenirAffectationsLocales().filter(a => String(a.id_affectation) !== String(id));
 
-  try {
-    const r = await fetch(`${API_URL}/supprimer/${id}`, {
-      method: 'DELETE',
-      headers:{'Authorization':`Bearer ${token}`}
-    });
-    const res = await r.json();
-    if(res.ok){
-      alert("✅ Supprimé !");
-      await chargerListeAffectations();
-    } else {
-      alert("❌ " + (res.erreur || "Erreur"));
+    try {
+      await fetch(`${API_URL}/affectations/${id}`, { method: 'DELETE', headers:{'Authorization':`Bearer ${token}`} });
+      sauvegarderAffectationsLocales(liste);
+      alert(m('supprOk'));
+      chargerListeAffectations();
+    } catch {
+      sauvegarderAffectationsLocales(liste);
+      alert(m('supprOk') + " (local)");
+      chargerListeAffectations(true);
     }
-  } catch(e) {
-    alert("❌ Erreur : " + e.message);
   }
-}
 
-// 🗣️ CHANGEMENT DE LANGUE
-function changerLangue(langue) {
-  document.body.className = 'lang-' + langue;
-  localStorage.setItem('langue', langue);
-  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-' + langue).classList.add('active');
-}
-
-// ✅ Restaurer langue sauvegardée
-let langue = localStorage.getItem('langue') || 'fr';
-document.body.className = 'lang-' + langue;
-document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
-document.getElementById('btn-' + langue).classList.add('active');  
-
+  // 🚀 AU CHARGEMENT
+  window.onload = async function() {
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('active', b.dataset.lang === langue));
+    await chargerProfesseurs();
+    await chargerClasses();
+    await chargerMatieres();
+    await chargerListeAffectations();
+  };
 </script>
+</body>
+</html>

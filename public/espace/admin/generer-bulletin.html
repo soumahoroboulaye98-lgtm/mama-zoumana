@@ -17,18 +17,19 @@
       --blanc: #fff; 
       --fond-page: #f8fafc; 
     }
-    * { border-radius: 12px !important; }
-    body { 
-      background: var(--fond-page); 
-      font-family: system-ui, -apple-system, sans-serif; 
-      margin: 0;
-    }
 
     /* 🗣️ GESTION DES LANGUES */
     .txt-fr, .txt-en, .txt-ar { display: none !important; }
     body.lang-fr .txt-fr { display: inline !important; }
     body.lang-en .txt-en { display: inline !important; }
     body.lang-ar .txt-ar { display: inline !important; direction: rtl; text-align: right; }
+
+    * { border-radius: 12px !important; }
+    body { 
+      background: var(--fond-page); 
+      font-family: system-ui, -apple-system, sans-serif; 
+      margin: 0;
+    }
 
     /* SIDEBAR */
     .sidebar {
@@ -97,6 +98,20 @@
       background: #d97706;
       color: #fff;
     }
+    .btn-langue {
+      width: 44px;
+      height: 36px;
+      border-radius: 50px !important;
+      border: 2px solid transparent;
+      font-weight: 600;
+      transition: all 0.25s;
+    }
+    .btn-langue.active {
+      border-color: var(--bord-orange);
+      background: var(--bord-orange);
+      color: #000;
+      box-shadow: 0 0 10px rgba(245,158,11,0.35);
+    }
 
     /* MENTIONS */
     .mention {
@@ -106,12 +121,12 @@
       font-weight: bold;
       display: inline-block;
     }
-    .mention-excellent   { background: #ffd700; color: #000; }
-    .mention-tresbien    { background: #10b981; color: #fff; }
-    .mention-bien        { background: #3b82f6; color: #fff; }
-    .mention-aszbien     { background: #f59e0b; color: #000; }
-    .mention-passable    { background: #f97316; color: #fff; }
-    .mention-insuffisant { background: #ef4444; color: #fff; }
+    .mention-excellent    { background: #ffd700; color: #000; }
+    .mention-tresbien     { background: #10b981; color: #fff; }
+    .mention-bien         { background: #3b82f6; color: #fff; }
+    .mention-aszbien      { background: #f59e0b; color: #000; }
+    .mention-passable     { background: #f97316; color: #fff; }
+    .mention-insuffisant  { background: #ef4444; color: #fff; }
 
     /* TABLEAU */
     .table th { border-top: none; }
@@ -120,16 +135,30 @@
 </head>
 <body class="lang-fr">
 
-<!-- 🔐 SÉCURITÉ -- Vérifie connexion -->
+<!-- 🔐 SÉCURITÉ -->
 <script>
-const token = localStorage.getItem('token');
-const role = localStorage.getItem('role');
-if (!token || !['admin','directeur'].includes(role)) {
-  alert("⛔ Accès réservé à l'administration !");
-  location.href = '../connexion.html';
-}
-const anneeScolaire = "2026-2027";
-const API_BASE = "https://mama-zoumana-api.onrender.com/api";
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  if (!token || !['admin','directeur'].includes(role)) {
+    alert("⛔ Accès réservé à l'administration !");
+    location.href = '../connexion.html';
+  }
+  const anneeScolaire = "2026-2027";
+
+  // 🔗 DÉTECTION AUTOMATIQUE DE L'API
+  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:10000/api'
+    : 'https://mama-zoumana-api.onrender.com/api';
+
+  // 💾 STOCKAGE LOCAL
+  function obtenirClassesLocales() { return JSON.parse(localStorage.getItem('classes_bulletins') || '[]'); }
+  function sauvegarderClassesLocales(liste) { localStorage.setItem('classes_bulletins', JSON.stringify(liste)); }
+  function obtenirResultatsLocaux() { return JSON.parse(localStorage.getItem('resultats_bulletins') || '[]'); }
+  function sauvegarderResultatsLocaux(data) { localStorage.setItem('resultats_bulletins', JSON.stringify(data)); }
+
+  // 🌍 LANGUE
+  let langue = localStorage.getItem('langue') || 'fr';
+  document.body.classList.add('lang-' + langue);
 </script>
 
 <!-- 📌 BARRE LATÉRALE -->
@@ -171,9 +200,9 @@ const API_BASE = "https://mama-zoumana-api.onrender.com/api";
       <span class="txt-ar">📊 إنشاء الشهادات المدرسية</span>
     </h3>
     <div class="d-flex gap-2">
-      <button class="btn btn-sm btn-langue btn-primary active" data-lang="fr">FR</button>
-      <button class="btn btn-sm btn-outline-secondary btn-langue" data-lang="en">EN</button>
-      <button class="btn btn-sm btn-outline-secondary btn-langue" data-lang="ar">AR</button>
+      <button class="btn btn-langue btn-sm" data-lang="fr" onclick="changerLangue('fr')">FR</button>
+      <button class="btn btn-langue btn-sm" data-lang="en" onclick="changerLangue('en')">EN</button>
+      <button class="btn btn-langue btn-sm" data-lang="ar" onclick="changerLangue('ar')">AR</button>
     </div>
   </div>
 
@@ -263,106 +292,114 @@ const API_BASE = "https://mama-zoumana-api.onrender.com/api";
 </div>
 
 <script>
-// 🗣️ CHANGEMENT DE LANGUE
-document.querySelectorAll('.btn-langue').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const lang = btn.dataset.lang;
+  // ✂️ ÉCHAPPEMENT SÉCURITAIRE
+  function escaperHtml(texte) {
+    if (!texte) return '';
+    const div = document.createElement('div');
+    div.textContent = texte;
+    return div.innerHTML;
+  }
+
+  // 🗣️ CHANGEMENT DE LANGUE
+  function changerLangue(nouvelleLangue) {
+    langue = nouvelleLangue;
+    localStorage.setItem('langue', langue);
     document.body.classList.remove('lang-fr','lang-en','lang-ar');
-    document.body.classList.add('lang-'+lang);
-    document.documentElement.lang = lang;
-    localStorage.setItem('langue', lang);
+    document.body.classList.add('lang-' + langue);
+    document.documentElement.lang = langue;
+    document.body.dir = langue === 'ar' ? 'rtl' : 'ltr';
     document.querySelectorAll('.btn-langue').forEach(b => {
-      b.classList.remove('btn-primary','active');
-      b.classList.add('btn-outline-secondary');
+      b.classList.remove('active');
+      b.classList.toggle('active', b.dataset.lang === langue);
     });
-    btn.classList.remove('btn-outline-secondary');
-    btn.classList.add('btn-primary','active');
-  });
-});
+  }
 
-// ✅ Restaurer langue sauvegardée
-const langueSauvegardee = localStorage.getItem('langue') || 'fr';
-document.body.classList.add('lang-'+langueSauvegardee);
-document.querySelector(`[data-lang="${langueSauvegardee}"]`)?.classList.add('active');
+  // 📥 CHARGER LA LISTE DES CLASSES
+  async function chargerClasses() {
+    const select = document.getElementById('id_classe');
+    let liste = [];
 
-// 📥 CHARGER LA LISTE DES CLASSES — Route CORRIGÉE
-async function chargerClasses() {
-  const select = document.getElementById('id_classe');
-  try {
-    const reponse = await fetch(`${API_BASE}/classes`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const res = await reponse.json();
-    
-    if (res.ok && res.lignes?.length > 0) {
-      select.innerHTML = '<option value="">-- Sélectionner --</option>' +
-        res.lignes.map(c => `<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('');
-    } else {
-      select.innerHTML = '<option value="">-- Aucune classe trouvée --</option>';
-      console.log("Réponse classes :", res);
+    try {
+      const reponse = await fetch(`${API_BASE}/classes`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const res = await reponse.json();
+      if (res.ok && Array.isArray(res.lignes) && res.lignes.length) {
+        liste = res.lignes;
+        sauvegarderClassesLocales(liste);
+      } else {
+        throw Error("Réponse invalide");
+      }
+    } catch {
+      liste = obtenirClassesLocales();
     }
-  } catch (err) {
-    console.error("❌ Erreur chargement classes :", err);
-    select.innerHTML = '<option value="">-- Erreur serveur --</option>';
-  }
-}
 
-// 📊 GÉNÉRER LES BULLETINS — Route CORRIGÉE
-async function genererBulletins() {
-  const id_classe = document.getElementById('id_classe').value;
-  const trimestre = document.getElementById('trimestre').value;
-  const langue = localStorage.getItem('langue') || 'fr';
-
-  const messages = {
-    fr: { erreur: "⚠️ Sélectionne Classe et Trimestre d'abord !", erreurServ: "❌ Erreur : ", vide: "Aucune note trouvée pour cette classe et ce trimestre" },
-    en: { erreur: "⚠️ Choose Class and Term first!", erreurServ: "❌ Error: ", vide: "No grades found for this class and term" },
-    ar: { erreur: "⚠️ اختر القسم والفصل أولاً!", erreurServ: "❌ خطأ: ", vide: "لا توجد درجات لهذا القسم وهذا الفصل" }
-  };
-
-  if (!id_classe || !trimestre) {
-    alert(messages[langue].erreur);
-    return;
-  }
-
-  try {
-    const reponse = await fetch(`${API_BASE}/bulletins/calculer`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ 
-        id_classe, 
-        trimestre, 
-        annee_scolaire: anneeScolaire 
-      })
-    });
-
-    const res = await reponse.json();
-
-    if (!res.ok) {
-      alert(messages[langue].erreurServ + (res.erreur || "Erreur inconnue"));
+    if (!liste.length) {
+      select.innerHTML = '<option value="">-- Aucune classe --</option>';
       return;
     }
 
-    if (!res.classement || res.classement.length === 0) {
+    // Restaurer la dernière sélection
+    const sel = localStorage.getItem('classe_selectionnee') || '';
+    select.innerHTML = '<option value="">-- Sélectionner --</option>' +
+      liste.map(c => `<option value="${c.id_classe}" ${sel==c.id_classe?'selected':''}>${escaperHtml(c.libelle_classe)}</option>`).join('');
+  }
+
+  // 📊 GÉNÉRER LES BULLETINS
+  async function genererBulletins() {
+    const id_classe = document.getElementById('id_classe').value;
+    const trimestre = document.getElementById('trimestre').value;
+
+    const messages = {
+      fr: { erreur: "⚠️ Sélectionne Classe et Trimestre d'abord !", erreurServ: "❌ Erreur : ", vide: "Aucune note trouvée pour cette classe et ce trimestre", ok: "✅ Bulletins générés !" },
+      en: { erreur: "⚠️ Choose Class and Term first!", erreurServ: "❌ Error: ", vide: "No grades found for this class and term", ok: "✅ Reports generated!" },
+      ar: { erreur: "⚠️ اختر القسم والفصل أولاً!", erreurServ: "❌ خطأ: ", vide: "لا توجد درجات لهذا القسم وهذا الفصل", ok: "✅ تم إنشاء الشهادات!" }
+    };
+
+    if (!id_classe || !trimestre) {
+      alert(messages[langue].erreur);
+      return;
+    }
+
+    // Mémoriser la sélection
+    localStorage.setItem('classe_selectionnee', id_classe);
+    localStorage.setItem('trimestre_selectionne', trimestre);
+
+    let resultats = null;
+    try {
+      const reponse = await fetch(`${API_BASE}/bulletins/calculer`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ id_classe, trimestre, annee_scolaire: anneeScolaire })
+      });
+      const res = await reponse.json();
+      if (res.ok && res.classement) {
+        resultats = res.classement;
+        sauvegarderResultatsLocaux(resultats);
+      } else {
+        throw Error(res.erreur || "Invalide");
+      }
+    } catch {
+      resultats = obtenirResultatsLocaux();
+    }
+
+    if (!resultats || !resultats.length) {
       document.getElementById('corps-tableau').innerHTML = `
         <tr><td colspan="6" class="text-center text-warning py-4">⚠️ ${messages[langue].vide}</td></tr>`;
       return;
     }
 
-    // 📄 Traduction bouton
-    const voirTexte = {
-      fr: "📄 Voir la fiche",
-      en: "📄 View Report",
-      ar: "📄 عرض الكشف"
-    };
+    // 🏷️ Texte bouton
+    const voirTexte = { fr: "📄 Voir la fiche", en: "📄 View Report", ar: "📄 عرض الكشف" };
 
-    // 📄 Affichage du tableau — Champs CORRIGÉS
-    document.getElementById('corps-tableau').innerHTML = res.classement.map(eleve => {
-      // 🏷️ Couleur mention
-      let classeMention = 'mention-insuffisant';
+    // 🎨 AFFICHAGE
+    document.getElementById('corps-tableau').innerHTML = resultats.map(eleve => {
       const moy = parseFloat(eleve.moyenne_generale);
+      // Déterminer la mention
+      let classeMention = 'mention-insuffisant';
       if (!isNaN(moy)) {
         if (moy >= 18) classeMention = 'mention-excellent';
         else if (moy >= 16) classeMention = 'mention-tresbien';
@@ -372,37 +409,40 @@ async function genererBulletins() {
       }
 
       return `
-        <tr>
-          <td class="fw-bold text-center">${eleve.rang || '-'}</td>
-          <td>${eleve.nom || ''} ${eleve.prenoms || ''}</td>
-          <td>${eleve.matricule || '---'}</td>
-          <td class="text-center fw-bold">${isNaN(moy) ? '-' : moy.toFixed(2)}</td>
-          <td class="text-center">
-            <span class="mention ${classeMention}">${eleve.mention || '-'}</span>
-          </td>
-          <td class="text-center">
-            <button class="btn btn-sm btn-primary" 
-              onclick="ouvrirFiche(${eleve.id_eleve}, ${id_classe}, ${trimestre})">
-              ${voirTexte[langue]}
-            </button>
-          </td>
-        </tr>
-      `;
+      <tr>
+        <td class="fw-bold text-center">${eleve.rang || '-'}</td>
+        <td>${escaperHtml(eleve.nom)} ${escaperHtml(eleve.prenoms)}</td>
+        <td>${escaperHtml(eleve.matricule || '---')}</td>
+        <td class="text-center fw-bold">${isNaN(moy) ? '-' : moy.toFixed(2)}</td>
+        <td class="text-center">
+          <span class="mention ${classeMention}">${escaperHtml(eleve.mention || '-')}</span>
+        </td>
+        <td class="text-center">
+          <button class="btn btn-sm btn-primary" 
+            onclick="ouvrirFiche(${eleve.id_eleve}, ${id_classe}, ${trimestre})">
+            ${voirTexte[langue]}
+          </button>
+        </td>
+      </tr>`;
     }).join('');
-
-  } catch (err) {
-    console.error("❌ Erreur génération bulletins :", err);
-    alert("❌ Erreur de connexion au serveur — Vérifiez qu'il est démarré sur le port 5000");
   }
-}
 
-// 📄 OUVRIR LA FICHE BULLETIN INDIVIDUELLE — Lien CORRIGÉ
-function ouvrirFiche(id_eleve, id_classe, trimestre) {
-  window.location.href = `fiche-bulletin.html?eleve=${id_eleve}&classe=${id_classe}&periode=${trimestre}&annee=${anneeScolaire}`;
-}
+  // 📄 OUVRIR LA FICHE INDIVIDUELLE
+  function ouvrirFiche(id_eleve, id_classe, trimestre) {
+    window.location.href = `fiche-bulletin.html?eleve=${id_eleve}&classe=${id_classe}&periode=${trimestre}&annee=${anneeScolaire}`;
+  }
 
-// 🚀 AU CHARGEMENT
-chargerClasses();
+  // 🚀 Initialisation
+  document.addEventListener('DOMContentLoaded', () => {
+    // Restaurer langue et bouton actif
+    document.querySelectorAll('.btn-langue').forEach(b => {
+      b.classList.toggle('active', b.dataset.lang === langue);
+    });
+    // Restaurer trimestre
+    const selTrim = localStorage.getItem('trimestre_selectionne');
+    if (selTrim) document.getElementById('trimestre').value = selTrim;
+    chargerClasses();
+  });
 </script>
 </body>
 </html>
