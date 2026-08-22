@@ -1,6 +1,10 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
+// ✅ Valeur par défaut si la variable d'environnement est absente
+const CLEF_SECRETE = process.env.JWT_SECRET || 'ma_cle_secrete_pour_le_site_2026';
+
+
 module.exports = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -12,7 +16,7 @@ module.exports = (req, res, next) => {
     }
 
     // ✅ Vérification et décodage du token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, CLEF_SECRETE);
 
     // ✅ Vérification du rôle autorisé
     const rolesAutorises = ['admin', 'prof', 'directeur'];
@@ -32,8 +36,8 @@ module.exports = (req, res, next) => {
 
     // ✅ Objet req.user STANDARDISÉ transmis aux routes
     req.user = {
-      id: id_utilisateur,           // ✅ Champ "id" conforme aux autres modules
-      id_utilisateur: id_utilisateur,// ✅ Alias pour rétrocompatibilité
+      id: id_utilisateur,              // ✅ Champ "id" conforme aux autres modules
+      id_utilisateur: id_utilisateur,   // ✅ Alias pour rétrocompatibilité
       role: decoded.role,
       nom: decoded.nom || null
     };
