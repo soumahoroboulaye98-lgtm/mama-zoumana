@@ -20,6 +20,10 @@
       --alerte: #f59e0b;
       --danger: #ef4444;
       --info: #3b82f6;
+      --ivoire: #008751;
+      --bourse: #7c3aed;
+      --portail: #ec4899;
+      --lien: #f97316;
       --sombre: #0f172a;
       --sombre-clair: #1e293b;
       --texte-dore: #fbbf24;
@@ -86,25 +90,21 @@
       transition: all 0.3s ease;
     }
 
-    .card-header.bg-primary {
-      background: linear-gradient(135deg, #0c4a6e, #0369a1) !important;
-    }
-    .card-header.bg-dark {
-      background: linear-gradient(135deg, #1f2937, #0f172a) !important;
-    }
-    .card-header.bg-success {
-      background: linear-gradient(135deg, #059669, #10b981) !important;
-    }
-    .card-header.bg-warning {
-      background: linear-gradient(135deg, #d97706, #f59e0b) !important;
-    }
-    .card-header.bg-info {
-      background: linear-gradient(135deg, #0891b2, #22d3ee) !important;
-    }
+    .card-header.bg-primary { background: linear-gradient(135deg, #0c4a6e, #0369a1) !important; }
+    .card-header.bg-dark { background: linear-gradient(135deg, #1f2937, #0f172a) !important; }
+    .card-header.bg-success { background: linear-gradient(135deg, #059669, #10b981) !important; }
+    .card-header.bg-warning { background: linear-gradient(135deg, #d97706, #f59e0b) !important; }
+    .card-header.bg-ivoire { background: linear-gradient(135deg, #008751, #00a86b) !important; }
+    .card-header.bg-bourse { background: linear-gradient(135deg, #7c3aed, #a855f7) !important; }
+    .card-header.bg-portail { background: linear-gradient(135deg, #be185d, #ec4899) !important; }
+    .card-header.bg-lien { background: linear-gradient(135deg, #c2410c, #f97316) !important; }
+    .card-header.bg-info { background: linear-gradient(135deg, #0891b2, #22d3ee) !important; }
 
     /* 🔘 BOUTONS LIENS */
     .btn-outline-primary, .btn-outline-success,
-    .btn-outline-dark, .btn-outline-warning {
+    .btn-outline-dark, .btn-outline-warning,
+    .btn-outline-ivoire, .btn-outline-bourse,
+    .btn-outline-portail, .btn-outline-lien {
       border-width: 2px;
       font-weight: 600;
       border-radius: 10px;
@@ -115,15 +115,25 @@
     }
 
     .btn-outline-primary:hover, .btn-outline-success:hover,
-    .btn-outline-dark:hover, .btn-outline-warning:hover {
+    .btn-outline-dark:hover, .btn-outline-warning:hover,
+    .btn-outline-ivoire:hover, .btn-outline-bourse:hover,
+    .btn-outline-portail:hover, .btn-outline-lien:hover {
       transform: translateY(-3px);
       box-shadow: 0 6px 20px rgba(0,0,0,0.15);
     }
 
-    .btn-outline-primary:hover { background: linear-gradient(135deg, #0c4a6e, #0369a1); border-color: transparent; }
-    .btn-outline-success:hover { background: linear-gradient(135deg, #059669, #10b981); border-color: transparent; }
-    .btn-outline-dark:hover { background: linear-gradient(135deg, #1f2937, #0f172a); border-color: transparent; }
+    .btn-outline-primary:hover { background: linear-gradient(135deg, #0c4a6e, #0369a1); border-color: transparent; color:white; }
+    .btn-outline-success:hover { background: linear-gradient(135deg, #059669, #10b981); border-color: transparent; color:white; }
+    .btn-outline-dark:hover { background: linear-gradient(135deg, #1f2937, #0f172a); border-color: transparent; color:white; }
     .btn-outline-warning:hover { background: linear-gradient(135deg, #d97706, #f59e0b); border-color: transparent; color: #000; }
+    .btn-outline-ivoire { border-color: var(--ivoire); color: var(--ivoire); }
+    .btn-outline-ivoire:hover { background: linear-gradient(135deg, #008751, #00a86b); border-color: transparent; color: white; }
+    .btn-outline-bourse { border-color: var(--bourse); color: var(--bourse); }
+    .btn-outline-bourse:hover { background: linear-gradient(135deg, #7c3aed, #a855f7); border-color: transparent; color: white; }
+    .btn-outline-portail { border-color: var(--portail); color: var(--portail); }
+    .btn-outline-portail:hover { background: linear-gradient(135deg, #be185d, #ec4899); border-color: transparent; color: white; }
+    .btn-outline-lien { border-color: var(--lien); color: var(--lien); }
+    .btn-outline-lien:hover { background: linear-gradient(135deg, #c2410c, #f97316); border-color: transparent; color: white; }
 
     /* ✨ Effet reflet au survol */
     .btn::after {
@@ -264,13 +274,13 @@
           <a href="https://www.education.gouv.fr" target="_blank" class="btn btn-outline-primary w-100 py-3">🇫🇷 Ministère Éducation (FR)</a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="https://www.education.ci" target="_blank" class="btn btn-outline-success w-100 py-3">🇨🇮 Éducation Nationale (CI)</a>
+          <a href="https://www.education.ci" target="_blank" class="btn btn-outline-ivoire w-100 py-3">🇨🇮 Éducation Nationale (CI)</a>
         </div>
         <div class="col-md-6 col-lg-4">
           <a href="https://www.onisep.fr" target="_blank" class="btn btn-outline-primary w-100 py-3">🎓 Onisep — Orientation</a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="https://www.univ.ci" target="_blank" class="btn btn-outline-success w-100 py-3">🏛️ Universités de Côte d'Ivoire</a>
+          <a href="https://www.univ.ci" target="_blank" class="btn btn-outline-ivoire w-100 py-3">🏛️ Universités de Côte d'Ivoire</a>
         </div>
         <div class="col-md-6 col-lg-4">
           <a href="https://www.france-education.fr" target="_blank" class="btn btn-outline-primary w-100 py-3">📖 France Éducation</a>
@@ -282,9 +292,245 @@
     </div>
   </div>
 
-  <!-- 📚 BIBLIOTHÈQUES EN LIGNE -- ENRICHIES -->
+  <!-- 🇨🇮 BIBLIOTHÈQUES & RESSOURCES IVOIRIENNES -->
   <div class="card mb-4">
-    <div class="card-header bg-success text-white">📚 <span class="txt-fr">Bibliothèques en Ligne</span><span class="txt-en">Online Libraries</span><span class="txt-ar">المكتبات الإلكترونية</span></div>
+    <div class="card-header bg-ivoire text-white">🇨🇮 <span class="txt-fr">Bibliothèques & Ressources de Côte d'Ivoire</span><span class="txt-en">Ivorian Libraries & Resources</span><span class="txt-ar">مكتبات وموارد كوت ديفوار</span></div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.bibliotheque-nationale.ci" target="_blank" class="btn btn-outline-ivoire w-100 py-3">📚 Bibliothèque Nationale de Côte d'Ivoire</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.univ-abidjan.ci" target="_blank" class="btn btn-outline-ivoire w-100 py-3">🏛️ Université Félix Houphouët-Boigny</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.inst-ci.org" target="_blank" class="btn btn-outline-ivoire w-100 py-3">🔬 Institut National des Sciences</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.culture.gouv.ci" target="_blank" class="btn btn-outline-ivoire w-100 py-3">🎭 Ministère de la Culture & de la Francophonie</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.presidence.ci/fr/bibliotheque" target="_blank" class="btn btn-outline-ivoire w-100 py-3">📖 Bibliothèque Numérique Ivoirienne</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.recherche.gouv.ci" target="_blank" class="btn btn-outline-ivoire w-100 py-3">🔍 Portail Recherche CI</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🕌 BIBLIOTHÈQUES ISLAMIQUES & ARABES -->
+  <div class="card mb-4">
+    <div class="card-header bg-warning text-dark">🕌 <span class="txt-fr">Bibliothèques Islamiques & Arabes</span><span class="txt-en">Islamic & Arabic Libraries</span><span class="txt-ar">المكتبات الإسلامية والعربية</span></div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6 col-lg-4">
+          <a href="https://quran.com" target="_blank" class="btn btn-outline-warning w-100 py-3">📖 Le Saint Coran — 🌐 Multilingue</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.sunnah.com" target="_blank" class="btn btn-outline-warning w-100 py-3">📖 Hadiths et Sunnah</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.alukah.net" target="_blank" class="btn btn-outline-warning w-100 py-3">🇸🇦 Alukah — Bibliothèque Islamique</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.islamweb.net/fr/library" target="_blank" class="btn btn-outline-warning w-100 py-3">📚 Islamweb — Bibliothèque & Recherches</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.noor-book.com" target="_blank" class="btn btn-outline-warning w-100 py-3">📖 Noor-Book — Livres arabes gratuits</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://arabic.kitab.de" target="_blank" class="btn btn-outline-warning w-100 py-3">📚 Kitab — Bibliothèque arabe</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://majalis-sunan.com" target="_blank" class="btn btn-outline-warning w-100 py-3">📖 Majalis-Sunan — Hadiths & Sciences</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://coran-francais.com" target="_blank" class="btn btn-outline-warning w-100 py-3">📖 Coran en Français</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.sacred-texts.com" target="_blank" class="btn btn-outline-warning w-100 py-3">📚 Textes Sacrés du Monde</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.islam-guide.com" target="_blank" class="btn btn-outline-warning w-100 py-3">🕌 Guide de l'Islam</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.islamweb.net" target="_blank" class="btn btn-outline-warning w-100 py-3">🌐 Islamweb — Portail & Recherches</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.maktabah.org" target="_blank" class="btn btn-outline-warning w-100 py-3">📚 Maktabah — Bibliothèque Islamique Mondiale</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 💰 BOURSES & AIDES FINANCIÈRES -->
+  <div class="card mb-4">
+    <div class="card-header bg-bourse text-white">💰 <span class="txt-fr">Bourses & Aides Financières</span><span class="txt-en">Scholarships & Financial Aid</span><span class="txt-ar">المنح والمساعدات المالية</span></div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.bourses.gouv.fr" target="_blank" class="btn btn-outline-bourse w-100 py-3">🇫🇷 Bourses de l'Enseignement Supérieur (FR)</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.bourses.ci" target="_blank" class="btn btn-outline-bourse w-100 py-3">🇨🇮 Bourses & Aides de Côte d'Ivoire</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://campusfrance.org/fr/bourses" target="_blank" class="btn btn-outline-bourse w-100 py-3">🌍 Campus France — Bourses à l'international</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.erasmus-plus.fr" target="_blank" class="btn btn-outline-bourse w-100 py-3">🇪🇺 Erasmus+ — Bourses d'échange Europe</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.scholarships.gov" target="_blank" class="btn btn-outline-bourse w-100 py-3">🇺🇸 Bourses d'Études aux États-Unis</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.britishcouncil.org/study-uk/scholarships" target="_blank" class="btn btn-outline-bourse w-100 py-3">🇬🇧 Bourses pour le Royaume-Uni</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.auaid.ae/en/scholarships" target="_blank" class="btn btn-outline-bourse w-100 py-3">🇦🇪 Bourses des Émirats Arabes Unis</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.isdb.org/scholarships" target="_blank" class="btn btn-outline-bourse w-100 py-3">🏛️ Bourses de la Banque Islamique de Développement</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.auf.fr/bourses-et-mobilite" target="_blank" class="btn btn-outline-bourse w-100 py-3">🌐 AUF — Bourses de la Francophonie</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.un.org/academicimpact/scholarships" target="_blank" class="btn btn-outline-bourse w-100 py-3">🌍 Bourses des Nations Unies</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.daad.de/en/scholarships" target="_blank" class="btn btn-outline-bourse w-100 py-3">🇩🇪 Bourses d'Allemagne (DAAD)</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.scholarshipportal.com" target="_blank" class="btn btn-outline-bourse w-100 py-3">🔎 Moteur International de Recherche de Bourses</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🎓 PORTAILS UNIVERSITAIRES DU MONDE ENTIER -->
+  <div class="card mb-4">
+    <div class="card-header bg-portail text-white">🎓 <span class="txt-fr">Portails Universitaires — Monde Entier</span><span class="txt-en">University Portals — Worldwide</span><span class="txt-ar">بوابات الجامعات — جميع أنحاء العالم</span></div>
+    <div class="card-body">
+      <div class="row g-3">
+        <!-- 🇫🇷 France -->
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.france-universite.fr" target="_blank" class="btn btn-outline-portail w-100 py-3">🇫🇷 Portail Universitaire France</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.paris-sorbonne.fr" target="_blank" class="btn btn-outline-portail w-100 py-3">🇫🇷 Sorbonne Université</a>
+        </div>
+        <!-- 🇨🇮 Côte d'Ivoire -->
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.univ-abidjan.ci" target="_blank" class="btn btn-outline-portail w-100 py-3">🇨🇮 Université Félix Houphouët-Boigny (CI)</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.univ-bouake.ci" target="_blank" class="btn btn-outline-portail w-100 py-3">🇨🇮 Université Alassane Ouattara (CI)</a>
+        </div>
+        <!-- 🇸🇦 Arabie Saoudite -->
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.ksu.edu.sa" target="_blank" class="btn btn-outline-portail w-100 py-3">🇸🇦 Université du Roi Saud</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.uqu.edu.sa" target="_blank" class="btn btn-outline-portail w-100 py-3">🇸🇦 Université d'Oumm Al-Qura</a>
+        </div>
+        <!-- 🇶🇦 Qatar -->
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.qu.edu.qa" target="_blank" class="btn btn-outline-portail w-100 py-3">🇶🇦 Université du Qatar</a>
+        </div>
+        <!-- 🇦🇪 Émirats Arabes Unis -->
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.ku.ac.ae" target="_blank" class="btn btn-outline-portail w-100 py-3">🇦🇪 Université de Khaleej</a>
+        </div>
+        <!-- 🇪🇬 Égypte -->
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.cu.edu.eg" target="_blank" class="btn btn-outline-portail w-100 py-3">🇪🇬 Université du Caire</a>
+        </div>
+        <!-- 🇹🇳 Tunisie -->
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.rnu.tn" target="_blank" class="btn btn-outline-portail w-100 py-3">🇹🇬 Universités de Tunisie</a>
+        </div>
+        <!-- 🇲🇦 Maroc -->
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.um5.ma" target="_blank" class="btn btn-outline-portail w-100 py-3">🇲🇦 Université Mohammed V — Maroc</a>
+        </div>
+        <!-- 🇸🇳 Sénégal -->
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.ucad.sn" target="_blank" class="btn btn-outline-portail w-100 py-3">🇸🇳 Université Cheikh Anta Diop</a>
+        </div>
+        <!-- 🇺🇸 USA / 🇬🇧 UK / 🇩🇪 DE -->
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.universities.com" target="_blank" class="btn btn-outline-portail w-100 py-3">🇺🇸 Portail Universités des USA</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.ukuni.uk" target="_blank" class="btn btn-outline-portail w-100 py-3">🇬🇧 Portail Universités du Royaume-Uni</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.hochschulkompass.de" target="_blank" class="btn btn-outline-portail w-100 py-3">🇩🇪 Portail Universités d'Allemagne</a>
+        </div>
+        <!-- 🌍 Reste du monde -->
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.university-worldwide.com" target="_blank" class="btn btn-outline-portail w-100 py-3">🌍 Annuaire Mondial des Universités</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.timeshighereducation.com/world-university-rankings" target="_blank" class="btn btn-outline-portail w-100 py-3">🏆 Classement des Meilleures Universités</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.4icu.org" target="_blank" class="btn btn-outline-portail w-100 py-3">🌐 Classement Web des Universités</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔗 LIENS DIVERS & UTILITAIRES -->
+  <div class="card mb-4">
+    <div class="card-header bg-lien text-white">🔗 <span class="txt-fr">Liens Utilitaires & Divers</span><span class="txt-en">Useful Links & Miscellaneous</span><span class="txt-ar">روابط مفيدة ومتنوعة</span></div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.traducteur.fr" target="_blank" class="btn btn-outline-lien w-100 py-3">🔤 Traduction Multilingue</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.wordreference.com" target="_blank" class="btn btn-outline-lien w-100 py-3">📖 Dictionnaire & Traduction</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.larousse.fr/dictionnaires" target="_blank" class="btn btn-outline-lien w-100 py-3">📕 Dictionnaire Larousse</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://deepl.com/translator" target="_blank" class="btn btn-outline-lien w-100 py-3">🌐 Traduction IA — DeepL</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.convertir-unites.com" target="_blank" class="btn btn-outline-lien w-100 py-3">📐 Convertisseur d'Unités</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.calendrier.fr" target="_blank" class="btn btn-outline-lien w-100 py-3">📅 Calendrier & Dates</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.horloge-mondiale.com" target="_blank" class="btn btn-outline-lien w-100 py-3">🕐 Heure dans le Monde</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.meteo-ci.com" target="_blank" class="btn btn-outline-lien w-100 py-3">🌤️ Météo Côte d'Ivoire</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.banque-mondiale.org/fr/countries" target="_blank" class="btn btn-outline-lien w-100 py-3">🏛️ Données & Statistiques Pays</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.rtl.fr/actualites" target="_blank" class="btn btn-outline-lien w-100 py-3">📰 Actualités & Informations</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.google.com/drive" target="_blank" class="btn btn-outline-lien w-100 py-3">☁️ Stockage & Documents en ligne</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.coursera.org/browse" target="_blank" class="btn btn-outline-lien w-100 py-3">📚 Catalogue de Formations en Ligne</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📚 BIBLIOTHÈQUES GÉNÉRALES EN LIGNE -->
+  <div class="card mb-4">
+    <div class="card-header bg-success text-white">📚 <span class="txt-fr">Bibliothèques Générales en Ligne</span><span class="txt-en">General Online Libraries</span><span class="txt-ar">المكتبات العامة الإلكترونية</span></div>
     <div class="card-body">
       <div class="row g-3">
         <div class="col-md-6 col-lg-4">
@@ -303,53 +549,7 @@
           <a href="https://www.coursera.org" target="_blank" class="btn btn-outline-primary w-100 py-3">🎓 Cours en ligne gratuits</a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="https://www.bibliotheque.fr" target="_blank" class="btn btn-outline-success w-100 py-3">📚 Bibliothèques de France</a>
-        </div>
-        <!-- 🕌 BIBLIOTHÈQUES ARABES & ISLAMIQUES AJOUTÉES -->
-        <div class="col-md-6 col-lg-4">
           <a href="https://archive.org" target="_blank" class="btn btn-outline-success w-100 py-3">🌐 Internet Archive — Livres libres</a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="https://www.alukah.net" target="_blank" class="btn btn-outline-dark w-100 py-3">🇸🇦 Alukah — Bibliothèque islamique</a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="https://www.islamweb.net/fr/library" target="_blank" class="btn btn-outline-success w-100 py-3">📚 Islamweb — Bibliothèque & Recherches</a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="https://majalis-sunan.com" target="_blank" class="btn btn-outline-dark w-100 py-3">📖 Majalis-Sunan — Hadiths & Sciences</a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="https://arabic.kitab.de" target="_blank" class="btn btn-outline-primary w-100 py-3">📚 Kitab — Bibliothèque arabe</a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="https://www.noor-book.com" target="_blank" class="btn btn-outline-success w-100 py-3">📖 Noor-Book — Livres arabes gratuits</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 🕌 RESSOURCES ISLAMIQUES ENRICHIES -->
-  <div class="card mb-4">
-    <div class="card-header bg-warning text-dark">🕌 <span class="txt-fr">Ressources Islamiques</span><span class="txt-en">Islamic Resources</span><span class="txt-ar">الموارد الإسلامية</span></div>
-    <div class="card-body">
-      <div class="row g-3">
-        <div class="col-md-6 col-lg-4">
-          <a href="https://quran.com" target="_blank" class="btn btn-outline-warning w-100 py-3">📖 Le Saint Coran — 🌐 Multilingue</a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="https://www.sunnah.com" target="_blank" class="btn btn-outline-warning w-100 py-3">📖 Hadiths et Sunnah</a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="https://www.islam-guide.com" target="_blank" class="btn btn-outline-warning w-100 py-3">🕌 Guide de l'Islam</a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="https://coran-francais.com" target="_blank" class="btn btn-outline-warning w-100 py-3">📖 Coran en Français</a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="https://www.islamweb.net" target="_blank" class="btn btn-outline-warning w-100 py-3">🌐 Islamweb — Portail & Recherches</a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="https://www.sacred-texts.com" target="_blank" class="btn btn-outline-warning w-100 py-3">📚 Textes Sacrés du Monde</a>
         </div>
       </div>
     </div>
@@ -409,7 +609,6 @@ document.querySelectorAll('.btn-langue button').forEach(btn => {
     document.querySelectorAll('.btn-langue button').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
-    // ✅ Change aussi les placeholders du formulaire de recherche
     const champRecherche = document.querySelector('input[name="q"]');
     if (champRecherche) {
       const ph = champRecherche.getAttribute(`data-placeholder-${lang}`);
@@ -422,7 +621,6 @@ document.querySelectorAll('.btn-langue button').forEach(btn => {
 // ✅ RESTAURER AU CHARGEMENT
 // ==================================================
 window.addEventListener('DOMContentLoaded', () => {
-  // Langue
   const langue = localStorage.getItem('langue') || 'fr';
   document.body.classList.remove('lang-fr','lang-en','lang-ar');
   document.body.classList.add('lang-'+langue);
@@ -437,7 +635,6 @@ window.addEventListener('DOMContentLoaded', () => {
     if (ph) champRecherche.placeholder = ph;
   }
 
-  // Thème     
   appliquerTheme(localStorage.getItem('themeNuit') === '1');
 });
 </script>
