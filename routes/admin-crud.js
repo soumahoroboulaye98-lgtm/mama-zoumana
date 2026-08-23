@@ -6,7 +6,7 @@ const verifadmin = require('../middleware/verifadmin');
 const protegerAdmin = [veriftoken, verifadmin];
 
 // ==================================================
-// 🏫 GESTION DES CLASSES
+// 🏫 GESTION DES   CLASSES
 // ==================================================
 router.post('/classes', protegerAdmin, async (req, res) => {
   try {

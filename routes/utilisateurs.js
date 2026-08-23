@@ -190,7 +190,7 @@ router.put('/:id', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// 🗑️ SUPPRIMER UN UTILISATEUR
+// 🗑️ SUPPRIMER UN  UTILISATEUR
 // ==================================================
 router.delete('/:id', protegerAdmin, async (req, res) => {
   try {

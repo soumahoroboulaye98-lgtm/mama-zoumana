@@ -911,7 +911,7 @@ router.get('/eleves/liste', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// 📋 LISTE DES ENSEIGNANTS — Admin uniquement
+// 📋   LISTE DES ENSEIGNANTS — Admin uniquement
 // ==================================================
 router.get('/profs/liste', protegerAdmin, async (req, res) => {
   try {
