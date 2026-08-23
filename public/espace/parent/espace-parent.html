@@ -1,4 +1,4 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr" class="lang-fr">
 <head>
   <meta charset="UTF-8">
@@ -18,12 +18,32 @@
       --info: #3b82f6;
       --alerte: #f59e0b;
       --danger: #ef4444;
+      /* 🌙 Mode Nuit (défaut) */
       --sombre: #0f172a;
       --sombre-clair: #1e293b;
       --texte-clair: #f8fafc;
       --texte-dore: #fbbf24;
+      --fond-carte: rgba(30, 41, 59, 0.85);
+      --bord-carte: rgba(245, 158, 11, 0.2);
+      --champ-fond: rgba(15,23,42,0.6);
+      --table-fond: rgba(15,23,42,0.5);
+      --table-raye: rgba(30,41,59,0.4);
     }
 
+    /* ☀️ MODE JOUR — activé par la classe .mode-jour */
+    body.mode-jour {
+      --sombre: #e0f2fe;
+      --sombre-clair: #f0f9ff;
+      --texte-clair: #0f172a;
+      --texte-dore: #b45309;
+      --fond-carte: rgba(255, 255, 255, 0.9);
+      --bord-carte: rgba(245, 158, 11, 0.35);
+      --champ-fond: rgba(255,255,255,0.9);
+      --table-fond: rgba(240,249,255,0.9);
+      --table-raye: rgba(224,242,254,0.5);
+    }
+
+    /* ✅ MODÈLE DE LANGUE UNIFORME */
     .txt-en,.txt-ar{display:none}
     body.lang-fr .txt-fr{display:inline}
     body.lang-fr .txt-en,body.lang-fr .txt-ar{display:none}
@@ -34,6 +54,7 @@
     body.lang-ar .titre-section,
     body.lang-ar .text-end-ar{text-align:right}
 
+    * { margin: 0; padding: 0; box-sizing: border-box; transition: background-color 0.3s ease, color 0.3s ease; }
     body {
       background: linear-gradient(135deg, var(--sombre), var(--sombre-clair));
       color: var(--texte-clair);
@@ -41,8 +62,8 @@
     }
 
     .carte {
-      background: rgba(30, 41, 59, 0.85);
-      border: 1px solid rgba(245, 158, 11, 0.2);
+      background: var(--fond-carte);
+      border: 1px solid var(--bord-carte);
       border-radius: 16px;
       backdrop-filter: blur(10px);
       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
@@ -74,13 +95,13 @@
     .titre-section { color: var(--texte-dore); font-weight:600; }
 
     .form-control,.form-select {
-      background: rgba(15,23,42,0.6);
+      background: var(--champ-fond);
       border:1px solid rgba(245,158,11,0.25);
       color:var(--texte-clair);
       border-radius:10px;
     }
     .form-control:focus,.form-select:focus {
-      background:rgba(15,23,42,0.8); border-color:var(--alerte); color:var(--texte-clair);
+      background: var(--champ-fond); border-color:var(--alerte); color:var(--texte-clair);
       box-shadow:0 0 0 .25rem rgba(245,158,11,.15);
     }
 
@@ -93,7 +114,7 @@
       background: transparent;
       color: #94a3b8;
     }
-    .onglet:hover { color: white; background: rgba(255,255,255,0.05); }
+    .onglet:hover { color: var(--texte-clair); background: rgba(255,255,255,0.05); }
     .onglet.active {
       background: rgba(12, 74, 110, 0.6);
       color: var(--texte-dore);
@@ -112,29 +133,53 @@
     .montant { font-family: 'Segoe UI Mono', monospace; font-weight:600; }
     .text-cfa::after { content:" F CFA"; font-size:.85rem; opacity:.8; margin-left:2px; }
 
-    .btn-lang { width:38px; height:38px; padding:0; font-size:14px; border-radius:50%; border:2px solid; display:flex; align-items:center; justify-content:center; }
-    .btn-lang.active { background:var(--alerte); color:#000; border-color:var(--alerte); }
+    .btn-lang, .btn-theme { width:38px; height:38px; padding:0; font-size:14px; border-radius:50%; border:2px solid; display:flex; align-items:center; justify-content:center; }
+    .btn-lang.active, .btn-theme.active { background:var(--alerte); color:#000; border-color:var(--alerte); }
 
-    .photo-eleve { width:60px; height:60px; border-radius:50%; object-fit:cover; border:3px solid var(--alerte); background: rgba(15,23,42,0.6); }
+    .photo-eleve { width:60px; height:60px; border-radius:50%; object-fit:cover; border:3px solid var(--alerte); background: var(--champ-fond); }
 
-    .table-dark { --bs-table-bg: rgba(15,23,42,0.5); --bs-table-striped-bg: rgba(30,41,59,0.4); }
+    .table-dark { --bs-table-bg: var(--table-fond); --bs-table-striped-bg: var(--table-raye); }
+
+    /* ✅ Bouton retour */
+    .btn-retour {
+      background: rgba(245,158,11,0.12);
+      border: 1px solid var(--alerte);
+      color: var(--alerte);
+      border-radius: 8px;
+      padding: 6px 12px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-retour:hover { background: rgba(245,158,11,0.25); color: #fef3c7; }
+
+    /* 📱 Mobile */
+    @media (max-width: 576px) {
+      .onglet { padding: 8px 12px; font-size: 0.85rem; }
+    }
   </style>
 </head>
-<body>
+<body class="lang-fr">
 
 <div class="container py-4">
-  <!-- 🌐 LANGUE & RETOUR -->
+  <!-- 🌐 LANGUE + THÈME + RETOUR -->
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <a href="dashboard.html" class="btn btn-outline-light btn-sm">
-      <i class="bi bi-arrow-left-circle"></i>
+    <a href="dashboard.html" class="btn-retour">
+      <i class="bi bi-arrow-left"></i>
       <span class="txt-fr"> Retour</span>
       <span class="txt-en"> Back</span>
       <span class="txt-ar"> عودة</span>
     </a>
-    <div class="d-flex gap-2">
-      <button class="btn btn-lang active" data-lang="fr">FR</button>
-      <button class="btn btn-lang" data-lang="en">EN</button>
-      <button class="btn btn-lang" data-lang="ar">ع</button>
+    <div class="d-flex gap-2 align-items-center">
+      <!-- ☀️🌙 BOUTON MODE JOUR/NUIT -->
+      <button class="btn-theme" id="btnTheme" title="Mode Jour / Nuit">
+        <i class="bi bi-sun-fill" id="iconeTheme"></i>
+      </button>
+      <button class="btn-lang active" data-lang="fr">FR</button>
+      <button class="btn-lang" data-lang="en">EN</button>
+      <button class="btn-lang" data-lang="ar">ع</button>
     </div>
   </div>
 
@@ -357,47 +402,85 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+// ==================================================
+// ⚙️ CONFIGURATION CORRIGÉE
+// ==================================================
+const API_URL = 'https://mama-zoumana.onrender.com/api';
 const token = localStorage.getItem('token');
 let idEleveActuel = null;
-let langueActuelle = 'fr';
+let langueActuelle = localStorage.getItem('langue') || 'fr';
+let modeNuitActif = localStorage.getItem('theme') !== 'jour'; // Nuit par défaut
 
 // Messages multilingues
 const MSG = {
   fr: {
-    authRequired: "Authentification requise",
+    authRequired: "Authentification requise — Veuillez vous reconnecter",
     noChild: "Aucun enfant associé à votre compte",
     noGrades: "Aucune note disponible pour ce trimestre",
     loading: "Chargement...",
-    error: "Erreur"
+    error: "Erreur",
+    sessionExpired: "Session expirée — Redirection..."
   },
   en: {
-    authRequired: "Authentication required",
+    authRequired: "Authentication required — Please sign in again",
     noChild: "No child linked to your account",
     noGrades: "No grades available for this term",
     loading: "Loading...",
-    error: "Error"
+    error: "Error",
+    sessionExpired: "Session expired — Redirecting..."
   },
   ar: {
-    authRequired: "المصادقة مطلوبة",
+    authRequired: "المصادقة مطلوبة — الرجاء إعادة تسجيل الدخول",
     noChild: "لا يوجد طفل مرتبط بحسابك",
     noGrades: "لا توجد درجات لهذا الفصل",
     loading: "جارٍ التحميل...",
-    error: "خطأ"
+    error: "خطأ",
+    sessionExpired: "انتهت الجلسة — جارٍ التوجيه..."
   }
 };
 
 function msg(key) { return MSG[langueActuelle]?.[key] || MSG.fr[key]; }
 
-// 🌐 LANGUE
+// 🛡️ VÉRIFICATION SESSION
+if (!token) {
+  alert(msg('authRequired'));
+  location.href = '../connexion.html';
+}
+
+// ☀️🌙 GESTION DU THÈME JOUR / NUIT
+const btnTheme = document.getElementById('btnTheme');
+const iconeTheme = document.getElementById('iconeTheme');
+
+function appliquerTheme() {
+  if (modeNuitActif) {
+    document.body.classList.remove('mode-jour');
+    iconeTheme.className = 'bi bi-sun-fill';
+    btnTheme.classList.remove('active');
+  } else {
+    document.body.classList.add('mode-jour');
+    iconeTheme.className = 'bi bi-moon-fill';
+    btnTheme.classList.add('active');
+  }
+}
+
+btnTheme.addEventListener('click', () => {
+  modeNuitActif = !modeNuitActif;
+  localStorage.setItem('theme', modeNuitActif ? 'nuit' : 'jour');
+  appliquerTheme();
+});
+
+// 🌐 GESTION LANGUE
+function appliquerLangue(lang) {
+  langueActuelle = lang;
+  localStorage.setItem('langue', lang);
+  document.documentElement.className = `lang-${lang}`;
+  document.body.classList.add(`lang-${lang}`);
+  document.querySelectorAll('.btn-lang').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.btn-lang[data-lang="${lang}"]`)?.classList.add('active');
+}
+
 document.querySelectorAll('.btn-lang').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.btn-lang').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    langueActuelle = btn.dataset.lang;
-    document.documentElement.className = `lang-${langueActuelle}`;
-    document.body.className = `lang-${langueActuelle}`;
-  });
+  btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
 });
 
 // 📂 CHANGEMENT D'ONGLET
@@ -418,12 +501,10 @@ document.querySelectorAll('.onglet').forEach(ong => {
 // 🚀 CHARGER LA LISTE DES ENFANTS
 async function chargerEnfants(){
   const cont = document.getElementById('listeEnfants');
-  if(!token) {
-    cont.innerHTML=`<div class="col-12 text-center text-danger"><p>${msg('authRequired')}</p></div>`;
-    return;
-  }
   try{
-    const r = await fetch(`${API_URL}/mes-enfants`, {headers:{'Authorization':`Bearer ${token}`}});
+    const r = await fetch(`${API_URL}/preinscription/mes-enfants`, {
+      headers:{'Authorization':`Bearer ${token}`}
+    });
     const res = await r.json();
     if(!res.ok) throw new Error(res.erreur || msg('error'));
     if(!res.enfants?.length){
@@ -432,18 +513,18 @@ async function chargerEnfants(){
     }
     cont.innerHTML = res.enfants.map(e => `
       <div class="col-md-6 col-lg-4">
-        <div class="carte carte-enfant p-3" data-id="${e.id_utilisateur}" onclick="selectionnerEnfant(${e.id_utilisateur}, this)">
+        <div class="carte carte-enfant p-3" data-id="${e.id || e.id_utilisateur}" onclick="selectionnerEnfant(${e.id || e.id_utilisateur}, this)">
           <div class="d-flex align-items-center gap-3">
             <img src="${e.photo_profil || 'https://via.placeholder.com/60'}" class="photo-eleve" alt="${e.nom}" loading="lazy">
             <div>
-              <h6 class="mb-1">${e.prenoms || ''} ${e.nom || ''}</h6>
+              <h6 class="mb-1">${e.prenoms || e.prenom || ''} ${e.nom || ''}</h6>
               <p class="text-muted small mb-0">${e.libelle_classe || '—'}</p>
             </div>
           </div>
         </div>
       </div>`).join('');
   }catch(err){
-    cont.innerHTML=`<div class="col-12 text-center text-danger"><p>${err.message}</p></div>`;
+    cont.innerHTML=`<div class="col-12 text-center text-danger"><p>❌ ${err.message}</p><a href="../connexion.html" class="btn btn-sm btn-accent mt-2">Se reconnecter</a></div>`;
   }
 }
 
@@ -461,7 +542,9 @@ async function chargerNotes(){
   if(!idEleveActuel) return;
   const trim = document.getElementById('filtreTrimestre').value;
   try{
-    const r = await fetch(`${API_URL}/notes/${idEleveActuel}?trimestre=${trim}`, {headers:{'Authorization':`Bearer ${token}`}});
+    const r = await fetch(`${API_URL}/notes/${idEleveActuel}?trimestre=${trim}`, {
+      headers:{'Authorization':`Bearer ${token}`}
+    });
     const res = await r.json();
     if(!res.ok) throw new Error(res.erreur || msg('error'));
     const tb = document.getElementById('corpsNotes');
@@ -486,7 +569,7 @@ async function chargerNotes(){
       document.getElementById('blocBulletin').classList.add('d-none');
     }
   }catch(err){
-    document.getElementById('corpsNotes').innerHTML=`<tr><td colspan="5" class="text-center text-danger">${err.message}</td></tr>`;
+    document.getElementById('corpsNotes').innerHTML=`<tr><td colspan="5" class="text-center text-danger">❌ ${err.message}</td></tr>`;
   }
 }
 
@@ -494,12 +577,14 @@ async function chargerNotes(){
 async function chargerEDT(){
   if(!idEleveActuel) return;
   try{
-    const r = await fetch(`${API_URL}/edt/${idEleveActuel}`, {headers:{'Authorization':`Bearer ${token}`}});
+    const r = await fetch(`${API_URL}/edt/${idEleveActuel}`, {
+      headers:{'Authorization':`Bearer ${token}`}
+    });
     const res = await r.json();
     if(!res.ok) throw new Error(res.erreur || msg('error'));
     document.getElementById('contenuEDT').innerHTML = res.html || `<pre class="text-white small">${JSON.stringify(res.seances || res, null, 2)}</pre>`;
   }catch(err){
-    document.getElementById('contenuEDT').innerHTML=`<p class="text-center text-danger">${err.message}</p>`;
+    document.getElementById('contenuEDT').innerHTML=`<p class="text-center text-danger">❌ ${err.message}</p>`;
   }
 }
 
@@ -507,7 +592,9 @@ async function chargerEDT(){
 async function chargerPaiements(){
   if(!idEleveActuel) return;
   try{
-    const r = await fetch(`${API_URL}/paiements/${idEleveActuel}`, {headers:{'Authorization':`Bearer ${token}`}});
+    const r = await fetch(`${API_URL}/paiements/${idEleveActuel}`, {
+      headers:{'Authorization':`Bearer ${token}`}
+    });
     const res = await r.json();
     if(!res.ok) throw new Error(res.erreur || msg('error'));
     document.getElementById('fraisDu').textContent = format(res.totale || res.total_du || 0);
@@ -526,7 +613,7 @@ async function chargerPaiements(){
         </div>`).join('')}
     ` : '';
   }catch(err){
-    document.getElementById('listePaiementsParent').innerHTML=`<p class="text-center text-danger">${err.message}</p>`;
+    document.getElementById('listePaiementsParent').innerHTML=`<p class="text-center text-danger">❌ ${err.message}</p>`;
   }
 }
 
@@ -534,14 +621,16 @@ async function chargerPaiements(){
 async function chargerInfosEleve(){
   if(!idEleveActuel) return;
   try{
-    const r = await fetch(`${API_URL}/eleve/${idEleveActuel}`, {headers:{'Authorization':`Bearer ${token}`}});
+    const r = await fetch(`${API_URL}/eleve/${idEleveActuel}`, {
+      headers:{'Authorization':`Bearer ${token}`}
+    });
     const res = await r.json();
     if(!res.ok) throw new Error(res.erreur || msg('error'));
     const e = res.eleve || res;
     document.getElementById('infosEleve').innerHTML = `
       <div class="col-md-6"><strong class="text-muted">
         <span class="txt-fr">Nom & Prénoms</span><span class="txt-en">Full Name</span><span class="txt-ar">الاسم الكامل</span>
-        :</strong><br>${e.prenoms || ''} ${e.nom || ''}
+        :</strong><br>${e.prenoms || e.prenom || ''} ${e.nom || ''}
       </div>
       <div class="col-md-6"><strong class="text-muted">
         <span class="txt-fr">Classe</span><span class="txt-en">Class</span><span class="txt-ar">القسم</span>
@@ -556,7 +645,7 @@ async function chargerInfosEleve(){
         :</strong><br>${e.matricule || e.id_utilisateur || '—'}
       </div>`;
   }catch(err){
-    document.getElementById('infosEleve').innerHTML=`<p class="text-center text-danger">${err.message}</p>`;
+    document.getElementById('infosEleve').innerHTML=`<p class="text-center text-danger">❌ ${err.message}</p>`;
   }
 }
 
@@ -574,9 +663,13 @@ function format(m){
   return new Intl.NumberFormat('fr-FR').format(parseFloat(m)||0)+' F CFA';
 }
 
-// 🚀 INIT
-chargerEnfants();
-document.getElementById('filtreTrimestre').addEventListener('change',chargerNotes);
+// 🚀 INITIALISATION AU CHARGEMENT
+window.addEventListener('DOMContentLoaded', () => {
+  appliquerLangue(langueActuelle);
+  appliquerTheme();
+  chargerEnfants();
+  document.getElementById('filtreTrimestre').addEventListener('change', chargerNotes);
+});
 </script>
 </body>
 </html>

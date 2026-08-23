@@ -1,115 +1,355 @@
-<div class="container py-4">
-  <h2 class="text-center mb-4">🔗 <span data-i18n="ressourcesEducatives">Ressources Éducatives & Recherche</span></h2>
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Ressources Éducatives — MAMA-ZOUMANA</span>
+    <span class="txt-en">Educational Resources — MAMA-ZOUMANA</span>
+    <span class="txt-ar">الموارد التعليمية — ماما زومانا</span>
+  </title>
 
-  <!-- 🔍 MOTEUR DE RECHERCHE GOOGLE -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <style>
+    /* ✅ VARIABLES — MODE CLAIR */
+    :root {
+      --primaire: #0c4a6e;
+      --succes: #10b981;
+      --alerte: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --texte-dore: #fbbf24;
+      --fond-page: #f8fafc;
+      --texte-principal: #1e293b;
+      --texte-secondaire: #64748b;
+      --carte-fond: #ffffff;
+      --carte-bord: rgba(12, 74, 110, 0.15);
+      --ombre: rgba(12, 74, 110, 0.08);
+    }
+
+    /* 🌙 MODE SOMBRE */
+    body.mode-nuit {
+      --fond-page: #0f172a;
+      --texte-principal: #f8fafc;
+      --texte-secondaire: #cbd5e1;
+      --carte-fond: rgba(30, 41, 59, 0.7);
+      --carte-bord: rgba(245, 158, 11, 0.2);
+      --ombre: rgba(245, 158, 11, 0.1);
+    }
+
+    /* ✅ TRILINGUE */
+    .txt-en, .txt-ar { display: none !important; }
+    body.lang-fr .txt-fr { display: inline !important; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none !important; }
+    body.lang-en .txt-en { display: inline !important; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none !important; }
+    body.lang-ar .txt-ar { display: inline !important; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none !important; }
+    body.lang-ar { direction: rtl; }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--fond-page);
+      color: var(--texte-principal);
+      min-height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      transition: background 0.4s ease, color 0.4s ease;
+    }
+
+    body.mode-nuit {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+    }
+
+    /* 🎴 CARTES AVEC ANIMATIONS */
+    .card {
+      background: var(--carte-fond);
+      border: 1px solid var(--carte-bord);
+      border-radius: 14px;
+      box-shadow: 0 4px 20px var(--ombre);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .card:hover {
+      transform: translateY(-6px) scale(1.015);
+      box-shadow: 0 12px 40px var(--ombre);
+    }
+
+    .card-header {
+      font-weight: 700;
+      border-bottom: 1px solid var(--carte-bord);
+      transition: all 0.3s ease;
+    }
+
+    .card-header.bg-primary {
+      background: linear-gradient(135deg, #0c4a6e, #0369a1) !important;
+    }
+    .card-header.bg-dark {
+      background: linear-gradient(135deg, #1f2937, #0f172a) !important;
+    }
+    .card-header.bg-success {
+      background: linear-gradient(135deg, #059669, #10b981) !important;
+    }
+    .card-header.bg-warning {
+      background: linear-gradient(135deg, #d97706, #f59e0b) !important;
+    }
+    .card-header.bg-info {
+      background: linear-gradient(135deg, #0891b2, #22d3ee) !important;
+    }
+
+    /* 🔘 BOUTONS LIENS */
+    .btn-outline-primary, .btn-outline-success,
+    .btn-outline-dark, .btn-outline-warning {
+      border-width: 2px;
+      font-weight: 600;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .btn-outline-primary:hover, .btn-outline-success:hover,
+    .btn-outline-dark:hover, .btn-outline-warning:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .btn-outline-primary:hover { background: linear-gradient(135deg, #0c4a6e, #0369a1); border-color: transparent; }
+    .btn-outline-success:hover { background: linear-gradient(135deg, #059669, #10b981); border-color: transparent; }
+    .btn-outline-dark:hover { background: linear-gradient(135deg, #1f2937, #0f172a); border-color: transparent; }
+    .btn-outline-warning:hover { background: linear-gradient(135deg, #d97706, #f59e0b); border-color: transparent; color: #000; }
+
+    /* ✨ Effet reflet au survol */
+    .btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+      transition: left 0.5s ease;
+    }
+    .btn:hover::after { left: 100%; }
+
+    /* 🌙 Bouton thème */
+    .btn-theme {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 2px solid var(--alerte);
+      border-radius: 50%;
+      width: 46px;
+      height: 46px;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--alerte);
+      transition: all 0.3s ease;
+      z-index: 99;
+    }
+    .btn-theme:hover {
+      transform: scale(1.15) rotate(12deg);
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+    }
+
+    /* 🗣️ Boutons langue */
+    .btn-langue {
+      position: fixed;
+      top: 18px;
+      right: 72px;
+      display: flex;
+      gap: 4px;
+      z-index: 98;
+    }
+    .btn-langue button {
+      background: rgba(12, 74, 110, 0.08);
+      border: 1px solid var(--primaire);
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: var(--primaire);
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    .btn-langue button:hover, .btn-langue button.active {
+      background: var(--primaire);
+      color: white;
+    }
+
+    body.mode-nuit .btn-langue button {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: var(--alerte);
+      color: var(--alerte);
+    }
+    body.mode-nuit .btn-langue button:hover,
+    body.mode-nuit .btn-langue button.active {
+      background: var(--alerte);
+      color: var(--sombre);
+    }
+
+    /* Titre de page animé */
+    .titre-page {
+      background: linear-gradient(135deg, var(--primaire), var(--alerte));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+    }
+    body.mode-nuit .titre-page {
+      background: linear-gradient(135deg, var(--texte-dore), var(--alerte));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* 📱 Responsive */
+    @media (max-width: 768px) {
+      .container { padding-top: 70px; }
+      .btn-theme { width: 40px; height: 40px; font-size: 17px; top: 12px; right: 12px; }
+      .btn-langue { right: 58px; top: 12px; }
+      .card:hover { transform: translateY(-3px) scale(1.01); }
+    }
+  </style>
+</head>
+<body class="lang-fr">
+
+<!-- 🌙 & 🗣️ Contrôles -->
+<div class="btn-langue">
+  <button class="active" data-lang="fr">FR</button>
+  <button data-lang="en">EN</button>
+  <button data-lang="ar">AR</button>
+</div>
+<button id="btnTheme" class="btn-theme" title="Basculer jour/nuit">☀️</button>
+
+<div class="container py-4" style="padding-top: 80px;">
+
+  <h2 class="text-center mb-5 titre-page">
+    <span class="txt-fr">🔗 Ressources Éducatives & Recherche</span>
+    <span class="txt-en">🔗 Educational Resources & Research</span>
+    <span class="txt-ar">🔗 الموارد التعليمية والبحث</span>
+  </h2>
+
+  <!-- 🔍 MOTEUR DE RECHERCHE -->
   <div class="card mb-4 border-primary">
-    <div class="card-header bg-primary text-white fw-bold">🔍 <span data-i18n="rechercherInternet">Rechercher sur Internet</span></div>
+    <div class="card-header bg-primary text-white">🔍 <span class="txt-fr">Rechercher sur Internet</span><span class="txt-en">Search the Web</span><span class="txt-ar">البحث في الإنترنت</span></div>
     <div class="card-body">
       <form action="https://www.google.com/search" target="_blank" method="get" class="d-flex">
-        <input type="text" name="q" class="form-control form-control-lg me-2" 
-               data-i18n-placeholder="rechercher" placeholder="Rechercher sur Google..." required>
-        <button type="submit" class="btn btn-primary btn-lg">🔍 <span data-i18n="rechercher">Rechercher</span></button>
+        <input type="text" name="q" class="form-control form-control-lg me-2 rounded-pill" 
+               placeholder="Rechercher sur Google..." required
+               data-placeholder-fr="Rechercher sur Google..."
+               data-placeholder-en="Search Google..."
+               data-placeholder-ar="ابحث في جوجل...">
+        <button type="submit" class="btn btn-primary btn-lg rounded-pill">🔍 <span class="txt-fr">Rechercher</span><span class="txt-en">Search</span><span class="txt-ar">بحث</span></button>
       </form>
     </div>
   </div>
 
   <!-- 🏫 PLATEFORMES ÉDUCATIVES -->
   <div class="card mb-4">
-    <div class="card-header bg-dark text-white fw-bold">🏫 <span data-i18n="plateformesEcoles">Plateformes Éducatives</span></div>
+    <div class="card-header bg-dark text-white">🏫 <span class="txt-fr">Plateformes Éducatives</span><span class="txt-en">Educational Platforms</span><span class="txt-ar">المنصات التعليمية</span></div>
     <div class="card-body">
       <div class="row g-3">
         <div class="col-md-6 col-lg-4">
-          <a href="https://www.education.gouv.fr" target="_blank" class="btn btn-outline-primary w-100 py-3">
-            🇫🇷 Ministère Éducation (FR)
-          </a>
+          <a href="https://www.education.gouv.fr" target="_blank" class="btn btn-outline-primary w-100 py-3">🇫🇷 Ministère Éducation (FR)</a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="https://www.education.ci" target="_blank" class="btn btn-outline-success w-100 py-3">
-            🇨🇮 Éducation Nationale (CI)
-          </a>
+          <a href="https://www.education.ci" target="_blank" class="btn btn-outline-success w-100 py-3">🇨🇮 Éducation Nationale (CI)</a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="https://www.onisep.fr" target="_blank" class="btn btn-outline-primary w-100 py-3">
-            🎓 Onisep — Orientation
-          </a>
+          <a href="https://www.onisep.fr" target="_blank" class="btn btn-outline-primary w-100 py-3">🎓 Onisep — Orientation</a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="https://www.univ.ci" target="_blank" class="btn btn-outline-success w-100 py-3">
-            🏛️ Universités de Côte d'Ivoire
-          </a>
+          <a href="https://www.univ.ci" target="_blank" class="btn btn-outline-success w-100 py-3">🏛️ Universités de Côte d'Ivoire</a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="https://www.france-education.fr" target="_blank" class="btn btn-outline-primary w-100 py-3">
-            📖 France Éducation
-          </a>
+          <a href="https://www.france-education.fr" target="_blank" class="btn btn-outline-primary w-100 py-3">📖 France Éducation</a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="https://www.savoirsplus.fr" target="_blank" class="btn btn-outline-primary w-100 py-3">
-            📝 Savoirs+ — Cours & Exercices
-          </a>
+          <a href="https://www.savoirsplus.fr" target="_blank" class="btn btn-outline-primary w-100 py-3">📝 Savoirs+ — Cours & Exercices</a>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 📚 BIBLIOTHÈQUES EN LIGNE -->
+  <!-- 📚 BIBLIOTHÈQUES EN LIGNE -- ENRICHIES -->
   <div class="card mb-4">
-    <div class="card-header bg-success text-white fw-bold">📚 <span data-i18n="bibliotheques">Bibliothèques en Ligne</span></div>
+    <div class="card-header bg-success text-white">📚 <span class="txt-fr">Bibliothèques en Ligne</span><span class="txt-en">Online Libraries</span><span class="txt-ar">المكتبات الإلكترونية</span></div>
     <div class="card-body">
       <div class="row g-3">
         <div class="col-md-6 col-lg-4">
-          <a href="https://gallica.bnf.fr" target="_blank" class="btn btn-outline-success w-100 py-3">
-            📚 Gallica — Bibliothèque nationale
-          </a>
+          <a href="https://gallica.bnf.fr" target="_blank" class="btn btn-outline-success w-100 py-3">🇫🇷 Gallica — Bibl. nationale de France</a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="https://books.google.fr" target="_blank" class="btn btn-outline-dark w-100 py-3">
-            📖 Google Livres
-          </a>
+          <a href="https://books.google.fr" target="_blank" class="btn btn-outline-dark w-100 py-3">📖 Google Livres</a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="https://fr.wikipedia.org" target="_blank" class="btn btn-outline-dark w-100 py-3">
-            📝 Wikipédia
-          </a>
+          <a href="https://fr.wikipedia.org" target="_blank" class="btn btn-outline-dark w-100 py-3">📝 Wikipédia</a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="https://www.worldcat.org" target="_blank" class="btn btn-outline-success w-100 py-3">
-            🌍 WorldCat — Catalogue mondial
-          </a>
+          <a href="https://www.worldcat.org" target="_blank" class="btn btn-outline-success w-100 py-3">🌍 WorldCat — Catalogue mondial</a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="https://www.coursera.org" target="_blank" class="btn btn-outline-primary w-100 py-3">
-            🎓 Cours en ligne gratuits
-          </a>
+          <a href="https://www.coursera.org" target="_blank" class="btn btn-outline-primary w-100 py-3">🎓 Cours en ligne gratuits</a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="https://www.bibliotheque.fr" target="_blank" class="btn btn-outline-success w-100 py-3">
-            📖 Bibliothèques de France
-          </a>
+          <a href="https://www.bibliotheque.fr" target="_blank" class="btn btn-outline-success w-100 py-3">📚 Bibliothèques de France</a>
+        </div>
+        <!-- 🕌 BIBLIOTHÈQUES ARABES & ISLAMIQUES AJOUTÉES -->
+        <div class="col-md-6 col-lg-4">
+          <a href="https://archive.org" target="_blank" class="btn btn-outline-success w-100 py-3">🌐 Internet Archive — Livres libres</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.alukah.net" target="_blank" class="btn btn-outline-dark w-100 py-3">🇸🇦 Alukah — Bibliothèque islamique</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.islamweb.net/fr/library" target="_blank" class="btn btn-outline-success w-100 py-3">📚 Islamweb — Bibliothèque & Recherches</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://majalis-sunan.com" target="_blank" class="btn btn-outline-dark w-100 py-3">📖 Majalis-Sunan — Hadiths & Sciences</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://arabic.kitab.de" target="_blank" class="btn btn-outline-primary w-100 py-3">📚 Kitab — Bibliothèque arabe</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.noor-book.com" target="_blank" class="btn btn-outline-success w-100 py-3">📖 Noor-Book — Livres arabes gratuits</a>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 🕌 RESSOURCES ISLAMIQUES -->
+  <!-- 🕌 RESSOURCES ISLAMIQUES ENRICHIES -->
   <div class="card mb-4">
-    <div class="card-header bg-warning text-dark fw-bold">🕌 <span data-i18n="ressourcesIslamiques">Ressources Islamiques</span></div>
+    <div class="card-header bg-warning text-dark">🕌 <span class="txt-fr">Ressources Islamiques</span><span class="txt-en">Islamic Resources</span><span class="txt-ar">الموارد الإسلامية</span></div>
     <div class="card-body">
       <div class="row g-3">
         <div class="col-md-6 col-lg-4">
-          <a href="https://quran.com" target="_blank" class="btn btn-outline-warning w-100 py-3">
-            📖 Le Saint Coran
-          </a>
+          <a href="https://quran.com" target="_blank" class="btn btn-outline-warning w-100 py-3">📖 Le Saint Coran — 🌐 Multilingue</a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="https://www.sunnah.com" target="_blank" class="btn btn-outline-warning w-100 py-3">
-            📖 Hadiths et Sunnah
-          </a>
+          <a href="https://www.sunnah.com" target="_blank" class="btn btn-outline-warning w-100 py-3">📖 Hadiths et Sunnah</a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="https://www.islam-guide.com" target="_blank" class="btn btn-outline-warning w-100 py-3">
-            🕌 Guide de l'Islam
-          </a>
+          <a href="https://www.islam-guide.com" target="_blank" class="btn btn-outline-warning w-100 py-3">🕌 Guide de l'Islam</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://coran-francais.com" target="_blank" class="btn btn-outline-warning w-100 py-3">📖 Coran en Français</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.islamweb.net" target="_blank" class="btn btn-outline-warning w-100 py-3">🌐 Islamweb — Portail & Recherches</a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="https://www.sacred-texts.com" target="_blank" class="btn btn-outline-warning w-100 py-3">📚 Textes Sacrés du Monde</a>
         </div>
       </div>
     </div>
@@ -117,23 +357,90 @@
 
   <!-- ✏️ INFOS -->
   <div class="card mb-4 border-info">
-    <div class="card-header bg-info text-white fw-bold">✏️ <span data-i18n="ajouterLiens">Personnaliser</span></div>
+    <div class="card-header bg-info text-white">ℹ️ <span class="txt-fr">Informations</span><span class="txt-en">Information</span><span class="txt-ar">معلومات</span></div>
     <div class="card-body">
-      <p class="text-muted mb-0" data-i18n="indicationLiens">Ces liens sont proposés à titre indicatif. Pour ajouter vos propres plateformes ou sites partenaires, modifiez simplement la page.</p>
+      <p class="text-muted mb-0">
+        <span class="txt-fr">Ces liens sont proposés à titre indicatif. Ajoutez vos propres plateformes ou sites partenaires en modifiant cette page.</span>
+        <span class="txt-en">These links are provided for reference. Add your own platforms or partner sites by editing this page.</span>
+        <span class="txt-ar">هذه الروابط مُقدمة كمرجع. أضف منصاتك أو مواقعك الشريكة من خلال تعديل هذه الصفحة.</span>
+      </p>
     </div>
   </div>
 
   <div class="text-center mt-4">
-    <a href="index.html" class="btn btn-secondary">↩️ <span data-i18n="retourAccueil">Retour à l'Accueil</span></a>
+    <a href="index.html" class="btn btn-secondary rounded-pill px-4">
+      ↩️ <span class="txt-fr">Retour à l'Accueil</span><span class="txt-en">Back to Home</span><span class="txt-ar">العودة إلى الصفحة الرئيسية</span>
+    </a>
   </div>
+
 </div>
 
-<script src="lang-config.js"></script>
 <script>
-window.onload = () => {
-  document.getElementById('selecteurLangue').value = langueActuelle;
-  appliquerTraductions();
-};
+// ==================================================
+// 🌙 MODE JOUR / NUIT
+// ==================================================
+const btnTheme = document.getElementById('btnTheme');
+
+function appliquerTheme(nuit) {
+  if (nuit) {
+    document.body.classList.add('mode-nuit');
+    btnTheme.textContent = '🌙';
+  } else {
+    document.body.classList.remove('mode-nuit');
+    btnTheme.textContent = '☀️';
+  }
+  localStorage.setItem('themeNuit', nuit ? '1' : '0');
+}
+
+btnTheme.addEventListener('click', () => {
+  appliquerTheme(!document.body.classList.contains('mode-nuit'));
+});
+
+// ==================================================
+// 🗣️ CHANGEMENT DE LANGUE
+// ==================================================
+document.querySelectorAll('.btn-langue button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const lang = btn.dataset.lang;
+    document.body.classList.remove('lang-fr','lang-en','lang-ar');
+    document.body.classList.add('lang-'+lang);
+    document.documentElement.lang = lang;
+    localStorage.setItem('langue', lang);
+    document.querySelectorAll('.btn-langue button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // ✅ Change aussi les placeholders du formulaire de recherche
+    const champRecherche = document.querySelector('input[name="q"]');
+    if (champRecherche) {
+      const ph = champRecherche.getAttribute(`data-placeholder-${lang}`);
+      if (ph) champRecherche.placeholder = ph;
+    }
+  });
+});
+
+// ==================================================
+// ✅ RESTAURER AU CHARGEMENT
+// ==================================================
+window.addEventListener('DOMContentLoaded', () => {
+  // Langue
+  const langue = localStorage.getItem('langue') || 'fr';
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-'+langue);
+  document.querySelectorAll('.btn-langue button').forEach(b => {
+    b.classList.remove('active');
+    if (b.dataset.lang === langue) b.classList.add('active');
+  });
+  // Placeholder recherche
+  const champRecherche = document.querySelector('input[name="q"]');
+  if (champRecherche) {
+    const ph = champRecherche.getAttribute(`data-placeholder-${langue}`);
+    if (ph) champRecherche.placeholder = ph;
+  }
+
+  // Thème
+  appliquerTheme(localStorage.getItem('themeNuit') === '1');
+});
 </script>
+
 </body>
 </html>

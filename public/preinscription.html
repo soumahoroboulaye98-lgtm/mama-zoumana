@@ -19,7 +19,6 @@
       --succes: #10b981; 
       --danger: #ef4444; 
       --info: #3b82f6;
-      /* Mode NUIT par défaut */
       --bg: #0f172a; 
       --bg-clair: #1e293b; 
       --texte: #f8fafc; 
@@ -28,7 +27,7 @@
       --fond-carte: rgba(15,23,42,0.95);
     }
 
-    /* ===== MODE JOUR — ACTIVÉ PAR CLASSE ===== */
+    /* ===== MODE JOUR ===== */
     body.mode-jour {
       --bg: #f0f9ff; 
       --bg-clair: #e0f2fe; 
@@ -46,9 +45,8 @@
       min-height:100vh;
       transition: background 0.4s ease, color 0.4s ease;
     }
-    body.lang-ar{font-family:'Segoe UI', Tahoma, sans-serif;direction:rtl;text-align:right}
+    body.lang-ar{direction:rtl;text-align:right}
 
-    /* ===== BOUTON MODE JOUR/NUIT ===== */
     .btn-mode{
       position:fixed;top:15px;right:15px;z-index:100;
       background:var(--accent);color:var(--bg);border:none;
@@ -58,7 +56,6 @@
       transition:transform 0.3s;
     }
 
-    /* ===== CADRE BRILLANT TOURNANT ===== */
     .cadre-form{
       position:relative;max-width:850px;margin:40px auto;padding:35px;
       background:var(--fond-carte);border-radius:20px;overflow:hidden;
@@ -122,21 +119,17 @@
     .retour:hover{text-decoration:underline}
     .chargement-classe{color:var(--texte-fonce);font-style:italic}
 
-    /* ===== ÉTAPES ===== */
     .etape{display:inline-block;padding:6px 14px;border-radius:20px;margin:3px;font-weight:600;font-size:0.9rem}
     .etape.en-cours{background:rgba(59,130,246,0.2);color:#60a5fa;border:1px solid #3b82f6}
     .etape.valide{background:rgba(16,185,129,0.2);color:#34d399;border:1px solid #10b981}
     .etape.attente{background:rgba(245,158,11,0.2);color:#fbbf24;border:1px solid #f59e0b}
 
-    /* ===== RÉCAP AVANT VALIDATION ===== */
     .recapitulatif{background:rgba(59,130,246,0.08);border:2px solid #3b82f6;border-radius:12px;padding:20px;margin-bottom:20px}
 
-    /* ===== SERVICES OPTIONNELS ===== */
     .bloc-options{border:1px dashed var(--bordure);border-radius:12px;padding:15px;margin-top:8px}
     .form-check-input{accent-color:var(--accent)}
     .form-check-label{color:var(--texte);margin-left:6px}
 
-    /* ===== FICHE PRÉINSCRIPTION ===== */
     .fiche-officielle{
       background:var(--bg-clair);color:var(--texte);border-radius:15px;padding:30px;
       border:3px solid var(--accent);box-shadow:0 0 25px rgba(245,158,11,0.2);margin-top:25px
@@ -151,7 +144,6 @@
     .valeur{font-weight:500;color:var(--texte);text-align:right}
     .border-accent{border-color:var(--accent) !important}
 
-    /* ===== FICHE ANNÉE PRÉCÉDENTE ===== */
     .fiche-annee{background:rgba(56,189,248,0.08);border:2px solid #38bdf8;border-radius:15px;padding:25px;margin-top:20px}
     .note-badge{display:inline-block;width:50px;height:50px;line-height:50px;text-align:center;border-radius:50%;background:var(--accent);color:var(--bg);font-weight:bold;font-size:1.1rem}
     .mention-excellent{background:#10b981;color:white}
@@ -159,7 +151,6 @@
     .mention-bien{background:#84cc16;color:white}
     .mention-passable{background:#eab308;color:#000}
 
-    /* ===== IMPRESSION ===== */
     @media print{
       body{background:white !important;color:black !important}
       .cadre-form{box-shadow:none;border:none;margin:0;padding:0;background:white}
@@ -169,7 +160,6 @@
       .ligne-info{border-bottom-color:#ddd}
     }
 
-    /* Responsive */
     @media(max-width:768px){
       .cadre-form{margin:10px;padding:20px}
       .ligne-info{flex-direction:column;gap:2px}
@@ -179,7 +169,6 @@
 </head>
 <body class="lang-fr">
 
-<!-- 🌓 BOUTON MODE JOUR/NUIT -->
 <button class="btn-mode" id="btnMode" onclick="basculerMode()" title="Basculer Jour/Nuit">🌙</button>
 
 <div class="container py-4">
@@ -211,7 +200,6 @@
       <span class="txt-ar">⏱️ يحجز طلبك مقعدك لمدة <strong>72 ساعة</strong>. وبعدها يعود المقعد متاحاً للآخرين.</span>
     </div>
 
-    <!-- ÉTAPES -->
     <div class="text-center mb-3">
       <span class="etape en-cours" id="etape1">1. 📋 Formulaire</span>
       <span class="etape attente" id="etape2">2. 🔍 Vérification</span>
@@ -259,11 +247,11 @@
       <div class="row g-3">
         <div class="col-md-6 form-groupe">
           <label><span class="txt-fr">Nom</span><span class="txt-en">Last Name</span><span class="txt-ar">اللقب</span></label>
-          <input type="text" name="nom" required>
+          <input type="text" name="nom_famille" required>
         </div>
         <div class="col-md-6 form-groupe">
-          <label><span class="txt-fr">Prénoms</span><span class="txt-en">First Names</span><span class="txt-ar">الاسم</span></label>
-          <input type="text" name="prenoms" required>
+          <label><span class="txt-fr">Prénom</span><span class="txt-en">First Name</span><span class="txt-ar">الاسم</span></label>
+          <input type="text" name="prenom" required>
         </div>
         <div class="col-md-4 form-groupe">
           <label><span class="txt-fr">Date de naissance</span><span class="txt-en">Birth Date</span><span class="txt-ar">تاريخ الميلاد</span></label>
@@ -283,54 +271,60 @@
         </div>
         <div class="col-md-6 form-groupe">
           <label><span class="txt-fr">Email</span><span class="txt-en">Email</span><span class="txt-ar">البريد الإلكتروني</span></label>
-          <input type="email" name="email" required>
+          <input type="email" name="email_parent" required>
         </div>
         <div class="col-md-6 form-groupe">
           <label><span class="txt-fr">Téléphone</span><span class="txt-en">Phone</span><span class="txt-ar">الهاتف</span></label>
-          <input type="tel" name="telephone" required>
+          <input type="tel" name="telephone_parent" required>
         </div>
       </div>
 
-      <!-- ✅ INFORMATIONS DES DEUX PARENTS (facultatives) -->
-      <h5 class="mt-4 mb-2 text-info">👨‍👩 Informations des parents <small class="text-muted">(facultatif)</small></h5>
+      <h5 class="mt-4 mb-2 text-info">👨‍👩 Informations complémentaires <small class="text-muted">(facultatif)</small></h5>
       <div class="row g-3">
         <div class="col-md-6">
           <h6 class="text-warning mb-2">👨 Père / Tuteur</h6>
-          <div class="form-groupe"><label><span class="txt-fr">Nom & Prénoms</span></label><input type="text" name="pere_nom"></div>
-          <div class="form-groupe"><label><span class="txt-fr">Activité / Profession</span></label><input type="text" name="pere_activite"></div>
-          <div class="form-groupe"><label><span class="txt-fr">Date de naissance</span></label><input type="date" name="pere_ddn"></div>
-          <div class="form-groupe"><label><span class="txt-fr">Téléphone</span></label><input type="tel" name="pere_tel"></div>
+          <div class="form-groupe"><label><span class="txt-fr">Nom & Prénom</span></label><input type="text" name="nom_parent"></div>
         </div>
         <div class="col-md-6">
-          <h6 class="text-info mb-2">👩 Mère / Tutrice</h6>
-          <div class="form-groupe"><label><span class="txt-fr">Nom & Prénoms</span></label><input type="text" name="mere_nom"></div>
-          <div class="form-groupe"><label><span class="txt-fr">Activité / Profession</span></label><input type="text" name="mere_activite"></div>
-          <div class="form-groupe"><label><span class="txt-fr">Date de naissance</span></label><input type="date" name="mere_ddn"></div>
-          <div class="form-groupe"><label><span class="txt-fr">Téléphone</span></label><input type="tel" name="mere_tel"></div>
+          <h6 class="text-info mb-2">📍 Adresse</h6>
+          <div class="form-groupe"><label><span class="txt-fr">Adresse complète</span></label><input type="text" name="adresse"></div>
         </div>
       </div>
 
-      <!-- ✅ CHAMPS SPÉCIFIQUES ÉLÈVE -->
+      <!-- ✅ CHAMPS SPÉCIFIQUES ÉLÈVE — Double choix Classe FR / Classe AR -->
       <div id="champsEleve" class="champ-cache mt-4">
-        <div class="form-groupe">
-          <label for="id_classe"><span class="txt-fr">Classe / Niveau souhaité</span></label>
-          <select name="id_classe" id="id_classe" onchange="afficherPlacesRestantes()">
-            <option value=""><span class="txt-fr">-- Chargement des classes... --</span></option>
-          </select>
-          <div id="infoPlaces" class="chargement-classe mt-2"></div>
-        </div>
         <div class="row g-3">
+          <div class="col-md-6 form-groupe">
+            <label for="classe_fr"><span class="txt-fr">Classe (Français)</span><span class="txt-en">Class (French system)</span></label>
+            <select name="classe_francais" id="classe_fr" onchange="synchroniserClasseAR()">
+              <option value="">-- Chargement... --</option>
+            </select>
+          </div>
+          <div class="col-md-6 form-groupe">
+            <label for="classe_ar"><span class="txt-fr">Classe (Arabe)</span><span class="txt-en">Equivalent Arabic Class</span></label>
+            <select name="classe_arabe" id="classe_ar">
+              <option value="">-- Sélectionnez d'abord la classe française --</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-groupe">
+          <label><span class="txt-fr">Niveau d'étude</span></label>
+          <input type="text" name="niveau_etude" id="niveauEtude" readonly class="bg-transparent">
+        </div>
+        <div id="infoPlaces" class="chargement-classe mt-2"></div>
+
+        <div class="row g-3 mt-2">
           <div class="col-md-4 form-groupe">
-            <label><span class="txt-fr">Photo d'identité</span></label>
+            <label><span class="txt-fr">📷 Photo d'identité</span></label>
             <input type="file" name="photo_identite" id="photoIdentite" accept="image/*">
           </div>
           <div class="col-md-4 form-groupe">
-            <label><span class="txt-fr">Extrait de naissance</span></label>
-            <input type="file" name="extrait_naissance" accept=".pdf,.jpg,.png">
+            <label><span class="txt-fr">📄 Extrait de naissance</span></label>
+            <input type="file" name="document_naissance" accept=".pdf,.jpg,.png">
           </div>
           <div class="col-md-4 form-groupe">
-            <label><span class="txt-fr">Bulletin année précédente</span></label>
-            <input type="file" name="bulletin" accept=".pdf,.jpg,.png">
+            <label><span class="txt-fr">📑 Bulletin année précédente</span></label>
+            <input type="file" name="document_bulletin" accept=".pdf,.jpg,.png">
           </div>
         </div>
 
@@ -339,48 +333,49 @@
           <h5 class="mb-3">🏷️ <span class="txt-fr">Services optionnels</span></h5>
           <div class="row">
             <div class="col-md-4 form-check">
-              <input type="checkbox" name="service_cantine" id="cantine" class="form-check-input">
+              <input type="checkbox" name="cantine" id="cantine" class="form-check-input">
               <label for="cantine" class="form-check-label">🍽️ Cantine</label>
             </div>
             <div class="col-md-4 form-check">
-              <input type="checkbox" name="service_transport" id="transport" class="form-check-input">
+              <input type="checkbox" name="transport" id="transport" class="form-check-input">
               <label for="transport" class="form-check-label">🚌 Transport</label>
             </div>
             <div class="col-md-4 form-check">
-              <input type="checkbox" name="service_renforcement" id="renforcement" class="form-check-input">
-              <label for="renforcement" class="form-check-label">📚 Cours de renforcement</label>
-            </div>
-            <div class="col-md-4 form-check">
-              <input type="checkbox" name="service_info" id="info" class="form-check-input">
-              <label for="info" class="form-check-label">💻 Informatique</label>
-            </div>
-            <div class="col-md-4 form-check">
-              <input type="checkbox" name="service_langues" id="langues" class="form-check-input">
-              <label for="langues" class="form-check-label">🌐 Club de langues</label>
+              <input type="text" name="circuit_transport" placeholder="Circuit..." class="form-control form-control-sm mt-2">
             </div>
           </div>
         </div>
 
-        <!-- ✅ MODE DE PAIEMENT -->
+        <!-- ✅ INFOS ANNÉE PRÉCÉDENTE -->
         <div class="bloc-options mt-4">
-          <h5 class="mb-3">💳 <span class="txt-fr">Mode de paiement</span></h5>
-          <p class="text-muted small mb-2"><span class="txt-fr">Seul l'espace est disponible pour le moment</span></p>
-          <div class="row">
-            <div class="col-md-3 form-check">
-              <input type="radio" name="mode_paiement" id="banque" value="banque" class="form-check-input">
-              <label for="banque" class="form-check-label">🏦 Banque</label>
+          <h5 class="mb-3">📊 <span class="txt-fr">Résultats année précédente</span></h5>
+          <div class="row g-3">
+            <div class="col-md-3 form-groupe">
+              <label>Moyenne /20</label>
+              <input type="number" step="0.01" min="0" max="20" name="moyenne_annee_precedente" placeholder="ex: 14.50">
             </div>
-            <div class="col-md-3 form-check">
-              <input type="radio" name="mode_paiement" id="orange" value="orange" class="form-check-input">
-              <label for="orange" class="form-check-label">🟠 Orange Money</label>
+            <div class="col-md-3 form-groupe">
+              <label>Classement</label>
+              <input type="text" name="rang_annee_precedente" placeholder="ex: 3º / 25">
             </div>
-            <div class="col-md-3 form-check">
-              <input type="radio" name="mode_paiement" id="moov" value="moov" class="form-check-input">
-              <label for="moov" class="form-check-label">🔵 Moov Money</label>
+            <div class="col-md-3 form-groupe">
+              <label>Mention</label>
+              <select name="mention_annee_precedente">
+                <option value="">--</option>
+                <option value="Excellent">Excellent</option>
+                <option value="Très Bien">Très Bien</option>
+                <option value="Bien">Bien</option>
+                <option value="Passable">Passable</option>
+              </select>
             </div>
-            <div class="col-md-3 form-check">
-              <input type="radio" name="mode_paiement" id="mtn" value="mtn" class="form-check-input">
-              <label for="mtn" class="form-check-label">🟡 MTN Money</label>
+            <div class="col-md-3 form-groupe">
+              <label>Conduite</label>
+              <select name="conduite">
+                <option value="">--</option>
+                <option value="Excellente">✅ Excellente</option>
+                <option value="Bonne">✅ Bonne</option>
+                <option value="Conforme">⚠️ Conforme</option>
+              </select>
             </div>
           </div>
         </div>
@@ -398,7 +393,7 @@
         </div>
       </div>
 
-      <!-- ✅ MOT DE PASSE POUR TOUS -->
+      <!-- ✅ MOT DE PASSE -->
       <div class="row g-3 mt-4">
         <div class="col-md-6 form-groupe">
           <label><span class="txt-fr">Choisissez un mot de passe</span></label>
@@ -410,12 +405,10 @@
         </div>
       </div>
 
-      <!-- ✅ ÉTAPE DE VÉRIFICATION AVANT ENVOI -->
       <button type="button" id="btnVerifier" class="btn btn-info w-100 mt-4" onclick="genererRecapitulatif()">
         🔍 <span class="txt-fr">Vérifier mes informations avant validation</span>
       </button>
 
-      <!-- ✅ RÉCAPITULATIF MODIFIABLE -->
       <div id="blocRecap" class="recapitulatif d-none mt-4">
         <h4 class="text-center text-primary mb-3">📋 Récapitulatif de votre demande</h4>
         <div id="contenuRecap"></div>
@@ -426,7 +419,7 @@
       </div>
     </form>
 
-    <!-- ✅ FICHE 1 : PRÉINSCRIPTION APRÈS VALIDATION -->
+    <!-- ✅ FICHE APRÈS VALIDATION -->
     <div id="ficheInscription" class="fiche-officielle d-none mt-5">
       <div class="entete-fiche text-center mb-4">
         <h3 class="titre-prin mb-1">🏫 ÉCOLE MAMA-ZOUMANA</h3>
@@ -446,11 +439,10 @@
         </div>
         <div class="col-md-8">
           <div class="infos-fiche">
-            <div class="ligne-info"><span class="libelle"><span class="txt-fr">Nom & Prénoms :</span></span><span id="ficheNom" class="valeur">----</span></div>
+            <div class="ligne-info"><span class="libelle"><span class="txt-fr">Nom & Prénom :</span></span><span id="ficheNom" class="valeur">----</span></div>
             <div class="ligne-info"><span class="libelle"><span class="txt-fr">Date de naissance :</span></span><span id="ficheDN" class="valeur">----</span></div>
             <div class="ligne-info"><span class="libelle"><span class="txt-fr">Classe :</span></span><span id="ficheClasse" class="valeur">----</span></div>
             <div class="ligne-info"><span class="libelle"><span class="txt-fr">Services :</span></span><span id="ficheServices" class="valeur">Aucun</span></div>
-            <div class="ligne-info"><span class="libelle"><span class="txt-fr">Paiement :</span></span><span id="fichePaiement" class="valeur">----</span></div>
             <div class="ligne-info"><span class="libelle"><span class="txt-fr">Date demande :</span></span><span id="ficheDate" class="valeur">----</span></div>
             <div class="ligne-info"><span class="libelle"><span class="txt-fr">Email parent :</span></span><span id="ficheEmailParent" class="valeur">----</span></div>
           </div>
@@ -458,7 +450,7 @@
       </div>
     </div>
 
-    <!-- ✅ FICHE 2 : ANNÉE PRÉCÉDENTE (si élève) -->
+    <!-- ✅ FICHE ANNÉE PRÉCÉDENTE -->
     <div id="ficheAnnee" class="fiche-annee d-none">
       <h4 class="text-center text-info mb-3">📊 Informations — Année Précédente</h4>
       <div class="row text-center">
@@ -467,13 +459,12 @@
         <div class="col-md-3"><h5>Mention</h5><div id="noteMent">--</div></div>
         <div class="col-md-3"><h5>Conduite</h5><div id="noteCond">✅ Excellente</div></div>
       </div>
-      <p class="text-center mt-3 text-muted small">📧 Ces deux fiches ont été envoyées par email à l'adresse du parent</p>
+      <p class="text-center mt-3 text-muted small">📧 Ces fiches seront disponibles dès validation de votre dossier par l'Administration.</p>
     </div>
 
-    <!-- ✅ BOUTONS IMPRESSION -->
     <div class="text-center mt-4 d-none" id="blocImpression">
       <button onclick="window.print()" class="btn btn-warning text-dark fw-bold m-1">
-        <i class="bi bi-printer"></i> <span class="txt-fr">Imprimer / Envoyer par Email</span>
+        <i class="bi bi-printer"></i> <span class="txt-fr">Imprimer la fiche</span>
       </button>
       <a href="index.html" class="btn btn-outline-primary m-1"><i class="bi bi-house"></i> <span class="txt-fr">Retour Accueil</span></a>
     </div>
@@ -481,12 +472,10 @@
 </div>
 
 <script>
-// ==================================================
-// ⚙️ CONFIGURATION
-// ==================================================
 const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 let langue = localStorage.getItem('langue') || 'fr';
 let modeNuit = localStorage.getItem('modeAffichage') !== 'jour';
+let listeClasses = [];
 
 // 🌓 MODE JOUR / NUIT
 function basculerMode(){
@@ -495,13 +484,12 @@ function basculerMode(){
   document.getElementById('btnMode').textContent = modeNuit ? '🌙' : '☀️';
   localStorage.setItem('modeAffichage', modeNuit ? 'nuit' : 'jour');
 }
-// Restaurer mode au chargement
 if(localStorage.getItem('modeAffichage') === 'jour'){
   document.body.classList.add('mode-jour');
   document.getElementById('btnMode').textContent = '☀️';
 }
 
-// 🗣️ GESTION LANGUE
+// 🗣️ LANGUE
 function appliquerLangue(lang){
   langue = lang; localStorage.setItem('langue', lang);
   document.body.classList.remove('lang-fr','lang-en','lang-ar');
@@ -510,205 +498,158 @@ function appliquerLangue(lang){
   document.querySelector(`.btn-langue[data-lang="${lang}"]`)?.classList.add('actif');
 }
 document.querySelectorAll('.btn-langue').forEach(b=>b.addEventListener('click',()=>appliquerLangue(b.dataset.lang)));
-window.addEventListener('DOMContentLoaded',()=>appliquerLangue(localStorage.getItem('langue')||'fr'));
+window.addEventListener('DOMContentLoaded',()=>appliquerLangue(localStorage.getItem('langue')||'fr')));
 
 // 📋 CHAMPS SELON PROFIL
 function afficherChampsParProfil(){
   const p = document.getElementById('profil').value;
-  const champsEleve = document.getElementById('champsEleve');
-  const champsProf = document.getElementById('champsProf');
-  champsEleve.classList.add('champ-cache');
-  champsProf.classList.add('champ-cache');
-  document.getElementById('id_classe').required = false;
-  document.getElementById('infoPlaces').innerHTML = '';
-
-  if(p==='eleve'){
-    champsEleve.classList.remove('champ-cache');
-    document.getElementById('id_classe').required = true;
-    chargerListeClasses();
-  } else if(p==='prof'){
-    champsProf.classList.remove('champ-cache');
-  }
+  document.getElementById('champsEleve').classList.toggle('champ-cache', p!=='eleve');
+  document.getElementById('champsProf').classList.toggle('champ-cache', p!=='prof');
+  if(p==='eleve') chargerListeClasses();
 }
 
-// 📦 CHARGER CLASSES
-let listeClasses = [];
+// 📦 CHARGER CLASSES + CORRESPONDANCE FR ↔ AR
 async function chargerListeClasses(){
-  const sel = document.getElementById('id_classe');
+  const selFR = document.getElementById('classe_fr');
+  const selAR = document.getElementById('classe_ar');
+  selFR.innerHTML = '<option value="">-- Chargement... --</option>';
+  selAR.innerHTML = '<option value="">-- Sélectionnez d\'abord --</option>';
   try {
     const r = await fetch(`${API_URL}/classes`);
     const d = await r.json();
     if(d.ok && d.classes?.length){
       listeClasses = d.classes;
-      sel.innerHTML = '<option value="">-- Sélectionnez une classe --</option>';
       d.classes.forEach(c=>{
         const opt = document.createElement('option');
-        opt.value = c.id;
-        opt.textContent = c.places_restantes > 0 
-          ? `${c.libelle_classe || c.nom} — ${c.places_restantes} place(s)` 
-          : `${c.libelle_classe || c.nom} — COMPLET`;
-        if(c.places_restantes <= 0) opt.disabled = true;
-        sel.appendChild(opt);
+        opt.value = c.libelle_classe || c.nom;
+        opt.dataset.arabe = c.libelle_classe_ar || '';
+        opt.dataset.niveau = c.cycle || 'Primaire';
+        opt.dataset.id = c.id_classe || c.id;
+        opt.textContent = `${c.libelle_classe || c.nom}`;
+        selFR.appendChild(opt);
       });
     }
-  } catch(e){ sel.innerHTML = '<option value="">-- Erreur chargement --</option>'; }
+  } catch(e){ selFR.innerHTML = '<option value="">-- Erreur --</option>'; }
 }
 
-function afficherPlacesRestantes(){
-  const id = document.getElementById('id_classe').value;
-  const info = document.getElementById('infoPlaces');
-  const c = listeClasses.find(x=>String(x.id)===String(id));
-  if(c){
-    info.className = c.places_restantes>0 ? 'info-classe classe-dispo' : 'info-classe classe-complete';
-    info.textContent = c.places_restantes>0 ? `✅ ${c.places_restantes} place(s) restante(s)` : '❌ Cette classe est complète';
+// 🔄 SYNCHRONISER CLASSE FR → CLASSE AR
+function synchroniserClasseAR(){
+  const selFR = document.getElementById('classe_fr');
+  const selAR = document.getElementById('classe_ar');
+  const optSel = selFR.selectedOptions[0];
+  const niveau = document.getElementById('niveauEtude');
+  selAR.innerHTML = '<option value="">-- Équivalence arabe --</option>';
+  if(optSel && optSel.value){
+    niveau.value = optSel.dataset.niveau || '';
+    const opt = document.createElement('option');
+    opt.value = optSel.dataset.arabe;
+    opt.textContent = optSel.dataset.arabe || optSel.value;
+    opt.selected = true;
+    selAR.appendChild(opt);
+    // Afficher places
+    const c = listeClasses.find(x=>String(x.id_classe||x.id) === String(optSel.dataset.id));
+    document.getElementById('infoPlaces').innerHTML = c?.capacite_restante 
+      ? `<div class="info-classe classe-dispo">✅ ${c.capacite_restante} place(s) disponible(s)</div>` 
+      : '<div class="info-classe">Classe chargée</div>';
   }
 }
 
-// 🔍 GÉNÉRER LE RÉCAPITULATIF AVANT VALIDATION
+// 🔍 RÉCAPITULATIF
 function genererRecapitulatif(){
   const form = document.getElementById('formPreinscription');
   const p = document.getElementById('profil').value;
-  const idClasse = document.getElementById('id_classe').value;
-  const classe = listeClasses.find(c=>String(c.id)===String(idClasse));
-
-  // ✅ Vérification mots de passe
   if(form.mot_de_passe.value !== form.confirmation_mdp.value)
     return alert("⚠️ Les mots de passe ne correspondent pas !");
 
-  // ✅ Services choisis
   const services = [];
-  if(form.service_cantine?.checked) services.push('🍽️ Cantine');
-  if(form.service_transport?.checked) services.push('🚌 Transport');
-  if(form.service_renforcement?.checked) services.push('📚 Renforcement');
-  if(form.service_info?.checked) services.push('💻 Informatique');
-  if(form.service_langues?.checked) services.push('🌐 Langues');
+  if(form.cantine?.checked) services.push('🍽️ Cantine');
+  if(form.transport?.checked) services.push('🚌 Transport' + (form.circuit_transport?.value ? ` — ${form.circuit_transport.value}` : ''));
 
-  // ✅ Mode de paiement
-  const modePaiement = {
-    banque: '🏦 Banque', orange: '🟠 Orange Money', moov: '🔵 Moov Money', mtn: '🟡 MTN Money'
-  }[form.mode_paiement?.value] || 'Non renseigné';
-
-  // ✅ Email parent (utilise email renseigné si pas email séparé)
-  const emailParent = form.email.value;
-
-  // ✅ Afficher récap
   document.getElementById('contenuRecap').innerHTML = `
     <div class="row g-2">
-      <div class="col-md-6"><strong>Profil :</strong> ${p==='eleve'?'🎓 Élève':p==='prof'?'👨‍🏫 Enseignant':p==='parent'?'👨‍👩‍👧 Parent':'🏛️ Visiteur'}</div>
-      <div class="col-md-6"><strong>Nom & Prénoms :</strong> ${form.nom.value} ${form.prenoms.value}</div>
-      ${p==='eleve'?`<div class="col-md-6"><strong>Né(e) le :</strong> ${form.date_naissance?.value || '---'} à ${form.lieu_naissance?.value || '---'}</div>
-      <div class="col-md-6"><strong>Classe souhaitée :</strong> ${classe?.libelle_classe || classe?.nom || '---'}</div>`:''}
-      <div class="col-md-6"><strong>Email :</strong> ${form.email.value}</div>
-      <div class="col-md-6"><strong>Téléphone :</strong> ${form.telephone.value}</div>
-      ${form.pere_nom?.value?`<div class="col-md-6"><strong>Père :</strong> ${form.pere_nom.value} — ${form.pere_activite?.value || 'Activité non renseignée'}</div>`:''}
-      ${form.mere_nom?.value?`<div class="col-md-6"><strong>Mère :</strong> ${form.mere_nom.value} — ${form.mere_activite?.value || 'Activité non renseignée'}</div>`:''}
-      ${p==='eleve'?`<div class="col-md-6"><strong>Services :</strong> ${services.length?services.join(', '):'Aucun'}</div>
-      <div class="col-md-6"><strong>Paiement :</strong> ${modePaiement}</div>`:''}
+      <div class="col-md-6"><strong>Profil :</strong> ${p==='eleve'?'🎓 Élève':p==='prof'?'👨‍🏫 Enseignant':'👨‍👩‍👧 Parent'}</div>
+      <div class="col-md-6"><strong>Nom & Prénom :</strong> ${form.nom_famille.value} ${form.prenom.value}</div>
+      <div class="col-md-6"><strong>Né(e) le :</strong> ${form.date_naissance?.value || '---'} à ${form.lieu_naissance?.value || '---'}</div>
+      ${p==='eleve'?`<div class="col-md-6"><strong>Classe FR :</strong> ${form.classe_francais.value || '---'} | <strong>Arabe :</strong> ${form.classe_arabe.value || '---'}</div>`:''}
+      <div class="col-md-6"><strong>Email parent :</strong> ${form.email_parent.value}</div>
+      <div class="col-md-6"><strong>Téléphone :</strong> ${form.telephone_parent.value}</div>
+      ${services.length?`<div class="col-md-12"><strong>Services :</strong> ${services.join(', ')}</div>`:''}
     </div>
-    <p class="text-center text-success mt-2">✅ Vérifiez bien TOUTES vos informations avant de valider définitivement.</p>
-  `;
+    <p class="text-center text-success mt-2">✅ Vérifiez avant validation définitive.</p>`;
 
-  // ✅ Passer à l'étape 2
-  document.getElementById('etape1').classList.remove('en-cours'); document.getElementById('etape1').classList.add('valide');
-  document.getElementById('etape2').classList.remove('attente'); document.getElementById('etape2').classList.add('en-cours');
+  document.getElementById('etape1').classList.replace('en-cours','valide');
+  document.getElementById('etape2').classList.replace('attente','en-cours');
   document.getElementById('btnVerifier').classList.add('d-none');
   document.getElementById('blocRecap').classList.remove('d-none');
   window.scrollTo({top:document.getElementById('blocRecap').offsetTop-50,behavior:'smooth'});
 }
 
 function modifierFormulaire(){
-  // ✅ Revenir à l'étape 1
-  document.getElementById('etape2').classList.remove('en-cours'); document.getElementById('etape2').classList.add('attente');
-  document.getElementById('etape1').classList.add('valide'); document.getElementById('etape1').classList.add('en-cours');
+  document.getElementById('etape2').classList.replace('en-cours','attente');
+  document.getElementById('etape1').classList.replace('valide','en-cours');
   document.getElementById('blocRecap').classList.add('d-none');
   document.getElementById('btnVerifier').classList.remove('d-none');
 }
 
-// ✅ SOUMISSION FINALE
+// ✅ SOUMISSION
 document.getElementById('formPreinscription').addEventListener('submit', async e=>{
   e.preventDefault();
   const form = e.target;
   const btn = form.querySelector('.btn-valider');
   const p = document.getElementById('profil').value;
-  const idClasse = document.getElementById('id_classe').value;
-  const classe = listeClasses.find(c=>String(c.id)===String(idClasse));
-
   btn.disabled = true;
   btn.innerHTML = "<span class='txt-fr'>⏳ Envoi en cours...</span>";
 
   const donnees = new FormData(form);
   donnees.append('profil', p);
+  donnees.append('statut', 'en_attente');
 
   try {
     const res = await fetch(`${API_URL}/auth/preinscription/ajouter`,{method:'POST',body:donnees});
     const rep = await res.json();
 
     if(rep.ok){
-      // ✅ Étape 3 validée
-      document.getElementById('etape2').classList.remove('en-cours'); document.getElementById('etape2').classList.add('valide');
-      document.getElementById('etape3').classList.remove('attente'); document.getElementById('etape3').classList.add('valide');
-
-      // ✅ Cacher formulaire
+      document.getElementById('etape2').classList.replace('en-cours','valide');
+      document.getElementById('etape3').classList.replace('attente','valide');
       form.classList.add('d-none');
       document.querySelector('.info-delai').classList.add('d-none');
-      document.getElementById('btnVerifier').classList.add('d-none');
       document.getElementById('blocRecap').classList.add('d-none');
+      document.getElementById('btnVerifier').classList.add('d-none');
       document.getElementById('profil').closest('.form-groupe').classList.add('d-none');
 
       const matricule = rep.matricule || `MZ-${new Date().getFullYear()}-${Math.random().toString(36).slice(2,8).toUpperCase()}`;
-
-      // ✅ Services & paiement
       const services = [];
-      if(form.service_cantine?.checked) services.push('🍽️ Cantine');
-      if(form.service_transport?.checked) services.push('🚌 Transport');
-      if(form.service_renforcement?.checked) services.push('📚 Renforcement');
-      if(form.service_info?.checked) services.push('💻 Informatique');
-      if(form.service_langues?.checked) services.push('🌐 Langues');
-      const txtPaiement = {banque:'🏦 Banque',orange:'🟠 Orange Money',moov:'🔵 Moov Money',mtn:'🟡 MTN Money'}[form.mode_paiement?.value] || 'Non renseigné';
+      if(form.cantine?.checked) services.push('🍽️ Cantine');
+      if(form.transport?.checked) services.push('🚌 Transport');
 
-      // ✅ Photo
+      // Photo
       const photo = form.photo_identite?.files?.[0];
-      if(photo){
-        const lecteur = new FileReader();
-        lecteur.onload = e=>{ document.getElementById('cadrePhoto').innerHTML = `<img src="${e.target.result}">`; };
-        lecteur.readAsDataURL(photo);
-      }
+      if(photo){ const r=new FileReader();r.onload=e=>{document.getElementById('cadrePhoto').innerHTML=`<img src="${e.target.result}">`;};r.readAsDataURL(photo);}
 
-      // ✅ Remplir FICHE 1 — Préinscription
+      // Fiche 1
       document.getElementById('matriculeEleve').textContent = matricule;
-      document.getElementById('ficheNom').textContent = `${donnees.get('nom')} ${donnees.get('prenoms')}`;
+      document.getElementById('ficheNom').textContent = `${donnees.get('nom_famille')} ${donnees.get('prenom')}`;
       document.getElementById('ficheDN').textContent = donnees.get('date_naissance') || '---';
-      document.getElementById('ficheClasse').textContent = classe?.libelle_classe || classe?.nom || '---';
+      document.getElementById('ficheClasse').textContent = `${donnees.get('classe_francais')} / ${donnees.get('classe_arabe')}`;
       document.getElementById('ficheServices').textContent = services.length?services.join(', '):'Aucun';
-      document.getElementById('fichePaiement').textContent = txtPaiement;
       document.getElementById('ficheDate').textContent = new Date().toLocaleDateString('fr-FR');
-      document.getElementById('ficheEmailParent').textContent = donnees.get('email');
+      document.getElementById('ficheEmailParent').textContent = donnees.get('email_parent');
       document.getElementById('ficheInscription').classList.remove('d-none');
 
-      // ✅ SI ÉLÈVE → AFFICHER FICHE 2 — Année Précédente
-      if(p === 'eleve'){
-        // 📊 Données de l'année précédente (sera chargée depuis la base plus tard)
-        const moy = Math.round((10 + Math.random() * 8) * 10) / 10; // Note aléatoire 10-18
-        const rang = Math.floor(Math.random() * 15) + 1;
-        let mention, mentionClasse;
-        if(moy >= 16){ mention = 'Excellent'; mentionClasse = 'mention-excellent'; }
-        else if(moy >= 14){ mention = 'Très Bien'; mentionClasse = 'mention-tresbien'; }
-        else if(moy >= 12){ mention = 'Bien'; mentionClasse = 'mention-bien'; }
-        else { mention = 'Passable'; mentionClasse = 'mention-passable'; }
-
-        document.getElementById('noteMoy').textContent = moy.toFixed(1);
-        document.getElementById('noteClas').textContent = `${rang}º`;
-        document.getElementById('noteMent').innerHTML = `<span class="note-badge ${mentionClasse}">${mention}</span>`;
+      // Fiche 2 — Année précédente
+      if(p==='eleve' && donnees.get('moyenne_annee_precedente')){
+        document.getElementById('noteMoy').textContent = donnees.get('moyenne_annee_precedente');
+        document.getElementById('noteClas').textContent = donnees.get('rang_annee_precedente') || '--';
+        const ment=donnees.get('mention_annee_precedente');
+        document.getElementById('noteMent').textContent=ment||'--';
+        document.getElementById('noteCond').textContent=donnees.get('conduite')||'✅ Excellente';
         document.getElementById('ficheAnnee').classList.remove('d-none');
       }
 
-      // ✅ Bouton impression/envoi email
       document.getElementById('blocImpression').classList.remove('d-none');
-
-      alert("✅ Demande enregistrée ! Consultez vos 2 fiches ci-dessous.\n📧 Un email contenant les fiches a été envoyé à votre adresse.");
-
+      alert("✅ Demande enregistrée !\n📋 Votre préinscription est en attente de validation.\n🪪 Matricule provisoire : "+matricule);
     } else {
-      alert("❌ Erreur : " + (rep.erreur || "Erreur inconnue"));
+      alert("❌ Erreur : " + (rep.erreur || "Erreur lors de l'envoi"));
     }
   } catch {
     alert("⚠️ Serveur indisponible — réessayez plus tard");

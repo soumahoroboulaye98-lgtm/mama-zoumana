@@ -108,6 +108,7 @@ app.use('/api/utilisateurs', require('./routes/utilisateurs'));
 app.use('/api/preinscription', require('./routes/preinscription'));
 app.use('/api/auth', require('./routes/auth'));
 
+app.use('/api/admin', require('./routes/admin-crud'));
 // — Scolaire
 app.use('/api/classes', require('./routes/classes'));
 app.use('/api/matieres', require('./routes/matieres'));

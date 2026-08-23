@@ -11,6 +11,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
+    /* ===== 🎨 VARIABLES — MODE CLAIR ===== */
     :root {
       --primaire: #0c4a6e;
       --secondaire: #0369a1;
@@ -20,13 +21,30 @@
       --info: #0dcaf0;
       --sombre: #0f172a;
       --sombre-clair: #1e293b;
-      --texte: #f8fafc;
-      --texte-gris: #94a3b8;
+      --texte-principal: #1e293b;
+      --texte-secondaire: #64748b;
       --fond-page: #f1f5f9;
-      --blanc: #ffffff;
-      --bord-radius: 16px;
+      --carte-fond: #ffffff;
+      --bordure: rgba(12,74,110,0.08);
       --ombre: 0 4px 20px rgba(0,0,0,0.07);
       --ombre-hover: 0 12px 40px rgba(0,0,0,0.12);
+      --menu-debut: #0f172a;
+      --menu-fin: #0c4a6e;
+    }
+
+    /* 🌙 MODE SOMBRE */
+    body.mode-nuit {
+      --primaire: #38bdf8;
+      --secondaire: #0ea5e9;
+      --texte-principal: #f8fafc;
+      --texte-secondaire: #cbd5e1;
+      --fond-page: #0f172a;
+      --carte-fond: rgba(30, 41, 59, 0.7);
+      --bordure: rgba(245,158,11,0.15);
+      --ombre: 0 4px 20px rgba(0,0,0,0.3);
+      --ombre-hover: 0 12px 40px rgba(0,0,0,0.4);
+      --menu-debut: #020617;
+      --menu-fin: #0c4a6e;
     }
 
     /* ===== 🌐 SYSTÈME DE LANGUE ===== */
@@ -35,26 +53,31 @@
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
     body.lang-en .txt-en { display: inline; }
     body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
-    body.lang-ar .txt-ar { display: inline; direction: rtl; }
+    body.lang-ar .txt-ar { display: inline; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar { direction: rtl; }
     body.lang-ar .titre-section,
-    body.lang-ar .dropdown-menu { text-align: right; }
+    body.lang-ar .dropdown-menu,
+    body.lang-ar .bienvenue { text-align: right; }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       background: var(--fond-page);
       font-family: 'Segoe UI', system-ui, sans-serif;
       min-height: 100vh;
+      color: var(--texte-principal);
+      transition: background 0.4s ease, color 0.4s ease;
     }
 
     /* ===== 🧭 MENU PRINCIPAL EN HAUT ===== */
     .navbar-principale {
-      background: linear-gradient(90deg, var(--sombre), var(--primaire));
+      background: linear-gradient(90deg, var(--menu-debut), var(--menu-fin));
       padding: 1rem 2rem;
       box-shadow: 0 4px 20px rgba(12,74,110,0.15);
       position: sticky;
       top: 0;
       z-index: 1030;
+      transition: background 0.4s ease;
     }
     .navbar-brand {
       color: var(--accent) !important;
@@ -63,7 +86,9 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      transition: transform 0.3s ease;
     }
+    .navbar-brand:hover { transform: scale(1.03); }
     .navbar-brand i { font-size: 1.8rem; }
 
     .nav-item.dropdown { margin: 0 0.3rem; }
@@ -82,11 +107,17 @@
       color: var(--accent) !important;
       transform: translateY(-2px);
     }
+    .nav-link.actif {
+      background: rgba(245,158,11,0.18);
+      color: var(--accent) !important;
+    }
     .nav-link i { font-size: 1.1rem; }
+
     .dropdown-menu {
-      border: none;
+      background: var(--carte-fond);
+      border: 1px solid var(--bordure);
       border-radius: 14px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      box-shadow: var(--ombre-hover);
       padding: 0.6rem;
       min-width: 220px;
       animation: derouler 0.25s ease-out;
@@ -96,22 +127,24 @@
       to { opacity: 1; transform: translateY(0); }
     }
     .dropdown-item {
+      color: var(--texte-principal);
       padding: 0.65rem 1rem;
       border-radius: 10px;
-      transition: all 0.2s;
+      transition: all 0.25s ease;
       display: flex;
       align-items: center;
       gap: 8px;
     }
     .dropdown-item:hover {
-      background: rgba(12,74,110,0.08);
-      color: var(--primaire);
+      background: rgba(245,158,11,0.1);
+      color: var(--accent);
       transform: translateX(5px);
     }
     body.lang-ar .dropdown-item:hover { transform: translateX(-5px); }
-    .dropdown-item i { width: 18px; text-align: center; }
+    .dropdown-item i { width: 18px; text-align: center; color: var(--accent); }
 
-    .btn-langue {
+    /* 🗣️ Boutons langue & thème */
+    .btn-langue, .btn-theme {
       border-radius: 50px !important;
       border: 2px solid transparent;
       margin: 0 2px;
@@ -119,13 +152,22 @@
       font-weight: 600;
       background: rgba(255,255,255,0.15);
       color: #e2e8f0;
-      border: none;
+      border: 1px solid rgba(245,158,11,0.3);
+      transition: all 0.3s ease;
+    }
+    .btn-langue:hover, .btn-theme:hover {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+      transform: translateY(-2px);
     }
     .btn-langue.actif {
       background: var(--accent);
       color: var(--sombre);
       box-shadow: 0 0 12px rgba(245,158,11,0.4);
+      border-color: var(--accent);
     }
+    .btn-theme { border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; }
 
     .btn-deconnexion {
       background: linear-gradient(135deg, #dc2626, #b91c1c);
@@ -133,11 +175,13 @@
       border-radius: 10px;
       padding: 0.5rem 1.2rem !important;
       margin-left: 0.8rem;
+      transition: all 0.3s ease;
     }
     .btn-deconnexion:hover {
       background: linear-gradient(135deg, #b91c1c, #991b1b);
       color: white !important;
       transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(220,38,38,0.3);
     }
 
     /* ===== 📦 CONTENU PRINCIPAL ===== */
@@ -148,11 +192,13 @@
     }
 
     .bienvenue {
-      background: linear-gradient(135deg, rgba(12,74,110,0.05), rgba(245,158,11,0.05));
+      background: linear-gradient(135deg, rgba(12,74,110,0.05), rgba(245,158,11,0.08));
       padding: 2rem 2.5rem;
       border-radius: 20px;
       margin-bottom: 2.5rem;
       border-left: 4px solid var(--accent);
+      border: 1px solid var(--bordure);
+      transition: all 0.4s ease;
     }
     body.lang-ar .bienvenue { border-left: none; border-right: 4px solid var(--accent); }
     .bienvenue h2 {
@@ -160,24 +206,28 @@
       font-weight: 800;
       color: var(--primaire);
       margin-bottom: 0.5rem;
+      transition: color 0.4s ease;
     }
-    .bienvenue p { color: #64748b; margin: 0; font-size: 1.05rem; }
+    .bienvenue p { color: var(--texte-secondaire); margin: 0; font-size: 1.05rem; }
     .nom-utilisateur-affiche {
       font-weight: 600;
       color: var(--primaire);
-      background: white;
+      background: var(--carte-fond);
       padding: 0.4rem 1rem;
       border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 8px var(--ombre);
+      border: 1px solid var(--bordure);
+      transition: all 0.4s ease;
     }
 
     /* ===== 📊 CARTES STATISTIQUES ===== */
     .stat-card {
-      background: white;
+      background: var(--carte-fond);
       padding: 2rem;
-      border-radius: var(--bord-radius);
+      border-radius: 16px;
       box-shadow: var(--ombre);
       border-top: 4px solid transparent;
+      border: 1px solid var(--bordure);
       transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
       position: relative;
       opacity: 0;
@@ -195,6 +245,7 @@
       font-size: 3rem;
       font-weight: 800;
       line-height: 1;
+      transition: color 0.4s ease;
     }
     .stat-card:nth-child(1) .stat-chiffre { color: var(--primaire); }
     .stat-card:nth-child(2) .stat-chiffre { color: var(--succes); }
@@ -206,20 +257,23 @@
       top: 1.5rem;
       font-size: 2.8rem;
       opacity: 0.08;
+      color: var(--primaire);
     }
 
     /* ===== 📦 CARTES CONTENU ===== */
     .contenu-card {
-      background: white;
-      border-radius: var(--bord-radius);
+      background: var(--carte-fond);
+      border-radius: 16px;
       box-shadow: var(--ombre);
       padding: 1.5rem;
       height: 100%;
+      border: 1px solid var(--bordure);
       opacity: 0;
       transform: translateY(25px);
       transition: all 0.4s ease;
     }
     .contenu-card.visible { opacity: 1; transform: translateY(0); }
+    .contenu-card:hover { box-shadow: var(--ombre-hover); transform: translateY(-4px); }
     .contenu-card h5 {
       font-weight: 700;
       color: var(--primaire);
@@ -227,6 +281,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      transition: color 0.4s ease;
     }
 
     .alerte-item {
@@ -236,26 +291,29 @@
       display: flex;
       align-items: flex-start;
       gap: 0.75rem;
+      transition: all 0.3s ease;
     }
-    .alerte-item.warning { background: #fffbeb; border-left: 3px solid var(--accent); }
-    .alerte-item.info { background: #e0f2fe; border-left: 3px solid var(--info); }
-    .alerte-item i { font-size: 1.2rem; margin-top: 2px; }
+    .alerte-item.warning { background: rgba(245,158,11,0.08); border-left: 3px solid var(--accent); }
+    .alerte-item.info { background: rgba(14,165,233,0.08); border-left: 3px solid var(--info); }
+    .alerte-item i { font-size: 1.2rem; margin-top: 2px; color: var(--accent); }
 
     .activite-item {
       padding: 0.75rem 0;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 1px solid var(--bordure);
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      transition: background 0.25s ease;
     }
+    .activite-item:hover { background: rgba(245,158,11,0.03); }
     .activite-item:last-child { border-bottom: none; }
-    .activite-item i { font-size: 1.1rem; color: var(--primaire); width: 20px; text-align: center; }
+    .activite-item i { font-size: 1.1rem; color: var(--accent); width: 20px; text-align: center; }
     .activite-texte { flex: 1; }
-    .activite-date { font-size: 0.8rem; color: #94a3b8; }
+    .activite-date { font-size: 0.8rem; color: var(--texte-secondaire); }
 
     .repartition-barre {
       height: 24px;
-      background: #e2e8f0;
+      background: rgba(148,163,184,0.2);
       border-radius: 6px;
       overflow: hidden;
       margin-bottom: 0.5rem;
@@ -270,7 +328,7 @@
       color: white;
       font-size: 0.75rem;
       font-weight: 600;
-      transition: width 0.6s ease;
+      transition: width 0.8s ease;
       width: 0%;
     }
 
@@ -280,9 +338,10 @@
       border-radius: 8px;
       font-weight: 600;
       font-size: 0.9rem;
+      transition: all 0.3s ease;
     }
-    .etat-badge.success { background: #dcfce7; color: #166534; }
-    .etat-badge.primary { background: #dbeafe; color: #1e40af; }
+    .etat-badge.success { background: rgba(16,185,129,0.15); color: #10b981; }
+    .etat-badge.primary { background: rgba(56,189,248,0.15); color: #38bdf8; }
 
     /* ===== ⚡ ACTIONS RAPIDES ===== */
     .titre-section {
@@ -293,17 +352,18 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      transition: color 0.4s ease;
     }
     .action-card {
-      background: white;
+      background: var(--carte-fond);
       padding: 2rem 1.5rem;
-      border-radius: var(--bord-radius);
+      border-radius: 16px;
       text-align: center;
       text-decoration: none;
       display: block;
       box-shadow: var(--ombre);
-      transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
       border: 2px solid transparent;
+      transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
       opacity: 0;
       transform: translateY(25px);
     }
@@ -332,17 +392,19 @@
       background: linear-gradient(135deg, rgba(245,158,11,0.25), rgba(12,74,110,0.12));
     }
     .action-card h6 {
-      color: var(--sombre);
+      color: var(--texte-principal);
       font-weight: 600;
       margin: 0;
       font-size: 0.95rem;
+      transition: color 0.4s ease;
     }
 
     /* ===== 📚 BLOC GESTION DES CONTENUS ===== */
     .bloc-admin {
-      background: white;
-      border-radius: var(--bord-radius);
+      background: var(--carte-fond);
+      border-radius: 16px;
       box-shadow: var(--ombre);
+      border: 1px solid var(--bordure);
       padding: 2rem;
       margin-bottom: 2.5rem;
       opacity: 0;
@@ -350,6 +412,7 @@
       transition: all 0.4s ease;
     }
     .bloc-admin.visible { opacity: 1; transform: translateY(0); }
+    .bloc-admin:hover { box-shadow: var(--ombre-hover); }
     .bloc-admin h3 {
       font-weight: 700;
       color: var(--primaire);
@@ -357,15 +420,10 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      transition: color 0.4s ease;
     }
-    .bloc-admin ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    .bloc-admin li {
-      margin-bottom: 0.6rem;
-    }
+    .bloc-admin ul { list-style: none; padding: 0; margin: 0; }
+    .bloc-admin li { margin-bottom: 0.6rem; }
     .bloc-admin a {
       display: flex;
       align-items: center;
@@ -378,14 +436,36 @@
       transition: all 0.25s ease;
       border-left: 3px solid transparent;
     }
-    .bloc-admin li:nth-child(1) a:hover { border-left-color: #3b82f6; background: #eff6ff; }
-    .bloc-admin li:nth-child(2) a:hover { border-left-color: #10b981; background: #f0fdf4; }
-    .bloc-admin li:nth-child(3) a:hover { border-left-color: #f59e0b; background: #fffbeb; }
+    .bloc-admin li:nth-child(1) a:hover { border-left-color: #3b82f6; background: rgba(59,130,246,0.05); }
+    .bloc-admin li:nth-child(2) a:hover { border-left-color: #10b981; background: rgba(16,185,129,0.05); }
+    .bloc-admin li:nth-child(3) a:hover { border-left-color: #f59e0b; background: rgba(245,158,11,0.05); }
     .bloc-admin a:hover {
       transform: translateX(6px);
-      color: var(--primaire);
+      color: var(--accent);
     }
     body.lang-ar .bloc-admin a:hover { transform: translateX(-6px); }
+
+    /* 🔗 Accès directs */
+    .raccourci-card {
+      background: var(--carte-fond);
+      border-radius: 16px;
+      box-shadow: var(--ombre);
+      border: 1px solid var(--bordure);
+      padding: 1.5rem;
+      transition: all 0.4s ease;
+    }
+    .raccourci-card .btn {
+      background: rgba(245,158,11,0.08);
+      border-color: rgba(245,158,11,0.2);
+      color: var(--primaire);
+      transition: all 0.3s ease;
+    }
+    .raccourci-card .btn:hover {
+      background: rgba(245,158,11,0.18);
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
 
     /* ===== 📱 RESPONSIVE ===== */
     @media (max-width: 991px) {
@@ -396,13 +476,13 @@
     @media (max-width: 767px) {
       .contenu { padding: 1rem; }
       .stat-chiffre { font-size: 2.2rem; }
+      .nav-link { padding: 0.5rem 0.8rem !important; font-size: 0.9rem; }
     }
   </style>
 </head>
 <body>
 
-
-<!-- 🔐 SÉCURITÉ & LANGUE -->
+<!-- 🔐 SÉCURITÉ, THÈME & LANGUE -->
 <script>
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
@@ -417,6 +497,18 @@
     location.href = '../connexion.html';
   }
 
+  // 🌙 GESTION DU THÈME JOUR/NUIT
+  function appliquerTheme(nuit) {
+    if (nuit) {
+      document.body.classList.add('mode-nuit');
+      document.getElementById('btnTheme').textContent = '🌙';
+    } else {
+      document.body.classList.remove('mode-nuit');
+      document.getElementById('btnTheme').textContent = '☀️';
+    }
+    localStorage.setItem('themeNuit', nuit ? '1' : '0');
+  }
+
   // ✅ LANGUE
   let langue = localStorage.getItem('langue') || 'fr';
   document.body.classList.add('lang-' + langue);
@@ -426,7 +518,7 @@
     document.body.classList.remove('lang-fr','lang-en','lang-ar');
     document.body.classList.add('lang-' + lang);
     document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('actif'));
-    event.currentTarget.classList.add('actif');
+    document.querySelector(`[data-lang="${lang}"]`)?.classList.add('actif');
     langue = lang;
   };
 
@@ -445,10 +537,10 @@
     tout.forEach((c, i) => setTimeout(() => c.classList.add('visible'), 100 + i * 100));
   }
 
-  // ✅ CHARGER TOUTES LES DONNÉES DE LA ROUTE
+  // ✅ CHARGER TOUTES LES DONNÉES
   async function chargerTout() {
     try {
-      // 1. 📊 Statistiques
+      // 📊 Statistiques
       const rStats = await fetch(API_URL + '/statistiques', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -460,7 +552,7 @@
         document.getElementById('stat-attente').textContent = dStats.stats.attente || 0;
       }
 
-      // 2. ⚠️ Alertes du système
+      // ⚠️ Alertes
       const rAlt = await fetch(API_URL + '/alertes', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -479,7 +571,7 @@
         document.getElementById('zone-alertes').innerHTML = `<p class="text-muted small">✅ Aucune alerte détectée</p>`;
       }
 
-      // 3. 🕐 Activité récente
+      // 🕐 Activité récente
       const rAct = await fetch(API_URL + '/activite-recente', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -502,7 +594,7 @@
         document.getElementById('zone-activite').innerHTML = `<p class="text-muted small">Aucune activité récente</p>`;
       }
 
-      // 4. 📈 Répartition élèves par classe
+      // 📈 Répartition élèves par classe
       const rRep = await fetch(API_URL + '/repartition-eleves', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -511,7 +603,7 @@
         const cont = document.getElementById('zone-repartition');
         cont.innerHTML = '';
         const max = Math.max(...dRep.repartition.map(r => parseInt(r.nombre)));
-        dRep.repartition.forEach(r => {
+        dRep.repartition.forEach((r, idx) => {
           const pct = max > 0 ? (parseInt(r.nombre)/max)*100 : 0;
           cont.innerHTML += `
             <div class="mb-2">
@@ -527,7 +619,7 @@
         document.getElementById('zone-repartition').innerHTML = `<p class="text-muted small">Aucune donnée disponible</p>`;
       }
 
-      // 5. 📄 État notes & bulletins
+      // 📄 État notes & bulletins
       const rEtat = await fetch(API_URL + '/etat-bulletins', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -543,16 +635,27 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    // Restaurer thème
+    appliquerTheme(localStorage.getItem('themeNuit') === '1');
+    
+    // Restaurer langue
     document.querySelectorAll('.btn-langue').forEach(b => {
       b.classList.toggle('actif', b.dataset.lang === langue);
     });
+    
+    // Afficher nom utilisateur
     document.getElementById('nom-affiche').textContent = nomComplet;
     document.getElementById('nom-affiche2').textContent = nomComplet;
+    
+    // Lier bouton thème
+    document.getElementById('btnTheme').addEventListener('click', () => {
+      appliquerTheme(!document.body.classList.contains('mode-nuit'));
+    });
+
     chargerTout();
     setTimeout(animerCartes, 100);
   });
 </script>
-
 
 <!-- 🧭 MENU PRINCIPAL EN HAUT -->
 <nav class="navbar-principale navbar-expand-lg navbar-dark">
@@ -650,7 +753,7 @@
           </ul>
         </li>
 
-        <!-- 🎨 SITE & CONTENU — AVEC TES 3 LIENS -->
+        <!-- 🎨 SITE & CONTENU -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
             <i class="bi bi-palette"></i>
@@ -663,7 +766,6 @@
             <li><a class="dropdown-item" href="medias.html"><i class="bi bi-images"></i> <span class="txt-fr">Médias</span><span class="txt-en">Media</span><span class="txt-ar">الوسائط</span></a></li>
             <li><a class="dropdown-item" href="documents.html"><i class="bi bi-file-earmark-pdf"></i> <span class="txt-fr">Documents</span><span class="txt-en">Documents</span><span class="txt-ar">الوثائق</span></a></li>
             <li><hr class="dropdown-divider"></li>
-            <!-- ✅ TES 3 LIENS AJOUTÉS ICI -->
             <li><a class="dropdown-item" href="admin-calendrier.html"><i class="bi bi-calendar3"></i> <span class="txt-fr">Calendrier Scolaire</span><span class="txt-en">School Calendar</span><span class="txt-ar">التقويم المدرسي</span></a></li>
             <li><a class="dropdown-item" href="admin-equipe.html"><i class="bi bi-people-fill"></i> <span class="txt-fr">Équipe Pédagogique</span><span class="txt-en">Teaching Staff</span><span class="txt-ar">الفريق التربوي</span></a></li>
             <li><a class="dropdown-item" href="admin-reglement.html"><i class="bi bi-file-text"></i> <span class="txt-fr">Règlement Intérieur</span><span class="txt-en">Internal Rules</span><span class="txt-ar">النظام الداخلي</span></a></li>
@@ -685,12 +787,12 @@
             <li><a class="dropdown-item" href="paiements.html"><i class="bi bi-credit-card"></i> <span class="txt-fr">Paiements</span><span class="txt-en">Payments</span><span class="txt-ar">المدفوعات</span></a></li>
           </ul>
         </li>
-
       </ul>
 
-      <!-- 🌐 LANGUE & UTILISATEUR -->
+      <!-- 🌐 LANGUE, THÈME & UTILISATEUR -->
       <div class="d-flex align-items-center">
-        <div class="d-flex">
+        <div class="d-flex align-items-center">
+          <button id="btnTheme" class="btn-theme" title="Basculer jour/nuit">☀️</button>
           <button data-lang="fr" class="btn btn-langue btn-sm" onclick="appliquerLangue('fr')">FR</button>
           <button data-lang="en" class="btn btn-langue btn-sm" onclick="appliquerLangue('en')">EN</button>
           <button data-lang="ar" class="btn btn-langue btn-sm" onclick="appliquerLangue('ar')">AR</button>
@@ -708,7 +810,6 @@
     </div>
   </div>
 </nav>
-
 
 <!-- 📊 CONTENU PRINCIPAL -->
 <div class="contenu">
@@ -728,7 +829,7 @@
     </p>
   </div>
 
-  <!-- 📊 STATISTIQUES AVEC ANIMATION -->
+  <!-- 📊 STATISTIQUES -->
   <div class="row g-4 mb-5">
     <div class="col-md-3 col-sm-6">
       <div class="stat-card">
@@ -800,59 +901,27 @@
         <div id="zone-repartition"></div>
       </div>
     </div>
-    <div class="col-md-5">
-      <div class="contenu-card">
+    <div class="col-md-      <div class="contenu-card">
         <h5>📄 <span class="txt-fr">État des Notes & Bulletins</span><span class="txt-en">Grades & Reports Status</span><span class="txt-ar">حالة الدرجات والشهادات</span></h5>
-        <div class="mt-4">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="txt-fr">Notes saisies</span><span class="txt-en">Grades entered</span>
-            <span class="etat-badge success" id="etat-notes">0</span>
-          </div>
-          <div class="d-flex justify-content-between align-items-center">
-            <span class="txt-fr">Bulletins générés</span><span class="txt-en">Reports generated</span>
-            <span class="etat-badge primary" id="etat-bulletins">0</span>
-          </div>
+        <div class="mt-3">
+          <p class="mb-2">
+            <span class="txt-fr">Notes saisies</span>
+            <span class="txt-en">Grades entered</span>
+            <span class="txt-ar">الدرجات المدخلة</span>
+            : <span class="etat-badge success" id="etat-notes">0</span>
+          </p>
+          <p>
+            <span class="txt-fr">Bulletins générés</span>
+            <span class="txt-en">Reports generated</span>
+            <span class="txt-ar">الشهادات المنشأة</span>
+            : <span class="etat-badge primary" id="etat-bulletins">0</span>
+          </p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ✅ BLOC GESTION DES CONTENUS -->
-  <div class="bloc-admin">
-    <h3>📚 
-      <span class="txt-fr">Gestion des Contenus</span>
-      <span class="txt-en">Content Management</span>
-      <span class="txt-ar">إدارة المحتوى</span>
-    </h3>
-    <ul>
-      <li>
-        <a href="admin-calendrier.html">
-          📅 
-          <span class="txt-fr">Calendrier Scolaire</span>
-          <span class="txt-en">School Calendar</span>
-          <span class="txt-ar">التقويم المدرسي</span>
-        </a>
-      </li>
-      <li>
-        <a href="admin-equipe.html">
-          👨‍🏫 
-          <span class="txt-fr">Équipe Pédagogique</span>
-          <span class="txt-en">Teaching Staff</span>
-          <span class="txt-ar">الفريق التربوي</span>
-        </a>
-      </li>
-      <li>
-        <a href="admin-reglement.html">
-          📄 
-          <span class="txt-fr">Règlement Intérieur</span>
-          <span class="txt-en">Internal Rules</span>
-          <span class="txt-ar">النظام الداخلي</span>
-        </a>
-      </li>
-    </ul>
-  </div>
-
-  <!-- ⚡ ACTIONS RAPIDES AVEC ANIMATION -->
+  <!-- ⚡ ACTIONS RAPIDES -->
   <h4 class="titre-section">⚡ 
     <span class="txt-fr">Actions Rapides</span>
     <span class="txt-en">Quick Actions</span>
@@ -860,8 +929,18 @@
   </h4>
   <div class="row g-4 mb-5">
     <div class="col-md-3 col-sm-6">
+      <a href="gestion-preinscriptions.html" class="action-card">
+        <div class="action-icone"><i class="bi bi-file-earmark-plus"></i></div>
+        <h6>
+          <span class="txt-fr">Nouvelle Préinscription</span>
+          <span class="txt-en">New Pre-Registration</span>
+          <span class="txt-ar">تسجيل مسبق جديد</span>
+        </h6>
+      </a>
+    </div>
+    <div class="col-md-3 col-sm-6">
       <a href="valider-inscription.html" class="action-card">
-        <div class="action-icone"><i class="bi bi-check-lg"></i></div>
+        <div class="action-icone"><i class="bi bi-check2-square"></i></div>
         <h6>
           <span class="txt-fr">Valider Inscriptions</span>
           <span class="txt-en">Validate Enrollments</span>
@@ -870,58 +949,63 @@
       </a>
     </div>
     <div class="col-md-3 col-sm-6">
-      <a href="classes-matieres.html" class="action-card">
-        <div class="action-icone"><i class="bi bi-grid"></i></div>
-        <h6>
-          <span class="txt-fr">Classes & Matières</span>
-          <span class="txt-en">Classes & Subjects</span>
-          <span class="txt-ar">الفصول والمواد</span>
-        </h6>
-      </a>
-    </div>
-    <div class="col-md-3 col-sm-6">
-      <a href="affectation-prof.html" class="action-card">
-        <div class="action-icone"><i class="bi bi-person-check"></i></div>
-        <h6>
-          <span class="txt-fr">Affecter Enseignants</span>
-          <span class="txt-en">Assign Teachers</span>
-          <span class="txt-ar">تكليف المدرسين</span>
-        </h6>
-      </a>
-    </div>
-    <div class="col-md-3 col-sm-6">
       <a href="saisie-notes.html" class="action-card">
-        <div class="action-icone"><i class="bi bi-pencil-square"></i></div>
+        <div class="action-icone"><i class="bi bi-pencil"></i></div>
         <h6>
-          <span class="txt-fr">Saisir des Notes</span>
+          <span class="txt-fr">Saisir les Notes</span>
           <span class="txt-en">Enter Grades</span>
           <span class="txt-ar">إدخال الدرجات</span>
         </h6>
       </a>
     </div>
+    <div class="col-md-3 col-sm-6">
+      <a href="generer-bulletin.html" class="action-card">
+        <div class="action-icone"><i class="bi bi-file-earmark-text"></i></div>
+        <h6>
+          <span class="txt-fr">Générer Bulletins</span>
+          <span class="txt-en">Generate Reports</span>
+          <span class="txt-ar">إنشاء الشهادات</span>
+        </h6>
+      </a>
+    </div>
   </div>
 
-  <!-- 🔗 ACCÈS DIRECTS -->
-  <div class="raccourci-card">
-    <h5 class="mb-3">🔗 
-      <span class="txt-fr">Accès Directs</span>
-      <span class="txt-en">Quick Links</span>
-      <span class="txt-ar">وصول سريع</span>
-    </h5>
-    <div class="d-flex flex-wrap gap-2">
-      <a href="generer-bulletin.html" class="btn btn-light border btn-sm"><i class="bi bi-file-earmark-text me-1"></i> <span class="txt-fr">Bulletins</span><span class="txt-en">Reports</span><span class="txt-ar">الشهادات</span></a>
-      <a href="emploi-temps.html" class="btn btn-light border btn-sm"><i class="bi bi-clock-history me-1"></i> <span class="txt-fr">Emploi du temps</span><span class="txt-en">Timetable</span></a>
-      <a href="annonces.html" class="btn btn-light border btn-sm"><i class="bi bi-megaphone me-1"></i> <span class="txt-fr">Annonces</span><span class="txt-en">Announcements</span><span class="txt-ar">الإعلانات</span></a>
-      <a href="evenements.html" class="btn btn-light border btn-sm"><i class="bi bi-calendar-event me-1"></i> <span class="txt-fr">Événements</span><span class="txt-en">Events</span><span class="txt-ar">الفعاليات</span></a>
-      <a href="paiement.html" class="btn btn-light border btn-sm"><i class="bi bi-credit-card me-1"></i> <span class="txt-fr">Paiements</span><span class="txt-en">Payments</span><span class="txt-ar">المدفوعات</span></a>
-      <a href="emploi-temps-global.html" class="btn btn-light border btn-sm"><i class="bi bi-calendar3 me-1"></i> <span class="txt-fr">Emploi du Temps Global</span><span class="txt-en">Global Timetable</span><span class="txt-ar">الجدول الزمني العام</span></a>
-      <a href="parametres.html" class="btn btn-light border btn-sm"><i class="bi bi-sliders me-1"></i> <span class="txt-fr">Paramètres</span><span class="txt-en">Settings</span><span class="txt-ar">الإعدادات</span></a>
+  <!-- 📚 GESTION DES CONTENUS -->
+  <div class="bloc-admin">
+    <h3>📚 
+      <span class="txt-fr">Gestion des Contenus & Services</span>
+      <span class="txt-en">Content & Services Management</span>
+      <span class="txt-ar">إدارة المحتوى والخدمات</span>
+    </h3>
+    <div class="row">
+      <div class="col-md-4">
+        <ul>
+          <li><a href="annonces.html"><i class="bi bi-broadcast-pin"></i> <span class="txt-fr">Annonces</span><span class="txt-en">Announcements</span><span class="txt-ar">الإعلانات</span></a></li>
+          <li><a href="actualites.html"><i class="bi bi-newspaper"></i> <span class="txt-fr">Actualités</span><span class="txt-en">News</span><span class="txt-ar">الأخبار</span></a></li>
+          <li><a href="evenements.html"><i class="bi bi-calendar-event"></i> <span class="txt-fr">Événements</span><span class="txt-en">Events</span><span class="txt-ar">الفعاليات</span></a></li>
+        </ul>
+      </div>
+      <div class="col-md-4">
+        <ul>
+          <li><a href="classes-matieres.html"><i class="bi bi-grid"></i> <span class="txt-fr">Classes & Matières</span><span class="txt-en">Classes & Subjects</span><span class="txt-ar">المستويات والمواد</span></a></li>
+          <li><a href="emploi-temps.html"><i class="bi bi-calendar3"></i> <span class="txt-fr">Emploi du Temps</span><span class="txt-en">Timetable</span><span class="txt-ar">الجدول الزمني</span></a></li>
+          <li><a href="admin-calendrier.html"><i class="bi bi-calendar2-check"></i> <span class="txt-fr">Calendrier Scolaire</span><span class="txt-en">School Calendar</span><span class="txt-ar">التقويم المدرسي</span></a></li>
+        </ul>
+      </div>
+      <div class="col-md-4">
+        <ul>
+          <li><a href="finances.html"><i class="bi bi-graph-up-arrow"></i> <span class="txt-fr">Finances & Paiements</span><span class="txt-en">Finance & Payments</span><span class="txt-ar">المالية والمدفوعات</span></a></li>
+          <li><a href="boutique-admin.html"><i class="bi bi-bag"></i> <span class="txt-fr">Boutique Scolaire</span><span class="txt-en">School Store</span><span class="txt-ar">متجر المدرسة</span></a></li>
+          <li><a href="parametres.html"><i class="bi bi-sliders"></i> <span class="txt-fr">Paramètres du Site</span><span class="txt-en">Site Settings</span><span class="txt-ar">إعدادات الموقع</span></a></li>
+        </ul>
+      </div>
     </div>
   </div>
 
 </div>
 
-<!-- Bootstrap JS pour les menus déroulants -->
+<!-- ⚡ BOOTSTRAP JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

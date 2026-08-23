@@ -11,58 +11,38 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
+    /* ✅ VARIABLES — MODE CLAIR */
     :root {
       --primaire: #0c4a6e;
       --accent: #f59e0b;
       --sombre: #0f172a;
       --sombre-clair: #1e293b;
-      --bord-orange: #f59e0b;
       --vert: #10b981;
       --rouge: #ef4444;
       --jaune: #f59e0b;
+      --fond-page: #f1f5f9;
+      --texte-principal: #1e293b;
+      --texte-secondaire: #64748b;
+      --carte-fond: #ffffff;
+      --bordure: rgba(12, 74, 110, 0.1);
+      --ombre: rgba(12, 74, 110, 0.06);
+      --menu-debut: #0f172a;
+      --menu-fin: #0c4a6e;
     }
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{background:#f1f5f9;font-family:'Segoe UI','Roboto',sans-serif;min-height:100vh}
 
+    /* 🌙 MODE SOMBRE */
+    body.mode-nuit {
+      --fond-page: #0f172a;
+      --texte-principal: #f8fafc;
+      --texte-secondaire: #cbd5e1;
+      --carte-fond: rgba(30, 41, 59, 0.7);
+      --bordure: rgba(245, 158, 11, 0.18);
+      --ombre: rgba(245, 158, 11, 0.08);
+      --menu-debut: #020617;
+      --menu-fin: #0c4a6e;
+    }
 
-    .menu-gauche{background:linear-gradient(180deg,var(--sombre),var(--primaire));min-height:100vh;width:260px;position:fixed;padding:0;overflow-y:auto}
-    .entete-menu{padding:25px 20px;border-bottom:1px solid rgba(245,158,11,0.15)}
-    .logo-menu{color:var(--accent);font-weight:800;font-size:1.3rem;text-decoration:none;display:flex;align-items:center;gap:10px}
-    .logo-menu i{font-size:1.6rem}
-    .nav-menu{padding:20px 12px}
-    .lien-nav{display:flex;align-items:center;gap:12px;padding:12px 15px;margin-bottom:6px;color:#cbd5e1;text-decoration:none;border-radius:10px;transition:all 0.25s ease}
-    .lien-nav:hover,.lien-nav.actif{background:rgba(245,158,11,0.08);color:var(--accent)}
-
-
-    .contenu-principal{margin-left:260px;padding:25px 30px;min-height:100vh}
-    .barre-haut{background:white;padding:15px 25px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:25px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px}
-    .btn-langue{background:rgba(12,74,110,0.08);border:1px solid var(--primaire);border-radius:20px;padding:5px 12px;font-size:0.85rem;cursor:pointer;margin:0 2px;color:var(--primaire);font-weight:600}
-    .btn-langue.active{background:var(--accent);color:#000;border-color:var(--accent)}
-    .btn-deco{background:transparent;border:1px solid var(--accent);color:var(--accent);padding:6px 12px;border-radius:8px;transition:all 0.2s}
-    .btn-deco:hover{background:var(--accent);color:#000}
-
-
-    .carte{background:white;border-radius:14px;padding:22px;box-shadow:0 4px 12px rgba(0,0,0,0.05);margin-bottom:25px}
-    .titre-section{font-weight:700;color:var(--primaire);margin-bottom:1.5rem}
-    .badge-pr{background:var(--vert);color:#fff}
-    .badge-ab{background:var(--rouge);color:#fff}
-    .badge-re{background:var(--jaune);color:#000}
-    .btn-pr{background:var(--vert);color:#fff;border:none}
-    .btn-ab{background:var(--rouge);color:#fff;border:none}
-    .btn-re{background:var(--jaune);color:#000;border:none}
-    .btn-pr:hover{background:#059669;color:#fff}
-    .btn-ab:hover{background:#dc2626;color:#fff}
-    .btn-re:hover{background:#d97706;color:#fff}
-    .statut-eleve{width:90px}
-
-    /* ✅ BOUTONS MANQUANTS AJOUTÉS */
-    .btn-orange{background:linear-gradient(135deg,var(--accent),#f97316);color:#000;border:none;font-weight:600}
-    .btn-orange:hover{background:#d97706;color:#000}
-    .btn-vert{background:var(--vert);color:#fff;border:none;font-weight:600}
-    .btn-vert:hover{background:#059669;color:#fff}
-
-
-    /* ✅ MODÈLE TRILINGUE */
+    /* ✅ TRILINGUE */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
@@ -70,12 +50,233 @@
     body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
     body.lang-ar .txt-ar { display: inline; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
-    body.lang-ar .titre-section { text-align: right; }
     body.lang-ar { direction: rtl; }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--fond-page);
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
+      min-height: 100vh;
+      color: var(--texte-principal);
+      transition: background 0.4s ease, color 0.4s ease;
+    }
+
+    /* 📱 MENU LATÉRAL */
+    .menu-gauche {
+      background: linear-gradient(180deg, var(--menu-debut), var(--menu-fin));
+      min-height: 100vh;
+      width: 260px;
+      position: fixed;
+      padding: 0;
+      overflow-y: auto;
+      transition: background 0.4s ease;
+      z-index: 10;
+    }
+    .entete-menu {
+      padding: 25px 20px;
+      border-bottom: 1px solid rgba(245, 158, 11, 0.15);
+    }
+    .logo-menu {
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 1.3rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: transform 0.3s ease;
+    }
+    .logo-menu:hover { transform: scale(1.03); }
+    .logo-menu i { font-size: 1.6rem; }
+
+    .nav-menu { padding: 20px 12px; }
+    .lien-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 15px;
+      margin-bottom: 6px;
+      color: #cbd5e1;
+      text-decoration: none;
+      border-radius: 10px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .lien-nav:hover, .lien-nav.actif {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--accent);
+      transform: translateX(4px);
+    }
+    body.lang-ar .lien-nav:hover, body.lang-ar .lien-nav.actif { transform: translateX(-4px); }
+
+    /* 📄 CONTENU PRINCIPAL */
+    .contenu-principal {
+      margin-left: 260px;
+      padding: 25px 30px;
+      min-height: 100vh;
+      transition: margin-left 0.3s ease;
+    }
+    .barre-haut {
+      background: var(--carte-fond);
+      padding: 15px 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px var(--ombre);
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      border: 1px solid var(--bordure);
+      transition: all 0.4s ease;
+    }
+
+    /* 🗣️ Boutons langue & thème */
+    .btn-langue, .btn-theme {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid var(--accent);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin: 0 2px;
+      color: var(--accent);
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    .btn-langue:hover, .btn-theme:hover {
+      background: var(--accent);
+      color: #000;
+      transform: translateY(-2px);
+    }
+    .btn-langue.active {
+      background: var(--accent);
+      color: #000;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.35);
+    }
+    .btn-theme { border-radius: 50%; width: 40px; height: 40px; padding: 0; }
+
+    .btn-deco {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 6px 14px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    .btn-deco:hover {
+      background: var(--accent);
+      color: #000;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+    }
+
+    /* 🎴 CARTES */
+    .carte {
+      background: var(--carte-fond);
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 4px 15px var(--ombre);
+      margin-bottom: 25px;
+      border: 1px solid var(--bordure);
+      transition: all 0.4s ease;
+    }
+    .carte:hover {
+      box-shadow: 0 8px 25px var(--ombre);
+      transform: translateY(-2px);
+    }
+    .titre-section {
+      font-weight: 700;
+      color: var(--primaire);
+      margin-bottom: 1.5rem;
+      transition: color 0.4s ease;
+    }
+    body.mode-nuit .titre-section { color: var(--accent); }
+
+    /* 🏷️ BADGES */
+    .badge-pr { background: var(--vert); color: #fff; }
+    .badge-ab { background: var(--rouge); color: #fff; }
+    .badge-re { background: var(--jaune); color: #000; }
+
+    /* 🔘 BOUTONS STATUT */
+    .btn-pr {
+      background: linear-gradient(135deg, var(--vert), #059669);
+      color: #fff; border: none; transition: all 0.25s ease;
+    }
+    .btn-ab {
+      background: linear-gradient(135deg, var(--rouge), #dc2626);
+      color: #fff; border: none; transition: all 0.25s ease;
+    }
+    .btn-re {
+      background: linear-gradient(135deg, var(--jaune), #d97706);
+      color: #000; border: none; transition: all 0.25s ease;
+    }
+    .btn-pr:hover, .btn-ab:hover, .btn-re:hover {
+      transform: scale(1.08); box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    }
+    .btn-check:checked + .btn-pr, .btn-pr.active,
+    .btn-check:checked + .btn-ab, .btn-ab.active,
+    .btn-check:checked + .btn-re, .btn-re.active {
+      transform: scale(1.1); box-shadow: 0 0 0 3px rgba(245,158,11,0.35);
+    }
+
+    .statut-eleve { width: 110px; }
+
+    /* ✅ BOUTONS ACTION */
+    .btn-orange {
+      background: linear-gradient(135deg, var(--accent), #f97316);
+      color: #000; border: none; font-weight: 600; transition: all 0.3s ease;
+    }
+    .btn-orange:hover {
+      background: #d97706; color: #000;
+      transform: translateY(-2px); box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+    }
+    .btn-vert {
+      background: linear-gradient(135deg, var(--vert), #059669);
+      color: #fff; border: none; font-weight: 600; transition: all 0.3s ease;
+    }
+    .btn-vert:hover {
+      background: #047857; color: #fff;
+      transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+    }
+
+    /* 📊 TABLEAU */
+    .table { color: inherit; }
+    .table-dark {
+      background: linear-gradient(135deg, var(--sombre), var(--sombre-clair));
+    }
+    .form-control, .form-select {
+      background: var(--carte-fond);
+      border: 1px solid var(--bordure);
+      color: var(--texte-principal);
+      transition: all 0.3s ease;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
+      background: var(--carte-fond);
+      color: var(--texte-principal);
+    }
+
+    /* 📈 CARTES STATISTIQUES */
+    .display-4 { transition: color 0.4s ease; }
+
+    /* 📱 RESPONSIVE */
+    @media (max-width: 992px) {
+      .menu-gauche { width: 220px; }
+      .contenu-principal { margin-left: 220px; padding: 20px 18px; }
+    }
+    @media (max-width: 768px) {
+      .menu-gauche { position: relative; width: 100%; min-height: auto; max-height: 70px; overflow: hidden; }
+      .contenu-principal { margin-left: 0; padding: 15px 12px; }
+      .barre-haut { flex-direction: column; align-items: flex-start; }
+      .statut-eleve { width: auto; }
+    }
   </style>
 </head>
 <body class="lang-fr">
-
 
 <div class="d-flex">
   <aside class="menu-gauche">
@@ -124,7 +325,6 @@
     </nav>
   </aside>
 
-
   <main class="contenu-principal">
     <div class="barre-haut">
       <div class="titre-section">
@@ -140,6 +340,7 @@
         </small>
       </div>
       <div class="d-flex align-items-center gap-2">
+        <button id="btnTheme" class="btn-theme" title="Basculer jour/nuit">☀️</button>
         <button class="btn-langue" data-lang="fr">FR</button>
         <button class="btn-langue" data-lang="en">EN</button>
         <button class="btn-langue" data-lang="ar">AR</button>
@@ -153,7 +354,6 @@
         </button>
       </div>
     </div>
-
 
     <!-- 🔽 FILTRES -->
     <div class="carte">
@@ -197,14 +397,12 @@
       </div>
     </div>
 
-
     <!-- 📊 LÉGENDE -->
     <div class="alert alert-info py-2">
       <span class="txt-fr">✅ Présent · ❌ Absent · ⚠️ En retard</span>
       <span class="txt-en">✅ Present · ❌ Absent · ⚠️ Late</span>
       <span class="txt-ar">✅ حاضر · ❌ غائب · ⚠️ متأخر</span>
     </div>
-
 
     <!-- 📋 TABLEAU PRÉSENCES -->
     <div class="carte">
@@ -249,7 +447,6 @@
       </div>
     </div>
 
-
     <!-- 📊 STATISTIQUES DU JOUR -->
     <div class="row g-4">
       <div class="col-md-4">
@@ -286,7 +483,6 @@
   </main>
 </div>
 
-
 <script>
 // ==================================================
 // ⚙️ CONFIGURATION — 100% HARMONISÉE ✅
@@ -302,9 +498,25 @@ if(!token || role !== 'prof'){
   location.href = 'connexion.html';
 }
 
-document.getElementById('nom-prof').textContent = 
-  (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || '');
+// ==================================================
+// 🌙 MODE JOUR / NUIT
+// ==================================================
+const btnTheme = document.getElementById('btnTheme');
 
+function appliquerTheme(nuit) {
+  if (nuit) {
+    document.body.classList.add('mode-nuit');
+    btnTheme.textContent = '🌙';
+  } else {
+    document.body.classList.remove('mode-nuit');
+    btnTheme.textContent = '☀️';
+  }
+  localStorage.setItem('themeNuit', nuit ? '1' : '0');
+}
+
+btnTheme.addEventListener('click', () => {
+  appliquerTheme(!document.body.classList.contains('mode-nuit'));
+});
 
 // 🗣️ GESTION DE LA LANGUE
 function appliquerLangue(lang) {
@@ -315,23 +527,25 @@ function appliquerLangue(lang) {
   document.querySelector(`[data-lang="${lang}"]`)?.classList.add('active');
 }
 
-// ✅ Restaurer langue sauvegardée
+// ✅ Restauration langue et thème
 const langueSauvegardee = localStorage.getItem('langue') || 'fr';
 appliquerLangue(langueSauvegardee);
 document.querySelectorAll('.btn-langue').forEach(btn => {
   btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
 });
+appliquerTheme(localStorage.getItem('themeNuit') === '1');
 
+// ✅ Nom de l'enseignant
+document.getElementById('nom-prof').textContent = 
+  (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || '');
 
 // ✅ Date du jour par défaut
 document.getElementById('date-presence').valueAsDate = new Date();
 
 let listeEleves = [];
 
-
-// 🚀 AU CHARGEMENT → charger mes classes
+// 🚀 AU CHARGEMENT
 window.onload = chargerMesClasses;
-
 
 // 📥 CHARGER MES CLASSES
 async function chargerMesClasses() {
@@ -354,8 +568,7 @@ async function chargerMesClasses() {
   }
 }
 
-
-// 📥 CHARGER LA LISTE DES ÉLÈVES DE LA CLASSE SÉLECTIONNÉE
+// 📥 CHARGER LA LISTE DES ÉLÈVES
 async function chargerListeEleves() {
   const id_classe = document.getElementById('id_classe').value;
   if (!id_classe) {
@@ -394,7 +607,6 @@ async function chargerListeEleves() {
   }
 }
 
-
 // 📄 AFFICHER LE TABLEAU
 function afficherTableau() {
   document.getElementById('corps-tableau').innerHTML = listeEleves.map((el, i) => `
@@ -421,7 +633,6 @@ function afficherTableau() {
   reinitialiserStats();
 }
 
-
 // 🔄 CHANGER LE STATUT
 function changerStatut(idEleve, statut) {
   const badge = document.getElementById(`badge-${idEleve}`);
@@ -429,7 +640,6 @@ function changerStatut(idEleve, statut) {
   boutons.forEach(b => b.classList.remove('active'));
   badge.parentElement.querySelector(`[data-statut="${statut}"]`)?.classList.add('active');
 
-  // Mise à jour badge
   if (statut === 'P') {
     badge.className = 'badge badge-pr mt-1 d-block';
     badge.innerHTML = `<span class="txt-fr">Présent</span><span class="txt-en">Present</span><span class="txt-ar">حاضر</span>`;
@@ -441,18 +651,15 @@ function changerStatut(idEleve, statut) {
     badge.innerHTML = `<span class="txt-fr">En retard</span><span class="txt-en">Late</span><span class="txt-ar">متأخر</span>`;
   }
 
-  // Enregistre le statut dans l'objet élève
   const el = listeEleves.find(x => x.id_utilisateur === idEleve);
   if (el) { 
     el.statut = statut; 
     document.getElementById(`etat-${idEleve}`).textContent = "⚠️";
   }
-
   mettreAJourStats();
 }
 
-
-// 📊 METTRE À JOUR LES STATISTIQUES
+// 📊 STATISTIQUES
 function mettreAJourStats() {
   const pres = listeEleves.filter(e => e.statut === 'P').length;
   const abs = listeEleves.filter(e => e.statut === 'A').length;
@@ -469,8 +676,7 @@ function reinitialiserStats() {
   document.getElementById('stat-retard').textContent = '0';
 }
 
-
-// 📖 CHARGER LES PRÉSENCES DÉJÀ ENREGISTRÉES
+// 📖 CHARGER PRÉSENCES ENREGISTRÉES
 async function chargerPresences() {
   const id_classe = document.getElementById('id_classe').value;
   const date = document.getElementById('date-presence').value;
@@ -500,8 +706,7 @@ async function chargerPresences() {
   }
 }
 
-
-// 💾 ENREGISTRER TOUTES LES PRÉSENCES
+// 💾 ENREGISTRER TOUT
 async function enregistrerTout() {
   const id_classe = document.getElementById('id_classe').value;
   const date = document.getElementById('date-presence').value;
@@ -514,7 +719,6 @@ async function enregistrerTout() {
   let okCount = 0;
   for (const el of listeEleves) {
     if (!el.statut) continue;
-
     const observation = document.getElementById(`obs-${el.id_utilisateur}`)?.value || '';
 
     try {
@@ -540,10 +744,8 @@ async function enregistrerTout() {
       document.getElementById(`etat-${el.id_utilisateur}`).textContent = "❌";
     }
   }
-
   alert(`✅ ${okCount}/${listeEleves.length} présences enregistrées !`);
 }
-
 
 // ✅ DÉCONNEXION
 function deconnexion(){
@@ -551,6 +753,5 @@ function deconnexion(){
   location.href = 'connexion.html';
 }
 </script>
-
 </body>
 </html>
