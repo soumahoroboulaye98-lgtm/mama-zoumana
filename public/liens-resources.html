@@ -430,7 +430,7 @@ window.addEventListener('DOMContentLoaded', () => {
     b.classList.remove('active');
     if (b.dataset.lang === langue) b.classList.add('active');
   });
-  // Placeholder recherche
+  
   const champRecherche = document.querySelector('input[name="q"]');
   if (champRecherche) {
     const ph = champRecherche.getAttribute(`data-placeholder-${langue}`);

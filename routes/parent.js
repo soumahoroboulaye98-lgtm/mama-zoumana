@@ -177,7 +177,7 @@ router.get('/edt/:id_eleve', protegerParent, async (req, res) => {
     const { id_eleve } = req.params;
     const filtre = req.filtreParent;
 
-    // ✅ Vérifie appartenance et récupère la classe de l'élève
+    // ✅ Vérifi appartenance et récupère la classe de l'élève
     const enfant = await verifierAppartenanceEnfant(id_eleve, filtre, pool);
     if (!enfant || !enfant.id_classe) {
       return res.json({ ok: false, erreur: enfant ? "ℹ️ Classe non définie" : "⛔ Accès refusé" });

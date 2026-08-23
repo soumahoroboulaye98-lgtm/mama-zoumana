@@ -431,7 +431,7 @@ router.get('/detail/:id', protegerAdmin, async (req, res) => {
 
 
 // ==================================================
-// 🔑 CONNEXION PARENT PAR MATRICULE — Publique
+// 🔑 CONNEXION PARENT PAR MATRICULE — Publiqu
 // ==================================================
 router.post('/parent-matricule', async (req, res) => {
   try {
