@@ -9,10 +9,12 @@ const fs = require('fs');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
+
 // ==================================================
 // ✅ CLÉ JWT UNIFIÉE — MÊME VALEUR PARTOUT
 // ==================================================
 const CLE_JWT = process.env.JWT_SECRET || 'ma_cle_secrete_pour_le_site_2026';
+
 
 // ==================================================
 // ✅ MIDDLEWARES IMPORTÉS ET HARMONISÉS
@@ -20,6 +22,7 @@ const CLE_JWT = process.env.JWT_SECRET || 'ma_cle_secrete_pour_le_site_2026';
 const veriftoken = require('../middleware/veriftoken');
 const verifadmin = require('../middleware/verifadmin');
 const protegerAdmin = [veriftoken, verifadmin];
+
 
 // ✅ Middleware vérification parent
 async function verifParent(req, res, next) {
@@ -39,25 +42,19 @@ async function verifParent(req, res, next) {
 }
 const protegerParent = [veriftoken, verifParent];
 
+
 // ==================================================
-// ✅ GÉNÉRATION DU MATRICULE — FORME : MZ + ANNÉE + ÂGE + N°
+// ✅ GÉNÉRATION DU MATRICULE — MZ + ANNÉE FIN + ÂGE + N°
 // ==================================================
 async function genererMatricule(dateNaissance, anneeScolaire) {
-  // 1. Extraire l'année de fin (ex: '2025-2026' → '2026')
   const anneeFin = anneeScolaire.slice(-4);
-
-  // 2. Calculer l'âge au 1er octobre de l'année scolaire
   const dateDebut = new Date(`${anneeScolaire.slice(0,4)}-10-01`);
   const naissance = new Date(dateNaissance);
   let age = dateDebut.getFullYear() - naissance.getFullYear();
   const mois = dateDebut.getMonth() - naissance.getMonth();
-  if (mois < 0 || (mois === 0 && dateDebut.getDate() < naissance.getDate())) {
-    age--;
-  }
-  // Garantir 2 chiffres minimum, borne raisonnable
+  if (mois < 0 || (mois === 0 && dateDebut.getDate() < naissance.getDate())) age--;
   age = Math.max(5, Math.min(99, age));
 
-  // 3. Trouver le prochain numéro pour ce couple (année + âge)
   const prefixeRecherche = `MZ${anneeFin}${String(age).padStart(2,'0')}`;
   const resultat = await pool.query(
     `SELECT matricule FROM utilisateurs WHERE matricule LIKE $1 ORDER BY matricule DESC LIMIT 1`,
@@ -66,13 +63,11 @@ async function genererMatricule(dateNaissance, anneeScolaire) {
 
   let numero = 1;
   if (resultat.rows.length > 0) {
-    const dernier = resultat.rows[0].matricule;
-    numero = parseInt(dernier.slice(-3), 10) + 1;
+    numero = parseInt(resultat.rows[0].matricule.slice(-3), 10) + 1;
   }
-
-  // 4. Construire le matricule final
   return `MZ${anneeFin}${String(age).padStart(2,'0')}${String(numero).padStart(3,'0')}`;
 }
+
 
 // ==================================================
 // ✅ VÉRIFIER APPARTENANCE D'UN ENFANT
@@ -93,13 +88,12 @@ async function verifierAppartenanceEnfant(id_eleve, filtre, pool) {
   return r.rows.length ? r.rows[0] : null;
 }
 
+
 // ==================================================
 // 📁 CONFIGURATION MULTER — Upload sécurisé
 // ==================================================
 const dossierUpload = path.join(__dirname, '../../public/uploads/');
-if (!fs.existsSync(dossierUpload)) {
-  fs.mkdirSync(dossierUpload, { recursive: true });
-}
+if (!fs.existsSync(dossierUpload)) fs.mkdirSync(dossierUpload, { recursive: true });
 
 const stockage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, dossierUpload),
@@ -109,6 +103,7 @@ const stockage = multer.diskStorage({
   }
 });
 const upload = multer({ storage: stockage });
+
 
 // ==================================================
 // 📧 ENVOI D'EMAIL CENTRALISÉ
@@ -136,6 +131,7 @@ async function envoyerEmail(destinataire, sujet, messageHtml) {
   }
 }
 
+
 // ==================================================
 // 🔧 DÉTERMINER LE PROFIL
 // ==================================================
@@ -146,6 +142,7 @@ function determinerProfil(d) {
   if (d.cv) return 'prof';
   return 'visiteur';
 }
+
 
 // ==================================================
 // ✅ ENREGISTRER UNE PRÉINSCRIPTION — Publique
@@ -170,8 +167,7 @@ router.post('/', upload.fields([
     } = req.body;
 
     const id_classe_nombre = (id_classe_souhaitee && id_classe_souhaitee !== '' && !isNaN(Number(id_classe_souhaitee)))
-      ? Number(id_classe_souhaitee)
-      : null;
+      ? Number(id_classe_souhaitee) : null;
 
     let libelleClasse = null, placesRestantes = null, capaciteMax = null, placesOccupeesActuelles = null;
     if ((profil === 'eleve' || id_classe_nombre) && id_classe_nombre) {
@@ -218,7 +214,7 @@ router.post('/', upload.fields([
       champs.push(
         'nom_pere', 'profession_pere', 'telephone_pere', 'email_pere',
         'nom_mere', 'profession_mere', 'telephone_mere', 'email_mere', 'adresse_famille',
-        'moyenne_annee_precedente', 'classement', 'mention', 'conduite'
+        'moyenne_annee_precedente', 'classement', 'mention', 'note_conduite'
       );
       valeurs.push(
         nom_pere || null, profession_pere || null, telephone_pere || null, email_pere || null,
@@ -236,15 +232,9 @@ router.post('/', upload.fields([
       placesRestantes = (capaciteMax || 0) - ((placesOccupeesActuelles || 0) + 1);
     }
 
-    const infoClasse = libelleClasse
-      ? `🏫 Classe demandée : ${libelleClasse}<br>📊 Places restantes : <strong>${placesRestantes}</strong> place(s)`
-      : '';
-    const infosParentsHtml = profil === 'eleve' && nom_pere
-      ? `<br>👨‍👩 Informations famille enregistrées ✅`
-      : '';
-    const infosAnneeHtml = profil === 'eleve' && moyenne
-      ? `<br>📊 Résultats année précédente : ${moyenne}/20 — ${mention || ''}`
-      : '';
+    const infoClasse = libelleClasse ? `🏫 Classe demandée : ${libelleClasse}<br>📊 Places restantes : <strong>${placesRestantes}</strong> place(s)` : '';
+    const infosParentsHtml = profil === 'eleve' && nom_pere ? `<br>👨‍👩 Informations famille enregistrées ✅` : '';
+    const infosAnneeHtml = profil === 'eleve' && moyenne ? `<br>📊 Résultats année précédente : ${moyenne}/20 — ${mention || ''}` : '';
 
     const destEmail = email || email_parent;
     if (destEmail) {
@@ -277,6 +267,7 @@ router.post('/', upload.fields([
   }
 });
 
+
 // ==================================================
 // ✅ VALIDER UNE DEMANDE → CRÉE COMPTE + MATRICULE
 // ==================================================
@@ -286,16 +277,12 @@ router.put('/valider/:id', protegerAdmin, async (req, res) => {
     const demande = await pool.query('SELECT * FROM preinscriptions WHERE id = $1', [id]);
     if (demande.rows.length === 0) return res.json({ ok: false, erreur: "❌ Demande introuvable !" });
     const d = demande.rows[0];
-
     const profil = determinerProfil(d);
 
-    // ✅ NOUVEAU MATRICULE UNIQUEMENT POUR ÉLÈVE
     let matricule;
     if (profil === 'eleve' && d.date_naissance) {
-      const anneeScolaire = d.annee_scolaire || '2025-2026';
-      matricule = await genererMatricule(d.date_naissance, anneeScolaire);
+      matricule = await genererMatricule(d.date_naissance, d.annee_scolaire || '2025-2026');
     } else {
-      // Pour les autres profils → format simple
       const prefixes = { prof: 'ENS', parent: 'PAR', visiteur: 'VIS' };
       matricule = `${prefixes[profil] || 'VIS'}-${String(d.id).padStart(5, '0')}`;
     }
@@ -323,16 +310,14 @@ router.put('/valider/:id', protegerAdmin, async (req, res) => {
 
     const destEmail = d.email || d.email_parent;
     if (destEmail) {
-      const infosParentsHtml = profil === 'eleve' && d.nom_pere
-        ? `<div class="info">👨‍👩 Parents enregistrés ✅</div>` : '';
-      const infosAnneeHtml = profil === 'eleve' && d.moyenne_annee_precedente
-        ? `<div class="info">📚 Résultat année précédente : ${d.moyenne_annee_precedente}/20 — ${d.mention || ''}</div>` : '';
+      const infosParentsHtml = profil === 'eleve' && d.nom_pere ? `<div class="info">👨‍👩 Parents enregistrés ✅</div>` : '';
+      const infosAnneeHtml = profil === 'eleve' && d.moyenne_annee_precedente ? `<div class="info">📚 Résultat année précédente : ${d.moyenne_annee_precedente}/20 — ${d.mention || ''}</div>` : '';
 
       await envoyerEmail(destEmail, '✅ INSCRIPTION VALIDÉE — MAMA-ZOUMANA', `
         <!DOCTYPE html><html><head><meta charset="UTF-8">
         <style>
           body{font-family:Arial,sans-serif;background:#f0f9ff;padding:20px;}
-          .boite{background:white;padding:25px;border-radius:12px;border:3px solid #f59e0b;max-width:500px;}
+          .boite{background:white;padding:25px;border-radius:12px;border:3px solid #f59e0b;max-width:500px;margin:0 auto;}
           h2{color:#0c4a6e;text-align:center;}
           .info{background:#f8fafc;padding:12px;margin:8px 0;border-radius:8px;border-left:4px solid #0369a1;}
           .important{background:#fffbeb;border-left:4px solid #f59e0b;font-weight:bold;}
@@ -366,6 +351,7 @@ router.put('/valider/:id', protegerAdmin, async (req, res) => {
   }
 });
 
+
 // ==================================================
 // 📋 PRÉINSCRIPTIONS EN ATTENTE — Admin seul
 // ==================================================
@@ -382,6 +368,7 @@ router.get('/en-attente', protegerAdmin, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 // ==================================================
 // 📋 LISTE COMPLÈTE — Admin seul
@@ -408,6 +395,7 @@ router.get('/liste', protegerAdmin, async (req, res) => {
   }
 });
 
+
 // ==================================================
 // ❌ REFUSER UNE DEMANDE — Admin seul
 // ==================================================
@@ -431,6 +419,7 @@ router.put('/refuser/:id', protegerAdmin, async (req, res) => {
   }
 });
 
+
 // ==================================================
 // 🔍 DÉTAILS D'UNE PRÉINSCRIPTION — Admin seul
 // ==================================================
@@ -438,7 +427,7 @@ router.get('/detail/:id', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
       SELECT *, nom_pere, nom_mere, adresse_famille,
-             moyenne_annee_precedente, mention, classement, conduite
+             moyenne_annee_precedente, mention, classement, note_conduite
       FROM preinscriptions WHERE id = $1
     `, [req.params.id]);
     if (r.rows.length === 0) return res.json({ ok: false, erreur: "❌ Introuvable" });
@@ -454,6 +443,7 @@ router.get('/detail/:id', protegerAdmin, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 // ==================================================
 // 🔑 CONNEXION PARENT PAR MATRICULE — Publique
@@ -513,8 +503,9 @@ router.post('/parent-matricule', async (req, res) => {
   }
 });
 
+
 // ==================================================
-// 👶 1. LISTE DES ENFANTS — GET /mes-enfants
+// 👶 LISTE DES ENFANTS — GET /mes-enfants
 // ==================================================
 router.get('/mes-enfants', protegerParent, async (req, res) => {
   try {
@@ -542,8 +533,9 @@ router.get('/mes-enfants', protegerParent, async (req, res) => {
   }
 });
 
+
 // ==================================================
-// 📝 2. NOTES PAR TRIMESTRE — GET /notes/:id_eleve
+// 📝 NOTES PAR TRIMESTRE — GET /notes/:id_eleve
 // ==================================================
 router.get('/notes/:id_eleve', protegerParent, async (req, res) => {
   try {
@@ -552,9 +544,7 @@ router.get('/notes/:id_eleve', protegerParent, async (req, res) => {
     const filtre = req.filtreParent;
 
     const enfant = await verifierAppartenanceEnfant(id_eleve, filtre, pool);
-    if (!enfant) {
-      return res.json({ ok: false, erreur: "⛔ Accès refusé — Cet enfant ne vous appartient pas." });
-    }
+    if (!enfant) return res.json({ ok: false, erreur: "⛔ Accès refusé — Cet enfant ne vous appartient pas." });
 
     const r = await pool.query(`
       SELECT n.id, n.trimestre, n.note1, n.note2, n.note3, n.moyenne,
@@ -567,9 +557,7 @@ router.get('/notes/:id_eleve', protegerParent, async (req, res) => {
 
     const notesValides = r.rows.filter(n => n.moyenne !== null && n.moyenne !== '');
     const valeurs = notesValides.map(n => parseFloat(n.moyenne));
-    const moyenne_generale = valeurs.length
-      ? (valeurs.reduce((a, b) => a + b, 0) / valeurs.length).toFixed(2)
-      : null;
+    const moyenne_generale = valeurs.length ? (valeurs.reduce((a, b) => a + b, 0) / valeurs.length).toFixed(2) : null;
 
     let mention = '';
     if (moyenne_generale >= 18) mention = '🏆 EXCELLENT';
@@ -588,8 +576,9 @@ router.get('/notes/:id_eleve', protegerParent, async (req, res) => {
   }
 });
 
+
 // ==================================================
-// 📚 3. BULLETINS 3 ANS — GET /bulletins/:id_eleve
+// 📚 BULLETINS 3 ANS — GET /bulletins/:id_eleve
 // ==================================================
 router.get('/bulletins/:id_eleve', protegerParent, async (req, res) => {
   try {
@@ -597,9 +586,7 @@ router.get('/bulletins/:id_eleve', protegerParent, async (req, res) => {
     const filtre = req.filtreParent;
 
     const enfant = await verifierAppartenanceEnfant(id_eleve, filtre, pool);
-    if (!enfant) {
-      return res.json({ ok: false, erreur: "⛔ Accès refusé" });
-    }
+    if (!enfant) return res.json({ ok: false, erreur: "⛔ Accès refusé" });
 
     const r = await pool.query(`
       SELECT annee_scolaire, moyenne, mention, rang, note_conduite
@@ -618,8 +605,9 @@ router.get('/bulletins/:id_eleve', protegerParent, async (req, res) => {
   }
 });
 
+
 // ==================================================
-// 📅 4. EMPLOI DU TEMPS — GET /edt/:id_eleve
+// 📅 EMPLOI DU TEMPS — GET /edt/:id_eleve
 // ==================================================
 router.get('/edt/:id_eleve', protegerParent, async (req, res) => {
   try {
@@ -653,8 +641,9 @@ router.get('/edt/:id_eleve', protegerParent, async (req, res) => {
   }
 });
 
+
 // ==================================================
-// 💰 5. FRAIS & PAIEMENTS — GET /paiements/:id_eleve
+// 💰 FRAIS & PAIEMENTS — GET /paiements/:id_eleve
 // ==================================================
 router.get('/paiements/:id_eleve', protegerParent, async (req, res) => {
   try {
@@ -662,9 +651,7 @@ router.get('/paiements/:id_eleve', protegerParent, async (req, res) => {
     const filtre = req.filtreParent;
 
     const enfant = await verifierAppartenanceEnfant(id_eleve, filtre, pool);
-    if (!enfant) {
-      return res.json({ ok: false, erreur: "⛔ Accès refusé" });
-    }
+    if (!enfant) return res.json({ ok: false, erreur: "⛔ Accès refusé" });
 
     const synthese = await pool.query(`
       SELECT
@@ -697,8 +684,9 @@ router.get('/paiements/:id_eleve', protegerParent, async (req, res) => {
   }
 });
 
+
 // ==================================================
-// ℹ️ 6. INFOS COMPLÈTES ÉLÈVE — GET /eleve/:id_eleve
+// ℹ️ INFOS COMPLÈTES ÉLÈVE — GET /eleve/:id_eleve
 // ==================================================
 router.get('/eleve/:id_eleve', protegerParent, async (req, res) => {
   try {
@@ -709,7 +697,7 @@ router.get('/eleve/:id_eleve', protegerParent, async (req, res) => {
       SELECT u.id, u.nom, u.prenom, u.matricule, u.date_naissance, u.adresse,
              u.nom_parent, u.telephone_parent, u.email_parent,
              u.nom_pere, u.nom_mere, u.adresse_famille,
-             u.moyenne_annee_precedente, u.mention, u.classement, u.conduite,
+             u.moyenne_annee_precedente, u.mention, u.classement, u.note_conduite,
              u.id_classe, u.statut_compte,
              c.libelle_classe
       FROM utilisateurs u
@@ -722,9 +710,7 @@ router.get('/eleve/:id_eleve', protegerParent, async (req, res) => {
       LIMIT 1
     `, [id_eleve, filtre.email_parent || '', filtre.telephone_parent || '']);
 
-    if (!r.rows.length) {
-      return res.json({ ok: false, erreur: "⛔ Élève introuvable ou accès refusé" });
-    }
+    if (!r.rows.length) return res.json({ ok: false, erreur: "⛔ Élève introuvable ou accès refusé" });
 
     console.log(`✅ eleve/${id_eleve} — Infos complètes renvoyées`);
     res.json({ ok: true, eleve: r.rows[0] });
@@ -734,6 +720,7 @@ router.get('/eleve/:id_eleve', protegerParent, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 // ==================================================
 // 🏫 AJOUTER UN ÉLÈVE — Admin uniquement
@@ -750,30 +737,23 @@ router.post('/ajouter-eleve', protegerAdmin, async (req, res) => {
       date_entree, observations
     } = req.body;
 
-    // ✅ Vérifier la classe
     if (id_classe) {
       const verifClasse = await pool.query(
         'SELECT libelle_classe, capacite_max, places_occupees FROM classes WHERE id_classe = $1',
         [id_classe]
       );
-      if (verifClasse.rows.length === 0) {
-        return res.json({ ok: false, erreur: "❌ Classe introuvable" });
-      }
+      if (verifClasse.rows.length === 0) return res.json({ ok: false, erreur: "❌ Classe introuvable" });
       const placesOccupees = verifClasse.rows[0].places_occupees || 0;
       const capacite = verifClasse.rows[0].capacite_max || 0;
-      if (placesOccupees >= capacite) {
-        return res.json({ ok: false, erreur: "❌ Classe complète — Plus de place disponible" });
-      }
+      if (placesOccupees >= capacite) return res.json({ ok: false, erreur: "❌ Classe complète — Plus de place disponible" });
     }
 
-    // ✅ Générer le matricule via la fonction SQL
     const resultatMatricule = await pool.query(
       "SELECT generer_matricule($1::DATE, $2) AS matricule",
       [date_naissance, annee_scolaire || '2025-2026']
     );
     const matricule = resultatMatricule.rows[0].matricule;
 
-    // ✅ Créer le compte utilisateur
     const motDePasseProvisoire = Math.random().toString(36).substring(2, 10).toUpperCase() + '@1A';
     const hashMdp = await bcrypt.hash(motDePasseProvisoire, 10);
 
@@ -798,12 +778,10 @@ router.post('/ajouter-eleve', protegerAdmin, async (req, res) => {
       id_classe || null, annee_scolaire || '2025-2026', date_entree || null, observations || null
     ]);
 
-    // ✅ Incrémenter les places occupées
     if (id_classe) {
       await pool.query('UPDATE classes SET places_occupees = places_occupees + 1 WHERE id_classe = $1', [id_classe]);
     }
 
-    // ✅ Envoyer email de bienvenue
     const destEmail = email || email_pere || email_mere;
     if (destEmail) {
       await envoyerEmail(destEmail, '✅ Compte créé — MAMA-ZOUMANA', `
@@ -829,6 +807,7 @@ router.post('/ajouter-eleve', protegerAdmin, async (req, res) => {
   }
 });
 
+
 // ==================================================
 // 👨‍🏫 AJOUTER UN PROFESSEUR — Admin uniquement
 // ==================================================
@@ -840,7 +819,6 @@ router.post('/ajouter-prof', protegerAdmin, async (req, res) => {
       date_embauche, volume_horaire, statut, observations
     } = req.body;
 
-    // ✅ Générer matricule pour prof : format ENS-AAAA-XXXXX
     const annee = new Date().getFullYear();
     const compteur = String(Date.now() % 10000).padStart(5, '0');
     const matricule = `ENS-${annee}-${compteur}`;
@@ -864,7 +842,6 @@ router.post('/ajouter-prof', protegerAdmin, async (req, res) => {
       date_embauche || null, volume_horaire || null, statut || 'permanent', observations || null
     ]);
 
-    // ✅ Envoyer identifiants par email
     if (email) {
       await envoyerEmail(email, '✅ Compte créé — MAMA-ZOUMANA', `
         <h3>Bienvenue ${prenom} ${nom_famille} !</h3>
@@ -889,6 +866,7 @@ router.post('/ajouter-prof', protegerAdmin, async (req, res) => {
   }
 });
 
+
 // ==================================================
 // 📋 LISTE DES ÉLÈVES — Admin uniquement
 // ==================================================
@@ -910,8 +888,9 @@ router.get('/eleves/liste', protegerAdmin, async (req, res) => {
   }
 });
 
+
 // ==================================================
-// 📋   LISTE DES ENSEIGNANTS — Admin uniquement
+// 📋 LISTE DES ENSEIGNANTS — Admin uniquement
 // ==================================================
 router.get('/profs/liste', protegerAdmin, async (req, res) => {
   try {
@@ -928,6 +907,5 @@ router.get('/profs/liste', protegerAdmin, async (req, res) => {
   }
 });
 
-module.exports = router;
 
 module.exports = router;
