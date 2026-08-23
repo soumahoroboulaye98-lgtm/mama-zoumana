@@ -40,7 +40,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 15px;
       font-family: 'Segoe UI', sans-serif;
     }
 
@@ -48,7 +48,7 @@
       position: relative;
       background: rgba(15, 23, 42, 0.9);
       border-radius: 20px;
-      padding: 40px 30px;
+      padding: 30px 20px;
       max-width: 520px;
       width: 100%;
       overflow: hidden;
@@ -82,23 +82,24 @@
       color: var(--texte-dore);
       font-weight: 700;
       text-align: center;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
     }
     .sous-titre {
       color: #cbd5e1;
       text-align: center;
-      margin-bottom: 30px;
-      font-size: 0.95rem;
+      margin-bottom: 25px;
+      font-size: 0.9rem;
     }
 
     .btn-langue {
       background: rgba(245, 158, 11, 0.1);
       border: 1px solid var(--alerte);
       border-radius: 20px;
-      padding: 6px 14px;
-      font-size: 0.88rem;
+      padding: 5px 10px;
+      font-size: 0.8rem;
       cursor: pointer;
-      margin: 0 3px;
+      margin: 0 2px;
       color: var(--alerte);
       font-weight: 600;
       transition: all 0.2s;
@@ -109,13 +110,14 @@
       box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
     }
 
-    .form-label { color: #e2e8f0; font-weight: 500; }
+    .form-label { color: #e2e8f0; font-weight: 500; font-size: 0.95rem; }
     .form-control, .form-select {
       background: rgba(30, 41, 59, 0.7);
       border: 1px solid rgba(245, 158, 11, 0.25);
       color: var(--texte-clair);
       border-radius: 10px;
-      padding: 10px 14px;
+      padding: 10px 12px;
+      font-size: 0.95rem;
       transition: all 0.3s ease;
     }
     .form-control:focus, .form-select:focus {
@@ -123,8 +125,12 @@
       border-color: var(--alerte);
       box-shadow: 0 0 0 0.25rem rgba(245, 158, 11, 0.15);
       color: var(--texte-clair);
+      outline: none;
     }
-    select option { background: var(--sombre-clair); color: white; }
+    select option { 
+      background: var(--sombre-clair); 
+      color: white; 
+    }
 
     .btn-envoi {
       width: 100%;
@@ -135,6 +141,7 @@
       padding: 12px;
       border-radius: 10px;
       margin-top: 10px;
+      font-size: 1rem;
       position: relative;
       overflow: hidden;
       transition: transform 0.2s ease;
@@ -156,23 +163,30 @@
     }
 
     .liens-bas {
-      margin-top: 25px;
+      margin-top: 20px;
       text-align: center;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
     .lien-utile {
       color: #94a3b8;
       text-decoration: none;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       transition: color 0.2s;
     }
     .lien-utile:hover { color: var(--alerte); }
 
-    .mdp-indice { color: var(--alerte); font-size: 0.85rem; margin-top: 5px; }
-    .matricule-exemple { color: #94a3b8; font-size: 0.85rem; margin-top: 5px; }
+    .mdp-indice { color: var(--alerte); font-size: 0.8rem; margin-top: 5px; }
+    .matricule-exemple { color: #94a3b8; font-size: 0.8rem; margin-top: 5px; }
     .champ-identifiant { transition: opacity 0.3s ease, height 0.3s ease; }
+
+    /* ✅ Amélioration mobile */
+    @media (max-width: 576px) {
+      .cadre-lumineux { padding: 20px 15px; }
+      .titre-form { font-size: 1.25rem; }
+      .btn-langue { padding: 4px 8px; font-size: 0.75rem; }
+    }
   </style>
 </head>
 <body class="lang-fr">
@@ -316,7 +330,7 @@
 
 <script>
 // ==================================================
-// ⚙️ CONFIGURATION API — ✅ MISE À JOUR VERS LE NOUVEAU SERVEUR
+// ⚙️ CONFIGURATION API — ✅ BONNE ADRESSE
 // ==================================================
 const API_URL = 'https://mama-zoumana.onrender.com/api';
 
@@ -371,7 +385,7 @@ function voirOuCacherMdp(){
   btn.textContent = mdpVisible ? '🙈' : '👁️';
 }
 
-// ✅ SOUMISSION FORMULAIRE — id ET prenom CONFORMES À LA BASE NEON
+// ✅ SOUMISSION FORMULAIRE — COMPATIBLE ORDINATEUR + PORTABLE
 document.getElementById('formConnexion').addEventListener('submit', async e => {
   e.preventDefault();
   const msgErreur = document.getElementById('msgErreur');
@@ -401,17 +415,26 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
   }
 
   try {
-    // ✅ ROUTE EXACTE : /auth/connexion
+    // ✅ REQUÊTE COMPATIBLE TOUS APPAREILS
     const res = await fetch(`${API_URL}/auth/connexion`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      mode: 'cors',
       body: JSON.stringify(donnees)
     });
+
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error("Le serveur ne renvoie pas du JSON — vérifiez l'adresse API");
+    }
 
     const data = await res.json();
 
     if(data.ok){
-      // ✅ SAUVEGARDE SESSION — id ET prenom CONFORMES À LA BASE NEON
+      // ✅ SAUVEGARDE SESSION
       const estAdmin = (data.role === 'admin' || data.role === 'super_admin');
       localStorage.setItem('token', data.token || '');
       localStorage.setItem('id', data.id || '');
@@ -453,9 +476,9 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
       msgErreur.classList.remove('d-none');
     }
   } catch(err) {
-    msgErreur.textContent = "⛔ Serveur injoignable — Vérifiez votre connexion internet ou réessayez plus tard.";
+    console.error("Erreur complète :", err);
+    msgErreur.innerHTML = "⛔ Problème de connexion au serveur.<br>Vérifiez votre internet ou réessayez.";
     msgErreur.classList.remove('d-none');
-    console.error("Erreur connexion :", err);
   } finally {
     texteBtn.classList.remove('d-none');
     chargement.classList.add('d-none');

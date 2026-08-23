@@ -233,7 +233,7 @@ router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }
       `INSERT INTO preinscriptions(
         type_inscription, profil, nom, prenoms, email, telephone,
         mot_de_passe, id_classe, matricule,
-        photo_identite, documents, date_preinscription, statut_preinscription
+        photo_identite, documents, date_preinscription, statut
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), 'en_attente')`,
       [
         'nouveau', profil || role, nom.trim(), prenoms.trim(), emailNettoye, telephone || null,
@@ -364,7 +364,7 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
     }
 
     const demande = demandeResult.rows[0];
-    if (demande.statut_preinscription !== 'en_attente') {
+    if (demande.statut !== 'en_attente') {
       return res.json({ ok: false, erreur: "⚠️ Cette demande n'est pas en attente" });
     }
 
@@ -380,7 +380,7 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
     );
 
     await pool.query(
-      "UPDATE preinscriptions SET statut_preinscription = 'validee' WHERE id_preinscription = $1",
+      "UPDATE preinscriptions SET statut = 'validee' WHERE id_preinscription = $1",
       [id]
     );
 
@@ -420,7 +420,7 @@ router.put('/preinscription/refuser/:id', protegerAdmin, async (req, res) => {
     }
 
     const resultat = await pool.query(
-      "UPDATE preinscriptions SET statut_preinscription = 'annulee' WHERE id_preinscription = $1 RETURNING nom, prenoms",
+      "UPDATE preinscriptions SET statut = 'annulee' WHERE id_preinscription = $1 RETURNING nom, prenoms",
       [id]
     );
 
@@ -443,10 +443,10 @@ router.get('/preinscription/liste', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(
       `SELECT id_preinscription, profil, nom, prenoms, email, telephone,
-              matricule, date_preinscription, statut_preinscription,
+              matricule, date_preinscription, statut,
               photo_identite, documents
        FROM preinscriptions
-       WHERE statut_preinscription = 'en_attente'
+       WHERE statut = 'en_attente'
        ORDER BY date_preinscription DESC`
     );
 

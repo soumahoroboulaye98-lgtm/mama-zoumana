@@ -19,7 +19,7 @@ router.get('/statistiques', protegerAdmin, async (req, res) => {
 
     let attente = 0;
     try {
-      const r = await pool.query(`SELECT COUNT(*) FROM preinscriptions WHERE statut_preinscription = 'en_attente'`);
+      const r = await pool.query(`SELECT COUNT(*) FROM preinscriptions WHERE statut = 'en_attente'`);
       attente = parseInt(r.rows[0].count, 10);
     } catch { attente = 0; }
 

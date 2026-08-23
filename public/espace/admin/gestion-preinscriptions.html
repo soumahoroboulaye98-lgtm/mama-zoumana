@@ -234,7 +234,7 @@
       }
     } catch {
       // ⚠️ Mode hors-ligne
-      liste = obtenirPreinscriptionsLocales().filter(x => x.statut_preinscription === 'en_attente');
+      liste = obtenirPreinscriptionsLocales().filter(x => x.statut === 'en_attente');
     }
 
     // 📭 Liste vide
@@ -251,9 +251,9 @@
     conteneur.innerHTML = liste.map((x, i) => {
       // Déterminer la classe de statut
       let classeStatut = '';
-      if (x.statut_preinscription === 'en_attente') classeStatut = 'attente';
-      else if (x.statut_preinscription === 'valide') classeStatut = 'validee';
-      else if (x.statut_preinscription === 'refusee') classeStatut = 'refusee';
+      if (x.statut === 'en_attente') classeStatut = 'attente';
+      else if (x.statut === 'valide') classeStatut = 'validee';
+      else if (x.statut === 'refusee') classeStatut = 'refusee';
 
       // Construire les URLs des documents
       const photoUrl = x.photo_identite ? `${API_BASE}/uploads/${x.photo_identite}` : null;
@@ -294,10 +294,10 @@
         <td class="docs-col">${blocDocs}</td>
         <td><small>${escaperHtml(x.email)}<br>${escaperHtml(x.telephone)}</small></td>
         <td><small>${dateFormatee}</small></td>
-        <td><span class="statut ${classeStatut}">${(x.statut_preinscription || '').replace('_', ' ')}</span></td>
+        <td><span class="statut ${classeStatut}">${(x.statut || '').replace('_', ' ')}</span></td>
         <td class="matricule">${escaperHtml(x.matricule || '—')}</td>
         <td>
-          ${x.statut_preinscription === 'en_attente' ? `
+          ${x.statut === 'en_attente' ? `
             <button class="btn-valider me-1 mb-1" onclick="valider(${x.id_preinscription})">
               <i class="bi bi-check-circle"></i> 
               <span class="txt-fr">Valider</span>
@@ -338,7 +338,7 @@
     // Mise à jour immédiate en local
     let liste = obtenirPreinscriptionsLocales();
     const idx = liste.findIndex(x => x.id_preinscription === id);
-    if (idx !== -1) liste[idx].statut_preinscription = 'valide';
+    if (idx !== -1) liste[idx].statut = 'valide';
     sauvegarderPreinscriptionsLocales(liste);
 
     // Envoyer à l'API en arrière-plan
@@ -374,7 +374,7 @@
     // Mise à jour immédiate en local
     let liste = obtenirPreinscriptionsLocales();
     const idx = liste.findIndex(x => x.id_preinscription === id);
-    if (idx !== -1) liste[idx].statut_preinscription = 'refusee';
+    if (idx !== -1) liste[idx].statut = 'refusee';
     sauvegarderPreinscriptionsLocales(liste);
 
     // Envoyer à l'API en arrière-plan
