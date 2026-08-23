@@ -75,6 +75,7 @@ async function genererMatricule(dateNaissance, anneeScolaire) {
 async function verifierAppartenanceEnfant(id_eleve, filtre, pool) {
   const r = await pool.query(`
     SELECT u.id, u.nom, u.prenom, u.matricule, u.id_classe, u.statut_compte,
+           u.moyenne_annee_precedente, u.mention, u.classement, u.note_conduite,
            c.libelle_classe
     FROM utilisateurs u
     LEFT JOIN classes c ON u.id_classe = c.id_classe
@@ -163,6 +164,7 @@ router.post('/', upload.fields([
       moyenne, rang, mention, conduite,
       id_classe_souhaitee, observations,
       cantine, transport, circuit_transport,
+      specialite, experience, objet, organisme,
       annee_scolaire
     } = req.body;
 
@@ -193,21 +195,24 @@ router.post('/', upload.fields([
     const cv = req.files?.cv ? `uploads/${req.files.cv[0].filename}` : null;
 
     const champs = [
-      'nom_famille', 'prenom', 'sexe', 'date_naissance', 'lieu_naissance',
+      'profil', 'nom_famille', 'prenom', 'sexe', 'date_naissance', 'lieu_naissance',
       'nationalite', 'adresse', 'telephone', 'email',
       'nom_parent', 'telephone_parent', 'email_parent',
       'id_classe_souhaitee', 'observations', 'statut',
       'photo_identite', 'extrait_naissance', 'bulletin', 'cv',
-      'cantine', 'transport', 'circuit_transport', 'annee_scolaire'
+      'cantine', 'transport', 'circuit_transport', 'annee_scolaire',
+      'specialite', 'experience', 'organisme', 'objet'
     ];
     const valeurs = [
+      profil || null,
       nom_famille, prenom, sexe, date_naissance || null, lieu_naissance || null,
       nationalite || null, adresse || null, telephone || null, email || null,
       nom_parent || null, telephone_parent || null, email_parent || null,
       id_classe_nombre || null, observations || null, 'en_attente',
       photo_identite, extrait_naissance, bulletin, cv,
       cantine === 'on', transport === 'on', circuit_transport || null,
-      annee_scolaire || '2025-2026'
+      annee_scolaire || '2025-2026',
+      specialite || null, experience || null, organisme || null, objet || null
     ];
 
     if (profil === 'eleve') {
@@ -235,6 +240,7 @@ router.post('/', upload.fields([
     const infoClasse = libelleClasse ? `🏫 Classe demandée : ${libelleClasse}<br>📊 Places restantes : <strong>${placesRestantes}</strong> place(s)` : '';
     const infosParentsHtml = profil === 'eleve' && nom_pere ? `<br>👨‍👩 Informations famille enregistrées ✅` : '';
     const infosAnneeHtml = profil === 'eleve' && moyenne ? `<br>📊 Résultats année précédente : ${moyenne}/20 — ${mention || ''}` : '';
+    const infosProfHtml = profil === 'prof' && specialite ? `<br>📚 Spécialité : ${specialite}${experience ? ` — ${experience} ans d'expérience` : ''}` : '';
 
     const destEmail = email || email_parent;
     if (destEmail) {
@@ -242,7 +248,7 @@ router.post('/', upload.fields([
         <h3>Demande enregistrée</h3>
         <p>Bonjour <strong>${prenom} ${nom_famille}</strong>,</p>
         <p>Nous accusons réception de votre demande de préinscription.</p>
-        <p>${infoClasse}${infosParentsHtml}${infosAnneeHtml}</p>
+        <p>${infoClasse}${infosParentsHtml}${infosAnneeHtml}${infosProfHtml}</p>
         <p>⏳ En attente de validation par l'administration (délai ~24h).</p>
         <p>À la validation, vous recevrez votre <strong>matricule</strong> et vos identifiants.</p>
         <hr><p>Établissement MAMA-ZOUMANA</p>
@@ -252,7 +258,7 @@ router.post('/', upload.fields([
     console.log(`✅ PRÉINSCRIPTION ENREGISTRÉE — ID: ${idDemande} | Profil: ${profil}`);
     res.json({
       ok: true,
-      message: `✅ Préinscription enregistrée !${libelleClasse ? `\n🏫 Classe : ${libelleClasse}\n📊 Places restantes : ${placesRestantes}` : ''}\n⏳ En attente de validation.`,
+      message: `✅ Demande enregistrée !${libelleClasse ? `\n🏫 Classe : ${libelleClasse}\n📊 Places restantes : ${placesRestantes}` : ''}\n⏳ En attente de validation.`,
       id: idDemande,
       libelle_classe: libelleClasse,
       places_restantes: placesRestantes
@@ -269,7 +275,7 @@ router.post('/', upload.fields([
 
 
 // ==================================================
-// ✅ VALIDER UNE DEMANDE → CRÉE COMPTE + MATRICULE
+// ✅ VALIDER UNE DEMANDE → CRÉE COMPTE + MATRICULE + INFOS ANNÉE PRÉCÉDENTE
 // ==================================================
 router.put('/valider/:id', protegerAdmin, async (req, res) => {
   try {
@@ -278,6 +284,26 @@ router.put('/valider/:id', protegerAdmin, async (req, res) => {
     if (demande.rows.length === 0) return res.json({ ok: false, erreur: "❌ Demande introuvable !" });
     const d = demande.rows[0];
     const profil = determinerProfil(d);
+
+    // ✅ Récupère AUTOMATIQUEMENT les infos de l'année précédente si élève connu
+    let anneePrecedente = { moyenne: null, mention: null, rang: null, conduite: null };
+    if (profil === 'eleve' && d.email_parent) {
+      const ancienCompte = await pool.query(`
+        SELECT moyenne_annee_precedente, mention, classement, note_conduite
+        FROM utilisateurs
+        WHERE role = 'eleve'
+          AND (LOWER(email_parent) = LOWER($1) OR LOWER(email) = LOWER($2))
+        ORDER BY id DESC LIMIT 1
+      `, [d.email_parent, d.email || '']);
+      if (ancienCompte.rows.length > 0) {
+        anneePrecedente = {
+          moyenne: d.moyenne_annee_precedente || ancienCompte.rows[0].moyenne_annee_precedente,
+          mention: d.mention || ancienCompte.rows[0].mention,
+          rang: d.classement || ancienCompte.rows[0].classement,
+          conduite: d.note_conduite || ancienCompte.rows[0].note_conduite
+        };
+      }
+    }
 
     let matricule;
     if (profil === 'eleve' && d.date_naissance) {
@@ -304,14 +330,14 @@ router.put('/valider/:id', protegerAdmin, async (req, res) => {
       hashMdp, profil, matricule,
       d.email_parent || null, d.telephone_parent || null,
       d.nom_pere || null, d.nom_mere || null, d.adresse_famille || null,
-      d.moyenne_annee_precedente || null, d.mention || null, d.classement || null, d.conduite || null,
+      anneePrecedente.moyenne, anneePrecedente.mention, anneePrecedente.rang, anneePrecedente.conduite,
       d.id_classe_souhaitee || null
     ]);
 
     const destEmail = d.email || d.email_parent;
     if (destEmail) {
       const infosParentsHtml = profil === 'eleve' && d.nom_pere ? `<div class="info">👨‍👩 Parents enregistrés ✅</div>` : '';
-      const infosAnneeHtml = profil === 'eleve' && d.moyenne_annee_precedente ? `<div class="info">📚 Résultat année précédente : ${d.moyenne_annee_precedente}/20 — ${d.mention || ''}</div>` : '';
+      const infosAnneeHtml = anneePrecedente.moyenne ? `<div class="info">📚 Résultat année précédente : ${anneePrecedente.moyenne}/20 — ${anneePrecedente.mention || ''}</div>` : '';
 
       await envoyerEmail(destEmail, '✅ INSCRIPTION VALIDÉE — MAMA-ZOUMANA', `
         <!DOCTYPE html><html><head><meta charset="UTF-8">
@@ -342,7 +368,8 @@ router.put('/valider/:id', protegerAdmin, async (req, res) => {
     res.json({
       ok: true,
       message: "✅ Inscription validée ! Compte créé et identifiants envoyés par email.",
-      matricule
+      matricule,
+      annee_precedente: anneePrecedente.moyenne ? { moyenne: anneePrecedente.moyenne, mention: anneePrecedente.mention } : null
     });
 
   } catch (e) {
@@ -358,7 +385,7 @@ router.put('/valider/:id', protegerAdmin, async (req, res) => {
 router.get('/en-attente', protegerAdmin, async (req, res) => {
   try {
     const liste = await pool.query(`
-      SELECT id, nom_famille, prenom, email, telephone,
+      SELECT id, nom_famille, prenom, profil, email, telephone,
              nom_parent, telephone_parent, id_classe_souhaitee, statut, date_creation
       FROM preinscriptions WHERE statut = 'en_attente' ORDER BY date_creation DESC
     `);
@@ -376,7 +403,7 @@ router.get('/en-attente', protegerAdmin, async (req, res) => {
 router.get('/liste', protegerAdmin, async (req, res) => {
   try {
     const liste = await pool.query(`
-      SELECT id, nom_famille, prenom, sexe, date_naissance, email, telephone,
+      SELECT id, nom_famille, prenom, profil, sexe, date_naissance, email, telephone,
              nom_parent, telephone_parent, id_classe_souhaitee, statut, date_creation
       FROM preinscriptions ORDER BY date_creation DESC
     `);
@@ -513,6 +540,7 @@ router.get('/mes-enfants', protegerParent, async (req, res) => {
 
     const r = await pool.query(`
       SELECT u.id, u.nom, u.prenom, u.matricule, u.id_classe, u.statut_compte,
+             u.moyenne_annee_precedente, u.mention,
              c.libelle_classe
       FROM utilisateurs u
       LEFT JOIN classes c ON u.id_classe = c.id_classe
@@ -550,7 +578,7 @@ router.get('/notes/:id_eleve', protegerParent, async (req, res) => {
       SELECT n.id, n.trimestre, n.note1, n.note2, n.note3, n.moyenne,
              m.libelle_matiere, m.coefficient
       FROM notes n
-      LEFT JOIN matieres m ON n.id_matiere = m.id_matiere
+      LEFT JOIN matieres m ON n.id_matiere = m.id
       WHERE n.id_eleve = $1 AND n.trimestre = $2
       ORDER BY m.libelle_matiere
     `, [id_eleve, trimestre]);
@@ -717,192 +745,6 @@ router.get('/eleve/:id_eleve', protegerParent, async (req, res) => {
 
   } catch (e) {
     console.error("❌ ERREUR eleve :", e.message);
-    res.json({ ok: false, erreur: e.message });
-  }
-});
-
-
-// ==================================================
-// 🏫 AJOUTER UN ÉLÈVE — Admin uniquement
-// ==================================================
-router.post('/ajouter-eleve', protegerAdmin, async (req, res) => {
-  try {
-    const {
-      nom_famille, prenom, sexe, date_naissance, lieu_naissance,
-      nationalite, adresse, telephone, email,
-      nom_pere, profession_pere, telephone_pere, email_pere,
-      nom_mere, profession_mere, telephone_mere, email_mere, adresse_famille,
-      moyenne, rang, mention, conduite,
-      id_classe, annee_scolaire,
-      date_entree, observations
-    } = req.body;
-
-    if (id_classe) {
-      const verifClasse = await pool.query(
-        'SELECT libelle_classe, capacite_max, places_occupees FROM classes WHERE id_classe = $1',
-        [id_classe]
-      );
-      if (verifClasse.rows.length === 0) return res.json({ ok: false, erreur: "❌ Classe introuvable" });
-      const placesOccupees = verifClasse.rows[0].places_occupees || 0;
-      const capacite = verifClasse.rows[0].capacite_max || 0;
-      if (placesOccupees >= capacite) return res.json({ ok: false, erreur: "❌ Classe complète — Plus de place disponible" });
-    }
-
-    const resultatMatricule = await pool.query(
-      "SELECT generer_matricule($1::DATE, $2) AS matricule",
-      [date_naissance, annee_scolaire || '2025-2026']
-    );
-    const matricule = resultatMatricule.rows[0].matricule;
-
-    const motDePasseProvisoire = Math.random().toString(36).substring(2, 10).toUpperCase() + '@1A';
-    const hashMdp = await bcrypt.hash(motDePasseProvisoire, 10);
-
-    await pool.query(`
-      INSERT INTO utilisateurs(
-        nom, prenom, email, telephone, mot_de_passe, role, matricule,
-        date_naissance, lieu_naissance, nationalite, adresse,
-        nom_pere, profession_pere, telephone_pere, email_pere,
-        nom_mere, profession_mere, telephone_mere, email_mere, adresse_famille,
-        moyenne_annee_precedente, classement, mention, note_conduite,
-        id_classe, annee_scolaire, date_entree, observations,
-        est_actif, statut_compte, date_creation
-      ) VALUES ($1, $2, $3, $4, $5, 'eleve', $6, $7, $8, $9, $10,
-                $11, $12, $13, $14, $15, $16, $17, $18, $19,
-                $20, $21, $22, $23, $24, $25, $26, true, 'valide', CURRENT_TIMESTAMP)
-    `, [
-      nom_famille, prenom, email, telephone, hashMdp, matricule,
-      date_naissance, lieu_naissance, nationalite, adresse,
-      nom_pere, profession_pere, telephone_pere, email_pere,
-      nom_mere, profession_mere, telephone_mere, email_mere, adresse_famille,
-      moyenne || null, rang || null, mention || null, conduite || null,
-      id_classe || null, annee_scolaire || '2025-2026', date_entree || null, observations || null
-    ]);
-
-    if (id_classe) {
-      await pool.query('UPDATE classes SET places_occupees = places_occupees + 1 WHERE id_classe = $1', [id_classe]);
-    }
-
-    const destEmail = email || email_pere || email_mere;
-    if (destEmail) {
-      await envoyerEmail(destEmail, '✅ Compte créé — MAMA-ZOUMANA', `
-        <h3>Bienvenue ${prenom} ${nom_famille} !</h3>
-        <p>Votre compte élève a été créé avec succès.</p>
-        <p><strong>Matricule :</strong> ${matricule}</p>
-        <p><strong>Identifiants :</strong><br>Email : ${destEmail}<br>Mot de passe provisoire : ${motDePasseProvisoire}</p>
-        <p>⚠️ Connectez-vous et modifiez votre mot de passe.</p>
-      `);
-    }
-
-    console.log(`✅ ÉLÈVE AJOUTÉ — ${matricule} | ${prenom} ${nom_famille}`);
-    res.json({
-      ok: true,
-      message: `✅ Élève ajouté ! Matricule : ${matricule}`,
-      matricule,
-      mdp_provisoire: motDePasseProvisoire
-    });
-
-  } catch (e) {
-    console.error("❌ ERREUR AJOUT ÉLÈVE :", e.message);
-    res.json({ ok: false, erreur: e.message.includes('unique constraint') ? '❌ Cet email existe déjà !' : e.message });
-  }
-});
-
-
-// ==================================================
-// 👨‍🏫 AJOUTER UN PROFESSEUR — Admin uniquement
-// ==================================================
-router.post('/ajouter-prof', protegerAdmin, async (req, res) => {
-  try {
-    const {
-      nom_famille, prenom, sexe, date_naissance, adresse, telephone, email,
-      diplome, specialite, id_matieres, id_classes,
-      date_embauche, volume_horaire, statut, observations
-    } = req.body;
-
-    const annee = new Date().getFullYear();
-    const compteur = String(Date.now() % 10000).padStart(5, '0');
-    const matricule = `ENS-${annee}-${compteur}`;
-
-    const motDePasseProvisoire = Math.random().toString(36).substring(2, 10).toUpperCase() + '@1A';
-    const hashMdp = await bcrypt.hash(motDePasseProvisoire, 10);
-
-    await pool.query(`
-      INSERT INTO utilisateurs(
-        nom, prenom, email, telephone, mot_de_passe, role, matricule,
-        sexe, date_naissance, adresse,
-        diplome, specialite, id_matieres, id_classes,
-        date_embauche, volume_horaire, statut, observations,
-        est_actif, statut_compte, date_creation
-      ) VALUES ($1, $2, $3, $4, $5, 'prof', $6, $7, $8, $9,
-                $10, $11, $12, $13, $14, $15, $16, true, 'valide', CURRENT_TIMESTAMP)
-    `, [
-      nom_famille, prenom, email, telephone, hashMdp, matricule,
-      sexe || null, date_naissance || null, adresse || null,
-      diplome || null, specialite || null, id_matieres || null, id_classes || null,
-      date_embauche || null, volume_horaire || null, statut || 'permanent', observations || null
-    ]);
-
-    if (email) {
-      await envoyerEmail(email, '✅ Compte créé — MAMA-ZOUMANA', `
-        <h3>Bienvenue ${prenom} ${nom_famille} !</h3>
-        <p>Votre compte enseignant a été créé.</p>
-        <p><strong>Matricule :</strong> ${matricule}</p>
-        <p><strong>Identifiants :</strong><br>Email : ${email}<br>Mot de passe provisoire : ${motDePasseProvisoire}</p>
-        <p>⚠️ Connectez-vous et modifiez votre mot de passe.</p>
-      `);
-    }
-
-    console.log(`✅ PROF AJOUTÉ — ${matricule} | ${prenom} ${nom_famille}`);
-    res.json({
-      ok: true,
-      message: `✅ Enseignant ajouté ! Matricule : ${matricule}`,
-      matricule,
-      mdp_provisoire: motDePasseProvisoire
-    });
-
-  } catch (e) {
-    console.error("❌ ERREUR AJOUT PROF :", e.message);
-    res.json({ ok: false, erreur: e.message.includes('unique constraint') ? '❌ Cet email existe déjà !' : e.message });
-  }
-});
-
-
-// ==================================================
-// 📋 LISTE DES ÉLÈVES — Admin uniquement
-// ==================================================
-router.get('/eleves/liste', protegerAdmin, async (req, res) => {
-  try {
-    const liste = await pool.query(`
-      SELECT u.id, u.matricule, u.nom, u.prenom, u.sexe, u.date_naissance,
-             u.email, u.telephone, u.id_classe, u.moyenne_annee_precedente,
-             u.mention, u.statut_compte, u.est_actif,
-             c.libelle_classe
-      FROM utilisateurs u
-      LEFT JOIN classes c ON u.id_classe = c.id_classe
-      WHERE u.role = 'eleve' ORDER BY u.nom, u.prenom
-    `);
-    res.json({ ok: true, eleves: liste.rows });
-  } catch (e) {
-    console.error("❌ ERREUR LISTE ÉLÈVES :", e.message);
-    res.json({ ok: false, erreur: e.message });
-  }
-});
-
-
-// ==================================================
-// 📋 LISTE DES ENSEIGNANTS — Admin uniquement
-// ==================================================
-router.get('/profs/liste', protegerAdmin, async (req, res) => {
-  try {
-    const liste = await pool.query(`
-      SELECT id, matricule, nom, prenom, email, telephone,
-             specialite, statut, est_actif, date_creation
-      FROM utilisateurs
-      WHERE role = 'prof' ORDER BY nom, prenom
-    `);
-    res.json({ ok: true, profs: liste.rows });
-  } catch (e) {
-    console.error("❌ ERREUR LISTE PROFS :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
