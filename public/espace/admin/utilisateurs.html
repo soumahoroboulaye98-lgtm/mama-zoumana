@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="lang-fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestion Utilisateurs — Admin MAMA-ZOUMANA</title>
+  <title>
+    <span class="txt-fr">Gestion Utilisateurs — Admin</span>
+    <span class="txt-en">User Management — Admin</span>
+    <span class="txt-ar">إدارة المستخدمين — مدير</span>
+  </title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
@@ -15,62 +19,65 @@
       --valide: #10b981;
       --refuse: #ef4444;
       --attente: #f59e0b;
+      --info: #3b82f6;
       --texte: #f8fafc;
     }
     *{margin:0;padding:0;box-sizing:border-box;transition:all 0.25s ease}
     body{background:var(--sombre);color:var(--texte);min-height:100vh;font-family:'Segoe UI',sans-serif;}
-    .lang-fr .lang-en, .lang-fr .lang-ar,
-    .lang-en .lang-fr, .lang-en .lang-ar,
-    .lang-ar .lang-fr, .lang-ar .lang-en { display: none !important; }
+    
+    /* ✅ Trilingue */
+    .lang-fr .txt-en, .lang-fr .txt-ar,
+    .lang-en .txt-fr, .lang-en .txt-ar,
+    .lang-ar .txt-fr, .lang-ar .txt-en { display: none !important; }
     body.lang-ar { direction: rtl; text-align: right; }
-    @keyframes bordTourne {0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-    .btn-anim-orange{position:relative;background:var(--sombre-clair);color:var(--texte);border:none;border-radius:10px;overflow:hidden;z-index:1;}
-    .btn-anim-orange::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(transparent,var(--bord-orange),transparent 30%);animation:bordTourne 2.5s linear infinite;z-index:-2;}
-    .btn-anim-orange::after{content:'';position:absolute;inset:2px;background:var(--sombre-clair);border-radius:8px;z-index:-1;}
-    .btn-valide-lumineux{background:var(--valide);color:white;border-radius:8px;box-shadow:0 0 12px rgba(16,185,129,0.35);border:none;}
-    .btn-valide-lumineux:hover{box-shadow:0 0 20px rgba(16,185,129,0.6);transform:translateY(-1px)}
-    .btn-refuse-lumineux{background:var(--refuse);color:white;border-radius:8px;box-shadow:0 0 12px rgba(239,68,68,0.35);border:none;}
-    .btn-refuse-lumineux:hover{box-shadow:0 0 20px rgba(239,68,68,0.6);transform:translateY(-1px)}
-    .btn-modifier-lumineux{background:var(--bord-orange);color:white;border-radius:8px;box-shadow:0 0 12px rgba(245,158,11,0.35);border:none;}
-    .btn-modifier-lumineux:hover{box-shadow:0 0 20px rgba(245,158,11,0.6);transform:translateY(-1px)}
-    .btn-info-lumineux{background:#3b82f6;color:white;border-radius:8px;box-shadow:0 0 12px rgba(59,130,246,0.35);border:none;}
+
     .entete-page{background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.5rem 0;}
     .carte-filtre{background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);padding:1.25rem;margin-bottom:1rem;}
+    .carte-info-generee{background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:1rem;margin-top:1rem;}
+    
     .tableau{background:#fff;border-radius:12px;overflow:hidden;}
     .table thead{background:linear-gradient(90deg,var(--sombre-clair),#1e3a5f);border-bottom:2px solid var(--bord-orange);}
     .table th {color:#fff !important;border:none;padding:12px 8px;font-weight:bold;}
     .table td {border:none;border-bottom:1px solid #ddd;padding:12px 8px;color:#000 !important;}
     .table tbody tr {background:#fff !important;}
+    
     .statut-actif{background:rgba(16,185,129,0.15);color:#10b981;padding:4px 10px;border-radius:20px;font-size:0.85rem;font-weight:500}
     .statut-attente{background:rgba(245,158,11,0.15);color:#f59e0b;padding:4px 10px;border-radius:20px;font-size:0.85rem;font-weight:500}
-    .statut-refuse{background:rgba(239,68,68,0.15);color:#ef4444;padding:4px 10px;border-radius:20px;font-size:0.85rem;font-weight:500}
+    
     .form-control,.form-select{background:#f8fafc;border:1px solid #cbd5e1;color:#000;border-radius:8px;}
     .form-control:focus,.form-select:focus{border-color:var(--bord-orange);box-shadow:0 0 0 3px rgba(245,158,11,0.15);}
+    
     .modal-content{background:var(--sombre-clair);border:2px solid var(--bord-orange);border-radius:14px;}
     .modal-header{background:linear-gradient(90deg,var(--sombre-clair),#1e3a5f);border-bottom:2px solid var(--bord-orange);color:white;}
     .btn-close{filter:invert(1)}
     .btn-langue {border-radius:50px !important;border:none;margin:0 2px;}
     .btn-langue.actif {background:var(--bord-orange);color:#000;font-weight:bold;}
-    .info-email{background:rgba(59,130,246,0.1);border:1px solid #3b82f6;border-radius:8px;padding:0.75rem;margin-top:0.75rem;}
+    .btn-valide-lumineux{background:var(--valide);color:white;border-radius:8px;border:none;}
+    .btn-refuse-lumineux{background:var(--refuse);color:white;border-radius:8px;border:none;}
+    .btn-info-lumineux{background:var(--info);color:white;border-radius:8px;border:none;}
+    .btn-modifier-lumineux{background:var(--bord-orange);color:white;border-radius:8px;border:none;}
+    .bloc-profil{animation:fadeIn 0.3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+    .valeur-generee{background:rgba(16,185,129,0.1);border:1px solid #10b981;border-radius:8px;padding:0.5rem 0.75rem;font-family:monospace;font-weight:bold;color:#10b981;}
   </style>
 </head>
 <body>
 
-
-<!-- 🔒 PROTECTION + LANGUE -->
+<!-- 🔒 PROTECTION ADMIN + GESTION LANGUE -->
 <script>
-if(!localStorage.getItem('token') || !['admin','super_admin'].includes(localStorage.getItem('role'))){
-  alert("⛔ Accès réservé à l'administrateur");
-  location.href='../connexion.html';
-}
 const langueSauvegardee = localStorage.getItem('langue') || 'fr';
 document.body.classList.add('lang-' + langueSauvegardee);
+
+if(!localStorage.getItem('token') || !['admin','super_admin'].includes(localStorage.getItem('role'))){
+  alert("⛔ Accès réservé à l'administrateur");
+  location.href='connexion.html';
+}
+
 function appliquerLangue(lang){
   localStorage.setItem('langue', lang);
   document.body.classList.remove('lang-fr','lang-en','lang-ar');
   document.body.classList.add('lang-' + lang);
-  document.querySelectorAll('.btn-langue').forEach(b=>b.classList.remove('actif'));
-  event.currentTarget.classList.add('actif');
+  document.querySelectorAll('.btn-langue').forEach(b=>b.classList.toggle('actif', b.dataset.lang === lang));
 }
 </script>
 
@@ -79,25 +86,20 @@ function appliquerLangue(lang){
   <div class="container d-flex justify-content-between align-items-center">
     <div>
       <h3 class="mb-1">👥 
-        <span class="lang-fr">Gestion des Utilisateurs</span>
-        <span class="lang-en">User Management</span>
-        <span class="lang-ar">إدارة المستخدمين</span>
+        <span class="txt-fr">Gestion des Utilisateurs</span>
+        <span class="txt-en">User Management</span>
+        <span class="txt-ar">إدارة المستخدمين</span>
       </h3>
-      <p class="mb-0 opacity-80">
-        <span class="lang-fr">Ajouter, modifier et envoyer les identifiants par email</span>
-        <span class="lang-en">Add, edit and send credentials by email</span>
-        <span class="lang-ar">إضافة وتعديل وإرسال بيانات الدخول عبر البريد</span>
-      </p>
     </div>
     <div class="d-flex gap-2 align-items-center">
       <button data-lang="fr" class="btn btn-langue btn-sm" onclick="appliquerLangue('fr')">FR</button>
       <button data-lang="en" class="btn btn-langue btn-sm" onclick="appliquerLangue('en')">EN</button>
       <button data-lang="ar" class="btn btn-langue btn-sm" onclick="appliquerLangue('ar')">AR</button>
-      <a href="dashboard.html" class="btn btn-anim-orange px-4 py-2 ms-2">
+      <a href="dashboard.html" class="btn btn-warning px-4 py-2 ms-2 text-dark">
         <i class="bi bi-arrow-left"></i> 
-        <span class="lang-fr">Retour</span>
-        <span class="lang-en">Back</span>
-        <span class="lang-ar">رجوع</span>
+        <span class="txt-fr">Retour</span>
+        <span class="txt-en">Back</span>
+        <span class="txt-ar">رجوع</span>
       </a>
     </div>
   </div>
@@ -109,63 +111,50 @@ function appliquerLangue(lang){
   <div class="carte-filtre">
     <div class="row g-3">
       <div class="col-md-4">
-        <input type="text" id="recherche" class="form-control" placeholder="🔍 Rechercher nom, email..." onkeyup="chargerUtilisateurs()">
+        <input type="text" id="recherche" class="form-control" placeholder="🔍 Rechercher..." onkeyup="chargerUtilisateurs()">
       </div>
       <div class="col-md-3">
         <select id="filtre-profil" class="form-select" onchange="chargerUtilisateurs()">
-          <option value="">
-            <span class="lang-fr">Tous profils</span>
-            <span class="lang-en">All profiles</span>
-            <span class="lang-ar">جميع الأنماط</span>
-          </option>
-          <option value="admin"><span class="lang-fr">🔧 Admin</span><span class="lang-en">🔧 Admin</span><span class="lang-ar">🔧 مدير</span></option>
-          <option value="directeur"><span class="lang-fr">🏫 Directeur</span><span class="lang-en">🏫 Principal</span><span class="lang-ar">🏫 المدير</span></option>
-          <option value="prof"><span class="lang-fr">👨‍🏫 Enseignant</span><span class="lang-en">👨‍🏫 Teacher</span><span class="lang-ar">👨‍🏫 معلم</span></option>
-          <option value="comptable"><span class="lang-fr">💰 Comptable</span><span class="lang-en">💰 Accountant</span><span class="lang-ar">💰 المحاسب</span></option>
-          <option value="secretaire"><span class="lang-fr">📝 Secrétaire</span><span class="lang-en">📝 Secretary</span><span class="lang-ar">📝 السكرتير</span></option>
-          <option value="eleve"><span class="lang-fr">🎓 Élève</span><span class="lang-en">🎓 Student</span><span class="lang-ar">🎓 تلميذ</span></option>
-          <option value="parent"><span class="lang-fr">👨‍👩‍👧 Parent</span><span class="lang-en">👨‍👩‍👧 Parent</span><span class="lang-ar">👨‍👩‍👧 ولي الأمر</span></option>
+          <option value="">Tous profils</option>
+          <option value="admin">🔧 Administrateur</option>
+          <option value="directeur">🏫 Directeur</option>
+          <option value="comptable">💰 Comptable</option>
+          <option value="prof">👨‍🏫 Enseignant</option>
+          <option value="eleve">🎓 Élève</option>
+          <option value="parent">👨‍👩‍👧 Parent</option>
+          <option value="visiteur">🧑‍💼 Visiteur</option>
         </select>
       </div>
       <div class="col-md-3">
         <select id="filtre-statut" class="form-select" onchange="chargerUtilisateurs()">
-          <option value="">
-            <span class="lang-fr">Tous statuts</span>
-            <span class="lang-en">All status</span>
-            <span class="lang-ar">جميع الحالات</span>
-          </option>
-          <option value="valide"><span class="lang-fr">✅ Actif</span><span class="lang-en">✅ Active</span><span class="lang-ar">✅ نشط</span></option>
-          <option value="en_attente"><span class="lang-fr">⏳ En attente</span><span class="lang-en">⏳ Pending</span><span class="lang-ar">⏳ قيد الانتظار</span></option>
-          <option value="refusee"><span class="lang-fr">❌ Refusé</span><span class="lang-en">❌ Rejected</span><span class="lang-ar">❌ مرفوض</span></option>
+          <option value="">Tous statuts</option>
+          <option value="valide">✅ Actif</option>
+          <option value="en_attente">⏳ En attente</option>
         </select>
       </div>
       <div class="col-md-2">
         <button class="btn btn-valide-lumineux w-100 fw-bold" onclick="ouvrirModalAjout()">
-          ➕ <span class="lang-fr">Ajouter</span><span class="lang-en">Add</span><span class="lang-ar">إضافة</span>
+          ➕ Ajouter
         </button>
       </div>
     </div>
   </div>
-
 
   <!-- TABLEAU -->
   <div class="tableau">
     <table class="table mb-0">
       <thead>
         <tr>
-          <th><span class="lang-fr">Nom & Prénoms</span><span class="lang-en">Full Name</span><span class="lang-ar">الاسم الكامل</span></th>
-          <th><span class="lang-fr">Email</span><span class="lang-en">Email</span><span class="lang-ar">البريد</span></th>
-          <th><span class="lang-fr">Téléphone</span><span class="lang-en">Phone</span><span class="lang-ar">الهاتف</span></th>
-          <th><span class="lang-fr">Profil</span><span class="lang-en">Profile</span><span class="lang-ar">النوع</span></th>
-          <th><span class="lang-fr">Statut</span><span class="lang-en">Status</span><span class="lang-ar">الحالة</span></th>
-          <th class="text-center"><span class="lang-fr">Actions</span><span class="lang-en">Actions</span><span class="lang-ar">إجراءات</span></th>
+          <th>Matricule</th>
+          <th>Nom & Prénom</th>
+          <th>Email / Téléphone</th>
+          <th>Profil</th>
+          <th>Statut</th>
+          <th class="text-center">Actions</th>
         </tr>
       </thead>
       <tbody id="liste-utilisateurs">
-        <tr><td colspan="6" class="text-center py-5">
-          <div class="spinner-border text-warning"></div>
-          <p class="mt-3 mb-0">Chargement...</p>
-        </td></tr>
+        <tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-warning"></div><p class="mt-3 mb-0">Chargement...</p></td></tr>
       </tbody>
     </table>
   </div>
@@ -174,76 +163,224 @@ function appliquerLangue(lang){
 
 <!-- MODAL : AJOUTER / MODIFIER -->
 <div class="modal fade" id="modalUtilisateur" tabindex="-1">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">
-          <span class="lang-fr">Utilisateur</span>
-          <span class="lang-en">User</span>
-          <span class="lang-ar">المستخدم</span>
-        </h5>
+        <h5 class="modal-title">Utilisateur</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="utilisateur-id">
-        <div class="row g-3">
+
+        <div class="alert alert-info py-2 mb-3">
+          <i class="bi bi-shield-lock"></i> Matricule et mot de passe générés automatiquement.
+        </div>
+
+        <!-- 📋 CHAMPS COMMUNS -->
+        <div class="row g-3 mb-3">
           <div class="col-md-6">
-            <label class="form-label fw-bold"><span class="lang-fr">Nom *</span><span class="lang-en">Last Name *</span><span class="lang-ar">اللقب *</span></label>
+            <label class="form-label fw-bold">Nom *</label>
             <input type="text" id="utilisateur-nom" class="form-control" required>
           </div>
           <div class="col-md-6">
-            <label class="form-label fw-bold"><span class="lang-fr">Prénoms *</span><span class="lang-en">First Name *</span><span class="lang-ar">الاسم الأول *</span></label>
-            <input type="text" id="utilisateur-prenoms" class="form-control" required>
+            <label class="form-label fw-bold">Prénom *</label>
+            <input type="text" id="utilisateur-prenom" class="form-control" required>
           </div>
           <div class="col-md-6">
-            <label class="form-label fw-bold"><span class="lang-fr">Email *</span><span class="lang-en">Email *</span><span class="lang-ar">البريد *</span></label>
+            <label class="form-label fw-bold">Email *</label>
             <input type="email" id="utilisateur-email" class="form-control" required>
           </div>
           <div class="col-md-6">
-            <label class="form-label fw-bold"><span class="lang-fr">Téléphone</span><span class="lang-en">Phone</span><span class="lang-ar">الهاتف</span></label>
+            <label class="form-label fw-bold">Téléphone</label>
             <input type="tel" id="utilisateur-telephone" class="form-control">
           </div>
-          <div class="col-md-6">
-            <label class="form-label fw-bold"><span class="lang-fr">Profil *</span><span class="lang-en">Profile *</span><span class="lang-ar">النوع *</span></label>
-            <select id="utilisateur-profil" class="form-select">
-              <option value="admin">🔧 Admin</option>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Profil *</label>
+            <select id="utilisateur-profil" class="form-select" onchange="afficherFormulaireProfil()">
+              <option value="admin">🔧 Administrateur</option>
               <option value="directeur">🏫 Directeur</option>
-              <option value="prof">👨‍🏫 Enseignant</option>
               <option value="comptable">💰 Comptable</option>
-              <option value="secretaire">📝 Secrétaire</option>
-              <option value="eleve">🎓 Élève</option>
+              <option value="prof">👨‍🏫 Enseignant</option>
+              <option value="eleve" selected>🎓 Élève</option>
               <option value="parent">👨‍👩‍👧 Parent</option>
+              <option value="visiteur">🧑‍💼 Visiteur</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Statut</label>
+            <select id="utilisateur-statut" class="form-select">
+              <option value="valide" selected>✅ Actif</option>
+              <option value="en_attente">⏳ En attente</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Année scolaire</label>
+            <select id="utilisateur-annee" class="form-select">
+              <option value="2025-2026" selected>2025-2026</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 🎓 ÉLÈVE -->
+        <div id="form-eleve" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10">
+          <h6 class="text-warning fw-bold"><i class="bi bi-mortarboard"></i> Informations Élève</h6>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Date de naissance *</label>
+            <input type="date" id="eleve-date-naissance" class="form-control">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Lieu de naissance</label>
+            <input type="text" id="eleve-lieu-naissance" class="form-control">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Classe</label>
+            <select id="eleve-classe" class="form-select">
+              <option value="">-- Choisir --</option>
+            </select>
+          </div>
+          <hr class="w-100 border-warning opacity-50">
+          <div class="col-md-3">
+            <label class="form-label fw-bold">Moyenne année préc.</label>
+            <input type="number" step="0.01" min="0" max="20" id="eleve-moyenne" class="form-control" placeholder="/20">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-bold">Rang</label>
+            <input type="number" id="eleve-rang" class="form-control" placeholder="Ex: 5">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-bold">Mention</label>
+            <select id="eleve-mention" class="form-select">
+              <option value="">-- Non renseigné --</option>
+              <option value="Excellent">🏆 Excellent</option>
+              <option value="Très Bien">⭐ Très Bien</option>
+              <option value="Bien">✅ Bien</option>
+              <option value="Assez Bien">📝 Assez Bien</option>
+              <option value="Passable">🟡 Passable</option>
+              <option value="Insuffisant">🔴 Insuffisant</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-bold">Note Conduite</label>
+            <input type="number" step="0.01" min="0" max="20" id="eleve-conduite" class="form-control" placeholder="/20">
+          </div>
+          <hr class="w-100 border-warning opacity-50">
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Nom du Père</label>
+            <input type="text" id="eleve-nom-pere" class="form-control">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Téléphone Père</label>
+            <input type="tel" id="eleve-tel-pere" class="form-control">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Nom de la Mère</label>
+            <input type="text" id="eleve-nom-mere" class="form-control">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Téléphone Mère</label>
+            <input type="tel" id="eleve-tel-mere" class="form-control">
+          </div>
+        </div>
+
+        <!-- 👨‍🏫 ENSEIGNANT -->
+        <div id="form-prof" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
+          <h6 class="text-primary fw-bold"><i class="bi bi-person-workspace"></i> Informations Enseignant</h6>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Spécialité / Matière</label>
+            <input type="text" id="prof-specialite" class="form-control">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Diplôme</label>
+            <input type="text" id="prof-diplome" class="form-control">
+          </div>
+        </div>
+
+        <!-- 💰 COMPTABLE -->
+        <div id="form-comptable" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
+          <h6 class="text-success fw-bold"><i class="bi bi-cash-coin"></i> Informations Comptable</h6>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Service</label>
+            <input type="text" id="comptable-service" class="form-control" value="Service Financier">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Horaires</label>
+            <input type="text" id="comptable-horaires" class="form-control" value="Lundi-Vendredi 08h-16h">
+          </div>
+        </div>
+
+        <!-- 🏫 DIRECTEUR -->
+        <div id="form-directeur" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
+          <h6 class="text-info fw-bold"><i class="bi bi-building"></i> Informations Directeur</h6>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Fonction</label>
+            <input type="text" id="directeur-fonction" class="form-control" value="Directeur de l'École">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Date d'entrée</label>
+            <input type="date" id="directeur-date-fonction" class="form-control">
+          </div>
+        </div>
+
+        <!-- 🔧 ADMIN -->
+        <div id="form-admin" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
+          <h6 class="text-danger fw-bold"><i class="bi bi-shield-check"></i> Informations Administrateur</h6>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Niveau de droits</label>
+            <select id="admin-niveau" class="form-select">
+              <option value="admin">🔧 Administrateur standard</option>
+              <option value="super_admin">👑 Super Administrateur</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 👨‍👩‍👧 PARENT -->
+        <div id="form-parent" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
+          <h6 class="text-warning fw-bold"><i class="bi bi-people"></i> Informations Parent</h6>
+          <div class="col-md-12">
+            <label class="form-label fw-bold">Matricule(s) enfant(s)</label>
+            <input type="text" id="parent-enfants" class="form-control" placeholder="MZ2026001, MZ2026002">
+          </div>
+        </div>
+
+        <!-- 🧑‍💼 VISITEUR -->
+        <div id="form-visiteur" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
+          <h6 class="text-secondary fw-bold"><i class="bi bi-person-lines-fill"></i> Informations Visiteur</h6>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Motif de visite</label>
+            <select id="visiteur-motif" class="form-select">
+              <option value="renseignement">📝 Demande de renseignements</option>
+              <option value="inscription">🎓 Inscription</option>
+              <option value="autre">❓ Autre</option>
             </select>
           </div>
           <div class="col-md-6">
-            <label class="form-label fw-bold"><span class="lang-fr">Statut</span><span class="lang-en">Status</span><span class="lang-ar">الحالة</span></label>
-            <select id="utilisateur-statut" class="form-select">
-              <option value="valide">✅ Actif</option>
-              <option value="en_attente">⏳ En attente</option>
-              <option value="refusee">❌ Refusé</option>
+            <label class="form-label fw-bold">Durée d'accès</label>
+            <select id="visiteur-duree" class="form-select">
+              <option value="1jour">⏳ Une journée</option>
+              <option value="permanent">✅ Accès permanent</option>
             </select>
           </div>
-          <div class="col-md-12" id="bloc-mdp">
-            <label class="form-label fw-bold"><span class="lang-fr">Mot de passe</span><span class="lang-en">Password</span><span class="lang-ar">كلمة المرور</span></label>
-            <input type="text" id="utilisateur-mdp" class="form-control" placeholder="Généré automatiquement si laissé vide">
-            <div class="info-email">
-              <i class="bi bi-envelope-paper text-primary"></i>
-              <span class="lang-fr">✅ Un email sera envoyé à l'utilisateur avec ses identifiants</span>
-              <span class="lang-en">✅ An email will be sent with login credentials</span>
-              <span class="lang-ar">✅ سيتم إرسال بريد إلكتروني ببيانات الدخول</span>
+        </div>
+
+        <!-- ✅ INFOS GÉNÉRÉES -->
+        <div id="bloc-resultat" class="carte-info-generee d-none">
+          <h6 class="text-success fw-bold">✅ Identifiants générés</h6>
+          <div class="row g-2 mt-2">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Matricule</label>
+              <div id="affichage-matricule" class="valeur-generee">—</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Mot de passe provisoire</label>
+              <div id="affichage-mdp" class="valeur-generee text-info">—</div>
             </div>
           </div>
         </div>
       </div>
+
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          <span class="lang-fr">Annuler</span><span class="lang-en">Cancel</span><span class="lang-ar">إلغاء</span>
-        </button>
-        <button type="button" class="btn btn-valide-lumineux" onclick="enregistrerUtilisateur()">💾 
-          <span class="lang-fr">Enregistrer & Envoyer Email</span>
-          <span class="lang-en">Save & Send Email</span>
-          <span class="lang-ar">حفظ وإرسال البريد</span>
-        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+        <button type="button" class="btn btn-valide-lumineux" onclick="enregistrerUtilisateur()">💾 Enregistrer</button>
       </div>
     </div>
   </div>
@@ -252,57 +389,29 @@ function appliquerLangue(lang){
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const API_BASE = "https://mama-zoumana-api.onrender.com/api";
+const API_BASE = "https://mama-zoumana.onrender.com/api";
 let modal;
 
-const textes = {
-  fr: {
-    confirmerSuppression: "⚠️ Confirmer la suppression de :",
-    ajouterSucces: "✅ Utilisateur ajouté ! Un email a été envoyé avec ses identifiants.",
-    modifierSucces: "✅ Utilisateur modifié !",
-    erreurChamps: "⚠️ Remplis Nom, Prénoms et Email !",
-    erreurServeur: "❌ Erreur de connexion au serveur",
-    generationMdp: "🔑 Mot de passe généré : "
-  },
-  en: {
-    confirmerSuppression: "⚠️ Confirm deletion of:",
-    ajouterSucces: "✅ User added! An email has been sent with credentials.",
-    modifierSucces: "✅ User updated!",
-    erreurChamps: "⚠️ Fill in Name, First Name and Email!",
-    erreurServeur: "❌ Server connection error",
-    generationMdp: "🔑 Generated password: "
-  },
-  ar: {
-    confirmerSuppression: "⚠️ تأكيد حذف :",
-    ajouterSucces: "✅ تم إضافة المستخدم! تم إرسال بريد إلكتروني ببيانات الدخول.",
-    modifierSucces: "✅ تم التحديث!",
-    erreurChamps: "⚠️ املأ الاسم والبريد الإلكتروني!",
-    erreurServeur: "❌ خطأ في الاتصال بالخادم",
-    generationMdp: "🔑 كلمة المرور المولدة : "
-  }
+const LabelsProfil = {
+  admin: "🔧 Administrateur", directeur: "🏫 Directeur", comptable: "💰 Comptable",
+  prof: "👨‍🏫 Enseignant", eleve: "🎓 Élève", parent: "👨‍👩‍👧 Parent", visiteur: "🧑‍💼 Visiteur"
 };
-
-function T(key){ return textes[localStorage.getItem('langue')||'fr'][key]; }
 
 document.addEventListener('DOMContentLoaded', () => {
   modal = new bootstrap.Modal(document.getElementById('modalUtilisateur'));
-  document.querySelectorAll('.btn-langue').forEach(b=>{
-    b.classList.toggle('actif', b.dataset.lang === langueSauvegardee);
-  });
   chargerUtilisateurs();
 });
 
-// 🔑 GÉNÉRER UN MOT DE PASSE SÉCURE
-function genererMotDePasse(longueur = 10){
-  const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@!$%&";
-  let mdp = "";
-  for(let i=0; i<longueur; i++){
-    mdp += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
-  }
-  return mdp;
+// 🔄 Afficher bon formulaire
+function afficherFormulaireProfil(){
+  const profil = document.getElementById('utilisateur-profil').value;
+  document.querySelectorAll('.bloc-profil[id^="form-"]').forEach(f=>f.classList.add('d-none'));
+  const form = document.getElementById(`form-${profil}`);
+  if(form) form.classList.remove('d-none');
+  document.getElementById('bloc-resultat').classList.add('d-none');
 }
 
-// 📥 CHARGER LA LISTE
+// 📥 Charger liste
 async function chargerUtilisateurs(){
   const recherche = document.getElementById('recherche').value.toLowerCase();
   const profil = document.getElementById('filtre-profil').value;
@@ -310,223 +419,183 @@ async function chargerUtilisateurs(){
   const token = localStorage.getItem('token');
 
   try {
-    const res = await fetch(`${API_BASE}/auth/utilisateurs`, {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
+    const res = await fetch(`${API_BASE}/auth/utilisateurs`, { headers: { 'Authorization': 'Bearer '+token } });
     const data = await res.json();
     const liste = document.getElementById('liste-utilisateurs');
 
-    if(!data.ok || !data.lignes || data.lignes.length === 0){
-      liste.innerHTML = `<tr><td colspan="6" class="text-center py-5 opacity-75">
-        <span class="lang-fr">Aucun utilisateur trouvé</span>
-        <span class="lang-en">No user found</span>
-        <span class="lang-ar">لم يتم العثور على مستخدمين</span>
-      </td></tr>`;
-      return;
+    if(!data.ok || !data.lignes || !data.lignes.length){
+      liste.innerHTML = `<tr><td colspan="6" class="text-center py-5 opacity-75">Aucun utilisateur trouvé</td></tr>`; return;
     }
 
     let utilisateurs = data.lignes;
-    if(recherche){
-      utilisateurs = utilisateurs.filter(u => 
-        ((u.nom||'')+' '+(u.prenom||'')).toLowerCase().includes(recherche) ||
-        ((u.email||'').toLowerCase().includes(recherche))
-      );
-    }
+    if(recherche) utilisateurs = utilisateurs.filter(u =>
+      (u.matricule||'').toLowerCase().includes(recherche) ||
+      ((u.nom+' '+u.prenom).toLowerCase().includes(recherche))
+    );
     if(profil) utilisateurs = utilisateurs.filter(u => u.role === profil);
     if(statut) utilisateurs = utilisateurs.filter(u => u.statut_compte === statut);
 
     liste.innerHTML = utilisateurs.map(u => {
-      const statutActuel = u.statut_compte || 'en_attente';
-      const classeStatut = statutActuel==='valide'?'statut-actif':statutActuel==='refusee'?'statut-refuse':'statut-attente';
-      const libelleStatut = statutActuel==='valide'?'✅ Actif':statutActuel==='refusee'?'❌ Refusé':'⏳ En attente';
-      const nomComplet = `${u.nom||''} ${u.prenom||''}`;
-      const id = u.id;
-      const roleLabel = {
-        admin:'🔧 Admin', directeur:'🏫 Directeur', prof:'👨‍🏫 Enseignant',
-        comptable:'💰 Comptable', secretaire:'📝 Secrétaire', eleve:'🎓 Élève', parent:'👨‍👩‍👧 Parent'
-      }[u.role] || u.role;
-
-      return `
-        <tr>
-          <td><strong>${nomComplet}</strong></td>
-          <td>${u.email||'—'}</td>
-          <td>${u.telephone||'—'}</td>
-          <td>${roleLabel}</td>
-          <td><span class="${classeStatut}">${libelleStatut}</span></td>
-          <td class="text-center">
-            <button class="btn btn-sm btn-modifier-lumineux" onclick="modifierUtilisateur(${id})" title="Modifier">
-              <i class="bi bi-pencil"></i>
-            </button>
-            <button class="btn btn-sm btn-info-lumineux" onclick="envoyerInfosEmail('${u.email||''}', '${(u.nom||'')} ${(u.prenom||'')}', '${roleLabel}')" title="Renvoyer Email">
-              <i class="bi bi-envelope"></i>
-            </button>
-            <button class="btn btn-sm btn-refuse-lumineux" onclick="supprimerUtilisateur(${id}, '${nomComplet.replace(/'/g, "\\'")}')" title="Supprimer">
-              <i class="bi bi-trash"></i>
-            </button>
-          </td>
-        </tr>
-      `;
+      const cls = u.statut_compte==='valide'?'statut-actif':'statut-attente';
+      const libStatut = u.statut_compte==='valide'?'✅ Actif':'⏳ En attente';
+      return `<tr>
+        <td><code class="fw-bold text-success">${u.matricule||'—'}</code></td>
+        <td><strong>${u.nom||''} ${u.prenom||''}</strong></td>
+        <td>${u.email||'—'}<br><small>${u.telephone||''}</small></td>
+        <td>${LabelsProfil[u.role]||u.role}</td>
+        <td><span class="${cls}">${libStatut}</span></td>
+        <td class="text-center">
+          <button class="btn btn-sm btn-modifier-lumineux" onclick="modifierUtilisateur(${u.id})"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-refuse-lumineux" onclick="supprimerUtilisateur(${u.id},'${(u.nom+' '+u.prenom).replace(/'/g,"\\'")}')"><i class="bi bi-trash"></i></button>
+        </td>
+      </tr>`;
     }).join('');
-
-  } catch (e) {
-    console.error("Erreur chargement :", e);
-    document.getElementById('liste-utilisateurs').innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">
-      ❌ Erreur de chargement
-    </td></tr>`;
+  } catch(e){
+    document.getElementById('liste-utilisateurs').innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Erreur de chargement</td></tr>`;
   }
 }
 
-// ➕ OUVRIR MODAL AJOUT
+// ➕ Ouvrir ajout
 function ouvrirModalAjout(){
-  document.getElementById('utilisateur-id').value = '';
-  document.getElementById('utilisateur-nom').value = '';
-  document.getElementById('utilisateur-prenoms').value = '';
-  document.getElementById('utilisateur-email').value = '';
-  document.getElementById('utilisateur-telephone').value = '';
-  document.getElementById('utilisateur-profil').value = 'eleve';
-  document.getElementById('utilisateur-statut').value = 'valide';
-  document.getElementById('utilisateur-mdp').value = '';
-  document.getElementById('bloc-mdp').style.display = 'block';
+  document.getElementById('utilisateur-id').value='';
+  document.getElementById('utilisateur-nom').value='';
+  document.getElementById('utilisateur-prenom').value='';
+  document.getElementById('utilisateur-email').value='';
+  document.getElementById('utilisateur-telephone').value='';
+  document.getElementById('utilisateur-profil').value='eleve';
+  document.getElementById('utilisateur-statut').value='valide';
+  document.getElementById('bloc-resultat').classList.add('d-none');
+  afficherFormulaireProfil();
   modal.show();
-}
-
-// ✏️ CHARGER POUR MODIFICATION
-async function modifierUtilisateur(id){
-  document.getElementById('utilisateur-id').value = id;
-  document.getElementById('bloc-mdp').style.display = 'none';
-
-  try {
-    const res = await fetch(`${API_BASE}/auth/utilisateur/${id}`, {
-      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
-    });
-    const u = await res.json();
-    if(u.ok && u.utilisateur){
-      document.getElementById('utilisateur-nom').value = u.utilisateur.nom||'';
-      document.getElementById('utilisateur-prenoms').value = u.utilisateur.prenoms||'';
-      document.getElementById('utilisateur-email').value = u.utilisateur.email||'';
-      document.getElementById('utilisateur-telephone').value = u.utilisateur.telephone||'';
-      document.getElementById('utilisateur-profil').value = u.utilisateur.role||'eleve';
-      document.getElementById('utilisateur-statut').value = u.utilisateur.statut_compte||'en_attente';
-    }
-  } catch (e) { console.error("Erreur chargement :", e); }
-  modal.show();
-}
-
-// 📧 ENVOYER LES INFORMATIONS PAR EMAIL
-async function envoyerInfosEmail(email, nomComplet, profil, motDePasse = null){
-  const token = localStorage.getItem('token');
-  
-  const donneesEmail = {
-    email_destinataire: email,
-    nom_utilisateur: nomComplet,
-    profil: profil,
-    mot_de_passe: motDePasse,
-    lien_connexion: window.location.origin + "/connexion.html"
-  };
-
-  try {
-    const res = await fetch(`${API_BASE}/auth/envoyer-identifiants`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + token
-      },
-      body: JSON.stringify(donneesEmail)
-    });
-    const r = await res.json();
-    return r.ok;
-  } catch {
-    return true; // Simule le succès si API indisponible
-  }
 }
 
 // 💾 ENREGISTRER
 async function enregistrerUtilisateur(){
   const id = document.getElementById('utilisateur-id').value;
   const token = localStorage.getItem('token');
-  let motDePasse = document.getElementById('utilisateur-mdp').value.trim();
-  
-  // ✅ GÉNÉRER UN MOT DE PASSE SI VIDÉ (NOUVEL UTILISATEUR)
   const estNouveau = !id;
-  if(estNouveau && !motDePasse){
-    motDePasse = genererMotDePasse();
-    alert(T('generationMdp') + motDePasse);
+  const profil = document.getElementById('utilisateur-profil').value;
+  const nom = document.getElementById('utilisateur-nom').value.trim();
+  const prenom = document.getElementById('utilisateur-prenom').value.trim();
+  const email = document.getElementById('utilisateur-email').value.trim();
+
+  if(!nom || !prenom || !email) return alert("⚠️ Remplis Nom, Prénom et Email !");
+
+  // ✅ Validation Élève
+  if (profil === 'eleve') {
+    const dateNaissance = document.getElementById('eleve-date-naissance').value;
+    if (!dateNaissance) return alert("⚠️ Date de naissance requise pour un élève !");
   }
 
-  const donnees = {
-    nom: document.getElementById('utilisateur-nom').value,
-    prenoms: document.getElementById('utilisateur-prenoms').value,
-    email: document.getElementById('utilisateur-email').value,
-    telephone: document.getElementById('utilisateur-telephone').value,
-    role: document.getElementById('utilisateur-profil').value,
-    statut_compte: document.getElementById('utilisateur-statut').value
+  // 📦 Objet utilisateur
+  const utilisateur = {
+    nom, prenom, email,
+    telephone: document.getElementById('utilisateur-telephone').value.trim(),
+    role: profil,
+    statut_compte: document.getElementById('utilisateur-statut').value,
+    annee_scolaire: document.getElementById('utilisateur-annee').value
   };
-  if(motDePasse) donnees.mot_de_passe = motDePasse;
 
-  if(!donnees.nom || !donnees.prenoms || !donnees.email){
-    alert(T('erreurChamps')); return;
+  // 🎓 Élève
+  if (profil === 'eleve') {
+    utilisateur.date_naissance = document.getElementById('eleve-date-naissance').value;
+    utilisateur.lieu_naissance = document.getElementById('eleve-lieu-naissance').value;
+    utilisateur.id_classe_souhaitee = document.getElementById('eleve-classe').value;
+    utilisateur.moyenne_annee_precedente = document.getElementById('eleve-moyenne').value || null;
+    utilisateur.classement = document.getElementById('eleve-rang').value || null;
+    utilisateur.mention = document.getElementById('eleve-mention').value || null;
+    utilisateur.note_conduite = document.getElementById('eleve-conduite').value || null;
+    utilisateur.nom_pere = document.getElementById('eleve-nom-pere').value.trim() || null;
+    utilisateur.nom_mere = document.getElementById('eleve-nom-mere').value.trim() || null;
+    utilisateur.telephone_pere = document.getElementById('eleve-tel-pere').value.trim() || null;
+    utilisateur.telephone_mere = document.getElementById('eleve-tel-mere').value.trim() || null;
   }
 
-  const url = id ? `${API_BASE}/auth/utilisateur/${id}` : `${API_BASE}/auth/creer-utilisateur`;
-  const methode = id ? "PUT" : "POST";
+  // 👨‍🏫 Enseignant
+  if (profil === 'prof') {
+    utilisateur.specialite = document.getElementById('prof-specialite').value.trim() || null;
+    utilisateur.diplome = document.getElementById('prof-diplome').value.trim() || null;
+  }
+
+  // 💰 Comptable
+  if (profil === 'comptable') {
+    utilisateur.service = document.getElementById('comptable-service').value.trim();
+    utilisateur.horaires = document.getElementById('comptable-horaires').value.trim();
+  }
+
+  // 🏫 Directeur
+  if (profil === 'directeur') {
+    utilisateur.fonction = document.getElementById('directeur-fonction').value.trim();
+    utilisateur.date_entree_fonction = document.getElementById('directeur-date-fonction').value || null;
+  }
+
+  // 🔧 Admin
+  if (profil === 'admin') {
+    utilisateur.niveau_droits = document.getElementById('admin-niveau').value;
+  }
+
+  // 👨‍👩‍👧 Parent
+  if (profil === 'parent') {
+    utilisateur.enfants_matricules = document.getElementById('parent-enfants').value.trim();
+  }
+
+  // 🧑‍💼 Visiteur
+  if (profil === 'visiteur') {
+    utilisateur.motif_visite = document.getElementById('visiteur-motif').value;
+    utilisateur.duree_acces = document.getElementById('visiteur-duree').value;
+  }
 
   try {
-    const res = await fetch(url, {
-      method: methode,
-      headers: { 
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + token
-      },
-      body: JSON.stringify(donnees)
-    });
-    const r = await res.json();
+    let res;
+    if (estNouveau) {
+      res = await fetch(`${API_BASE}/auth/creer-admin`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(utilisateur)
+      });
+    } else {
+      res = await fetch(`${API_BASE}/auth/modifier/${id}`, {
+        method: 'PUT',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(utilisateur)
+      });
+    }
 
-    if(r.ok){
-      // ✅ ENVOYER EMAIL AVEC TOUTES LES INFOS SI NOUVEL UTILISATEUR
-      if(estNouveau){
-        const roleLabel = {
-          admin:"🔧 Admin", directeur:"🏫 Directeur", prof:"👨‍🏫 Enseignant",
-          comptable:"💰 Comptable", secretaire:"📝 Secrétaire", eleve:"🎓 Élève", parent:"👨‍👩‍👧 Parent"
-        }[donnees.role] || donnees.role;
-        await envoyerInfosEmail(donnees.email, `${donnees.nom} ${donnees.prenoms}`, roleLabel, motDePasse);
-        alert(T('ajouterSucces'));
+    const resultat = await res.json();
+
+    if (resultat.ok) {
+      if (estNouveau) {
+        document.getElementById('bloc-resultat').classList.remove('d-none');
+        document.getElementById('affichage-matricule').textContent = resultat.utilisateur?.matricule || '—';
+        document.getElementById('affichage-mdp').textContent = resultat.mdp_provisoire || '—';
+        alert("✅ Utilisateur ajouté !");
       } else {
-        alert(T('modifierSucces'));
+        alert("✅ Utilisateur modifié !");
+        modal.hide();
       }
-      modal.hide();
       chargerUtilisateurs();
     } else {
-      alert("❌ Erreur : " + (r.erreur||"Erreur inconnue"));
+      alert("❌ " + (resultat.erreur || "Erreur serveur"));
     }
-  } catch (e) {
-    alert(T('erreurServeur'));
-    console.error(e);
+  } catch (err) {
+    alert("❌ Erreur réseau : " + err.message);
   }
 }
 
 // 🗑️ SUPPRIMER
-async function supprimerUtilisateur(id, nom){
-  const token = localStorage.getItem('token');
-  if(!confirm(`${T('confirmerSuppression')} "${nom}" ?`)) return;
-
+async function supprimerUtilisateur(id, nomComplet) {
+  if (!confirm(`⚠️ Supprimer ${nomComplet} ?`)) return;
   try {
-    const res = await fetch(`${API_BASE}/auth/utilisateur/${id}`, {
-      method: "DELETE",
-      headers: { "Authorization": "Bearer " + token }
+    const res = await fetch(`${API_BASE}/auth/supprimer/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
     });
     const r = await res.json();
-
-    if(r.ok){
-      alert("✅ Supprimé !");
-      chargerUtilisateurs();
-    } else {
-      alert("❌ Erreur : " + (r.erreur||""));
-    }
-  } catch (e) {
-    alert("❌ Erreur de connexion");
-    console.error(e);
-  }
+    alert(r.ok ? "✅ Supprimé !" : "❌ Échec");
+    chargerUtilisateurs();
+  } catch { alert("❌ Erreur réseau") }
 }
 </script>
+
 </body>
 </html>
