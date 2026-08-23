@@ -21,35 +21,155 @@
       --suppr: #ef4444;
       --texte: #f8fafc;
       --alerte: #ef4444;
+      --fond-jour: #f0f9ff;
+      --texte-jour: #1e293b;
+      --carte-jour: #ffffff;
+      --bord-jour: #0c4a6e;
+      --input-fond-jour: #ffffff;
+      --input-bord-jour: #cbd5e1;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.25s ease; }
-    body { background: var(--sombre); color: var(--texte); min-height: 100vh; font-family: 'Segoe UI', sans-serif; }
+
+    /* 🌙 MODE NUIT (par défaut) */
+    body {
+      background: var(--sombre);
+      color: var(--texte);
+      min-height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* ☀️ MODE JOUR */
+    body.mode-jour {
+      background: linear-gradient(135deg, #e0f2fe, #f0f9ff);
+      color: var(--texte-jour);
+    }
+    body.mode-jour .entete-page {
+      background: white;
+      border-bottom-color: var(--bord-jour);
+    }
+    body.mode-jour .carte-gestion {
+      background: var(--carte-jour);
+      border-left-color: var(--bord-jour);
+      box-shadow: 0 4px 15px rgba(12,74,110,0.1);
+    }
+    body.mode-jour .form-control,
+    body.mode-jour .form-select {
+      background: var(--input-fond-jour);
+      border-color: var(--input-bord-jour);
+      color: var(--texte-jour);
+    }
+    body.mode-jour .form-control:focus,
+    body.mode-jour .form-select:focus {
+      border-color: var(--bord-orange);
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
+    }
+    body.mode-jour .alerte-api {
+      background: rgba(239,68,68,0.05);
+    }
 
     @keyframes bordTourne {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    .btn-anim-orange { position: relative; background: var(--sombre-clair); color: var(--texte); border: none; border-radius: 10px; overflow: hidden; z-index: 1; }
-    .btn-anim-orange::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(transparent, var(--bord-orange), transparent 30%); animation: bordTourne 2.5s linear infinite; z-index: -2; }
-    .btn-anim-orange::after { content: ''; position: absolute; inset: 2px; background: var(--sombre-clair); border-radius: 8px; z-index: -1; }
-    .btn-anim-orange:hover { color: var(--orange-clair); box-shadow: 0 0 15px rgba(245,158,11,0.4); }
+    .btn-anim-orange {
+      position: relative;
+      background: var(--sombre-clair);
+      color: var(--texte);
+      border: none;
+      border-radius: 10px;
+      overflow: hidden;
+      z-index: 1;
+    }
+    body.mode-jour .btn-anim-orange {
+      background: white;
+      color: var(--texte-jour);
+      border: 1px solid var(--bord-orange);
+    }
+    .btn-anim-orange::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: conic-gradient(transparent, var(--bord-orange), transparent 30%);
+      animation: bordTourne 2.5s linear infinite;
+      z-index: -2;
+    }
+    .btn-anim-orange::after {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      background: var(--sombre-clair);
+      border-radius: 8px;
+      z-index: -1;
+    }
+    body.mode-jour .btn-anim-orange::after { background: white; }
+    .btn-anim-orange:hover {
+      color: var(--orange-clair);
+      box-shadow: 0 0 15px rgba(245,158,11,0.4);
+    }
 
-    .btn-valide-lumineux { background: var(--valide); color: white; border-radius: 8px; box-shadow: 0 0 12px rgba(16,185,129,0.35); border: none; }
-    .btn-valide-lumineux:hover { box-shadow: 0 0 20px rgba(16,185,129,0.6); transform: translateY(-1px); }
-    .btn-action-lumineux { background: var(--action); color: white; border-radius: 8px; box-shadow: 0 0 12px rgba(59,130,246,0.35); border: none; }
-    .btn-action-lumineux:hover { box-shadow: 0 0 20px rgba(59,130,246,0.6); transform: translateY(-1px); }
-    .btn-suppr-lumineux { background: var(--suppr); color: white; border-radius: 8px; box-shadow: 0 0 12px rgba(239,68,68,0.35); border: none; }
-    .btn-suppr-lumineux:hover { box-shadow: 0 0 20px rgba(239,68,68,0.6); transform: translateY(-1px); }
+    .btn-valide-lumineux {
+      background: var(--valide); color: white; border-radius: 8px;
+      box-shadow: 0 0 12px rgba(16,185,129,0.35); border: none;
+    }
+    .btn-valide-lumineux:hover {
+      box-shadow: 0 0 20px rgba(16,185,129,0.6); transform: translateY(-1px);
+    }
+    .btn-action-lumineux {
+      background: var(--action); color: white; border-radius: 8px;
+      box-shadow: 0 0 12px rgba(59,130,246,0.35); border: none;
+    }
+    .btn-action-lumineux:hover {
+      box-shadow: 0 0 20px rgba(59,130,246,0.6); transform: translateY(-1px);
+    }
+    .btn-suppr-lumineux {
+      background: var(--suppr); color: white; border-radius: 8px;
+      box-shadow: 0 0 12px rgba(239,68,68,0.35); border: none;
+    }
+    .btn-suppr-lumineux:hover {
+      box-shadow: 0 0 20px rgba(239,68,68,0.6); transform: translateY(-1px);
+    }
 
-    .entete-page { background: var(--sombre-clair); border-bottom: 2px solid var(--bord-orange); padding: 1.5rem 0; }
-    .carte-gestion { background: var(--sombre-clair); border-radius: 12px; border-left: 3px solid var(--bord-orange); padding: 1.25rem; margin-bottom: 1.5rem; }
-    .form-control, .form-select { background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; }
-    .form-control:focus, .form-select:focus { background: #0f172a; border-color: var(--bord-orange); color: white; box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.25); }
-    .barre-langue { display: flex; gap: 0.75rem; justify-content: center; margin-bottom: 2rem; }
+    .entete-page {
+      background: var(--sombre-clair);
+      border-bottom: 2px solid var(--bord-orange);
+      padding: 1.5rem 0;
+    }
+    .carte-gestion {
+      background: var(--sombre-clair);
+      border-radius: 12px;
+      border-left: 3px solid var(--bord-orange);
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-control, .form-select {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: white;
+      border-radius: 8px;
+    }
+    .form-control:focus, .form-select:focus {
+      background: #0f172a;
+      border-color: var(--bord-orange);
+      color: white;
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.25);
+    }
+    .barre-outils {
+      display: flex; gap: 0.5rem; align-items: center; justify-content: center; margin-bottom: 2rem;
+    }
     .menu-fixed { position: fixed; bottom: 2rem; right: 2rem; z-index: 999; }
-    .alerte-api { border-left: 4px solid var(--alerte); background: rgba(239,68,68,0.1); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
-    .zone-liste { border-top: 2px solid rgba(245,158,11,0.3); margin-top: 2rem; padding-top: 2rem; }
+    .alerte-api {
+      border-left: 4px solid var(--alerte);
+      background: rgba(239,68,68,0.1);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+    }
+    .zone-liste {
+      border-top: 2px solid rgba(245,158,11,0.3);
+      margin-top: 2rem; padding-top: 2rem;
+    }
 
     /* ===== TRADUCTIONS ===== */
     .txt-en, .txt-ar { display: none; }
@@ -65,6 +185,7 @@
 </head>
 <body class="lang-fr">
 
+
 <script>
   // 🔗 URL adaptative
   const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
@@ -74,6 +195,18 @@
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
   let langueActuelle = localStorage.getItem('langue') || 'fr';
+  let estModeJour = localStorage.getItem('modeJour') === '1';
+
+  // ☀️🌙 BASCULE MODE JOUR / NUIT
+  function appliquerTheme() {
+    document.body.classList.toggle('mode-jour', estModeJour);
+    document.getElementById('btnJourNuit').textContent = estModeJour ? '☀️' : '🌙';
+  }
+  function basculerTheme() {
+    estModeJour = !estModeJour;
+    localStorage.setItem('modeJour', estModeJour ? '1' : '0');
+    appliquerTheme();
+  }
 
   // 💾 Stockage local
   function obtenirClassesLocales() { return JSON.parse(localStorage.getItem('liste_classes') || '[]'); }
@@ -90,7 +223,8 @@
       supprConfirm: "⚠️ Supprimer cet élément ?",
       supprOk: "✅ Supprimé !",
       erreurReseau: "❌ Erreur réseau",
-      aucuneDonnee: "Aucune donnée enregistrée"
+      aucuneDonnee: "Aucune donnée enregistrée",
+      erreurCapacite: "⚠️ Capacité doit être entre 10 et 80"
     },
     en: {
       accesReserve: "⛔ Access restricted to Administrator",
@@ -99,7 +233,8 @@
       supprConfirm: "⚠️ Delete this item?",
       supprOk: "✅ Deleted!",
       erreurReseau: "❌ Network error",
-      aucuneDonnee: "No data saved yet"
+      aucuneDonnee: "No data saved yet",
+      erreurCapacite: "⚠️ Capacity must be between 10 and 80"
     },
     ar: {
       accesReserve: "⛔ الوصول مقصور على المدير",
@@ -108,7 +243,8 @@
       supprConfirm: "⚠️ حذف هذا العنصر؟",
       supprOk: "✅ تم الحذف!",
       erreurReseau: "❌ خطأ في الشبكة",
-      aucuneDonnee: "لا توجد بيانات"
+      aucuneDonnee: "لا توجد بيانات",
+      erreurCapacite: "⚠️ السعة يجب أن تكون بين 10 و 80"
     }
   };
   function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
@@ -122,6 +258,7 @@
 
   document.body.classList.add('lang-' + langueActuelle);
 </script>
+
 
 <div class="entete-page">
   <div class="container d-flex justify-content-between align-items-center">
@@ -146,6 +283,7 @@
   </div>
 </div>
 
+
 <div class="container py-4">
   <!-- ⚠️ ALERTE API -->
   <div id="alerteApi" class="alerte-api d-none">
@@ -153,10 +291,12 @@
     <span id="texteAlerteApi"></span>
   </div>
 
-  <div class="barre-langue">
-    <button class="btn btn-anim-orange px-4 py-2" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
-    <button class="btn btn-anim-orange px-4 py-2" onclick="changerLangue('ar')" id="btn-ar">🇸🇦 AR</button>
-    <button class="btn btn-anim-orange px-4 py-2" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
+  <!-- 🛠️ BARRE OUTILS : LANGUE + JOUR/NUIT -->
+  <div class="barre-outils">
+    <button class="btn btn-anim-orange px-3 py-2" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
+    <button class="btn btn-anim-orange px-3 py-2" onclick="changerLangue('ar')" id="btn-ar">🇸🇦 AR</button>
+    <button class="btn btn-anim-orange px-3 py-2" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
+    <button class="btn btn-anim-orange px-3 py-2" id="btnJourNuit" title="Mode Jour/Nuit" onclick="basculerTheme()">🌙</button>
   </div>
 
   <div class="row g-4">
@@ -289,7 +429,7 @@
     </div>
   </div>
 
-  <!-- 📋 LISTE DES ENREGISTREMENTS — EN BAS DE PAGE -->
+  <!-- 📋 LISTE DES ENREGISTREMENTS -->
   <div class="zone-liste">
     <h4 class="mb-3">
       <span class="txt-fr">📋 Liste des Classes & Matières</span>
@@ -316,34 +456,41 @@
 </div>
 
 <script>
+  // 🚀 INITIALISATION AU CHARGEMENT
+  document.addEventListener('DOMContentLoaded', () => {
+    appliquerTheme();
+    document.body.classList.add('lang-' + langueActuelle);
+    document.getElementById('btn-' + langueActuelle)?.classList.add('actif');
+    chargerListe();
+  });
+
   // 🗣️ CHANGEMENT DE LANGUE
   function changerLangue(lang) {
     langueActuelle = lang;
-    document.body.className = 'lang-' + lang;
+    document.body.className = (estModeJour ? 'mode-jour ' : '') + 'lang-' + lang;
     localStorage.setItem('langue', lang);
-    document.querySelectorAll('.barre-langue button').forEach(b => b.classList.remove('active'));
-    document.getElementById('btn-' + lang).classList.add('active');
+    document.querySelectorAll('.barre-outils .btn').forEach(b => b.classList.remove('actif'));
+    document.getElementById('btn-' + lang)?.classList.add('actif');
   }
-  document.getElementById('btn-' + langueActuelle)?.classList.add('active');
 
-  // 📤 ENREGISTRER CLASSE
+  // 📤 ENREGISTRER CLASSE — CORRIGÉ ✅
   document.getElementById('formClasse').addEventListener('submit', async e => {
     e.preventDefault();
     const d = Object.fromEntries(new FormData(e.target));
     d.capacite_max = Number(d.capacite_max);
 
+    // ✅ Validation claire
     if (d.capacite_max < 10 || d.capacite_max > 80) {
-      alert(langueActuelle === 'ar' ? "السعة يجب أن تكون بين 10 و 80" :
-            langueActuelle === 'en' ? "Capacity must be between 10 and 80" :
-            "⚠️ Capacité doit être entre 10 et 80");
+      alert(m('erreurCapacite'));
       return;
     }
 
     const estModif = !!d.id_classe;
+    // ✅ CORRECTION : capacité_max (pas de faute de frappe)
     const nouvelleClasse = {
       libelle_classe: d.libelle_classe,
       cycle: d.cycle,
-      capacite_max: d.capaciteite_max,
+      capacite_max: d.capacite_max,
       salle: d.salle,
       statut: d.statut
     };
@@ -540,7 +687,6 @@
       alert(m('supprOk'));
       chargerListe();
     } catch {
-      // 📴 SUPPRESSION LOCALE
       let liste = obtenirClassesLocales().filter(c => String(c.id_classe) !== String(id));
       sauvegarderClassesLocales(liste);
       alert(m('supprOk') + " (mode local)");
@@ -568,16 +714,12 @@
       alert(m('supprOk'));
       chargerListe();
     } catch {
-      // 📴 SUPPRESSION LOCALE
       let liste = obtenirMatieresLocales().filter(m => String(m.id_matiere) !== String(id));
       sauvegarderMatieresLocales(liste);
       alert(m('supprOk') + " (mode local)");
       chargerListe(true);
     }
   };
-
-  // 🚀 CHARGEMENT INITIAL
-  chargerListe();
 </script>
 </body>
 </html>
