@@ -3,45 +3,96 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🛍️ Boutique Scolaire — MAMA-ZOUMANA</title>
-
-  <!-- URLs vérifiées et harmonisées -->
+  <title>
+    <span class="txt-fr">🛍️ Boutique Scolaire — MAMA-ZOUMANA</span>
+    <span class="txt-en">🛍️ School Shop — MAMA-ZOUMANA</span>
+    <span class="txt-ar">🛍️ المتجر المدرسي — ماما زومانا</span>
+  </title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
   <style>
     :root {
       --primaire: #0c4a6e;
+      --secondaire: #0369a1;
       --succes: #10b981;
       --alerte: #f59e0b;
       --danger: #ef4444;
+      --accent: #f59e0b;
+      --fond-jour: #f0f9ff;
+      --texte-jour: #1e293b;
+      --fond-nuit: #0f172a;
+      --texte-nuit: #f1f5f9;
+      --carte-fond-jour: #ffffff;
+      --carte-fond-nuit: rgba(30, 41, 59, 0.7);
     }
 
+    /* ☀️ MODE JOUR */
     body {
-      background: linear-gradient(135deg, #f0f9ff 0%, #fffbeb 100%);
+      background: linear-gradient(135deg, var(--fond-jour) 0%, #fffbeb 100%);
       min-height: 100vh;
+      color: var(--texte-jour);
+      transition: all 0.35s ease;
+    }
+
+    /* 🌙 MODE NUIT */
+    body.mode-nuit {
+      background: linear-gradient(135deg, var(--fond-nuit) 0%, #1e293b 100%);
+      color: var(--texte-nuit);
+    }
+
+    body.lang-ar {
+      direction: rtl;
+      text-align: right;
     }
 
     .entete {
-      background: linear-gradient(90deg, var(--primaire), #0369a1);
+      background: linear-gradient(90deg, var(--primaire), var(--secondaire));
       color: white;
       padding: 1.5rem;
       border-radius: 0 0 20px 20px;
       margin-bottom: 2rem;
+      transition: all 0.35s ease;
+    }
+    body.mode-nuit .entete {
+      background: linear-gradient(90deg, #020617, var(--primaire));
     }
 
+    .barre-outils {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .btn-langue, .btn-theme {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 20px;
+      padding: 5px 12px;
+      transition: all 0.3s ease;
+    }
+    .btn-langue.actif, .btn-theme.actif {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+    .btn-theme { font-size: 1.1rem; padding: 4px 10px; }
+
     .carte-produit {
-      background: white;
+      background: var(--carte-fond-jour);
       border-radius: 16px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.08);
       border: none;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: all 0.3s;
       height: 100%;
     }
-
+    body.mode-nuit .carte-produit {
+      background: var(--carte-fond-nuit);
+      border: 1px solid rgba(245,158,11,0.15);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
     .carte-produit:hover {
       transform: translateY(-5px);
-      box-shadow: 0 8px 25px rgba(12,74,110,0.15);
+      box-shadow: 0 12px 30px rgba(12,74,110,0.18);
     }
 
     .prix {
@@ -49,170 +100,301 @@
       font-weight: 700;
       color: var(--primaire);
     }
+    body.mode-nuit .prix { color: var(--accent); }
 
     .stock {
       font-size: 0.85rem;
       padding: 3px 10px;
       border-radius: 20px;
-      display: inline-block;
     }
-
     .stock-dispo { background: #dcfce7; color: #166534; }
+    body.mode-nuit .stock-dispo { background: rgba(22,101,52,0.3); color: #86efac; }
     .stock-rupture { background: #fee2e2; color: #991b1b; }
+    body.mode-nuit .stock-rupture { background: rgba(153,27,27,0.3); color: #fca5a5; }
 
     .btn-acheter {
       background: linear-gradient(90deg, var(--succes), #059669);
       border: none;
       transition: all 0.25s ease;
     }
-
-    .btn-acheter:hover:not(.disabled) {
-      background: linear-gradient(90deg, #059669, #047857);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(16,185,129,0.25);
-    }
+    .btn-acheter:hover { transform: translateY(-2px); }
 
     .categorie-btn {
       border-radius: 25px;
       border: 2px solid var(--primaire);
       color: var(--primaire);
-      background: white;
+      background: transparent;
       font-weight: 500;
-      transition: all 0.25s ease;
+      transition: all 0.25s;
     }
-
+    body.mode-nuit .categorie-btn {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
     .categorie-btn:hover, .categorie-btn.active {
       background: var(--primaire);
       color: white;
     }
+    body.mode-nuit .categorie-btn:hover,
+    body.mode-nuit .categorie-btn.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    /* 🌐 TRILINGUE */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+
+    a { text-decoration: none; }
   </style>
 </head>
 <body>
 
+
   <!-- 🧭 EN-TÊTE -->
   <div class="entete">
     <div class="container">
-      <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
-          <a href="index.html" class="btn btn-light btn-sm mb-2"><i class="bi bi-arrow-left"></i> Retour</a>
-          <h1 class="mb-0"><i class="bi bi-shop-window me-2"></i> 🛍️ BOUTIQUE SCOLAIRE</h1>
-          <p class="mb-0 opacity-75">Établissement MAMA-ZOUMANA — Fournitures, Livres & Uniformes</p>
+          <a href="index.html" class="btn btn-light btn-sm mb-2">
+            <i class="bi bi-arrow-left"></i>
+            <span class="txt-fr"> Retour</span>
+            <span class="txt-en"> Back</span>
+            <span class="txt-ar"> رجوع</span>
+          </a>
+          <h1 class="mb-0">
+            <i class="bi bi-shop-window me-2"></i>
+            <span class="txt-fr">BOUTIQUE SCOLAIRE</span>
+            <span class="txt-en">SCHOOL SHOP</span>
+            <span class="txt-ar">المتجر المدرسي</span>
+          </h1>
+          <p class="mb-0 opacity-75">
+            <span class="txt-fr">Établissement MAMA-ZOUMANA — Fournitures, Livres & Uniformes</span>
+            <span class="txt-en">MAMA-ZOUMANA School — Supplies, Books & Uniforms</span>
+            <span class="txt-ar">مؤسسة ماما زومانا — أدوات، كتب وزي مدرسي</span>
+          </p>
         </div>
-        <div class="text-end d-none d-md-block">
-          <i class="bi bi-book-half fs-1 opacity-50"></i>
+        <div class="barre-outils">
+          <button class="btn-langue" data-lang="fr">FR</button>
+          <button class="btn-langue" data-lang="en">EN</button>
+          <button class="btn-langue" data-lang="ar">AR</button>
+          <button class="btn-theme" id="btnJourNuit" title="Mode Jour/Nuit">🌙</button>
         </div>
       </div>
     </div>
   </div>
 
+
   <div class="container pb-5">
 
     <!-- 🔍 FILTRES PAR CATÉGORIE -->
     <div class="d-flex flex-wrap gap-2 mb-4 justify-content-center">
-      <button class="btn categorie-btn active" data-categorie="">Tous les produits</button>
-      <button class="btn categorie-btn" data-categorie="livres">📚 Livres</button>
-      <button class="btn categorie-btn" data-categorie="stylos">✍️ Stylos BIC</button>
-      <button class="btn categorie-btn" data-categorie="cahiers">📓 Cahiers</button>
-      <button class="btn categorie-btn" data-categorie="fournitures">📐 Fournitures</button>
-      <button class="btn categorie-btn" data-categorie="uniformes">👕 Uniformes</button>
+      <button class="btn categorie-btn active" data-categorie="">
+        <span class="txt-fr">Tous les produits</span>
+        <span class="txt-en">All Products</span>
+        <span class="txt-ar">جميع المنتجات</span>
+      </button>
+      <button class="btn categorie-btn" data-categorie="livres">
+        📚 <span class="txt-fr">Livres</span><span class="txt-en">Books</span><span class="txt-ar">كتب</span>
+      </button>
+      <button class="btn categorie-btn" data-categorie="stylos">
+        ✍️ <span class="txt-fr">Stylos</span><span class="txt-en">Pens</span><span class="txt-ar">أقلام</span>
+      </button>
+      <button class="btn categorie-btn" data-categorie="cahiers">
+        📓 <span class="txt-fr">Cahiers</span><span class="txt-en">Notebooks</span><span class="txt-ar">دفاتر</span>
+      </button>
+      <button class="btn categorie-btn" data-categorie="fournitures">
+        📐 <span class="txt-fr">Fournitures</span><span class="txt-en">Supplies</span><span class="txt-ar">أدوات</span>
+      </button>
+      <button class="btn categorie-btn" data-categorie="uniformes">
+        👕 <span class="txt-fr">Uniformes</span><span class="txt-en">Uniforms</span><span class="txt-ar">أزياء مدرسية</span>
+      </button>
     </div>
 
     <!-- 📦 GRILLE DES PRODUITS -->
     <div id="grilleProduits" class="row g-4">
       <div class="col-12 text-center py-5">
         <div class="spinner-border text-primary"></div>
-        <p class="mt-2">Chargement des produits...</p>
+        <p class="mt-2">
+          <span class="txt-fr">Chargement des produits...</span>
+          <span class="txt-en">Loading products...</span>
+          <span class="txt-ar">جاري تحميل المنتجات...</span>
+        </p>
       </div>
     </div>
 
   </div>
 
-  <!-- Script Bootstrap -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-  <script>
-    // ✅ Correction : URL API bien déclarée
-    const API_URL = 'https://mama-zoumana-api.onrender.com/api';
-    let categorieActuelle = '';
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ==================================================
+// ⚙️ CONFIGURATION HARMONISÉE ✅
+// ==================================================
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+let categorieActuelle = '';
+let langueActuelle = localStorage.getItem('langue') || 'fr';
 
-    // 📦 CHARGER LES PRODUITS
-    async function chargerProduits() {
-      const grille = document.getElementById('grilleProduits');
-      grille.innerHTML = `<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2">Chargement...</p></div>`;
+const textes = {
+  fr: {
+    chargement: "Chargement des produits...",
+    aucunProduit: "Aucun produit disponible dans cette catégorie",
+    erreurChargement: "Erreur de chargement",
+    enStock: "✅ En stock",
+    presqueEpuise: "⚠️ Plus que",
+    rupture: "❌ Rupture de stock",
+    acheter: "Acheter",
+    indisponible: "Indisponible",
+    quantite: "en stock"
+  },
+  en: {
+    chargement: "Loading products...",
+    aucunProduit: "No products available in this category",
+    erreurChargement: "Loading error",
+    enStock: "✅ In stock",
+    presqueEpuise: "⚠️ Only",
+    rupture: "❌ Out of stock",
+    acheter: "Buy",
+    indisponible: "Unavailable",
+    quantite: "left"
+  },
+  ar: {
+    chargement: "جاري تحميل المنتجات...",
+    aucunProduit: "لا توجد منتجات في هذا القسم",
+    erreurChargement: "خطأ في التحميل",
+    enStock: "✅ متوفر",
+    presqueEpuise: "⚠️ تبقى فقط",
+    rupture: "❌ غير متوفر",
+    acheter: "شراء",
+    indisponible: "غير متوفر",
+    quantite: "قطع"
+  }
+};
+const t = textes[langueActuelle];
 
-      try {
-        const url = categorieActuelle 
-          ? `${API_URL}/boutique/produits?categorie=${encodeURIComponent(categorieActuelle)}`
-          : `${API_URL}/boutique/produits`;
+// ☀️🌙 MODE JOUR / NUIT
+function appliquerTheme(nuit) {
+  document.body.classList.toggle('mode-nuit', nuit);
+  document.getElementById('btnJourNuit').textContent = nuit ? '🌙' : '☀️';
+  localStorage.setItem('themeNuit', nuit ? '1' : '0');
+}
 
-        const res = await fetch(url);
-        const data = await res.json();
+// 🗣️ GESTION DE LA LANGUE
+function appliquerLangue(lang) {
+  langueActuelle = lang;
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + lang);
+  document.querySelectorAll('.btn-langue').forEach(b=>b.classList.toggle('actif', b.dataset.lang === lang));
+  localStorage.setItem('langue', lang);
+}
 
-        if (!data.ok || !data.produits || !data.produits.length) {
-          grille.innerHTML = `<div class="col-12 text-center py-5 text-muted">
-            <i class="bi bi-inbox fs-1"></i><br>Aucun produit disponible dans cette catégorie
-          </div>`;
-          return;
-        }
+// ==================================================
+// 📦 CHARGER LES PRODUITS
+// ==================================================
+async function chargerProduits() {
+  const grille = document.getElementById('grilleProduits');
+  grille.innerHTML = `<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2">${t.chargement}</p></div>`;
 
-        grille.innerHTML = '';
-        data.produits.forEach(prod => {
-          const statutStock = prod.stock > 10 
-            ? `<span class="stock stock-dispo">✅ En stock (${prod.stock})</span>`
-            : prod.stock > 0 
-              ? `<span class="stock stock-dispo">⚠️ Plus que ${prod.stock} !</span>`
-              : `<span class="stock stock-rupture">❌ Rupture de stock</span>`;
+  try {
+    const url = categorieActuelle 
+      ? `${API_URL}/boutique/produits?categorie=${encodeURIComponent(categorieActuelle)}`
+      : `${API_URL}/boutique/produits`;
 
-          grille.innerHTML += `
-            <div class="col-sm-6 col-md-4 col-lg-3">
-              <div class="carte-produit p-3">
-                <div class="text-center mb-3">
-                  <div style="font-size:3rem;">${iconeCategorie(prod.categorie)}</div>
-                </div>
-                <h5 class="text-center">${prod.nom_produit}</h5>
-                <p class="text-muted small text-center">${prod.description || ''}</p>
-                <div class="text-center mb-2">${statutStock}</div>
-                <div class="prix text-center">${prod.prix_unitaire.toLocaleString('fr-FR')} FCFA</div>
-                <hr>
-                <button class="btn btn-acheter w-100 text-white ${prod.stock <= 0 ? 'disabled opacity-50' : ''}" 
-                  ${prod.stock <= 0 ? 'disabled' : ''}>
-                  <i class="bi bi-cart-plus me-1"></i> ${prod.stock > 0 ? 'Acheter' : 'Indisponible'}
-                </button>
-              </div>
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.ok || !data.produits || !data.produits.length) {
+      grille.innerHTML = `<div class="col-12 text-center py-5 text-muted">
+        <i class="bi bi-inbox fs-1"></i><br>${t.aucunProduit}
+      </div>`;
+      return;
+    }
+
+    grille.innerHTML = '';
+    data.produits.forEach(prod => {
+      const libelleStock = prod.stock > 10 
+        ? `${t.enStock} (${prod.stock})`
+        : prod.stock > 0 
+          ? `${t.presqueEpuise} ${prod.stock} ${t.quantite} !`
+          : t.rupture;
+
+      grille.innerHTML += `
+        <div class="col-sm-6 col-md-4 col-lg-3">
+          <div class="carte-produit p-3">
+            <div class="text-center mb-3">
+              <div style="font-size:3rem;">${iconeCategorie(prod.categorie)}</div>
             </div>
-          `;
-        });
-
-      } catch (e) {
-        grille.innerHTML = `<div class="col-12 text-center py-5 text-danger">❌ Erreur de chargement : ${e.message}</div>`;
-      }
-    }
-
-    // 🎯 ICÔNES PAR CATÉGORIE
-    function iconeCategorie(cat) {
-      const icones = {
-        livres: '📚',
-        stylos: '✍️',
-        cahiers: '📓',
-        fournitures: '📐',
-        uniformes: '👕'
-      };
-      return icones[cat] || '📦';
-    }
-
-    // 🔍 FILTRER PAR CATÉGORIE
-    document.querySelectorAll('.categorie-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.categorie-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        categorieActuelle = btn.dataset.categorie;
-        chargerProduits();
-      });
+            <h5 class="text-center">${prod.nom_produit || prod.nom}</h5>
+            <p class="text-muted small text-center">${prod.description || ''}</p>
+            <div class="text-center mb-2">
+              <span class="stock ${prod.stock > 0 ? 'stock-dispo' : 'stock-rupture'}">${libelleStock}</span>
+            </div>
+            <div class="prix text-center">${Number(prod.prix_unitaire || prod.prix || 0).toLocaleString('fr-FR')} FCFA</div>
+            <hr>
+            <button class="btn btn-acheter w-100 text-white ${prod.stock <= 0 ? 'disabled opacity-50' : ''}" 
+              ${prod.stock <= 0 ? 'disabled' : ''}>
+              <i class="bi bi-cart-plus me-1"></i> 
+              ${prod.stock > 0 ? t.acheter : t.indisponible}
+            </button>
+          </div>
+        </div>
+      `;
     });
 
-    // AU CHARGEMENT DE LA PAGE
-    document.addEventListener('DOMContentLoaded', chargerProduits);
-  </script>
+  } catch (e) {
+    grille.innerHTML = `<div class="col-12 text-center py-5 text-danger">❌ ${t.erreurChargement} : ${e.message}</div>`;
+  }
+}
 
+// 🎯 ICÔNES PAR CATÉGORIE
+function iconeCategorie(cat) {
+  const icones = {
+    livres: '📚', livre: '📚',
+    stylos: '✍️', stylo: '✍️',
+    cahiers: '📓', cahier: '📓',
+    fournitures: '📐', fourniture: '📐',
+    uniformes: '👕', uniforme: '👕'
+  };
+  return icones[cat?.toLowerCase()] || '📦';
+}
+
+// 🔍 FILTRER PAR CATÉGORIE
+document.querySelectorAll('.categorie-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.categorie-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    categorieActuelle = btn.dataset.categorie;
+    chargerProduits();
+  });
+});
+
+// 🧩 INITIALISATION AU CHARGEMENT
+document.addEventListener('DOMContentLoaded', () => {
+  // Restaurer langue
+  appliquerLangue(localStorage.getItem('langue') || 'fr');
+  document.querySelector(`.btn-langue[data-lang="${langueActuelle}"]`)?.classList.add('actif');
+
+  // Restaurer thème
+  const themeNuit = localStorage.getItem('themeNuit') === '1';
+  appliquerTheme(themeNuit);
+
+  // Écouteurs
+  document.querySelectorAll('.btn-langue').forEach(b => {
+    b.addEventListener('click', () => appliquerLangue(b.dataset.lang));
+  });
+  document.getElementById('btnJourNuit').addEventListener('click', () => {
+    appliquerTheme(!document.body.classList.contains('mode-nuit'));
+  });
+
+  // Charger les produits
+  chargerProduits();
+});
+</script>
 </body>
 </html>

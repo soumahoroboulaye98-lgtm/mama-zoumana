@@ -15,30 +15,150 @@
       --primaire: #0c4a6e;
       --accent: #f59e0b;
       --sombre: #0f172a;
+      --bg-jour: #f8fafc;
+      --texte-jour: #1e293b;
+      --cadre-jour: rgba(255,255,255,0.95);
+      --bord-jour: rgba(12,74,110,0.15);
     }
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{min-height:100vh;background:linear-gradient(135deg,var(--sombre),#1e293b);display:flex;align-items:center;justify-content:center;padding:20px}
-    body.lang-ar{font-family:'Segoe UI', Tahoma, sans-serif;direction:rtl;text-align:right}
 
-    .cadre-lumineux{position:relative;background:rgba(15,23,42,0.9);border-radius:20px;padding:40px 30px;max-width:480px;width:100%;overflow:hidden}
-    .cadre-lumineux::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(transparent,#f59e0b,#fbbf24,#f59e0b,transparent 30%);animation:rotation-bord 3.5s linear infinite}
-    .cadre-lumineux::after{content:'';position:absolute;inset:3px;background:rgba(15,23,42,0.98);border-radius:18px;z-index:1}
-    @keyframes rotation-bord{100%{transform:rotate(360deg)}}
+    /* ☀️ MODE JOUR */
+    body.jour {
+      background: linear-gradient(135deg, #e0f2fe, #f0f9ff);
+    }
+    body.jour .cadre-lumineux {
+      background: var(--cadre-jour);
+      box-shadow: 0 10px 40px rgba(12,74,110,0.15);
+    }
+    body.jour .cadre-lumineux::after {
+      background: transparent;
+    }
+    body.jour .titre-form { color: var(--primaire); }
+    body.jour .sous-titre { color: #475569; }
+    body.jour .form-label { color: var(--texte-jour); }
+    body.jour .form-control {
+      background: white;
+      border: 1px solid var(--bord-jour);
+      color: var(--texte-jour);
+    }
+    body.jour .form-control:focus {
+      background: #f0f9ff;
+      border-color: var(--primaire);
+      box-shadow: 0 0 0 0.25rem rgba(12,74,110,0.15);
+    }
+    body.jour .lien-retour { color: #64748b; }
+    body.jour .lien-retour:hover { color: var(--primaire); }
+    body.jour .barre-outils button {
+      background: rgba(12,74,110,0.08);
+      color: var(--primaire);
+    }
 
-    .contenu-form{position:relative;z-index:2}
-    .titre-form{color:var(--accent);font-weight:700;text-align:center;margin-bottom:15px}
-    .sous-titre{color:#cbd5e1;text-align:center;margin-bottom:30px;font-size:0.95rem}
+    /* 🌙 MODE NUIT (par défaut) */
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--sombre), #1e293b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      transition: all 0.35s ease;
+    }
+    body.lang-ar {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      direction: rtl;
+      text-align: right;
+    }
 
-    .form-label{color:#e2e8f0;font-weight:500}
-    .form-control{background:rgba(30,41,59,0.7);border:1px solid rgba(245,158,11,0.25);color:white;border-radius:10px;padding:12px 14px}
-    .form-control:focus{background:rgba(30,41,59,0.9);border-color:var(--accent);box-shadow:0 0 0 0.25rem rgba(245,158,11,0.25);color:white}
+    .cadre-lumineux {
+      position: relative;
+      background: rgba(15,23,42,0.9);
+      border-radius: 20px;
+      padding: 40px 30px;
+      max-width: 480px;
+      width: 100%;
+      overflow: hidden;
+      transition: all 0.35s ease;
+    }
+    .cadre-lumineux::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: conic-gradient(transparent,#f59e0b,#fbbf24,#f59e0b,transparent 30%);
+      animation: rotation-bord 3.5s linear infinite;
+    }
+    .cadre-lumineux::after {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      background: rgba(15,23,42,0.98);
+      border-radius: 18px;
+      z-index: 1;
+      transition: all 0.35s ease;
+    }
+    @keyframes rotation-bord {
+      100% { transform: rotate(360deg); }
+    }
 
-    .btn-envoi{width:100%;background:linear-gradient(135deg,var(--accent),#f97316);border:none;color:var(--sombre);font-weight:700;padding:12px;border-radius:10px;margin-top:10px}
-    .btn-envoi:hover{transform:translateY(-2px);transition:transform 0.2s}
-    .lien-retour{display:block;text-align:center;margin-top:20px;color:#94a3b8;text-decoration:none}
-    .lien-retour:hover{color:var(--accent)}
+    .contenu-form { position: relative; z-index: 2; }
+    .titre-form {
+      color: var(--accent);
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 15px;
+      transition: color 0.35s ease;
+    }
+    .sous-titre {
+      color: #cbd5e1;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 0.95rem;
+      transition: color 0.35s ease;
+    }
 
-    /* ✅ TRILINGUE HARMONISÉ */
+    .form-label {
+      color: #e2e8f0;
+      font-weight: 500;
+      transition: color 0.35s ease;
+    }
+    .form-control {
+      background: rgba(30,41,59,0.7);
+      border: 1px solid rgba(245,158,11,0.25);
+      color: white;
+      border-radius: 10px;
+      padding: 12px 14px;
+      transition: all 0.35s ease;
+    }
+    .form-control:focus {
+      background: rgba(30,41,59,0.9);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.25);
+      color: white;
+    }
+
+    .btn-envoi {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent), #f97316);
+      border: none;
+      color: var(--sombre);
+      font-weight: 700;
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 10px;
+      transition: transform 0.2s ease;
+    }
+    .btn-envoi:hover { transform: translateY(-2px); }
+
+    .lien-retour {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: #94a3b8;
+      text-decoration: none;
+      transition: color 0.35s ease;
+    }
+    .lien-retour:hover { color: var(--accent); }
+
+    /* 🌐 TRILINGUE */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
@@ -47,21 +167,43 @@
     body.lang-ar .txt-ar { display: inline; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
 
-    .barre-langue{text-align:center;margin-bottom:20px}
-    .btn-langue{background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:5px 12px;margin:0 3px}
-    .btn-langue.actif{background:var(--accent);color:var(--sombre)}
+    .barre-outils {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .barre-langue { display: flex; gap: 4px; }
+    .btn-langue, .btn-theme {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 20px;
+      padding: 5px 12px;
+      transition: all 0.35s ease;
+    }
+    .btn-langue.actif, .btn-theme.actif {
+      background: var(--accent);
+      color: var(--sombre);
+      border-color: var(--accent);
+    }
+    .btn-theme { font-size: 1.1rem; padding: 4px 10px; }
   </style>
 </head>
-<body class="lang-fr">
+<body class="lang-fr nuit">
+
 
 <div class="cadre-lumineux">
   <div class="contenu-form">
 
-    <!-- 🌐 CHOIX DE LA LANGUE -->
-    <div class="barre-langue">
-      <button class="btn-langue actif" data-lang="fr">FR</button>
-      <button class="btn-langue" data-lang="en">EN</button>
-      <button class="btn-langue" data-lang="ar">AR</button>
+    <!-- 🛠️ BARRE OUTILS : LANGUE + JOUR/NUIT -->
+    <div class="barre-outils">
+      <div class="barre-langue">
+        <button class="btn-langue actif" data-lang="fr">FR</button>
+        <button class="btn-langue" data-lang="en">EN</button>
+        <button class="btn-langue" data-lang="ar">AR</button>
+      </div>
+      <button class="btn-theme" id="btnJourNuit" title="Mode Jour/Nuit">🌙</button>
     </div>
 
     <h2 class="titre-form">
@@ -101,10 +243,26 @@
 </div>
 
 <script>
-// ==================================================
-// ⚙️ CONFIGURATION — 100% HARMONISÉE ✅
-// ==================================================
 const API_URL = 'https://mama-zoumana-api.onrender.com/api';
+
+// ☀️🌙 MODE JOUR / NUIT — HARMONISÉ ✅
+const body = document.body;
+const btnJourNuit = document.getElementById('btnJourNuit');
+
+function basculerMode(mode) {
+  localStorage.setItem('theme', mode);
+  if (mode === 'jour') {
+    body.classList.add('jour'); body.classList.remove('nuit');
+    btnJourNuit.textContent = '☀️'; btnJourNuit.classList.add('actif');
+  } else {
+    body.classList.remove('jour'); body.classList.add('nuit');
+    btnJourNuit.textContent = '🌙'; btnJourNuit.classList.remove('actif');
+  }
+}
+
+btnJourNuit.addEventListener('click', () => {
+  basculerMode(body.classList.contains('nuit') ? 'jour' : 'nuit');
+});
 
 // 🗣️ GESTION DE LA LANGUE ✅
 function appliquerLangue(lang) {
@@ -115,14 +273,14 @@ function appliquerLangue(lang) {
   document.querySelector(`.btn-langue[data-lang="${lang}"]`)?.classList.add('actif');
 }
 
-// ✅ Écouteurs boutons langue
 document.querySelectorAll('.btn-langue').forEach(btn => {
   btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
 });
 
-// ✅ Restaurer langue sauvegardée au chargement
+// ✅ Restaurer langue et thème au chargement
 window.addEventListener('DOMContentLoaded', () => {
   appliquerLangue(localStorage.getItem('langue') || 'fr');
+  basculerMode(localStorage.getItem('theme') || 'nuit');
 });
 
 // 📤 SOUMISSION DU FORMULAIRE ✅
@@ -131,9 +289,21 @@ document.getElementById('formMdpOublie').addEventListener('submit', async e => {
   const email = document.getElementById('email').value.trim();
 
   const messages = {
-    fr: { lienEnvoye: "✅ Un lien vous a été envoyé par email !\n(Vérifiez vos spams si vous ne le trouvez pas)", erreurEmail: "❌ Email introuvable", erreurServeur: "❌ Erreur serveur — réessayez plus tard" },
-    en: { lienEnvoye: "✅ A link has been sent to your email!\n(Check your spam folder if not found)", erreurEmail: "❌ Email not found", erreurServeur: "❌ Server error — try again later" },
-    ar: { lienEnvoye: "✅ تم إرسال رابط إلى بريدك الإلكتروني!\n(تحقق من البريد المزعج إذا لم تجده)", erreurEmail: "❌ البريد غير مسجل", erreurServeur: "❌ خطأ في الخادم — حاول مرة أخرى لاحقاً" }
+    fr: {
+      lienEnvoye: "✅ Un lien vous a été envoyé par email !\n(Vérifiez vos spams si vous ne le trouvez pas)",
+      erreurEmail: "❌ Email introuvable",
+      erreurServeur: "❌ Erreur serveur — réessayez plus tard"
+    },
+    en: {
+      lienEnvoye: "✅ A link has been sent to your email!\n(Check your spam folder if not found)",
+      erreurEmail: "❌ Email not found",
+      erreurServeur: "❌ Server error — try again later"
+    },
+    ar: {
+      lienEnvoye: "✅ تم إرسال رابط إلى بريدك الإلكتروني!\n(تحقق من البريد المزعج إذا لم تجده)",
+      erreurEmail: "❌ البريد غير مسجل",
+      erreurServeur: "❌ خطأ في الخادم — حاول مرة أخرى لاحقاً"
+    }
   };
   const lang = localStorage.getItem('langue') || 'fr';
   const msg = messages[lang];
@@ -144,9 +314,7 @@ document.getElementById('formMdpOublie').addEventListener('submit', async e => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
     });
-
     const data = await res.json();
-
     if(data.ok){
       alert(msg.lienEnvoye);
       location.href = 'connexion.html';
