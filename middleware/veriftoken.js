@@ -1,33 +1,22 @@
 const jwt = require('jsonwebtoken');
-
-// ✅ CLÉ EN DUR — VALEUR FIXE, JAMAIS VIDE
-const CLE_JWT = 'ma_cle_secrete_pour_le_site_2026';
+require('dotenv').config();
+const CLEF_SECRETE = process.env.JWT_SECRET || 'ma_cle_secrete_pour_le_site_2026';
 
 module.exports = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ erreur: "⛔ Token manquant — Connectez-vous !" });
-  }
-
   try {
-    // ✅ Clé en dur
-    const decoded = jwt.verify(token, CLE_JWT);
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) return res.status(401).json({ erreur: "⛔ Token manquant — Connectez-vous !" });
 
-    req.user = {
-      id: decoded.id,
-      nom: decoded.nom,
-      prenom: decoded.prenom,
-      role: decoded.role,
-      email: decoded.email
-    };
+    const decoded = jwt.verify(token, CLEF_SECRETE);
+    const id_utilisateur = decoded.id_utilisateur || decoded.id;
+    if (!id_utilisateur) return res.status(401).json({ erreur: "⛔ Session corrompue — Reconnectez-vous" });
 
-    console.log(`🔑 TOKEN VALIDE — ${decoded.nom} ${decoded.prenom}, Rôle: ${decoded.role}`);
+    req.user = { id: id_utilisateur, id_utilisateur, role: decoded.role, nom: decoded.nom || null };
+    console.log("✅ Utilisateur : ID =", id_utilisateur, "| Rôle =", decoded.role);
     next();
-
   } catch (e) {
-    console.log("❌ ERREUR TOKEN :", e.message);
-    return res.status(401).json({ erreur: "⛔ Token invalide ou expiré" });
+    console.error("❌ ERREUR TOKEN :", e.message);
+    return res.status(401).json({ erreur: "⛔ Session invalide ou expirée — Reconnectez-vous" });
   }
 };

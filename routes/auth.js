@@ -110,10 +110,10 @@ router.post('/connexion', async (req, res) => {
     if (role === 'eleve') {
       r = await pool.query(
         `SELECT id, nom, prenom, email, matricule, role, mot_de_passe,
-                COALESCE(statut_compte, 'valide') AS statut_compte,
-                COALESCE(compte_verrouille, false) AS compte_verrouille,
-                COALESCE(tentatives_connexion, 0) AS tentatives_connexion,
-                date_deverrouillage, derniere_connexion
+            COALESCE(statut_compte, 'valide') AS statut_compte,
+            COALESCE(compte_verrouille, false) AS compte_verrouille,
+            COALESCE(tentatives_connexion, 0) AS tentatives_connexion,
+            date_deverrouillage, derniere_connexion
          FROM utilisateurs
          WHERE UPPER(matricule) = UPPER($1) AND role = $2`,
         [matricule ? matricule.trim() : '', role]
@@ -121,10 +121,10 @@ router.post('/connexion', async (req, res) => {
     } else {
       r = await pool.query(
         `SELECT id, nom, prenom, email, matricule, role, mot_de_passe,
-                COALESCE(statut_compte, 'valide') AS statut_compte,
-                COALESCE(compte_verrouille, false) AS compte_verrouille,
-                COALESCE(tentatives_connexion, 0) AS tentatives_connexion,
-                date_deverrouillage, derniere_connexion
+            COALESCE(statut_compte, 'valide') AS statut_compte,
+            COALESCE(compte_verrouille, false) AS compte_verrouille,
+            COALESCE(tentatives_connexion, 0) AS tentatives_connexion,
+            date_deverrouillage, derniere_connexion
          FROM utilisateurs
          WHERE LOWER(email) = LOWER($1) AND role = $2`,
         [email ? email.trim() : '', role]
@@ -367,7 +367,7 @@ router.post('/changer-mot-de-passe', veriftoken, async (req, res) => {
 
 // ==================================================
 // ✅ VALIDER UNE PRÉINSCRIPTION → CRÉER COMPTE
-// ✅ CORRIGÉ : INSERT utilise prenom (conforme à la base)
+// ✅ CORRIGÉ : INSERT utilise prenom (conforme à la table utilisateurs)
 // ==================================================
 router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
   try {
@@ -636,5 +636,5 @@ router.delete('/utilisateur/:id', protegerAdmin, async (req, res) => {
 });
 
 
-// ✅ Export des middlewares pour serveur.js
+// ✅ EXPORT UNIFIÉ — Pour que serveur.js trouve tout
 module.exports = { router, veriftoken, verifadmin, protegerAdmin };

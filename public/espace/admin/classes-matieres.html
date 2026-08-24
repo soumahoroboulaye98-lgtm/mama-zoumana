@@ -138,7 +138,7 @@
 
 <script>
   // ==================================================
-  // 🔗 URL API UNIFIÉE — identique sur tout le site
+  // 🔗 URL API UNIFIÉE
   // ==================================================
   const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:10000/api'
@@ -150,7 +150,16 @@
   let estModeJour = localStorage.getItem('theme') === 'clair';
 
   // ==================================================
-  // ☀️🌙 MODE JOUR / NUIT — harmonisé avec TOUT le site
+  // ✅ VÉRIFICATION SESSION — CORRIGÉE
+  // ==================================================
+  if (!token || !['admin','super_admin'].includes(role || '')) {
+    alert("⚠️ Session invalide ou expirée. Veuillez vous reconnecter.");
+    localStorage.clear();
+    location.href = 'connexion.html';
+  }
+
+  // ==================================================
+  // ☀️🌙 MODE JOUR / NUIT
   // ==================================================
   function appliquerTheme() {
     estModeJour = localStorage.getItem('theme') === 'clair';
@@ -178,7 +187,8 @@
       aucuneDonnee: "Aucune donnée enregistrée. Ajoutez votre première classe ou matière.",
       erreurCapacite: "⚠️ La capacité doit être comprise entre 10 et 80 élèves.",
       erreurChamp: "⚠️ Veuillez remplir tous les champs obligatoires (*).",
-      classeLiee: "⚠️ Impossible de supprimer : cette classe est utilisée dans des préinscriptions ou affectations."
+      classeLiee: "⚠️ Impossible de supprimer : cette classe est utilisée.",
+      sessionExpiree: "⚠️ Session expirée — Reconnexion requise"
     },
     en: {
       accesReserve: "⛔ Access restricted to Administrator",
@@ -191,7 +201,7 @@
       aucuneDonnee: "No data yet. Add your first class or subject.",
       erreurCapacite: "⚠️ Capacity must be between 10 and 80 students.",
       erreurChamp: "⚠️ Please fill all required fields (*).",
-      classeLiee: "⚠️ Cannot delete: this class is used in registrations or assignments."
+      classeLiee: "⚠️ Cannot delete: used in registrations."
     },
     ar: {
       accesReserve: "⛔ الوصول مقصور على المدير فقط",
@@ -203,20 +213,10 @@
       erreurReseau: "❌ خطأ في الشبكة. تحقق من اتصالك.",
       aucuneDonnee: "لا توجد بيانات. أضف فصلاً أو مادة جديدة.",
       erreurCapacite: "⚠️ السعة يجب أن تكون بين 10 و 80 تلميذًا.",
-      erreurChamp: "⚠️ الرجاء ملء جميع الحقول المطلوبة (*).",
-      classeLiee: "⚠️ لا يمكن الحذف: هذا المستوى مستخدم في التسجيلات أو التوزيعات."
+      erreurChamp: "⚠️ الرجاء ملء جميع الحقول المطلوبة (*)."
     }
   };
   function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
-
-  // ==================================================
-  // 🔒 SÉCURITÉ
-  // ==================================================
-  if (!token || !['admin','super_admin'].includes(role)) {
-    alert(m('accesReserve'));
-    localStorage.clear();
-    location.href = 'dashboard.html';
-  }
 
   // ==================================================
   // 💾 STOCKAGE LOCAL (si API indisponible)
@@ -246,6 +246,353 @@
     document.querySelectorAll('.barre-outils .btn').forEach(b => b.classList.remove('actif'));
     document.getElementById('btn-' + lang)?.classList.add('actif');
   };
+
+  // ==================================================
+  // 📤 ENREGISTRER / MODIFIER UNE CLASSE
+  // ==================================================
+  document.getElementById('formClasse').addEventListener('submit', async e => {
+    e.preventDefault();
+    const d = Object.fromEntries(new FormData(e.target));
+    d.capacite_max = Number(d.capacite_max);
+
+    if (!d.libelle_classe || !d.cycle) return alert(m('erreurChamp'));
+    if (d.capacite_max < 10 || d.capacite_max > 80) return alert(m('erreurCapacite'));
+
+    const estModif = !!d.id_classe;
+    const donneesClasse = {
+      libelle_classe: d.libelle_classe.trim(),
+      libelle_classe_ar: (d.libelle_classe_ar || '').trim(),
+      cycle: d.cycle,
+      capacite_max: d.capacite_max,
+      salle: (d.salle || '').trim(),
+      statut: d.statut
+    };
+
+    try {
+      // ✅ SANS barre oblique finale pour correspondre au serveur
+      const url = estModif ? `${API_URL}/classes/${d.id_classe}` : `${API_URL}/classes`;
+      const methode = estModif ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method: methode,
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify(donneesClasse)
+      });
+
+      // ✅ Détection session expirée
+      if (res.status === 401 || res.status === 403) {
+        alert(m('sessionExpiree'));
+        localStorage.clear();
+        location.href = 'connexion.html';
+        return;
+      }
+
+      const data = await res.json();
+
+      if (data.ok || data.success) {
+        alert(estModif ? m('modifOk') : m('sauvegardeOk'));
+        reinitFormulaireClasse();
+        chargerListe();
+      } else {
+        alert("❌ " + (data.erreur || data.message || "Erreur serveur"));
+      }
+    } catch (err) {
+      console.error("Erreur appel API :", err);
+      // 📴 Mode local
+      let liste = obtenirClassesLocales();
+      if (estModif) {
+        const idx = liste.findIndex(c => String(c.id_classe) === String(d.id_classe));
+        if (idx !== -1) liste[idx] = { ...liste[idx], ...donneesClasse };
+      } else {
+        liste.push({ id_classe: Date.now(), ...donneesClasse });
+      }
+      sauvegarderClassesLocales(liste);
+      alert((estModif ? m('modifOk') : m('sauvegardeOk')) + " (mode local)");
+      reinitFormulaireClasse();
+      chargerListe(true);
+    }
+  });
+
+  function reinitFormulaireClasse() {
+    document.getElementById('formClasse').reset();
+    document.getElementById('edit-id-classe').value = '';
+    document.getElementById('btn-classe').innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
+  }
+
+  // ==================================================
+  // 📤 ENREGISTRER / MODIFIER UNE MATIÈRE
+  // ==================================================
+  document.getElementById('formMatiere').addEventListener('submit', async e => {
+    e.preventDefault();
+    const d = Object.fromEntries(new FormData(e.target));
+    d.coefficient = Number(d.coefficient);
+    d.volume_horaire = Number(d.volume_horaire);
+
+    if (!d.libelle_matiere) return alert(m('erreurChamp'));
+
+    const estModif = !!d.id_matiere;
+    const donneesMatiere = {
+      libelle_matiere: d.libelle_matiere.trim(),
+      libelle_matiere_ar: (d.libelle_matiere_ar || '').trim(),
+      coefficient: d.coefficient,
+      volume_horaire: d.volume_horaire,
+      langue_ens: d.langue_ens
+    };
+
+    try {
+      const url = estModif ? `${API_URL}/matieres/${d.id_matiere}` : `${API_URL}/matieres`;
+      const methode = estModif ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method: methode,
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify(donneesMatiere)
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        alert(m('sessionExpiree'));
+        localStorage.clear();
+        location.href = 'connexion.html';
+        return;
+      }
+
+      const data = await res.json();
+
+      if (data.ok || data.success) {
+        alert(estModif ? m('modifOk') : m('sauvegardeOk'));
+        reinitFormulaireMatiere();
+        chargerListe();
+      } else {
+        alert("❌ " + (data.erreur || data.message || "Erreur serveur"));
+      }
+    } catch (err) {
+      console.error("Erreur appel API :", err);
+      // 📴 Mode local
+      let liste = obtenirMatieresLocales();
+      if (estModif) {
+        const idx = liste.findIndex(m => String(m.id_matiere) === String(d.id_matiere));
+        if (idx !== -1) liste[idx] = { ...liste[idx], ...donneesMatiere };
+      } else {
+        liste.push({ id_matiere: Date.now(), ...donneesMatiere });
+      }
+      sauvegarderMatieresLocales(liste);
+      alert((estModif ? m('modifOk') : m('sauvegardeOk')) + " (mode local)");
+      reinitFormulaireMatiere();
+      chargerListe(true);
+    }
+  });
+
+  function reinitFormulaireMatiere() {
+    document.getElementById('formMatiere').reset();
+    document.getElementById('edit-id-mat').value = '';
+    document.getElementById('btn-mat').innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
+  }
+
+  // ==================================================
+  // 📋 CHARGER LA LISTE COMPLÈTE
+  // ==================================================
+  async function chargerListe(forcerLocal = false) {
+    const corps = document.getElementById('liste-complete');
+    const alerteApi = document.getElementById('alerteApi');
+    const texteAlerteApi = document.getElementById('texteAlerteApi');
+
+    let classes = [];
+    let matieres = [];
+
+    if (!forcerLocal) {
+      try {
+        const [clRes, mtRes] = await Promise.all([
+          fetch(`${API_URL}/classes`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`${API_URL}/matieres`, { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+
+        // ✅ Session expirée ?
+        if (clRes.status === 401 || mtRes.status === 401) {
+          alert(m('sessionExpiree'));
+          localStorage.clear();
+          location.href = 'connexion.html';
+          return;
+        }
+
+        const clData = await clRes.json();
+        const mtData = await mtRes.json();
+
+        classes = clData.ok ? (clData.lignes || clData.classes || clData) : [];
+        matieres = mtData.ok ? (mtData.lignes || mtData.matieres || mtData) : [];
+        if (!Array.isArray(classes)) classes = [];
+        if (!Array.isArray(matieres)) matieres = [];
+        sauvegarderClassesLocales(classes);
+        sauvegarderMatieresLocales(matieres);
+        alerteApi.classList.add('d-none');
+      } catch {
+        forcerLocal = true;
+      }
+    }
+
+    if (forcerLocal) {
+      texteAlerteApi.textContent = m('serveurIndispo');
+      alerteApi.classList.remove('d-none');
+      classes = obtenirClassesLocales();
+      matieres = obtenirMatieresLocales();
+    }
+
+    let html = '';
+
+    // 📚 AFFICHER LES CLASSES
+    if (classes.length > 0) {
+      html += `<div class="col-md-6"><h5 class="mb-3 text-white"><i class="bi bi-building me-2 text-warning"></i>
+        <span class="txt-fr">Classes</span><span class="txt-en">Classes</span><span class="txt-ar">المستويات</span>
+      </h5>`;
+      html += classes.map(x => {
+        const statutBadge = {ouverte:'bg-success',complete:'bg-primary',fermee:'bg-secondary'}[x.statut] || 'bg-secondary';
+        const statutTexte = {ouverte:'Ouverte',complete:'Complète',fermee:'Fermée'}[x.statut] || 'Ouverte';
+        const placesLibres = typeof x.capacite_restante !== 'undefined' 
+          ? `<span class="badge bg-info text-dark ms-1">${x.capacite_restante}/${x.capacite_max}</span>` 
+          : `<span class="badge bg-light text-dark ms-1">${x.capacite_max} pl</span>`;
+        return `
+        <div class="carte-gestion d-flex justify-content-between align-items-center">
+          <div>
+            <strong>${x.libelle_classe}</strong>
+            ${x.libelle_classe_ar ? `<span class="text-muted ms-1">(${x.libelle_classe_ar})</span>` : ''}
+            <span class="opacity-75 ms-2 small">${x.cycle || '—'}</span>
+            ${placesLibres}
+            ${x.salle ? `<span class="badge bg-secondary ms-1">${x.salle}</span>` : ''}
+            <span class="badge ${statutBadge} ms-1">${statutTexte}</span>
+          </div>
+          <div class="d-flex gap-1">
+            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierClasse(${JSON.stringify(x).replace(/'/g,"\\'")})'>✏️</button>
+            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerClasse(${x.id_classe})">🗑️</button>
+          </div>
+        </div>`;
+      }).join('');
+      html += `</div>`;
+    }
+
+    // 📖 AFFICHER LES MATIÈRES
+    if (matieres.length > 0) {
+      html += `<div class="col-md-6"><h5 class="mb-3 text-white"><i class="bi bi-book me-2 text-warning"></i>
+        <span class="txt-fr">Matières</span><span class="txt-en">Subjects</span><span class="txt-ar">المواد</span>
+      </h5>`;
+      html += matieres.map(x => {
+        const langueLabel = {fr:'🇫🇷',ar:'🇸🇦',en:'🇬🇧'}[x.langue_ens] || '🇫🇷';
+        return `
+        <div class="carte-gestion d-flex justify-content-between align-items-center">
+          <div>
+            <strong>${x.libelle_matiere}</strong>
+            ${x.libelle_matiere_ar ? `<span class="text-muted ms-1">(${x.libelle_matiere_ar})</span>` : ''}
+            <span class="badge bg-info text-dark ms-1">Coef ${x.coefficient}</span>
+            <span class="badge bg-secondary ms-1">${x.volume_horaire || 0}h/sem</span>
+            <span class="badge bg-light text-dark ms-1">${langueLabel}</span>
+          </div>
+          <div class="d-flex gap-1">
+            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierMatiere(${JSON.stringify(x).replace(/'/g,"\\'")})'>✏️</button>
+            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerMatiere(${x.id_matiere})">🗑️</button>
+          </div>
+        </div>`;
+      }).join('');
+      html += `</div>`;
+    }
+
+    corps.innerHTML = html || `<div class="col-12 text-center opacity-75 py-5">
+      <i class="bi bi-inbox fs-1 mb-2"></i>
+      <p>${m('aucuneDonnee')}</p>
+    </div>`;
+  }
+
+  // ==================================================
+  // ✏️ MODIFIER — PRÉ-REMPLIR LE FORMULAIRE
+  // ==================================================
+  window.modifierClasse = function(x) {
+    document.getElementById('edit-id-classe').value = x.id_classe;
+    document.getElementById('edit-libelle').value = x.libelle_classe || '';
+    document.getElementById('edit-libelle-ar').value = x.libelle_classe_ar || '';
+    document.getElementById('edit-cycle').value = x.cycle || '';
+    document.getElementById('edit-capacite').value = x.capacite_max || 30;
+    document.getElementById('edit-salle').value = x.salle || '';
+    document.getElementById('edit-statut').value = x.statut || 'ouverte';
+    document.getElementById('btn-classe').innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  window.modifierMatiere = function(x) {
+    document.getElementById('edit-id-mat').value = x.id_matiere;
+    document.getElementById('edit-nom-mat').value = x.libelle_matiere || '';
+    document.getElementById('edit-nom-mat-ar').value = x.libelle_matiere_ar || '';
+    document.getElementById('edit-coef').value = x.coefficient || 1;
+    document.getElementById('edit-vol').value = x.volume_horaire || 3;
+    document.getElementById('edit-langue').value = x.langue_ens || 'fr';
+    document.getElementById('btn-mat').innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // ==================================================
+  // ❌ SUPPRIMER
+  // ==================================================
+  window.supprimerClasse = async function(id) {
+    if (!confirm(m('supprConfirm'))) return;
+    try {
+      const res = await fetch(`${API_URL}/classes/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        alert(m('sessionExpiree'));
+        localStorage.clear();
+        location.href = 'connexion.html';
+        return;
+      }
+
+      const data = await res.json();
+      if (data.ok) {
+        alert(m('supprOk'));
+        chargerListe();
+      } else {
+        alert("❌ " + (data.erreur || m('erreurReseau')));
+      }
+    } catch {
+      let liste = obtenirClassesLocales().filter(c => String(c.id_classe) !== String(id));
+      sauvegarderClassesLocales(liste);
+      alert(m('supprOk') + " (mode local)");
+      chargerListe(true);
+    }
+  };
+
+  window.supprimerMatiere = async function(id) {
+    if (!confirm(m('supprConfirm'))) return;
+    try {
+      const res = await fetch(`${API_URL}/matieres/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        alert(m('sessionExpiree'));
+        localStorage.clear();
+        location.href = 'connexion.html';
+        return;
+      }
+
+      const data = await res.json();
+      if (data.ok) {
+        alert(m('supprOk'));
+        chargerListe();
+      } else {
+        alert("❌ " + (data.erreur || m('erreurReseau')));
+      }
+    } catch {
+      let liste = obtenirMatieresLocales().filter(m => String(m.id_matiere) !== String(id));
+      sauvegarderMatieresLocales(liste);
+      alert(m('supprOk') + " (mode local)");
+      chargerListe(true);
+    }
+  };
 </script>
 
 <!-- 🧭 EN-TÊTE -->
@@ -259,9 +606,9 @@
         <span class="txt-ar">🏫 المستويات والمواد</span>
       </h3>
       <p class="mb-0 text-white-50">
-        <span class="txt-fr">Ajouter / Modifier / Supprimer / Consulter — données partagées avec préinscriptions et affectations</span>
-        <span class="txt-en">Add / Edit / Delete / View — shared with registrations & assignments</span>
-        <span class="txt-ar">إضافة / تعديل / حذف / عرض — بيانات مشتركة مع التسجيلات والتوزيعات</span>
+        <span class="txt-fr">Ajouter / Modifier / Supprimer / Consulter</span>
+        <span class="txt-en">Add / Edit / Delete / View</span>
+        <span class="txt-ar">إضافة / تعديل / حذف / عرض</span>
       </p>
     </div>
     <a href="dashboard.html" class="btn btn-anim-orange px-4 py-2">
@@ -464,294 +811,6 @@
     <span class="txt-ar"> خروج</span>
   </a>
 </div>
-
-<script>
-  // ==================================================
-  // 📤 ENREGISTRER / MODIFIER UNE CLASSE
-  // ==================================================
-  document.getElementById('formClasse').addEventListener('submit', async e => {
-    e.preventDefault();
-    const d = Object.fromEntries(new FormData(e.target));
-    d.capacite_max = Number(d.capacite_max);
-
-    // ✅ Validation
-    if (!d.libelle_classe || !d.cycle) return alert(m('erreurChamp'));
-    if (d.capacite_max < 10 || d.capacite_max > 80) return alert(m('erreurCapacite'));
-
-    const estModif = !!d.id_classe;
-    const donneesClasse = {
-      libelle_classe: d.libelle_classe.trim(),
-      libelle_classe_ar: (d.libelle_classe_ar || '').trim(),
-      cycle: d.cycle,
-      capacite_max: d.capacite_max,
-      salle: (d.salle || '').trim(),
-      statut: d.statut
-    };
-
-    try {
-      const url = estModif ? `${API_URL}/classes/${d.id_classe}` : `${API_URL}/classes/`;
-      const methode = estModif ? 'PUT' : 'POST';
-      const res = await fetch(url, {
-        method: methode,
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(donneesClasse)
-      }).then(r => r.json());
-
-      if (res.ok) {
-        alert(estModif ? m('modifOk') : m('sauvegardeOk'));
-        reinitFormulaireClasse();
-        chargerListe();
-      } else {
-        alert("❌ " + (res.erreur || "Erreur serveur"));
-      }
-    } catch {
-      // 📴 Mode local si API indisponible
-      let liste = obtenirClassesLocales();
-      if (estModif) {
-        const idx = liste.findIndex(c => String(c.id_classe) === String(d.id_classe));
-        if (idx !== -1) liste[idx] = { ...liste[idx], ...donneesClasse };
-      } else {
-        liste.push({ id_classe: Date.now(), ...donneesClasse });
-      }
-      sauvegarderClassesLocales(liste);
-      alert((estModif ? m('modifOk') : m('sauvegardeOk')) + " (mode local)");
-      reinitFormulaireClasse();
-      chargerListe(true);
-    }
-  });
-
-  function reinitFormulaireClasse() {
-    document.getElementById('formClasse').reset();
-    document.getElementById('edit-id-classe').value = '';
-    document.getElementById('btn-classe').innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
-  }
-
-  // ==================================================
-  // 📤 ENREGISTRER / MODIFIER UNE MATIÈRE
-  // ==================================================
-  document.getElementById('formMatiere').addEventListener('submit', async e => {
-    e.preventDefault();
-    const d = Object.fromEntries(new FormData(e.target));
-    d.coefficient = Number(d.coefficient);
-    d.volume_horaire = Number(d.volume_horaire);
-
-    if (!d.libelle_matiere) return alert(m('erreurChamp'));
-
-    const estModif = !!d.id_matiere;
-    const donneesMatiere = {
-      libelle_matiere: d.libelle_matiere.trim(),
-      libelle_matiere_ar: (d.libelle_matiere_ar || '').trim(),
-      coefficient: d.coefficient,
-      volume_horaire: d.volume_horaire,
-      langue_ens: d.langue_ens
-    };
-
-    try {
-      const url = estModif ? `${API_URL}/matieres/${d.id_matiere}` : `${API_URL}/matieres/`;
-      const methode = estModif ? 'PUT' : 'POST';
-      const res = await fetch(url, {
-        method: methode,
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(donneesMatiere)
-      }).then(r => r.json());
-
-      if (res.ok) {
-        alert(estModif ? m('modifOk') : m('sauvegardeOk'));
-        reinitFormulaireMatiere();
-        chargerListe();
-      } else {
-        alert("❌ " + (res.erreur || "Erreur serveur"));
-      }
-    } catch {
-      // 📴 Mode local
-      let liste = obtenirMatieresLocales();
-      if (estModif) {
-        const idx = liste.findIndex(m => String(m.id_matiere) === String(d.id_matiere));
-        if (idx !== -1) liste[idx] = { ...liste[idx], ...donneesMatiere };
-      } else {
-        liste.push({ id_matiere: Date.now(), ...donneesMatiere });
-      }
-      sauvegarderMatieresLocales(liste);
-      alert((estModif ? m('modifOk') : m('sauvegardeOk')) + " (mode local)");
-      reinitFormulaireMatiere();
-      chargerListe(true);
-    }
-  });
-
-  function reinitFormulaireMatiere() {
-    document.getElementById('formMatiere').reset();
-    document.getElementById('edit-id-mat').value = '';
-    document.getElementById('btn-mat').innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
-  }
-
-  // ==================================================
-  // 📋 CHARGER LA LISTE COMPLÈTE
-  // ==================================================
-  async function chargerListe(forcerLocal = false) {
-    const corps = document.getElementById('liste-complete');
-    const alerteApi = document.getElementById('alerteApi');
-    const texteAlerteApi = document.getElementById('texteAlerteApi');
-
-    let classes = [];
-    let matieres = [];
-
-    if (!forcerLocal) {
-      try {
-        const [clRes, mtRes] = await Promise.all([
-          fetch(`${API_URL}/classes/`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
-          fetch(`${API_URL}/matieres/`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json())
-        ]);
-        classes = clRes.ok ? (clRes.lignes || clRes.classes || clRes) : [];
-        matieres = mtRes.ok ? (mtRes.lignes || mtRes.matieres || mtRes) : [];
-        if (!Array.isArray(classes)) classes = [];
-        if (!Array.isArray(matieres)) matieres = [];
-        sauvegarderClassesLocales(classes);
-        sauvegarderMatieresLocales(matieres);
-        alerteApi.classList.add('d-none');
-      } catch {
-        forcerLocal = true;
-      }
-    }
-
-    if (forcerLocal) {
-      texteAlerteApi.textContent = m('serveurIndispo');
-      alerteApi.classList.remove('d-none');
-      classes = obtenirClassesLocales();
-      matieres = obtenirMatieresLocales();
-    }
-
-    let html = '';
-
-    // 📚 AFFICHER LES CLASSES
-    if (classes.length > 0) {
-      html += `<div class="col-md-6"><h5 class="mb-3 text-white"><i class="bi bi-building me-2 text-warning"></i>
-        <span class="txt-fr">Classes</span><span class="txt-en">Classes</span><span class="txt-ar">المستويات</span>
-      </h5>`;
-      html += classes.map(x => {
-        const statutBadge = {ouverte:'bg-success',complete:'bg-primary',fermee:'bg-secondary'}[x.statut] || 'bg-secondary';
-        const statutTexte = {ouverte:'Ouverte',complete:'Complète',fermee:'Fermée'}[x.statut] || 'Ouverte';
-        const placesLibres = typeof x.capacite_restante !== 'undefined' ? `<span class="badge bg-info text-dark ms-1">${x.capacite_restante || x.capacite_max}/${x.capacite_max}</span>` : `<span class="badge bg-light text-dark ms-1">${x.capacite_max} pl</span>`;
-        return `
-        <div class="carte-gestion d-flex justify-content-between align-items-center">
-          <div>
-            <strong>${x.libelle_classe}</strong>
-            ${x.libelle_classe_ar ? `<span class="text-muted ms-1">(${x.libelle_classe_ar})</span>` : ''}
-            <span class="opacity-75 ms-2 small">${x.cycle || '—'}</span>
-            ${placesLibres}
-            ${x.salle ? `<span class="badge bg-secondary ms-1">${x.salle}</span>` : ''}
-            <span class="badge ${statutBadge} ms-1">${statutTexte}</span>
-          </div>
-          <div class="d-flex gap-1">
-            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierClasse(${JSON.stringify(x).replace(/'/g,"\\'")})'>✏️</button>
-            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerClasse(${x.id_classe})">🗑️</button>
-          </div>
-        </div>`;
-      }).join('');
-      html += `</div>`;
-    }
-
-    // 📖 AFFICHER LES MATIÈRES
-    if (matieres.length > 0) {
-      html += `<div class="col-md-6"><h5 class="mb-3 text-white"><i class="bi bi-book me-2 text-warning"></i>
-        <span class="txt-fr">Matières</span><span class="txt-en">Subjects</span><span class="txt-ar">المواد</span>
-      </h5>`;
-      html += matieres.map(x => {
-        const langueLabel = {fr:'🇫🇷',ar:'🇸🇦',en:'🇬🇧'}[x.langue_ens] || '🇫🇷';
-        return `
-        <div class="carte-gestion d-flex justify-content-between align-items-center">
-          <div>
-            <strong>${x.libelle_matiere}</strong>
-            ${x.libelle_matiere_ar ? `<span class="text-muted ms-1">(${x.libelle_matiere_ar})</span>` : ''}
-            <span class="badge bg-info text-dark ms-1">Coef ${x.coefficient}</span>
-            <span class="badge bg-secondary ms-1">${x.volume_horaire || 0}h/sem</span>
-            <span class="badge bg-light text-dark ms-1">${langueLabel}</span>
-          </div>
-          <div class="d-flex gap-1">
-            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierMatiere(${JSON.stringify(x).replace(/'/g,"\\'")})'>✏️</button>
-            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerMatiere(${x.id_matiere})">🗑️</button>
-          </div>
-        </div>`;
-      }).join('');
-      html += `</div>`;
-    }
-
-    corps.innerHTML = html || `<div class="col-12 text-center opacity-75 py-5">
-      <i class="bi bi-inbox fs-1 mb-2"></i>
-      <p>${m('aucuneDonnee')}</p>
-    </div>`;
-  }
-
-  // ==================================================
-  // ✏️ MODIFIER — PRÉ-REMPLIR LE FORMULAIRE
-  // ==================================================
-  window.modifierClasse = function(x) {
-    document.getElementById('edit-id-classe').value = x.id_classe;
-    document.getElementById('edit-libelle').value = x.libelle_classe || '';
-    document.getElementById('edit-libelle-ar').value = x.libelle_classe_ar || '';
-    document.getElementById('edit-cycle').value = x.cycle || '';
-    document.getElementById('edit-capacite').value = x.capacite_max || 30;
-    document.getElementById('edit-salle').value = x.salle || '';
-    document.getElementById('edit-statut').value = x.statut || 'ouverte';
-    document.getElementById('btn-classe').innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  window.modifierMatiere = function(x) {
-    document.getElementById('edit-id-mat').value = x.id_matiere;
-    document.getElementById('edit-nom-mat').value = x.libelle_matiere || '';
-    document.getElementById('edit-nom-mat-ar').value = x.libelle_matiere_ar || '';
-    document.getElementById('edit-coef').value = x.coefficient || 1;
-    document.getElementById('edit-vol').value = x.volume_horaire || 3;
-    document.getElementById('edit-langue').value = x.langue_ens || 'fr';
-    document.getElementById('btn-mat').innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // ==================================================
-  // ❌ SUPPRIMER
-  // ==================================================
-  window.supprimerClasse = async function(id) {
-    if (!confirm(m('supprConfirm'))) return;
-    try {
-      const res = await fetch(`${API_URL}/classes/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      }).then(r => r.json());
-      if (res.ok) {
-        alert(m('supprOk'));
-        chargerListe();
-      } else {
-        alert("❌ " + (res.erreur || m('erreurReseau')));
-      }
-    } catch {
-      let liste = obtenirClassesLocales().filter(c => String(c.id_classe) !== String(id));
-      sauvegarderClassesLocales(liste);
-      alert(m('supprOk') + " (mode local)");
-      chargerListe(true);
-    }
-  };
-
-  window.supprimerMatiere = async function(id) {
-    if (!confirm(m('supprConfirm'))) return;
-    try {
-      const res = await fetch(`${API_URL}/matieres/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      }).then(r => r.json());
-      if (res.ok) {
-        alert(m('supprOk'));
-        chargerListe();
-      } else {
-        alert("❌ " + (res.erreur || m('erreurReseau')));
-      }
-    } catch {
-      let liste = obtenirMatieresLocales().filter(m => String(m.id_matiere) !== String(id));
-      sauvegarderMatieresLocales(liste);
-      alert(m('supprOk') + " (mode local)");
-      chargerListe(true);
-    }
-  };
-</script>
 
 </body>
 </html>
