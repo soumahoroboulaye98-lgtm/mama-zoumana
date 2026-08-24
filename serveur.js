@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 
+
 // ==============================================
 // 📁 CONFIGURATION — Téléversement de fichiers
 // ==============================================
@@ -15,11 +16,13 @@ const stockage = multer.diskStorage({
 });
 const upload = multer({ storage: stockage });
 
+
 // ==============================================
 // ✅ CRÉATION DE L'APPLICATION
 // ==============================================
 const app = express();
 const PORT = process.env.PORT || 10000;
+
 
 // ==============================================
 // 📦 MIDDLEWARES GLOBAUX — CORS & Parsing
@@ -36,6 +39,7 @@ app.options('*', cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+
 // ==============================================
 // 📁 DOSSIER PUBLIC — Fichiers statiques
 // ==============================================
@@ -48,6 +52,7 @@ app.use(express.static(dossierPublic, {
     res.setHeader('Cache-Control', 'public, max-age=86400');
   }
 }));
+
 
 // ==============================================
 // ⚙️ CONFIGURATION DU SITE
@@ -71,13 +76,16 @@ app.use((req, res, next) => {
   next();
 });
 
+
 // ==============================================
-// 🔐 MIDDLEWARES D'AUTHENTIFICATION
+// 🔐 MIDDLEWARES D'AUTHENTIFICATION — CORRIGÉ : SANS verifprof
 // ==============================================
-const { veriftoken, verifadmin, verifprof } = require('./routes/auth');
+const { veriftoken, verifadmin } = require('./routes/auth');
+
 
 // ==============================================
 // 📄 ROUTES DOCUMENTS (intégrées directement)
+// ✅ CORRIGÉ : prenom au lieu de prenoms dans les requêtes
 // ==============================================
 const routerDocuments = express.Router();
 
@@ -87,11 +95,11 @@ routerDocuments.get('/tous', [veriftoken, verifadmin], async (req, res) => {
     const r = await pool.query(`
       SELECT d.*,
         json_build_object(
-          'id_utilisateur', e.id, 'nom', e.nom, 'prenoms', e.prenoms,
+          'id_utilisateur', e.id, 'nom', e.nom, 'prenom', e.prenom,
           'classe', e.id_classe, 'matricule', e.matricule
         ) AS eleve,
         json_build_object(
-          'id_utilisateur', p.id, 'nom', p.nom, 'prenoms', p.prenoms, 'role', p.role
+          'id_utilisateur', p.id, 'nom', p.nom, 'prenom', p.prenom, 'role', p.role
         ) AS personnel
       FROM documents_delivres d
       LEFT JOIN utilisateurs e ON d.id_eleve = e.id
@@ -158,14 +166,16 @@ routerDocuments.get('/statistiques', [veriftoken, verifadmin], async (req, res) 
   }
 });
 
+
 // ==============================================
 // 📊 ROUTES COMPLÉMENTAIRES (Tableau de bord)
+// ✅ CORRIGÉ : prenom au lieu de prenoms
 // ==============================================
 const routerEleves = express.Router();
 routerEleves.get('/liste', [veriftoken, verifadmin], async (req, res) => {
   try {
     const { rows } = await pool.query(
-      "SELECT id, nom, prenoms, email, matricule, id_classe, photo_profil FROM utilisateurs WHERE role='eleve' ORDER BY nom, prenoms"
+      "SELECT id, nom, prenom, email, matricule, id_classe, photo_profil FROM utilisateurs WHERE role='eleve' ORDER BY nom, prenom"
     );
     res.json({ ok: true, eleves: rows });
   } catch (e) {
@@ -178,7 +188,7 @@ const routerPersonnel = express.Router();
 routerPersonnel.get('/liste', [veriftoken, verifadmin], async (req, res) => {
   try {
     const { rows } = await pool.query(
-      "SELECT id, nom, prenoms, email, role, matricule, photo_profil FROM utilisateurs WHERE role!='eleve' ORDER BY nom, prenoms"
+      "SELECT id, nom, prenom, email, role, matricule, photo_profil FROM utilisateurs WHERE role!='eleve' ORDER BY nom, prenom"
     );
     res.json({ ok: true, personnel: rows });
   } catch (e) {
@@ -198,15 +208,17 @@ routerPaiements.get('/tous', [veriftoken, verifadmin], async (req, res) => {
   }
 });
 
+
 // ==============================================
 // 🔗 DÉCLARATION DES ROUTES — PRÉFIXES API
+// ✅ CORRIGÉ : /api/auth → .router + pas de doublon /api/admin
 // ==============================================
 // — Administration & Utilisateurs
+app.use('/api/auth', require('./routes/auth').router);
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/admin', require('./routes/admin-crud'));
 app.use('/api/utilisateurs', require('./routes/utilisateurs'));
 app.use('/api/preinscription', require('./routes/preinscription'));
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/admin', require('./routes/admin-crud'));
 
 // — Scolaire
 app.use('/api/classes', require('./routes/classes'));
@@ -236,14 +248,15 @@ app.use('/api/boutique', require('./routes/boutique'));
 app.use('/api/eleve', routerEleves);
 app.use('/api/parent', require('./routes/parent'));
 
-// — Documents ✅ GUILLEMETS CORRIGÉS
+// — Documents
 app.use('/api/documents', routerDocuments);
 
-// — Pages Informations ✅ GUILLEMETS CORRIGÉS
+// — Pages Informations
 app.use('/api/calendrier', require('./routes/calendrier'));
 app.use('/api/reglement', require('./routes/reglement'));
 app.use('/api/equipe', require('./routes/equipe'));
 app.use('/api/personnel', routerPersonnel);
+
 
 // ==============================================
 // 🔄 ROUTE DE TEST API + COMPATIBILITÉ
@@ -266,6 +279,7 @@ app.get('/inscription.html', (req, res) => res.redirect('/preinscription.html'))
 app.use('/api/inscription', (req, res) =>
   res.json({ ok: false, message: "⚠️ Utilisez /api/preinscription à la place" })
 );
+
 
 // ==============================================
 // 🏠 PAGE D'ACCUEIL
@@ -291,6 +305,7 @@ app.get('/', (req, res) => {
   }
 });
 
+
 // ==============================================
 // 🧪 TEST DE CONNEXION BASE DE DONNÉES
 // ==============================================
@@ -308,6 +323,7 @@ app.get('/api/test', async (req, res) => {
     res.json({ ok: false, erreur: e.message, message: "❌ Connexion base échouée" });
   }
 });
+
 
 // ==============================================
 // 🚀 DÉMARRAGE DU SERVEUR — Pour Render
