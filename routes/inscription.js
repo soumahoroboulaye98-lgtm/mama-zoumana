@@ -69,7 +69,7 @@ router.post('/nouvelle', upload.fields([
     }
     // Pour admin / parent / personnel : aucune table supplémentaire
 
-    // 3. Envoi de l'e-mail de vérification
+    // 3. Envoi de l'e-mail de  vérification
     await transport.sendMail({
       to: email,
       subject: '🔐 Vérification inscription — MAMA-ZOUMANA',

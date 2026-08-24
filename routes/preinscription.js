@@ -448,7 +448,7 @@ router.put('/refuser/:id', protegerAdmin, async (req, res) => {
 
 
 // ==================================================
-// 🔍 DÉTAILS D'UNE PRÉINSCRIPTION — Admin seul
+// 🔍 DÉTAILS D'UNE PRÉINSCRIPTION — Admin Seul
 // ==================================================
 router.get('/detail/:id', protegerAdmin, async (req, res) => {
   try {
