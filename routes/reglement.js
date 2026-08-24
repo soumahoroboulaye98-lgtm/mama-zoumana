@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté
-const verifadmin = require('../middleware/verifadmin');    // ✅ Après le token
+const veriftoken = require('../middleware/veriftoken');   // ✅ Vérification JWT
+const verifadmin = require('../middleware/verifadmin');   // ✅ Vérification rôle admin
 
-// ✅ Protection groupée : Token + Admin
+// ✅ Protection groupée : Token valide + Utilisateur admin
 const protegerAdmin = [veriftoken, verifadmin];
 
 
@@ -14,24 +14,20 @@ const protegerAdmin = [veriftoken, verifadmin];
 router.get('/liste', async (req, res) => {
   try {
     const { tout } = req.query;
-
-    let conditions = [];
-    let valeurs = [];
-
-    if (tout !== '1') {
-      conditions.push('est_publie = true');
-    }
-
-    const clauseWhere = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const conditions = tout === '1' ? '' : 'WHERE est_publie = true';
 
     const r = await pool.query(`
-      SELECT * FROM reglement_interieur
-      ${clauseWhere}
+      SELECT id, titre_fr, titre_en, titre_ar,
+             contenu_fr, contenu_en, contenu_ar,
+             ordre, est_publie
+      FROM reglement_interieur
+      ${conditions}
       ORDER BY ordre ASC, id ASC
-    `, valeurs);
+    `);
 
-    console.log(`📋 RÈGLEMENT CHARGÉ : ${r.rows.length} articles`);
+    console.log(`📋 RÈGLEMENT CHARGÉ : ${r.rows.length} article(s)`);
     res.json({ ok: true, articles: r.rows });
+
   } catch (e) {
     console.log("❌ ERREUR LISTE RÈGLEMENT :", e.message);
     res.json({ ok: false, erreur: e.message });
@@ -40,7 +36,7 @@ router.get('/liste', async (req, res) => {
 
 
 // ==================================================
-// ➕ AJOUTER UN ARTICLE — Admin seul (sécurisé)
+// ➕ AJOUTER UN ARTICLE — Admin uniquement
 // ==================================================
 router.post('/ajouter', protegerAdmin, async (req, res) => {
   try {
@@ -50,6 +46,7 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
       ordre, est_publie
     } = req.body;
 
+    // ✅ Validation champs obligatoires
     if (!titre_fr || !contenu_fr) {
       return res.json({
         ok: false,
@@ -67,11 +64,12 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
     `, [
       titre_fr, titre_en || null, titre_ar || null,
       contenu_fr, contenu_en || null, contenu_ar || null,
-      ordre || 1, est_publie !== false
+      ordre || 1, est_publie ?? true
     ]);
 
-    console.log("✅ ARTICLE CRÉÉ : ID", r.rows[0].id);
+    console.log("✅ ARTICLE CRÉÉ — ID :", r.rows[0].id);
     res.json({ ok: true, article: r.rows[0] });
+
   } catch (e) {
     console.log("❌ ERREUR AJOUT ARTICLE :", e.message);
     res.json({ ok: false, erreur: e.message });
@@ -80,7 +78,7 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
 
 
 // ==================================================
-// ✏️ MODIFIER UN ARTICLE — Admin seul (sécurisé)
+// ✏️ MODIFIER UN ARTICLE — Admin uniquement
 // ==================================================
 router.put('/:id', protegerAdmin, async (req, res) => {
   try {
@@ -95,6 +93,7 @@ router.put('/:id', protegerAdmin, async (req, res) => {
       ordre, est_publie
     } = req.body;
 
+    // ✅ Validation champs obligatoires
     if (!titre_fr || !contenu_fr) {
       return res.json({
         ok: false,
@@ -111,15 +110,16 @@ router.put('/:id', protegerAdmin, async (req, res) => {
     `, [
       id, titre_fr, titre_en || null, titre_ar || null,
       contenu_fr, contenu_en || null, contenu_ar || null,
-      ordre || 1, est_publie !== false
+      ordre || 1, est_publie ?? true
     ]);
 
-    console.log("✅ ARTICLE MODIFIÉ : ID", id);
-    res.json(
-      r.rows.length
-        ? { ok: true, article: r.rows[0] }
-        : { ok: false, erreur: "Article introuvable" }
-    );
+    if (r.rows.length) {
+      console.log("✅ ARTICLE MODIFIÉ — ID :", id);
+      res.json({ ok: true, article: r.rows[0] });
+    } else {
+      res.json({ ok: false, erreur: "Article introuvable" });
+    }
+
   } catch (e) {
     console.log("❌ ERREUR MODIFICATION ARTICLE :", e.message);
     res.json({ ok: false, erreur: e.message });
@@ -128,7 +128,7 @@ router.put('/:id', protegerAdmin, async (req, res) => {
 
 
 // ==================================================
-// ❌ SUPPRIMER UN ARTICLE — Admin seul (sécurisé)
+// ❌ SUPPRIMER UN ARTICLE — Admin uniquement
 // ==================================================
 router.delete('/:id', protegerAdmin, async (req, res) => {
   try {
@@ -142,12 +142,13 @@ router.delete('/:id', protegerAdmin, async (req, res) => {
       [id]
     );
 
-    console.log("🗑️ ARTICLE SUPPRIMÉ : ID", id);
-    res.json(
-      r.rows.length
-        ? { ok: true }
-        : { ok: false, erreur: "Article introuvable" }
-    );
+    if (r.rows.length) {
+      console.log("🗑️ ARTICLE SUPPRIMÉ — ID :", id);
+      res.json({ ok: true });
+    } else {
+      res.json({ ok: false, erreur: "Article introuvable" });
+    }
+
   } catch (e) {
     console.log("❌ ERREUR SUPPRESSION ARTICLE :", e.message);
     res.json({ ok: false, erreur: e.message });

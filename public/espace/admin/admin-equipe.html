@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="lang-fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,44 +11,89 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
+    /* ===== 🎨 VARIABLES — MODE CLAIR ===== */
     :root {
-      --sombre: #0f172a; --sombre-clair: #1e293b;
-      --bord-orange: #f59e0b; --vert: #10b981;
-      --rouge: #ef4444; --bleu: #3b82f6;
-      --texte: #f8fafc;
+      --fond: #f8fafc;
+      --surface: #ffffff;
+      --texte: #1e293b;
+      --texte-secondaire: #64748b;
+      --bord: #e2e8f0;
+      --primaire: #0c4a6e;
+      --accent: #f59e0b;
+      --succes: #10b981;
+      --danger: #ef4444;
+      --ombre: 0 2px 8px rgba(0,0,0,0.06);
     }
-    *{margin:0;padding:0;box-sizing:border-box;transition:all 0.2s ease}
-    body{background:var(--sombre);color:var(--texte);min-height:100vh;font-family:'Segoe UI',sans-serif;}
-    .entete-page{background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.2rem 0}
-    .carte{background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);padding:1.5rem;margin-bottom:1.5rem}
-    .form-control,.form-select{background:#0f172a;border:1px solid #334155;color:white;border-radius:8px}
-    .form-control:focus,.form-select:focus{background:#0f172a;border-color:var(--bord-orange);color:white;box-shadow:0 0 0 0.25rem rgba(245,158,11,0.25)}
-    .btn-valide{background:var(--vert);color:white;border-radius:8px;border:none;padding:0.5rem 1rem;}
-    .btn-valide:hover{box-shadow:0 0 15px rgba(16,185,129,0.4);transform:translateY(-1px)}
-    .btn-modif{background:var(--bord-orange);color:white;padding:6px 12px;font-size:14px;border-radius:6px;border:none;}
-    .btn-modif:hover{background:#d97706;}
-    .btn-suppr{background:var(--rouge);color:white;padding:6px 12px;font-size:14px;border-radius:6px;border:none;}
-    .btn-suppr:hover{background:#dc2626;}
-    .badge-actif{background:rgba(16,185,129,0.15);color:#34d399;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;}
-    .badge-inactif{background:rgba(148,163,184,0.2);color:#94a3b8;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;}
-    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;z-index:1050}
-    .modal.active{display:flex}
-    .modal-contenu{background:var(--sombre-clair);padding:1.8rem;border-radius:12px;width:92%;max-width:680px;max-height:92vh;overflow-y:auto;border:1px solid #334155}
-    .modal-contenu h2{color:var(--bord-orange);margin-bottom:1.2rem}
-    .ligne{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:1rem}
-    .btn-fermer{background:#475569;color:white;border-radius:6px;border:none;padding:0.5rem 1rem;}
-    .btn-enregistrer{background:var(--bleu);color:white;border-radius:6px;border:none;padding:0.5rem 1rem;}
-    .btn-enregistrer:hover{background:#2563eb;color:white}
-    .message{margin-top:1rem;padding:0.75rem;border-radius:6px;display:none}
-    .message.succes{background:rgba(16,185,129,0.1);color:#34d399;display:block}
-    .message.erreur{background:rgba(239,68,68,0.1);color:#fca5a5;display:block}
-    .alerte-api{border-left:3px solid var(--rouge);background:rgba(239,68,68,0.1);border-radius:8px;padding:0.75rem 1rem;margin-bottom:1rem;}
-    .btn-langue.active{background:var(--bord-orange);color:#000;border-color:var(--bord-orange);font-weight:bold;}
-    .info-ligne{color:#cbd5e1;font-size:14px;margin:4px 0}
-    .photo-mini{width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--bord-orange);margin-right:12px}
 
-    /* 🗣️ GESTION DES LANGUES */
+    /* ===== 🌙 MODE SOMBRE ===== */
+    [data-theme="sombre"] {
+      --fond: #0f172a;
+      --surface: #1e293b;
+      --texte: #f8fafc;
+      --texte-secondaire: #94a3b8;
+      --bord: #334155;
+      --primaire: #38bdf8;
+      --accent: #fbbf24;
+      --succes: #34d399;
+      --danger: #f87171;
+      --ombre: 0 2px 12px rgba(0,0,0,0.35);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.25s ease; }
+    body { background: var(--fond); color: var(--texte); min-height: 100vh; font-family:'Segoe UI', sans-serif; }
+
+    /* ===== EN-TÊTE ===== */
+    .entete-page { background: var(--surface); border-bottom: 3px solid var(--accent); padding: 1.2rem 0; box-shadow: var(--ombre); }
+
+    /* ===== CARTES ===== */
+    .carte { background: var(--surface); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border-left: 4px solid var(--accent); border: 1px solid var(--bord); box-shadow: var(--ombre); }
+    .carte:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+
+    /* ===== FORMULAIRES ===== */
+    .form-control, .form-select {
+      background: var(--fond); border: 1px solid var(--bord); color: var(--texte); border-radius: 8px;
+    }
+    .form-control:focus, .form-select:focus {
+      background: var(--fond); border-color: var(--accent); color: var(--texte);
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.20);
+    }
+
+    /* ===== BOUTONS ===== */
+    .btn-valide { background: var(--succes); color: white; border-radius: 8px; border: none; padding: 0.5rem 1rem; }
+    .btn-valide:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16,185,129,0.25); }
+    .btn-modif { background: var(--accent); color: #000; padding: 6px 12px; font-size: 14px; border-radius: 6px; border: none; }
+    .btn-modif:hover { filter: brightness(1.08); }
+    .btn-suppr { background: var(--danger); color: white; padding: 6px 12px; font-size: 14px; border-radius: 6px; border: none; }
+    .btn-suppr:hover { filter: brightness(1.08); }
+
+    /* ===== BADGES ===== */
+    .badge-actif { background: rgba(16,185,129,0.15); color: #34d399; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .badge-inactif { background: rgba(148,163,184,0.2); color: #94a3b8; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+
+    /* ===== MODAL ===== */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 1050; }
+    .modal.active { display: flex; }
+    .modal-contenu { background: var(--surface); padding: 1.8rem; border-radius: 12px; width: 92%; max-width: 680px; max-height: 92vh; overflow-y: auto; border: 1px solid var(--bord); box-shadow: var(--ombre); }
+    .modal-contenu h2 { color: var(--accent); margin-bottom: 1.2rem; }
+
+    /* ===== LIGNES & ACTIONS ===== */
+    .ligne { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem; }
+    .btn-fermer { background: #475569; color: white; border-radius: 6px; border: none; padding: 0.5rem 1rem; }
+    .btn-enregistrer { background: var(--primaire); color: white; border-radius: 6px; border: none; padding: 0.5rem 1rem; }
+    .btn-enregistrer:hover { filter: brightness(1.08); }
+    .message { margin-top: 1rem; padding: 0.75rem; border-radius: 6px; display: none; }
+    .message.succes { background: rgba(16,185,129,0.1); color: var(--succes); display: block; }
+    .message.erreur { background: rgba(239,68,68,0.1); color: var(--danger); display: block; }
+    .alerte-api { border-left: 3px solid var(--danger); background: rgba(239,68,68,0.1); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
+    .info-ligne { color: var(--texte-secondaire); font-size: 14px; margin: 4px 0; }
+    .photo-mini { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); margin-right: 12px; }
+
+    /* ===== INTERRUPTEUR MODE ===== */
+    .btn-mode { border-radius: 20px; padding: 4px 12px; font-size: 14px; border: 1px solid var(--bord); background: var(--surface); color: var(--texte); }
+    .btn-mode:hover { border-color: var(--accent); }
+
+    /* ===== TRADUCTION ===== */
     .lang-en, .lang-ar { display: none; }
     body.lang-fr .lang-fr { display: inline; }
     body.lang-en { direction: ltr; }
@@ -57,9 +102,14 @@
     body.lang-ar { direction: rtl; }
     body.lang-ar .lang-fr, body.lang-ar .lang-en { display: none; }
     body.lang-ar .lang-ar { display: inline; }
+
+    @media (max-width: 768px) {
+      .ligne { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
-<body class="lang-fr">
+<body class="lang-fr" data-theme="clair">
+
 
 <!-- 🔗 CONFIGURATION API & SÉCURITÉ -->
 <script>
@@ -70,13 +120,10 @@
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
   let langue = localStorage.getItem('langue') || 'fr';
+  let theme = localStorage.getItem('theme') || 'clair';
   let modeLocal = false;
 
-  // 💾 STOCKAGE LOCAL
-  function obtenirMembresLocaux() { return JSON.parse(localStorage.getItem('equipe_membres') || '[]'); }
-  function sauvegarderMembresLocaux(liste) { localStorage.setItem('equipe_membres', JSON.stringify(liste)); }
-
-  // 🗣️ TRADUCTIONS
+  // 💾 TRADUCTIONS
   const MSG = {
     fr: {
       accesReserve: "⛔ Accès réservé à l'Administrateur",
@@ -192,22 +239,44 @@
   };
   function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
 
+  // 🌙 GESTION DU THÈME
+  function appliquerTheme(t) {
+    theme = t;
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem('theme', t);
+    document.getElementById('btn-theme').innerHTML = t === 'clair' ? '<i class="bi bi-moon"></i>' : '<i class="bi bi-sun"></i>';
+  }
+  function basculerTheme() { appliquerTheme(theme === 'clair' ? 'sombre' : 'clair'); }
+
+  // 🗣️ GESTION DE LA LANGUE
+  function appliquerLangue(lg) {
+    langue = lg;
+    localStorage.setItem('langue', lg);
+    document.body.classList.remove('lang-fr','lang-en','lang-ar');
+    document.body.classList.add('lang-' + lg);
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('btn-outline-warning', 'bg-warning', 'text-dark', 'fw-bold'));
+    document.getElementById('btn-' + lg)?.classList.add('btn-outline-warning', 'bg-warning', 'text-dark', 'fw-bold');
+  }
+
   // 🔒 SÉCURITÉ
-  if(!token || !['admin','super_admin'].includes(role)){
+  if(!token || !['admin','super_admin','directeur'].includes(role)){
     alert(m('accesReserve'));
     localStorage.clear();
     location.href = 'connexion.html';
   }
 
-  document.body.classList.add('lang-' + langue);
+  // 💾 STOCKAGE LOCAL
+  function obtenirMembresLocaux() { return JSON.parse(localStorage.getItem('equipe_membres') || '[]'); }
+  function sauvegarderMembresLocaux(liste) { localStorage.setItem('equipe_membres', JSON.stringify(liste)); }
 </script>
+
 
 <!-- 📌 EN-TÊTE -->
 <div class="entete-page">
   <div class="container d-flex justify-content-between align-items-center">
     <div>
       <h3 class="mb-1">
-        <i class="bi bi-people-fill me-2" style="color:var(--bord-orange)"></i>
+        <i class="bi bi-people-fill me-2" style="color:var(--accent)"></i>
         <span class="lang-fr">Gestion de l'Équipe Pédagogique</span>
         <span class="lang-en">Teaching Staff Management</span>
         <span class="lang-ar">إدارة الفريق التربوي</span>
@@ -219,10 +288,13 @@
       </p>
     </div>
     <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('fr')" id="btn-fr">FR</button>
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('en')" id="btn-en">EN</button>
-      <button class="btn btn-sm btn-outline-light btn-langue" onclick="changerLangue('ar')" id="btn-ar">AR</button>
-      <a href="dashboard.html" class="btn btn-outline-light btn-sm ms-2">
+      <button class="btn-mode" id="btn-theme" onclick="basculerTheme()" title="Mode jour/nuit">
+        <i class="bi bi-moon"></i>
+      </button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="appliquerLangue('fr')" id="btn-fr">FR</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="appliquerLangue('en')" id="btn-en">EN</button>
+      <button class="btn btn-sm btn-outline-light btn-langue" onclick="appliquerLangue('ar')" id="btn-ar">AR</button>
+      <a href="dashboard.html" class="btn btn-outline-secondary btn-sm ms-1">
         <i class="bi bi-arrow-left"></i>
         <span class="lang-fr"> Retour</span>
         <span class="lang-en"> Back</span>
@@ -231,6 +303,7 @@
     </div>
   </div>
 </div>
+
 
 <div class="container py-4">
 
@@ -243,7 +316,7 @@
   <!-- BARRE D'ACTION -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <p class="mb-0 fw-bold"><span id="compteur">0</span> <span class="lang-fr">membre(s)</span><span class="lang-en">member(s)</span><span class="lang-ar">عضو</span></p>
-    <button class="btn btn-valide" onclick="ouvrirFormulaire()">
+    <button class="btn-valide" onclick="ouvrirFormulaire()">
       <i class="bi bi-plus-lg"></i>
       <span class="lang-fr"> Ajouter un membre</span>
       <span class="lang-en"> Add member</span>
@@ -254,6 +327,7 @@
   <!-- 📋 LISTE DES MEMBRES -->
   <div id="liste"></div>
 </div>
+
 
 <!-- 📝 MODAL FORMULAIRE -->
 <div class="modal" id="formModal">
@@ -308,6 +382,7 @@
   </div>
 </div>
 
+
 <script>
 let listeMembres = [];
 
@@ -317,17 +392,6 @@ function basculerModeLocal(actif) {
   const alerte = document.getElementById('alerteApi');
   document.getElementById('texteAlerteApi').textContent = m('serveurIndispo');
   alerte.classList.toggle('d-none', !actif);
-}
-
-// 🗣️ CHANGEMENT DE LANGUE
-function changerLangue(nouvelleLangue) {
-  langue = nouvelleLangue;
-  localStorage.setItem('langue', langue);
-  document.body.classList.remove('lang-fr','lang-en','lang-ar');
-  document.body.classList.add('lang-' + langue);
-  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-' + langue).classList.add('active');
-  afficherListe();
 }
 
 // 📋 CHARGER LA LISTE
@@ -497,7 +561,8 @@ async function supprimer(id) {
 
 // 🚀 INITIALISATION
 window.onload = async function() {
-  document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('active', b.id === 'btn-' + langue));
+  appliquerTheme(theme);
+  appliquerLangue(langue);
   await chargerListe();
 };
 </script>
