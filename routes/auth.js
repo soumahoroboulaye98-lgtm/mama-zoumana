@@ -9,10 +9,12 @@ const fs = require('fs');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
+
 // ==================================================
 // ✅ CLÉ JWT UNIFIÉE — MÊME VALEUR PARTOUT
 // ==================================================
 const CLE_JWT = process.env.JWT_SECRET || 'ma_cle_secrete_pour_le_site_2026';
+
 
 // ==================================================
 // ✅ MIDDLEWARES IMPORTÉS ET HARMONISÉS
@@ -20,6 +22,7 @@ const CLE_JWT = process.env.JWT_SECRET || 'ma_cle_secrete_pour_le_site_2026';
 const veriftoken = require('../middleware/veriftoken');
 const verifadmin = require('../middleware/verifadmin');
 const protegerAdmin = [veriftoken, verifadmin];
+
 
 // ==================================================
 // 📁 CONFIGURATION UPLOAD FICHIERS
@@ -38,6 +41,7 @@ const stockage = multer.diskStorage({
 });
 const upload = multer({ storage: stockage, limits: { fileSize: 10 * 1024 * 1024 } });
 
+
 // ==================================================
 // 📧 CONFIGURATION EMAIL
 // ==================================================
@@ -48,6 +52,7 @@ const transport = nodemailer.createTransport({
     pass: process.env.MAIL_PASS
   }
 });
+
 
 // ==================================================
 // 🆕 GÉNÉRER MATRICULE — FORMAT : MZ-ANNÉE-CLASSE-NNNN
@@ -82,6 +87,7 @@ async function genererMatricule(profil, id_classe = null) {
   return `${codeEcole}-${annee}-${codeClasse}-${numero}`;
 }
 
+
 // ==================================================
 // 🔐 CONNEXION — Élève = Matricule / Autres = Email
 // ✅ CHAMPS : id / prenom (conforme à la base)
@@ -107,7 +113,7 @@ router.post('/connexion', async (req, res) => {
                 COALESCE(statut_compte, 'valide') AS statut_compte,
                 COALESCE(compte_verrouille, false) AS compte_verrouille,
                 COALESCE(tentatives_connexion, 0) AS tentatives_connexion,
-                date_deverrouillage
+                date_deverrouillage, derniere_connexion
          FROM utilisateurs
          WHERE UPPER(matricule) = UPPER($1) AND role = $2`,
         [matricule ? matricule.trim() : '', role]
@@ -118,7 +124,7 @@ router.post('/connexion', async (req, res) => {
                 COALESCE(statut_compte, 'valide') AS statut_compte,
                 COALESCE(compte_verrouille, false) AS compte_verrouille,
                 COALESCE(tentatives_connexion, 0) AS tentatives_connexion,
-                date_deverrouillage
+                date_deverrouillage, derniere_connexion
          FROM utilisateurs
          WHERE LOWER(email) = LOWER($1) AND role = $2`,
         [email ? email.trim() : '', role]
@@ -211,8 +217,10 @@ router.post('/connexion', async (req, res) => {
   }
 });
 
+
 // ==================================================
 // 📝 PRÉINSCRIPTION — Avec génération matricule
+// ✅ CORRIGÉ : champ prenom dans la table utilisateurs
 // ==================================================
 router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }, { name: 'documents' }]), async (req, res) => {
   try {
@@ -257,8 +265,10 @@ router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }
   }
 });
 
+
 // ==================================================
 // 🔑 MOT DE PASSE OUBLIÉ
+// ✅ CORRIGÉ : SELECT utilise prenom (conforme à la base)
 // ==================================================
 router.post('/mot-de-passe-oublie', async (req, res) => {
   try {
@@ -308,8 +318,10 @@ router.post('/mot-de-passe-oublie', async (req, res) => {
   }
 });
 
+
 // ==================================================
 // 🔐 CHANGEMENT DE MOT DE PASSE
+// ✅ CORRIGÉ : SELECT utilise prenom
 // ==================================================
 router.post('/changer-mot-de-passe', veriftoken, async (req, res) => {
   try {
@@ -352,8 +364,10 @@ router.post('/changer-mot-de-passe', veriftoken, async (req, res) => {
   }
 });
 
+
 // ==================================================
 // ✅ VALIDER UNE PRÉINSCRIPTION → CRÉER COMPTE
+// ✅ CORRIGÉ : INSERT utilise prenom (conforme à la base)
 // ==================================================
 router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
   try {
@@ -389,7 +403,7 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
     const motDePasseTemp = "MZ" + Math.floor(100000 + Math.random() * 900000);
     const hashMdp = await bcrypt.hash(motDePasseTemp, 10);
 
-    // ✅ Crée le compte utilisateur
+    // ✅ Crée le compte utilisateur — CORRIGÉ : prenom au lieu de prenoms
     await pool.query(
       `INSERT INTO utilisateurs(
         nom, prenom, email, telephone, role, matricule,
@@ -430,6 +444,7 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
   }
 });
 
+
 // ==================================================
 // ❌ REFUSER UNE PRÉINSCRIPTION
 // ==================================================
@@ -457,6 +472,7 @@ router.put('/preinscription/refuser/:id', protegerAdmin, async (req, res) => {
   }
 });
 
+
 // ==================================================
 // 📋 LISTER LES PRÉINSCRIPTIONS EN ATTENTE
 // ==================================================
@@ -479,8 +495,10 @@ router.get('/preinscription/liste', protegerAdmin, async (req, res) => {
   }
 });
 
+
 // ==================================================
 // 📋 LISTE TOUS LES UTILISATEURS
+// ✅ CORRIGÉ : SELECT utilise prenom (conforme à la base)
 // ==================================================
 router.get('/utilisateurs', protegerAdmin, async (req, res) => {
   try {
@@ -498,8 +516,10 @@ router.get('/utilisateurs', protegerAdmin, async (req, res) => {
   }
 });
 
+
 // ==================================================
 // 🔴 LIRE UN SEUL UTILISATEUR
+// ✅ CORRIGÉ : SELECT utilise prenom
 // ==================================================
 router.get('/utilisateur/:id', protegerAdmin, async (req, res) => {
   try {
@@ -527,8 +547,10 @@ router.get('/utilisateur/:id', protegerAdmin, async (req, res) => {
   }
 });
 
+
 // ==================================================
 // ✏️ MODIFIER UN UTILISATEUR
+// ✅ CORRIGÉ : UPDATE utilise prenom dans la table
 // ==================================================
 router.put('/utilisateur/:id', protegerAdmin, async (req, res) => {
   try {
@@ -580,8 +602,10 @@ router.put('/utilisateur/:id', protegerAdmin, async (req, res) => {
   }
 });
 
+
 // ==================================================
 // 🗑️ SUPPRIMER UN UTILISATEUR
+// ✅ CORRIGÉ : RETURNING utilise prenom
 // ==================================================
 router.delete('/utilisateur/:id', protegerAdmin, async (req, res) => {
   try {
@@ -611,4 +635,6 @@ router.delete('/utilisateur/:id', protegerAdmin, async (req, res) => {
   }
 });
 
-module.exports = router;
+
+// ✅ Export des middlewares pour serveur.js
+module.exports = { router, veriftoken, verifadmin, protegerAdmin };
