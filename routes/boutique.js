@@ -4,9 +4,8 @@ const pool = require('../db');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const jwt = require('jsonwebtoken');
-const veriftoken = require('../middleware/veriftoken');   // ✅ Import standard
-const verifadmin = require('../middleware/verifadmin');   // ✅ Admin via middleware externe
+const veriftoken = require('../middleware/veriftoken');
+const verifadmin = require('../middleware/verifadmin');
 
 // ✅ Protection groupée uniforme
 const protegerAdmin = [veriftoken, verifadmin];
@@ -23,8 +22,8 @@ const stockage = multer.diskStorage({
     cb(null, nomUnique + path.extname(file.originalname));
   }
 });
-const upload = multer({ 
-  storage: stockage, 
+const upload = multer({
+  storage: stockage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const typesAutorises = /jpeg|jpg|png|gif|webp/;
@@ -34,7 +33,6 @@ const upload = multer({
     cb(new Error("⚠️ Seules les images sont autorisées (JPG, PNG, GIF, WEBP)"));
   }
 });
-
 
 // ==================================================
 // 📋 LISTE TOUS PRODUITS (Admin — inclut inactifs)
@@ -56,10 +54,9 @@ router.get('/produits', protegerAdmin, async (req, res) => {
     res.json({ ok: true, produits: resultats.rows });
   } catch (e) {
     console.error("❌ ERREUR LISTE PRODUITS :", e.message);
-    res.status(500).json({ ok: false, erreur: e.message });
+    res.status(500).json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
-
 
 // ==================================================
 // 🌐 LISTE PUBLIQUE (seulement actifs)
@@ -77,10 +74,9 @@ router.get('/produits-public', async (req, res) => {
     res.json({ ok: true, produits: resultats.rows });
   } catch (e) {
     console.error("❌ ERREUR PRODUITS PUBLIC :", e.message);
-    res.status(500).json({ ok: false, erreur: e.message });
+    res.status(500).json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
-
 
 // ==================================================
 // ➕ AJOUTER PRODUIT (Admin + upload image)
@@ -89,7 +85,7 @@ router.post('/produits', protegerAdmin, upload.single('image'), async (req, res)
   try {
     const { categorie, nom_produit, description, prix_unitaire, stock, actif } = req.body;
 
-    // Validations
+    // ✅ Validations
     if (!nom_produit || nom_produit.trim() === '') {
       return res.status(400).json({ ok: false, erreur: "⚠️ Indiquez le nom du produit" });
     }
@@ -109,20 +105,19 @@ router.post('/produits', protegerAdmin, upload.single('image'), async (req, res)
     const estActif = actif === 'true' || actif === true;
 
     const resultat = await pool.query(`
-      INSERT INTO boutique_produits 
+      INSERT INTO boutique_produits
       (categorie, nom_produit, description, prix_unitaire, stock, actif, image_url)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
     `, [categorie.trim(), nom_produit.trim(), description || null, prix, qte, estActif, image_url]);
 
-    console.log(`✅ Produit créé — ${nom_produit} (${categorie})`);
+    console.log(`✅ Produit créé — ${nom_produit.trim()} (${categorie.trim()})`);
     res.json({ ok: true, produit: resultat.rows[0], message: "✅ Produit ajouté avec succès !" });
   } catch (e) {
     console.error("❌ ERREUR AJOUT PRODUIT :", e.message);
-    res.status(500).json({ ok: false, erreur: e.message });
+    res.status(500).json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
-
 
 // ==================================================
 // ✏️ MODIFIER PRODUIT COMPLET (Admin)
@@ -136,7 +131,7 @@ router.put('/produits/:id', protegerAdmin, upload.single('image'), async (req, r
 
     const { categorie, nom_produit, description, prix_unitaire, stock, actif } = req.body;
 
-    // Validations
+    // ✅ Validations
     if (!nom_produit || nom_produit.trim() === '') {
       return res.status(400).json({ ok: false, erreur: "⚠️ Indiquez le nom du produit" });
     }
@@ -149,15 +144,15 @@ router.put('/produits/:id', protegerAdmin, upload.single('image'), async (req, r
       return res.status(400).json({ ok: false, erreur: "⚠️ Stock ne peut pas être négatif" });
     }
 
-    // Récup ancien produit pour gérer l'image
-    const ancien = await pool.query('SELECT image_url FROM boutique_produits WHERE id_produit = $1', [id]);
+    // ✅ Récup ancien produit pour conserver ou remplacer l'image
+    const ancien = await pool.query('SELECT image_url, categorie FROM boutique_produits WHERE id_produit = $1', [id]);
     if (ancien.rows.length === 0) {
       return res.status(404).json({ ok: false, erreur: "⚠️ Produit introuvable" });
     }
 
     let image_url = ancien.rows[0].image_url;
     if (req.file) {
-      // Supprimer l'ancienne image si une nouvelle est fournie
+      // ✅ Supprimer l'ancienne image si une nouvelle est fournie
       if (image_url) {
         const ancienChemin = path.join(__dirname, '../public/', image_url);
         if (fs.existsSync(ancienChemin)) fs.unlinkSync(ancienChemin);
@@ -166,22 +161,24 @@ router.put('/produits/:id', protegerAdmin, upload.single('image'), async (req, r
     }
 
     const estActif = actif === 'true' || actif === true;
+    const nouvelleCategorie = categorie?.trim() || ancien.rows[0].categorie;
+    const nouveauNom = nom_produit.trim();
 
     const resultat = await pool.query(`
-      UPDATE boutique_produits 
-      SET categorie = $1, nom_produit = $2, description = $3, prix_unitaire = $4, stock = $5, actif = $6, image_url = $7
-      WHERE id_produit = $8 
+      UPDATE boutique_produits
+      SET categorie = $1, nom_produit = $2, description = $3, prix_unitaire = $4,
+          stock = $5, actif = $6, image_url = $7
+      WHERE id_produit = $8
       RETURNING *
-    `, [categorie?.trim() || ancien.rows[0].categorie, nom_produit.trim(), description || null, prix, qte, estActif, image_url, id]);
+    `, [nouvelleCategorie, nouveauNom, description || null, prix, qte, estActif, image_url, id]);
 
-    console.log(`✅ Produit mis à jour — ID: ${id}, ${nom_produit.trim()}`);
+    console.log(`✅ Produit mis à jour — ID: ${id}, ${nouveauNom}`);
     res.json({ ok: true, produit: resultat.rows[0], message: "✅ Produit mis à jour !" });
   } catch (e) {
     console.error("❌ ERREUR MODIF PRODUIT :", e.message);
-    res.status(500).json({ ok: false, erreur: e.message });
+    res.status(500).json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
-
 
 // ==================================================
 // ❌ SUPPRIMER PRODUIT (Admin)
@@ -198,7 +195,7 @@ router.delete('/produits/:id', protegerAdmin, async (req, res) => {
       return res.status(404).json({ ok: false, erreur: "⚠️ Produit introuvable" });
     }
 
-    // Supprimer l'image associée
+    // ✅ Supprimer l'image associée
     if (ancien.rows[0].image_url) {
       const chemin = path.join(__dirname, '../public/', ancien.rows[0].image_url);
       if (fs.existsSync(chemin)) fs.unlinkSync(chemin);
@@ -213,10 +210,9 @@ router.delete('/produits/:id', protegerAdmin, async (req, res) => {
     if (e.code === '23503') {
       return res.status(400).json({ ok: false, erreur: "⚠️ Impossible : ce produit est référencé dans des commandes" });
     }
-    res.status(500).json({ ok: false, erreur: e.message });
+    res.status(500).json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
-
 
 // ==================================================
 // 🛒 LISTE COMMANDES (Admin)
@@ -228,10 +224,9 @@ router.get('/commandes', protegerAdmin, async (req, res) => {
     res.json({ ok: true, commandes: resultats.rows });
   } catch (e) {
     console.error("❌ ERREUR CHARGEMENT COMMANDES :", e.message);
-    res.status(500).json({ ok: false, erreur: e.message });
+    res.status(500).json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
-
 
 // ==================================================
 // ✏️ MODIFIER STOCK SEUL (Admin)
@@ -261,9 +256,8 @@ router.put('/produits/:id/stock', protegerAdmin, async (req, res) => {
     res.json({ ok: true, produit: resultat.rows[0], message: "✅ Stock mis à jour !" });
   } catch (e) {
     console.error("❌ ERREUR MISE À JOUR STOCK :", e.message);
-    res.status(500).json({ ok: false, erreur: e.message });
+    res.status(500).json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
-
 
 module.exports = router;

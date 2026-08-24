@@ -1,11 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté systématiquement
+const veriftoken = require('../middleware/veriftoken');
 const verifadmin = require('../middleware/verifadmin');
 const verifcomptableouadmin = require('../middleware/verifcomptableouadmin');
 
-// ✅ Protections groupées uniformes
+
+// ==================================================
+// ✅ PROTECTIONS GROUPÉES — UNIFORMES
+// ==================================================
 const protegerLecture = [veriftoken, verifcomptableouadmin];
 const protegerEcriture = [veriftoken, verifcomptableouadmin];
 const protegerAdmin = [veriftoken, verifadmin];
@@ -56,14 +59,12 @@ router.get('/liste', protegerLecture, async (req, res) => {
       const m = parseInt(mois), a = parseInt(annee);
       const moisPrec = m === 1 ? 12 : m - 1;
       const anneePrec = m === 1 ? a - 1 : a;
-
       const paramsPrec = [moisPrec, anneePrec];
       let condPrec = '';
       if (conditions.length > 2) {
         condPrec = ' AND ' + conditions.slice(2).map((c, i) => c.replace(/\$\d+/g, `$${i+3}`)).join(' AND ');
         paramsPrec.push(...params.slice(2));
       }
-
       const resPrec = await pool.query(`
         SELECT
           COALESCE(SUM(CASE WHEN type = 'recette' THEN montant END), 0)::NUMERIC(12,2) AS recettes,
@@ -74,7 +75,6 @@ router.get('/liste', protegerLecture, async (req, res) => {
           AND EXTRACT(YEAR FROM date_operation) = $2
           ${condPrec}
       `, paramsPrec);
-
       if (resPrec.rows.length > 0) {
         const r = parseFloat(resPrec.rows[0].recettes) || 0;
         const d = parseFloat(resPrec.rows[0].depenses) || 0;
@@ -131,13 +131,13 @@ router.get('/liste', protegerLecture, async (req, res) => {
       ORDER BY nb_ops DESC
     `, params);
 
-    console.log(`✅ Finances consultées — ${operations.rows.length} opération(s) trouvée(s)`);
+    console.log(`✅ Finances consultées — ${operations.rows.length} opération(s)`);
     res.json({
       ok: true,
       operations: operations.rows,
       bilan: { recettes, depenses, solde, nombre_operations: bilan.rows[0]?.nombre_operations || 0 },
       bilanPrec,
-      parCategorie: parCategorie.rows,
+      categories: parCategorie.rows,
       evolution: evolution.rows.reverse(),
       budget: budget.rows,
       periodeClose,
@@ -145,7 +145,7 @@ router.get('/liste', protegerLecture, async (req, res) => {
     });
 
   } catch (e) {
-    console.log("❌ ERREUR LISTE FINANCES :", e.message);
+    console.error("❌ ERREUR LISTE FINANCES :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
@@ -187,11 +187,11 @@ router.post('/enregistrer', protegerEcriture, async (req, res) => {
       mode_paiement || 'especes', reference || null, id_utilisateur
     ]);
 
-    console.log(`✅ Opération enregistrée — ${type}, ${montant}`);
+    console.log(`✅ Opération enregistrée — ${type}, ${montant} F CFA`);
     res.json({ ok: true, operation: r.rows[0] });
 
   } catch (e) {
-    console.log("❌ ERREUR ENREGISTREMENT OPÉRATION :", e.message);
+    console.error("❌ ERREUR ENREGISTREMENT :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
@@ -214,7 +214,6 @@ router.put('/:id', protegerAdmin, async (req, res) => {
     const dt = date_operation ? new Date(date_operation) : new Date();
     const mois = dt.getMonth() + 1;
     const annee = dt.getFullYear();
-
     if (isNaN(mois) || isNaN(annee)) {
       return res.json({ ok: false, erreur: "Date d'opération invalide" });
     }
@@ -239,15 +238,13 @@ router.put('/:id', protegerAdmin, async (req, res) => {
       statut || 'valide', id_utilisateur, id
     ]);
 
-    if (!r.rows.length) {
-      return res.json({ ok: false, erreur: "Opération introuvable" });
-    }
+    if (!r.rows.length) return res.json({ ok: false, erreur: "Opération introuvable" });
 
     console.log(`✅ Opération modifiée — ID: ${id}`);
     res.json({ ok: true, operation: r.rows[0] });
 
   } catch (e) {
-    console.log("❌ ERREUR MODIFICATION OPÉRATION :", e.message);
+    console.error("❌ ERREUR MODIFICATION :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
@@ -281,7 +278,7 @@ router.delete('/:id', protegerAdmin, async (req, res) => {
     res.json({ ok: true });
 
   } catch (e) {
-    console.log("❌ ERREUR SUPPRESSION OPÉRATION :", e.message);
+    console.error("❌ ERREUR SUPPRESSION :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
@@ -306,7 +303,7 @@ router.post('/cloturer', protegerAdmin, async (req, res) => {
     res.json({ ok: true, message: `✅ Période ${mois}/${annee} clôturée avec succès` });
 
   } catch (e) {
-    console.log("❌ ERREUR CLÔTURE PÉRIODE :", e.message);
+    console.error("❌ ERREUR CLÔTURE :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
@@ -324,14 +321,14 @@ router.post('/rouvrir', protegerAdmin, async (req, res) => {
     res.json({ ok: true, message: `✅ Période ${mois}/${annee} rouverte` });
 
   } catch (e) {
-    console.log("❌ ERREUR RÉOUVERTURE PÉRIODE :", e.message);
+    console.error("❌ ERREUR RÉOUVERTURE :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 
 // ==================================================
-// 🏷️ ENREGISTRER / METTRE À JOUR UN BUDGET PRÉVISIONNEL
+// 🏷️ ENREGISTRER UN BUDGET PRÉVISIONNEL
 // ✅ Accessible : Comptable OU Administrateur
 // ==================================================
 router.post('/budget/enregistrer', protegerEcriture, async (req, res) => {
@@ -344,11 +341,11 @@ router.post('/budget/enregistrer', protegerEcriture, async (req, res) => {
       RETURNING *
     `, [annee, mois, categorie, montant_prevu]);
 
-    console.log(`✅ Budget prévisionnel enregistré — ${mois}/${annee}, ${categorie}`);
+    console.log(`✅ Budget enregistré — ${mois}/${annee}, ${categorie}`);
     res.json({ ok: true, budget: r.rows[0] });
 
   } catch (e) {
-    console.log("❌ ERREUR ENREGISTREMENT BUDGET :", e.message);
+    console.error("❌ ERREUR BUDGET :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });

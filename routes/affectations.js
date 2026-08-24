@@ -7,11 +7,10 @@ const verifadmin = require('../middleware/verifadmin');
 // ✅ Protection groupée uniforme
 const protegerAdmin = [veriftoken, verifadmin];
 
-
 // ==================================================
-// 📋 LISTE DES AFFECTATIONS
+// 📋 LISTE DES AFFECTATIONS  →  /api/affectations
 // ==================================================
-router.get('/liste', protegerAdmin, async (req, res) => {
+router.get('/', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
       SELECT a.id_affectation,
@@ -26,18 +25,17 @@ router.get('/liste', protegerAdmin, async (req, res) => {
     `);
 
     console.log(`✅ Liste affectations consultée — ${r.rows.length} affectation(s)`);
-    res.json({ ok: true, lignes: r.rows });
+    res.json({ ok: true, affectations: r.rows, lignes: r.rows });
   } catch (e) {
     console.error("❌ ERREUR LISTE AFFECTATIONS :", e.message);
     res.json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
 
-
 // ==================================================
-// ➕ AJOUTER UNE AFFECTATION
+// ➕ AJOUTER UNE AFFECTATION  →  /api/affectations
 // ==================================================
-router.post('/ajouter', protegerAdmin, async (req, res) => {
+router.post('/', protegerAdmin, async (req, res) => {
   try {
     const { id_prof, id_classe, id_matiere } = req.body;
 
@@ -46,7 +44,7 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
       return res.json({ ok: false, erreur: "⚠️ Tous les champs sont obligatoires" });
     }
 
-    // ✅ Validation des identifiants
+    // ✅ Conversion et validation des identifiants
     const profId = parseInt(id_prof);
     const classeId = parseInt(id_classe);
     const matiereId = parseInt(id_matiere);
@@ -75,11 +73,10 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
   }
 });
 
-
 // ==================================================
-// 🗑️ SUPPRIMER UNE AFFECTATION
+// 🗑️ SUPPRIMER UNE AFFECTATION  →  /api/affectations/:id
 // ==================================================
-router.delete('/supprimer/:id', protegerAdmin, async (req, res) => {
+router.delete('/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -102,6 +99,5 @@ router.delete('/supprimer/:id', protegerAdmin, async (req, res) => {
     res.json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
-
 
 module.exports = router;

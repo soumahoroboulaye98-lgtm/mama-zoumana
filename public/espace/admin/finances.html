@@ -12,14 +12,24 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
   <style>
-    :root {
+    /* ===== 🎨 VARIABLES — CLAIR / SOMBRE ===== */
+    :root, :root[data-bs-theme="light"] {
       --primaire: #0c4a6e; --succes: #10b981; --alerte: #f59e0b;
-      --danger: #ef4444; --info: #3b82f6; --sombre: #0f172a;
-      --sombre-clair: #1e293b; --texte-clair: #f8fafc; --texte-dore: #fbbf24;
-      --verrouille: #6366f1;
+      --danger: #ef4444; --info: #3b82f6; --sombre: #ffffff;
+      --sombre-clair: #f1f5f9; --texte-clair: #1e293b; --texte-dore: #b45309;
+      --bordure: #e2e8f0; --carte: #ffffff; --ombre: rgba(15,23,42,.08);
+      --input-fond: #f8fafc; --texte-lien: #0d6efd;
     }
 
-    /* 🗣️ GESTION DES LANGUES */
+    :root[data-bs-theme="dark"] {
+      --primaire: #0369a1; --succes: #34d399; --alerte: #fbbf24;
+      --danger: #f87171; --info: #60a5fa; --sombre: #0f172a;
+      --sombre-clair: #1e293b; --texte-clair: #f8fafc; --texte-dore: #fcd34d;
+      --bordure: rgba(245,158,11,.25); --carte: rgba(30,41,59,.85); --ombre: rgba(0,0,0,.3);
+      --input-fond: rgba(15,23,42,.6); --texte-lien: #93c5fd;
+    }
+
+    /* ===== 🗣️ TRILINGUE ===== */
     .txt-en,.txt-ar{display:none}
     body.lang-fr .txt-fr{display:inline}
     body.lang-en .txt-en{display:inline}
@@ -30,73 +40,91 @@
     body.lang-ar { direction: rtl; }
     body.lang-ar .titre-section,body.lang-ar .text-end-ar { text-align: right; }
 
+    /* ===== GÉNÉRAL ===== */
     body { 
       background: linear-gradient(135deg, var(--sombre), var(--sombre-clair)); 
       color: var(--texte-clair); 
       min-height: 100vh; 
       padding-bottom: 80px;
+      transition: background .4s ease, color .3s ease;
     }
-    .carte { 
-      background: rgba(30,41,59,.85); 
-      border:1px solid rgba(245,158,11,.2); 
-      border-radius:16px; 
-      backdrop-filter:blur(10px); 
-      box-shadow:0 4px 20px rgba(0,0,0,.15); 
-      transition:all .3s ease; 
-    }
-    .carte:hover { border-color:var(--alerte); box-shadow:0 8px 25px rgba(245,158,11,.15); }
-    .carte-verrouille { border-color:var(--verrouille); box-shadow:0 0 15px rgba(99,102,241,.2); }
 
-    .btn-primaire { background:linear-gradient(135deg,var(--primaire),#0369a1); border:none; color:white; font-weight:500; }
+    /* ===== CARTES AVEC ANIMATION ===== */
+    .carte { 
+      background: var(--carte); 
+      border: 1px solid var(--bordure); 
+      border-radius: 16px; 
+      backdrop-filter: blur(10px); 
+      box-shadow: 0 4px 20px var(--ombre); 
+      transition: all .3s cubic-bezier(.4,0,.2,1); 
+    }
+    .carte:hover { 
+      transform: translateY(-3px); 
+      border-color: var(--alerte); 
+      box-shadow: 0 10px 30px var(--ombre); 
+    }
+    .carte-verrouille { 
+      border-color: #6366f1; 
+      box-shadow: 0 0 20px rgba(99,102,241,.15); 
+    }
+
+    /* ===== BOUTONS ===== */
+    .btn-primaire { background:linear-gradient(135deg,var(--primaire),#0369a1); border:none; color:white; font-weight:500; transition:transform .2s; }
     .btn-succes { background:linear-gradient(135deg,var(--succes),#059669); border:none; color:white; font-weight:500; }
-    .btn-danger { background:linear-gradient(135deg,var(--danger),#dc3545); border:none; color:white; font-weight:500; }
+    .btn-danger { background:linear-gradient(135deg,var(--danger),#dc2626); border:none; color:white; font-weight:500; }
     .btn-accent { background:linear-gradient(135deg,var(--alerte),#d97706); border:none; color:#000; font-weight:600; }
     .btn-info { background:linear-gradient(135deg,var(--info),#2563eb); border:none; color:white; font-weight:500; }
-    .btn-verrouille { background:linear-gradient(135deg,var(--verrouille),#4f46e5); border:none; color:white; font-weight:500; }
+    .btn-verrouille { background:linear-gradient(135deg,#6366f1,#4f46e5); border:none; color:white; font-weight:500; }
     .btn-admin { background:linear-gradient(135deg,#7e22ce,#6b21a8); border:none; color:white; font-weight:500; }
+    .btn:active { transform:scale(.97); }
 
+    /* ===== FORMULAIRES ===== */
+    .form-control,.form-select { 
+      background: var(--input-fond); 
+      border: 1px solid var(--bordure); 
+      color: var(--texte-clair); 
+      border-radius: 10px; 
+      transition:all .25s ease;
+    }
+    .form-control:focus,.form-select:focus { 
+      background: var(--input-fond); 
+      border-color: var(--alerte); 
+      color: var(--texte-clair); 
+      box-shadow: 0 0 0 .25rem rgba(245,158,11,.15); 
+    }
+
+    /* ===== MODALES ===== */
+    .modal-content { 
+      background: var(--sombre-clair); 
+      border: 1px solid var(--bordure); 
+      border-radius: 16px; 
+      color: var(--texte-clair); 
+    }
+    .btn-close-white { filter:invert(1); }
+
+    /* ===== ÉLÉMENTS SPÉCIFIQUES ===== */
     .titre-section { color:var(--texte-dore); font-weight:600; }
     .montant { font-family:'Segoe UI Mono',monospace; font-weight:600; }
     .recette { color:#10b981; }
     .depense { color:#ef4444; }
     .benefice { color:#3b82f6; }
-    .hausse { color:#10b981; }
-    .baisse { color:#ef4444; }
-    .form-control,.form-select { 
-      background:rgba(15,23,42,.6); 
-      border:1px solid rgba(245,158,11,.25); 
-      color:var(--texte-clair); 
-      border-radius:10px; 
-    }
-    .form-control:focus,.form-select:focus { 
-      background:rgba(15,23,42,.8); 
-      border-color:var(--alerte); 
-      color:var(--texte-clair); 
-      box-shadow:0 0 0 .25rem rgba(245,158,11,.15); 
-    }
-    .modal-content { 
-      background:var(--sombre-clair); 
-      border:1px solid rgba(245,158,11,.25); 
-      border-radius:16px; 
-      color:var(--texte-clair); 
-    }
-    .btn-close-white { filter:invert(1); }
     .badge-recette { background:#10b981; }
     .badge-depense { background:#ef4444; }
     .badge-verrouille { background:#6366f1; }
-    .progress { height:10px; border-radius:5px; background:rgba(255,255,255,.1); }
+    .progress { height:10px; border-radius:5px; background:rgba(255,255,255,.15); }
     .bar-recette { background:#10b981; }
     .bar-depense { background:#ef4444; }
     .graphique { max-height:260px; margin:auto; }
     .lang-btn { width:38px; height:38px; border-radius:50%; border:2px solid; padding:0; font-size:14px; display:flex; align-items:center; justify-content:center; }
     .lang-btn.active { background:var(--alerte); border-color:var(--alerte); color:#000; }
     .alerte { border-left:4px solid var(--alerte); background:rgba(245,158,11,.1); padding:.75rem 1rem; border-radius:0 10px 10px 0; }
-    .alerte-verrouille { border-left-color:var(--verrouille); background:rgba(99,102,241,.1); }
+    .alerte-verrouille { border-left-color:#6366f1; background:rgba(99,102,241,.1); }
     .no-print { display: initial; }
 
+    /* ===== BARRE DE STATUT ===== */
     .barre-statut {
       position: fixed; bottom: 0; left: 0; right: 0;
-      background: rgba(15,23,42,.95); border-top: 1px solid rgba(245,158,11,.25);
+      background: var(--sombre-clair); border-top: 1px solid var(--bordure);
       padding: 10px 20px; z-index: 1030; backdrop-filter: blur(10px);
     }
     .en-cours { color: #f59e0b; }
@@ -104,18 +132,34 @@
 
     .btn-group-header { gap: 8px; flex-wrap: wrap; }
     .btn-group-header .btn { white-space: nowrap; }
-
     .btn-admin-action { display: none; }
     .is-admin .btn-admin-action { display: inline-flex; }
 
+    /* ===== TOGGLE THEME ===== */
+    .theme-btn { position:relative; overflow:hidden; }
+    .theme-btn i { transition:transform .3s ease; }
+    :root[data-bs-theme="dark"] .theme-btn i.bi-moon-stars { transform:translateY(0); }
+    :root[data-bs-theme="light"] .theme-btn i.bi-sun { transform:translateY(0); }
+
+    /* ===== IMPRESSION ===== */
     @media print { 
       .no-print { display:none!important; } 
       body { background:#fff; color:#000; padding-bottom:0; } 
       .barre-statut { display:none!important; }
+      .carte { box-shadow:none!important; border:1px solid #ccc; }
     }
+
+    /* ===== ANIMATIONS D'ENTRÉE ===== */
+    .carte { animation: entreCarte .5s ease backwards; }
+    @keyframes entreCarte { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:none; } }
+    .delay-1 { animation-delay:.05s; }
+    .delay-2 { animation-delay:.10s; }
+    .delay-3 { animation-delay:.15s; }
+    .delay-4 { animation-delay:.20s; }
   </style>
 </head>
 <body>
+
 
 <!-- ✅ 🔐 VÉRIFICATION SESSION -->
 <script>
@@ -124,11 +168,15 @@ const roleUtilisateur = localStorage.getItem('role') || '';
 const estAdmin = (roleUtilisateur === 'admin' || roleUtilisateur === 'super_admin');
 const estComptable = (roleUtilisateur === 'comptable');
 const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+const themeSauvegarde = localStorage.getItem('theme') || 'light';
 
 if (!token) {
   alert("⛔ Accès refusé — Veuillez vous connecter");
   window.location.href = '../connexion.html';
 }
+
+// Appliquer le thème
+document.documentElement.setAttribute('data-bs-theme', themeSauvegarde);
 
 document.addEventListener('DOMContentLoaded', () => {
   if (estAdmin) document.body.classList.add('is-admin');
@@ -137,24 +185,32 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.lang-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.lang === langueSauvegardee);
   });
+  // Mettre à jour icône thème
+  document.getElementById('iconeTheme').className = themeSauvegarde === 'dark' 
+    ? 'bi bi-sun' 
+    : 'bi bi-moon-stars';
 });
 
-// 🔗 DÉTECTION AUTOMATIQUE DE L'API
+// 🔗 API
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:5000/api'
   : 'https://mama-zoumana-api.onrender.com/api';
 
-// 💾 STOCKAGE LOCAL
+// 💾 Stockage local
 function obtenirOperationsLocales() { return JSON.parse(localStorage.getItem('operations_financieres') || '[]'); }
 function sauvegarderOperationsLocales(liste) { localStorage.setItem('operations_financieres', JSON.stringify(liste)); }
 function obtenirBudgetLocal() { return JSON.parse(localStorage.getItem('budget_previsionnel') || '{}'); }
 function sauvegarderBudgetLocal(data) { localStorage.setItem('budget_previsionnel', JSON.stringify(data)); }
 </script>
 
+
 <div class="container py-4">
 
-  <!-- 🌐 LANGUE -->
+  <!-- 🌐 LANGUE + THÈME -->
   <div class="d-flex justify-content-end gap-2 mb-3 no-print">
+    <button id="btnTheme" class="btn theme-btn btn-outline-secondary" title="Changer le mode clair/sombre">
+      <i id="iconeTheme" class="bi"></i>
+    </button>
     <button class="btn lang-btn" data-lang="fr">FR</button>
     <button class="btn lang-btn" data-lang="en">EN</button>
     <button class="btn lang-btn" data-lang="ar">ع</button>
@@ -236,7 +292,7 @@ function sauvegarderBudgetLocal(data) { localStorage.setItem('budget_previsionne
   <!-- 📊 BILAN GLOBAL -->
   <div class="row g-3 mb-4">
     <div class="col-md-3 col-sm-6">
-      <div class="carte p-3 text-center">
+      <div class="carte p-3 text-center delay-1">
         <h6 class="text-muted small">
           <span class="txt-fr">Total Recettes</span>
           <span class="txt-en">Total Income</span>
@@ -247,7 +303,7 @@ function sauvegarderBudgetLocal(data) { localStorage.setItem('budget_previsionne
       </div>
     </div>
     <div class="col-md-3 col-sm-6">
-      <div class="carte p-3 text-center">
+      <div class="carte p-3 text-center delay-2">
         <h6 class="text-muted small">
           <span class="txt-fr">Total Dépenses</span>
           <span class="txt-en">Total Expenses</span>
@@ -258,7 +314,7 @@ function sauvegarderBudgetLocal(data) { localStorage.setItem('budget_previsionne
       </div>
     </div>
     <div class="col-md-3 col-sm-6">
-      <div class="carte p-3 text-center">
+      <div class="carte p-3 text-center delay-3">
         <h6 class="text-muted small">
           <span class="txt-fr">Solde / Bilan</span>
           <span class="txt-en">Net Balance</span>
@@ -268,7 +324,7 @@ function sauvegarderBudgetLocal(data) { localStorage.setItem('budget_previsionne
       </div>
     </div>
     <div class="col-md-3 col-sm-6">
-      <div class="carte p-3 text-center">
+      <div class="carte p-3 text-center delay-4">
         <h6 class="text-muted small">
           <span class="txt-fr">Période</span>
           <span class="txt-en">Period</span>
@@ -531,6 +587,7 @@ function sauvegarderBudgetLocal(data) { localStorage.setItem('budget_previsionne
           <button type="submit" class="btn btn-danger">
             💾 <span class="txt-fr">Enregistrer</span><span class="txt-en">Save</span>
           </button>
+        </button>
         </div>
       </form>
     </div>
@@ -578,7 +635,7 @@ function sauvegarderBudgetLocal(data) { localStorage.setItem('budget_previsionne
           </div>
           <div class="col-md-6">
             <label class="form-label"><span class="txt-fr">Montant Prévu (F CFA)</span><span class="txt-en">Planned Amount (XOF)</span></label>
-            <input type="number" name="montant_prevu" class="form-select" required min="0" step="100">
+            <input type="number" name="montant_prevu" class="form-control" required min="0" step="100">
           </div>
         </div>
         <div class="modal-footer mt-3">
@@ -625,6 +682,15 @@ document.querySelectorAll('.lang-btn').forEach(btn => {
     document.documentElement.lang = lang;
     localStorage.setItem('langue', lang);
   });
+});
+
+// 🌙 BASCULEMENT THÈME CLAIR / SOMBRE
+document.getElementById('btnTheme').addEventListener('click', () => {
+  const actuel = document.documentElement.getAttribute('data-bs-theme') || 'light';
+  const nouveau = actuel === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-bs-theme', nouveau);
+  localStorage.setItem('theme', nouveau);
+  document.getElementById('iconeTheme').className = nouveau === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
 });
 
 // ✂️ Échappement sécurisé
@@ -722,441 +788,266 @@ async function charger(){
     // 📊 Bilan
     const recettes = parseFloat(res.bilan?.recettes) || 0;
     const depenses = parseFloat(res.bilan?.depenses) || 0;
-    const solde = recettes - depenses;
-    mettreAJourInfosTotaux(recettes, depenses, solde);
-    document.getElementById('totalRecettes').textContent = formatMontant(recettes);
+    const solde = recettes - depenses;    document.getElementById('totalRecettes').textContent = formatMontant(recettes);
     document.getElementById('totalDepenses').textContent = formatMontant(depenses);
-    document.getElementById('solde').textContent = formatMontant(Math.abs(solde));
-    document.getElementById('solde').className = `montant ${solde >= 0 ? 'recette' : 'depense'}`;
-    document.getElementById('nbOperations').textContent = `${res.bilan?.nombre_operations || 0} opérations`;
-
-    // ⚠️ Dépassement
-    const alerte = document.getElementById('alerteBudget');
-    if(depenses > recettes){
-      alerte.classList.remove('d-none');
-      document.getElementById('texteAlerte').textContent = `⚠️ Dépenses dépassent Recettes de ${formatMontant(depenses - recettes)}`;
-    }else alerte.classList.add('d-none');
-
-    // 📊 Barre répartition
-    const total = recettes + depenses;
-    const pr = total>0 ? Math.round((recettes/total)*100) : 50;
-    document.getElementById('barRecette').style.width = pr+'%';
-    document.getElementById('barDepense').style.width = (100-pr)+'%';
-    document.getElementById('tauxRecette').textContent = `${pr}% Recettes / ${100-pr}% Dépenses`;
-
-    // 📊 Graphiques
-    dessinerCamembert(res.parCategorie || []);
-    dessinerCourbe(res.evolution || []);
-
-    // 👤 Filtre utilisateurs
-    const sel = document.getElementById('filtreUtilisateur');
-    const sv = sel.value;
-    sel.innerHTML = '<option value="">Tous</option>';
-    (res.operateurs || []).forEach(op=>{const o=new Option(`${ech(op.nom)} ${ech(op.prenoms)}`, op.id_utilisateur); sel.appendChild(o);});
-    sel.value = sv;
-
-    // 📋 Liste
-    document.getElementById('infoJournal').textContent = `${(res.operations||[]).length} opération(s)`;
-    afficher(res.operations || []);
-
-  }catch(e){
-    console.warn("Mode local :", e.message);
-    alert(m.serveurHorsLigne);
-    const liste = obtenirOperationsLocales();
-    document.getElementById('infoJournal').textContent = `${liste.length} opération(s) (mode local)`;
-
-    // Calculs locaux
-    const recettes = liste.filter(o=>o.type==='recette').reduce((s,o)=>s+(parseFloat(o.montant)||0),0);
-    const depenses = liste.filter(o=>o.type==='depense').reduce((s,o)=>s+(parseFloat(o.montant)||0),0);
-    const solde = recettes - depenses;
-
+    document.getElementById('solde').textContent = formatMontant(solde);
     mettreAJourInfosTotaux(recettes, depenses, solde);
-    document.getElementById('totalRecettes').textContent = formatMontant(recettes);
-    document.getElementById('totalDepenses').textContent = formatMontant(depenses);
-    document.getElementById('solde').textContent = formatMontant(Math.abs(solde));
-    document.getElementById('solde').className = `montant ${solde >= 0 ? 'recette' : 'depense'}`;
-    document.getElementById('nbOperations').textContent = `${liste.length} opérations`;
 
-    // ⚠️ Dépassement
-    const alerte = document.getElementById('alerteBudget');
-    if(depenses > recettes){
-      alerte.classList.remove('d-none');
-      document.getElementById('texteAlerte').textContent = `⚠️ Dépenses dépassent Recettes de ${formatMontant(depenses - recettes)}`;
-    }else alerte.classList.add('d-none');
+    // 📊 Barre de répartition
+    const totalGlobal = recettes + depenses;
+    const tauxRecette = totalGlobal > 0 ? Math.round((recettes / totalGlobal) * 100) : 50;
+    const tauxDepense = 100 - tauxRecette;
+    document.getElementById('barRecette').style.width = tauxRecette + '%';
+    document.getElementById('barDepense').style.width = tauxDepense + '%';
+    document.getElementById('tauxRecette').textContent = `${tauxRecette}% Recettes / ${tauxDepense}% Dépenses`;
 
-    // 📊 Barre répartition
-    const total = recettes + depenses;
-    const pr = total>0 ? Math.round((recettes/total)*100) : 50;
-    document.getElementById('barRecette').style.width = pr+'%';
-    document.getElementById('barDepense').style.width = (100-pr)+'%';
-    document.getElementById('tauxRecette').textContent = `${pr}% Recettes / ${100-pr}% Dépenses`;
-
-    // 📊 Graphiques vides en mode local
-    dessinerCamembert([]);
-    dessinerCourbe([]);
-
-    // 📋 Liste
-    afficher(liste);
-  }
-}
-
-// 📊 Graphique Camembert — Répartition par catégorie
-function dessinerCamembert(liste) {
-  const labels = [], valeurs = [], couleurs = [];
-  const pal = ['#10b981','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#64748b'];
-  
-  liste.forEach((l, i) => {
-    labels.push((l.categorie || 'Autre').replace('_', ' '));
-    valeurs.push(parseFloat(l.total) || 0);
-    couleurs.push(pal[i % pal.length]);
-  });
-
-  const ctx = document.getElementById('camembert').getContext('2d');
-  if(graphCamembert) graphCamembert.destroy();
-  
-  graphCamembert = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: labels,
-      datasets: [{
-        data: valeurs,
-        backgroundColor: couleurs,
-        borderWidth: 0
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { color: '#f8fafc', font: { size: 11 }, boxWidth: 12, padding: 15 }
-        }
-      }
+    // ⚠️ Alerte dépassement budget
+    const budget = obtenirBudgetLocal();
+    const alerteBudget = document.getElementById('alerteBudget');
+    const texteAlerte = document.getElementById('texteAlerte');
+    if (budget.montant_prevu && depenses > parseFloat(budget.montant_prevu)) {
+      alerteBudget.classList.remove('d-none');
+      texteAlerte.innerHTML = `<span class="txt-fr">⚠️ Dépassement budget prévu : ${formatMontant(parseFloat(budget.montant_prevu))} — écart : ${formatMontant(depenses - parseFloat(budget.montant_prevu))}</span>
+        <span class="txt-en">⚠️ Budget exceeded: ${formatMontant(parseFloat(budget.montant_prevu))} — overspent: ${formatMontant(depenses - parseFloat(budget.montant_prevu))}</span>`;
+    } else {
+      alerteBudget.classList.add('d-none');
     }
-  });
-}
 
-// 📈 Graphique Courbe — Évolution mensuelle
-function dessinerCourbe(liste) {
-  const labels = [], recettes = [], depenses = [];
-  
-  liste.forEach(l => {
-    labels.push(`${nomMois(l.mois)} ${l.annee}`);
-    recettes.push(parseFloat(l.recettes) || 0);
-    depenses.push(parseFloat(l.depenses) || 0);
-  });
-
-  const ctx = document.getElementById('courbe').getContext('2d');
-  if(graphCourbe) graphCourbe.destroy();
-  
-  graphCourbe = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          label: 'Recettes',
-          data: recettes,
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16,185,129,.1)',
-          fill: true,
-          tension: .4,
-          borderWidth: 2,
-          pointBackgroundColor: '#10b981',
-          pointRadius: 4
-        },
-        {
-          label: 'Dépenses',
-          data: depenses,
-          borderColor: '#ef4444',
-          backgroundColor: 'rgba(239,68,68,.1)',
-          fill: true,
-          tension: .4,
-          borderWidth: 2,
-          pointBackgroundColor: '#ef4444',
-          pointRadius: 4
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { labels: { color: '#f8fafc', usePointStyle: true, padding: 20 } }
+    // 📈 Graphique en camembert — par catégorie
+    const ctxCamembert = document.getElementById('camembert').getContext('2d');
+    if (graphCamembert) graphCamembert.destroy();
+    const couleursCamembert = ['#10b981','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899'];
+    graphCamembert = new Chart(ctxCamembert, {
+      type: 'doughnut',
+      data: {
+        labels: res.categories?.map(c => c.libelle || c.categorie) || [],
+        datasets: [{
+          data: res.categories?.map(c => parseFloat(c.montant) || 0) || [],
+          backgroundColor: couleursCamembert,
+          borderWidth: 0
+        }]
       },
-      scales: {
-        x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,.05)' } },
-        y: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,.05)' } }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { color: 'var(--texte-clair)' } } }
       }
+    });
+
+    // 📊 Graphique courbe — évolution mensuelle
+    const ctxCourbe = document.getElementById('courbe').getContext('2d');
+    if (graphCourbe) graphCourbe.destroy();
+    graphCourbe = new Chart(ctxCourbe, {
+      type: 'line',
+      data: {
+        labels: res.evolution?.map(e => nomMois(e.mois)) || [],
+        datasets: [
+          { label: 'Recettes', data: res.evolution?.map(e => parseFloat(e.recettes) || 0) || [], borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.1)', fill: true, tension: .3 },
+          { label: 'Dépenses', data: res.evolution?.map(e => parseFloat(e.depenses) || 0) || [], borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,.1)', fill: true, tension: .3 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: 'var(--texte-clair)' } } },
+        scales: {
+          x: { ticks: { color: 'var(--texte-clair)' }, grid: { color: 'rgba(255,255,255,.08)' } },
+          y: { ticks: { color: 'var(--texte-clair)' }, grid: { color: 'rgba(255,255,255,.08)' } }
+        }
+      }
+    });
+
+    // 📋 Rendu du journal
+    document.getElementById('nbOperations').textContent = `${res.operations?.length || 0} opérations`;
+    document.getElementById('infoJournal').textContent = `${res.operations?.length || 0} élément(s)`;
+
+    if (!res.operations || res.operations.length === 0) {
+      cont.innerHTML = `<div class="col-12 text-center py-5 text-muted">
+        <i class="bi bi-inbox fs-1 mb-2 d-block"></i>
+        <span class="txt-fr">Aucune opération enregistrée</span>
+        <span class="txt-en">No operations recorded</span>
+      </div>`;
+      return;
     }
-  });
-}
 
-// ✏️ Modifier une opération
-window.modifierOperation = function(op) {
-  if(!estAdmin) { alert("⛔ Seul l'Administrateur peut modifier"); return; }
-  if(periodeClose) { alert("🔒 Période clôturée — Modification impossible"); return; }
+    cont.innerHTML = res.operations.map(op => {
+      const estRecette = op.type === 'recette';
+      const icone = estRecette ? '💰' : '📉';
+      const badge = estRecette ? 'badge-recette' : 'badge-depense';
+      const montantClasse = estRecette ? 'recette' : 'depense';
+      const dateOp = op.date_operation ? new Date(op.date_operation).toLocaleDateString('fr-FR') : '—';
+      const peutModifier = !periodeClose && (estAdmin || estComptable);
 
-  const estRecette = op.type === 'recette';
-  if(estRecette) {
-    document.getElementById('titreModaleRecette').innerHTML = '💰 Modifier la Recette';
-    document.getElementById('idRecette').value = op.id_operation;
-    document.getElementById('libelleRecette').value = op.libelle || '';
-    document.getElementById('categorieRecette').value = op.categorie || 'autre';
-    document.getElementById('referenceRecette').value = op.reference || '';
-    document.getElementById('montantRecette').value = op.montant || '';
-    document.getElementById('paiementRecette').value = op.mode_paiement || 'especes';
-    document.getElementById('dateRecette').value = op.date_operation ? op.date_operation.split('T')[0] : '';
-    document.getElementById('commentaireRecette').value = op.commentaire || '';
-    new bootstrap.Modal(document.getElementById('modalOperation')).show();
-  } else {
-    document.getElementById('titreModaleDepense').innerHTML = '📉 Modifier la Dépense';
-    document.getElementById('idDepense').value = op.id_operation;
-    document.getElementById('libelleDepense').value = op.libelle || '';
-    document.getElementById('categorieDepense').value = op.categorie || 'autre';
-    document.getElementById('referenceDepense').value = op.reference || '';
-    document.getElementById('montantDepense').value = op.montant || '';
-    document.getElementById('paiementDepense').value = op.mode_paiement || 'especes';
-    document.getElementById('dateDepense').value = op.date_operation ? op.date_operation.split('T')[0] : '';
-    document.getElementById('commentaireDepense').value = op.commentaire || '';
-    new bootstrap.Modal(document.getElementById('modalDepense')).show();
-  }
-};
-
-// 📋 Affichage des opérations
-function afficher(liste) {
-  const cont = document.getElementById('listeOperations');
-  if(!liste.length) {
-    cont.innerHTML = `<div class="col-12 text-center py-5 text-muted">
-      <p class="mb-0">Aucune opération ne correspond aux critères</p>
-    </div>`;
-    return;
-  }
-
-  cont.innerHTML = liste.map(op => {
-    const estRecette = op.type === 'recette';
-    const badge = estRecette ? 'badge-recette' : 'badge-depense';
-    const icone = estRecette ? '💰' : '📉';
-    const date = op.date_operation ? new Date(op.date_operation).toLocaleDateString('fr-CA') : '—';
-    const ref = op.reference ? `<span class="badge bg-secondary ms-2">${ech(op.reference)}</span>` : '';
-    const paiement = iconePaiement(op.mode_paiement);
-    const montant = formatMontant(op.montant);
-    const idOp = op.id_operation;
-
-    return `
-    <div class="col-md-6 col-lg-4">
-      <div class="carte p-3 h-100 ${periodeClose?'carte-verrouille':''}">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="badge ${badge}">${icone} ${(op.type||'').toUpperCase()}</span>
-          <span class="small text-muted">${date} ${paiement}</span>
-        </div>
-        <h5 class="mb-1">${ech(op.libelle || '—')} ${ref}</h5>
-        <p class="text-muted small mb-2">${ech((op.categorie||'autre').replace('_',' '))}</p>
-        <h4 class="montant ${estRecette?'recette':'depense'}">${montant}</h4>
-        ${op.commentaire?`<p class="small text-muted mt-2 fst-italic">${ech(op.commentaire)}</p>`:''}
-        <p class="small text-muted mt-2 mb-0">
-          <i class="bi bi-person-circle me-1"></i> ${op.nom ? `${ech(op.nom)} ${ech(op.prenoms || '')}` : '—'}
-        </p>
-        <div class="d-flex gap-2 mt-3 no-print btn-admin-action">
-          <button class="btn btn-sm btn-outline-info flex-grow-1" onclick='modifierOperation(${JSON.stringify(op).replace(/'/g, "\\'")})' ${periodeClose?'disabled':''}>
-            <i class="bi bi-pencil"></i> Modifier
-          </button>
-          <button class="btn btn-sm btn-outline-danger flex-grow-1" onclick="supprimer(${idOp})" ${periodeClose?'disabled':''}>
-            <i class="bi bi-trash"></i> Supprimer
-          </button>
+      return `
+<div class="col-12 carte p-3 ${peutModifier ? '' : 'carte-verrouille'}">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div class="flex-grow-1">
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="fs-5">${icone}</span>
+        <div>
+          <h6 class="mb-0">${ech(op.libelle)}</h6>
+          <div class="small text-muted">
+            📅 ${dateOp}
+            ${op.reference ? ' | Réf: ' + ech(op.reference) : ''}
+            ${op.categorie ? ' | ' + ech(op.categorie.replace('_',' ')) : ''}
+            ${op.mode_paiement ? ' | ' + iconePaiement(op.mode_paiement) + ' ' + ech(op.mode_paiement.replace('_',' ')) : ''}
+          </div>
         </div>
       </div>
-    </div>`;
-  }).join('');
-}
+      ${op.commentaire ? `<p class="small text-muted fst-italic mb-0 mt-1">${ech(op.commentaire)}</p>` : ''}
+    </div>
+    <div class="text-end">
+      <div class="montant ${montantClasse} fw-bold">${formatMontant(op.montant)}</div>
+      <span class="badge ${badge} small">${estRecette ? 'Recette' : 'Dépense'}</span>
+      ${peutModifier ? `
+        <div class="mt-1">
+          <button class="btn btn-sm btn-outline-secondary py-0 px-1" onclick="modifierOperation(${op.id_operation})" title="Modifier">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="supprimerOperation(${op.id_operation})" title="Supprimer">
+            <i class="bi bi-tr3"></i>
+          </button>
+        </div>` : `<div class="small text-muted mt-1"><i class="bi bi-lock"></i> Verrouillé</div>`
+      }
+    </div>
+  </div>
+</div>`;
+    }).join('');
 
-// 💾 Enregistrer / Modifier une opération
-async function enregistrer(form) {
-  if(periodeClose) { alert("🔒 Période clôturée — Impossible d'enregistrer"); return; }
-  
-  const data = Object.fromEntries(new FormData(form).entries());
-  
-  if(data.id_operation && data.id_operation !== '') {
-    data.id_operation = parseInt(data.id_operation);
-  } else {
-    delete data.id_operation;
-  }
-
-  if(!data.date_operation) {
-    data.date_operation = new Date().toISOString().split('T')[0];
-  }
-
-  try {
-    const estModification = !!data.id_operation;
-    const url = estModification ? `${API_URL}/${data.id_operation}` : `${API_URL}/enregistrer`;
-    const methode = estModification ? 'PUT' : 'POST';
-
-    const r = await fetch(url, {
-      method: methode,
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(data)
-    });
-
-    const texteBrut = await r.text();
-    let res; try { res = JSON.parse(texteBrut); } catch { throw new Error("Réponse invalide du serveur"); }
-
-    if(res.ok) {
-      bootstrap.Modal.getOrCreateInstance(form.closest('.modal')).hide();
-      form.reset();
-      document.querySelector(`#${form.id} [name="date_operation"]`).valueAsDate = new Date();
-      document.getElementById('titreModaleRecette').innerHTML = '💰 Nouvelle Recette';
-      document.getElementById('titreModaleDepense').innerHTML = '📉 Nouvelle Dépense';
-      charger();
-      alert(estModification ? "✅ Opération mise à jour !" : "✅ Opération enregistrée !");
+  } catch (err) {
+    console.error('Erreur chargement :', err);
+    const locales = obtenirOperationsLocales();
+    if (locales.length > 0) {
+      alert(m.serveurHorsLigne);
+      cont.innerHTML = locales.map(op => `<div class="col-12 carte p-3"><pre>${JSON.stringify(op,null,2)}</pre></div>`).join('');
     } else {
-      alert("❌ " + (res.erreur || "Erreur lors de l'enregistrement"));
+      cont.innerHTML = `<div class="col-12 text-center py-5 text-danger">
+        <i class="bi bi-exclamation-triangle fs-1 mb-2 d-block"></i>
+        <span class="txt-fr">Impossible de charger les données</span><br>
+        <small>${err.message}</small>
+      </div>`;
     }
-  } catch(e) {
-    // 📴 Mode local
-    const liste = obtenirOperationsLocales();
-    data.id_operation = data.id_operation || Date.now();
-    data.nom = localStorage.getItem('nom') || 'Utilisateur'; 
-    data.prenoms = localStorage.getItem('prenoms') || '';
-    if(data.id_operation && liste.find(o=>o.id_operation === data.id_operation)) {
-      const idx = liste.findIndex(o=>o.id_operation === data.id_operation);
-      liste[idx] = { ...liste[idx], ...data };
-    } else {
-      liste.unshift(data);
-    }
-    sauvegarderOperationsLocales(liste);
-    bootstrap.Modal.getOrCreateInstance(form.closest('.modal')).hide();
-    form.reset();
-    document.querySelector(`#${form.id} [name="date_operation"]`).valueAsDate = new Date();
-    document.getElementById('titreModaleRecette').innerHTML = '💰 Nouvelle Recette';
-    document.getElementById('titreModaleDepense').innerHTML = '📉 Nouvelle Dépense';
-    charger();
-    alert("✅ Enregistré localement (serveur indisponible)");
   }
 }
 
-// 🏷️ Enregistrer Budget Prévisionnel
-document.getElementById('formBudget').addEventListener('submit', async e => {
+// ✅ Soumission formulaire RECETTE
+document.getElementById('formRecette').addEventListener('submit', async e => {
   e.preventDefault();
-  const data = Object.fromEntries(new FormData(e.target).entries());
-  data.mois = parseInt(data.mois);
-  data.annee = parseInt(data.annee);
+  if (periodeClose) return alert("⛔ Période clôturée — Ajout interdit");
+  const form = new FormData(e.target);
+  const data = Object.fromEntries(form);
+  data.montant = parseFloat(data.montant);
+  if (!data.date_operation) data.date_operation = new Date().toISOString().slice(0,10);
 
   try {
-    const r = await fetch(`${API_URL}/budget/enregistrer`, {
+    const r = await fetch(`${API_URL}/enregistrer`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
       body: JSON.stringify(data)
     });
-
-    const texteBrut = await r.text();
-    let res; try { res = JSON.parse(texteBrut); } catch { throw new Error("Réponse invalide"); }
-
-    if(res.ok) {
-      bootstrap.Modal.getOrCreateInstance(document.getElementById('modalBudget')).hide();
-      e.target.reset();
-      alert("✅ Budget enregistré !");
-    } else {
-      alert("❌ " + (res.erreur || "Erreur"));
-    }
-  } catch {
-    sauvegarderBudgetLocal(data);
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalBudget')).hide();
-    e.target.reset();
-    alert("✅ Budget enregistré localement");
-  }
+    const res = await r.json();
+    if (res.ok) { alert("✅ Recette enregistrée"); bootstrap.Modal.getOrCreateInstance('#modalOperation').hide(); e.target.reset(); charger(); }
+    else alert("❌ " + (res.erreur || "Erreur"));
+  } catch { alert(m.erreurReseau); }
 });
 
-// ❌ Supprimer une opération
-window.supprimer = async function(id_operation) {
-  if(!estAdmin) { alert("⛔ Seul l'Administrateur peut supprimer"); return; }
-  if(periodeClose) { alert("🔒 Période clôturée — Suppression impossible"); return; }
-  if(!confirm("⚠️ Confirmer la suppression DÉFINITIVE de cette opération ?")) return;
+// ✅ Soumission formulaire DÉPENSE
+document.getElementById('formDepense').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (periodeClose) return alert("⛔ Période clôturée — Ajout interdit");
+  const form = new FormData(e.target);
+  const data = Object.fromEntries(form);
+  data.montant = parseFloat(data.montant);
+  if (!data.date_operation) data.date_operation = new Date().toISOString().slice(0,10);
 
   try {
-    const r = await fetch(`${API_URL}/${id_operation}`, {
-      method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
+    const r = await fetch(`${API_URL}/enregistrer`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
+      body: JSON.stringify(data)
     });
+    const res = await r.json();
+    if (res.ok) { alert("✅ Dépense enregistrée"); bootstrap.Modal.getOrCreateInstance('#modalDepense').hide(); e.target.reset(); charger(); }
+    else alert("❌ " + (res.erreur || "Erreur"));
+  } catch { alert(m.erreurReseau); }
+});
 
-    const texteBrut = await r.text();
-    let res; try { res = JSON.parse(texteBrut); } catch { throw new Error("Réponse invalide"); }
-
-    if(res.ok) { charger(); alert("✅ Opération supprimée !"); }
-    else alert("❌ " + (res.erreur || "Erreur suppression"));
-  } catch {
-    let liste = obtenirOperationsLocales();
-    liste = liste.filter(o=>o.id_operation !== id_operation);
-    sauvegarderOperationsLocales(liste);
-    charger();
-    alert("✅ Supprimé localement");
-  }
-};
-
-// 📄 Export PDF
-window.exporterRapportPDF = function() {
-  alert("✅ Rapport généré !\n\n→ Utilisez la fonction « Imprimer » puis choisissez « Enregistrer au format PDF »");
-  window.print();
-};
-
-// 💾 Export CSV
-window.exporterCSV = function() {
-  const liste = (donneesGlobales?.operations?.length ? donneesGlobales.operations : obtenirOperationsLocales());
-  if(!liste?.length) { alert("⚠️ Aucune donnée à exporter"); return; }
-
-  const entetes = ['Date','Type','Libellé','Catégorie','Montant','Mode Paiement','Référence','Observations','Enregistré par'];
-  const lignes = liste.map(op => [
-    op.date_operation ? new Date(op.date_operation).toLocaleDateString('fr-CA') : '',
-    op.type || '',
-    `"${(op.libelle||'').replace(/"/g,'""')}"`,
-    op.categorie || '',
-    op.montant || 0,
-    op.mode_paiement || 'especes',
-    op.reference || '',
-    `"${(op.commentaire||'').replace(/"/g,'""')}"`,
-    op.nom ? `${op.nom} ${op.prenoms||''}` : ''
-  ].join(';'));
-
-  const csv = entetes.join(';') + '\n' + lignes.join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `finances-${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
-
-// 🔄 Événements des formulaires et filtres
-document.getElementById('formRecette').addEventListener('submit', e => { e.preventDefault(); enregistrer(e.target); });
-document.getElementById('formDepense').addEventListener('submit', e => { e.preventDefault(); enregistrer(e.target); });
-
-document.getElementById('filtreType').addEventListener('change', charger);
-document.getElementById('filtreCategorie').addEventListener('change', charger);
-document.getElementById('filtreMois').addEventListener('change', charger);
-document.getElementById('filtreAnnee').addEventListener('change', charger);
-document.getElementById('filtreUtilisateur').addEventListener('change', charger);
-document.getElementById('recherche').addEventListener('input', debounce(charger, 400));
-
-document.getElementById('btnReinitialiser').addEventListener('click', () => {
-  document.getElementById('filtreType').value = '';
-  document.getElementById('filtreCategorie').value = '';
-  document.getElementById('filtreMois').value = '';
-  document.getElementById('filtreUtilisateur').value = '';
-  document.getElementById('recherche').value = '';
+// ✅ Soumission BUDGET
+document.getElementById('formBudget').addEventListener('submit', e => {
+  e.preventDefault();
+  const form = new FormData(e.target);
+  const data = Object.fromEntries(form);
+  sauvegarderBudgetLocal(data);
+  alert("✅ Budget prévisionnel enregistré");
+  bootstrap.Modal.getOrCreateInstance('#modalBudget').hide();
   charger();
 });
 
-// ⏱️ Anti-rebond pour la recherche
-function debounce(f, ms) {
-  let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f.apply(this, a), ms); };
-}
+// ✅ Modifier une opération
+window.modifierOperation = async function(id) {
+  alert("🔄 Fonction modification à connecter à l'API");
+};
 
-// 🚀 Initialisation — Dates par défaut = aujourd'hui
-document.querySelector('#formRecette [name="date_operation"]').valueAsDate = new Date();
-document.querySelector('#formDepense [name="date_operation"]').valueAsDate = new Date();
+// ✅ Supprimer une opération
+window.supprimerOperation = async function(id) {
+  if (periodeClose) return alert("⛔ Période clôturée — Suppression interdite");
+  if (!confirm("Confirmer la suppression ?")) return;
+  try {
+    const r = await fetch(`${API_URL}/supprimer/${id}`, {
+      method: 'POST', headers: { 'Authorization':`Bearer ${token}` }
+    });
+    const res = await r.json();
+    if (res.ok) { alert("✅ Supprimé"); charger(); }
+    else alert("❌ " + (res.erreur || "Erreur"));
+  } catch { alert(m.erreurReseau); }
+};
 
-// 📦 Chargement au démarrage
-charger();
+// 📤 Export CSV
+window.exporterCSV = function() {
+  if (!donneesGlobales || !donneesGlobales.operations) return alert("Aucune donnée à exporter");
+  const entetes = ['Date','Libellé','Type','Catégorie','Montant','ModePaiement','Référence','Commentaire'];
+  const lignes = donneesGlobales.operations.map(op => [
+    op.date_operation || '',
+    '"' + (op.libelle || '').replace(/"/g,'""') + '"',
+    op.type || '',
+    op.categorie || '',
+    op.montant || 0,
+    op.mode_paiement || '',
+    op.reference || '',
+    '"' + (op.commentaire || '').replace(/"/g,'""') + '"'
+  ].join(';'));
+  const csv = [entetes.join(';'), ...lignes].join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `operations-${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url);
+};
+
+// 📄 Export PDF (impression navigateur)
+window.exporterRapportPDF = function() { window.print(); };
+
+// 🔄 Réinitialiser filtres
+document.getElementById('btnReinitialiser').addEventListener('click', () => {
+  document.getElementById('recherche').value = '';
+  document.getElementById('filtreType').value = '';
+  document.getElementById('filtreCategorie').value = '';
+  document.getElementById('filtrePaiement').value = '';
+  document.getElementById('filtreUtilisateur').value = '';
+  charger();
+});
+
+// ⏱️ Charger au changement de filtre
+['recherche','filtreType','filtreCategorie','filtrePaiement','filtreUtilisateur','filtreMois','filtreAnnee'].forEach(id => {
+  document.getElementById(id)?.addEventListener('change', charger);
+});
+document.getElementById('recherche')?.addEventListener('input', debounce(charger, 400));
+
+function debounce(f, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>f(...a),ms); }; }
+
+// 🚀 LANCEMENT AU CHARGEMENT
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(charger, 150);
+});
 </script>
 
 </body>

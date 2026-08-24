@@ -11,9 +11,40 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
+    /* ===== 🎨 VARIABLES — MODE CLAIR ===== */
     :root {
-      --primaire: #0c4a6e; --secondaire: #0369a1;
-      --succes: #10b981; --alerte: #f59e0b; --danger: #ef4444;
+      --primaire: #0c4a6e;
+      --secondaire: #0369a1;
+      --succes: #10b981;
+      --alerte: #f59e0b;
+      --danger: #ef4444;
+      --fond-body: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 100%);
+      --fond-carte: rgba(255,255,255,0.92);
+      --texte-principal: #1e293b;
+      --texte-secondaire: #475569;
+      --bordure: rgba(0,0,0,0.08);
+    }
+
+    /* ===== 🌙 VARIABLES — MODE SOMBRE ===== */
+    [data-theme="sombre"] {
+      --primaire: #38bdf8;
+      --secondaire: #0ea5e9;
+      --succes: #34d399;
+      --alerte: #fbbf24;
+      --danger: #f87171;
+      --fond-body: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      --fond-carte: rgba(30,41,59,0.92);
+      --texte-principal: #f1f5f9;
+      --texte-secondaire: #cbd5e1;
+      --bordure: rgba(255,255,255,0.08);
+    }
+
+    /* ===== GÉNÉRAL ===== */
+    * { transition: background-color 0.35s ease, color 0.35s ease; }
+    body {
+      background: var(--fond-body);
+      color: var(--texte-principal);
+      min-height: 100vh;
     }
 
     /* ===== TRADUCTIONS ===== */
@@ -27,15 +58,95 @@
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
     body.lang-ar .txt-ar { display: inline; }
 
-    body { background: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 100%); min-height: 100vh; }
-    .card-glass { background: rgba(255,255,255,0.92); backdrop-filter: blur(10px); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: none; }
-    .nav-tabs .nav-link.active { background: var(--primaire); color: white !important; border-color: var(--primaire); }
-    .btn-primaire { background: linear-gradient(90deg, var(--primaire), #0369a1); border: none; color: white; }
-    .img-mini { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
-    .alerte-api { border-left: 4px solid var(--alerte); background: rgba(245,158,11,0.1); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
+    /* ===== CARTES ===== */
+    .card-glass {
+      background: var(--fond-carte);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      border: 1px solid var(--bordure);
+    }
+
+    /* ===== ONGLETS ===== */
+    .nav-tabs .nav-link { color: var(--texte-secondaire); border: none; }
+    .nav-tabs .nav-link.active {
+      background: linear-gradient(90deg, var(--primaire), var(--secondaire));
+      color: white !important;
+      border-radius: 8px 8px 0 0;
+    }
+
+    /* ===== BOUTONS ===== */
+    .btn-primaire {
+      background: linear-gradient(90deg, var(--primaire), var(--secondaire));
+      border: none;
+      color: white;
+      transition: transform 0.2s ease;
+    }
+    .btn-primaire:hover { transform: translateY(-2px); color: white; }
+
+    /* ===== IMAGES ===== */
+    .img-mini {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid var(--bordure);
+    }
+
+    /* ===== ALERTE ===== */
+    .alerte-api {
+      border-left: 4px solid var(--alerte);
+      background: rgba(245,158,11,0.15);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      color: var(--texte-principal);
+    }
+
+    /* ===== TABLEAU ===== */
+    .table { --bs-table-color: var(--texte-principal); }
+    .table th { --bs-table-bg: var(--primaire); color: white; }
+    .table td { border-color: var(--bordure); }
+
+    /* ===== BOUTON MODE NUIT/JOUR ===== */
+    .btn-theme {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 999;
+      border-radius: 50%;
+      width: 46px;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--primaire), var(--secondaire));
+      color: white;
+      border: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .btn-theme:hover { color: white; transform: scale(1.08); }
+
+    /* ===== FORMULAIRES ===== */
+    .form-control, .form-select {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--bordure);
+      color: var(--texte-principal);
+    }
+    .form-control:focus, .form-select:focus {
+      background: rgba(255,255,255,0.1);
+      border-color: var(--primaire);
+      color: var(--texte-principal);
+      box-shadow: 0 0 0 0.25rem rgba(12,74,110,0.15);
+    }
   </style>
 </head>
 <body>
+
+<!-- 🌙 BOUTON CHANGEMENT DE THÈME -->
+<button class="btn-theme" id="btnTheme" title="Mode Jour/Nuit">
+  <i class="bi bi-moon-stars"></i>
+</button>
 
 <script>
   // 🔗 URL adaptative
@@ -46,6 +157,7 @@
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
   let langueActuelle = localStorage.getItem('langue') || 'fr';
+  let themeActuel = localStorage.getItem('theme') || 'clair';
 
   // 💾 Stockage local
   function obtenirProduitsLocaux() { return JSON.parse(localStorage.getItem('boutique_produits') || '[]'); }
@@ -63,7 +175,9 @@
       confirmerSuppr: "⚠️ Confirmer la suppression définitive du produit ?",
       supprOk: "✅ Produit supprimé !",
       enregistreOk: "✅ Produit enregistré !",
-      erreurReseau: "❌ Erreur réseau"
+      erreurReseau: "❌ Erreur réseau",
+      modeClair: "Mode clair",
+      modeSombre: "Mode sombre"
     },
     en: {
       accesReserve: "⛔ Access restricted to administrator",
@@ -73,7 +187,9 @@
       confirmerSuppr: "⚠️ Permanently delete this product?",
       supprOk: "✅ Product deleted!",
       enregistreOk: "✅ Product saved!",
-      erreurReseau: "❌ Network error"
+      erreurReseau: "❌ Network error",
+      modeClair: "Light mode",
+      modeSombre: "Dark mode"
     },
     ar: {
       accesReserve: "⛔ الوصول مقصور على المدير",
@@ -83,10 +199,30 @@
       confirmerSuppr: "⚠️ حذف هذا المنتج نهائياً؟",
       supprOk: "✅ تم حذف المنتج!",
       enregistreOk: "✅ تم حفظ المنتج!",
-      erreurReseau: "❌ خطأ في الشبكة"
+      erreurReseau: "❌ خطأ في الشبكة",
+      modeClair: "وضع فاتح",
+      modeSombre: "وضع داكن"
     }
   };
   function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
+
+  // 🌙 GESTION DU THÈME CLAIR/SOMBRE
+  function appliquerTheme(theme) {
+    themeActuel = theme;
+    localStorage.setItem('theme', theme);
+    if (theme === 'sombre') {
+      document.documentElement.setAttribute('data-theme', 'sombre');
+      document.getElementById('btnTheme').innerHTML = '<i class="bi bi-sun"></i>';
+      document.getElementById('btnTheme').setAttribute('title', m('modeClair'));
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      document.getElementById('btnTheme').innerHTML = '<i class="bi bi-moon-stars"></i>';
+      document.getElementById('btnTheme').setAttribute('title', m('modeSombre'));
+    }
+  }
+  function basculerTheme() {
+    appliquerTheme(themeActuel === 'clair' ? 'sombre' : 'clair');
+  }
 
   // 🔒 SÉCURITÉ
   if (!token || role !== 'admin') {
@@ -107,8 +243,8 @@
   </a>
 
   <div class="card card-glass mb-4">
-    <div class="card-header text-white" style="background: linear-gradient(90deg, #0c4a6e, #0369a1); border-radius: 16px 16px 0 0;">
-      <h4 class="mb-0">
+    <div class="card-header" style="background: linear-gradient(90deg, #0c4a6e, #0369a1); border-radius: 16px 16px 0 0;">
+      <h4 class="mb-0 text-white">
         <i class="bi bi-gear-fill me-2"></i> ⚙️
         <span class="txt-fr">Gestion de la Boutique</span>
         <span class="txt-en">Shop Management</span>
@@ -135,12 +271,12 @@
         <div class="tab-pane fade show active" id="produits">
           <div class="table-responsive">
             <table class="table table-hover table-bordered">
-              <thead class="table-dark">
+              <thead>
                 <tr>
                   <th>🖼️</th>
                   <th><span class="txt-fr">Nom</span><span class="txt-en">Name</span><span class="txt-ar">الاسم</span></th>
                   <th><span class="txt-fr">Catégorie</span><span class="txt-en">Category</span><span class="txt-ar">التصنيف</span></th>
-                  <th><span class="txt-fr">Prix</span><span class="txt-en">Price</span><span class="txt-ar">السعر</span></th>
+                  <th><span class="txt-fr">Prix (FCFA)</span><span class="txt-en">Price (FCFA)</span><span class="txt-ar">السعر</span></th>
                   <th><span class="txt-fr">Stock</span><span class="txt-en">Stock</span><span class="txt-ar">المخزون</span></th>
                   <th><span class="txt-fr">Statut</span><span class="txt-en">Status</span><span class="txt-ar">الحالة</span></th>
                   <th><span class="txt-fr">Actions</span><span class="txt-en">Actions</span><span class="txt-ar">إجراءات</span></th>
@@ -178,11 +314,11 @@
               </div>
               <div class="col-md-4 mb-3">
                 <label class="form-label"><span class="txt-fr">Prix (FCFA)</span><span class="txt-en">Price (FCFA)</span><span class="txt-ar">السعر</span> *</label>
-                <input type="number" id="prix" class="form-control" min="0" step="5" required>
+                <input type="number" id="prix" class="form-control" min="0" step="5" required placeholder="Ex: 5000">
               </div>
               <div class="col-md-4 mb-3">
                 <label class="form-label"><span class="txt-fr">Stock disponible</span><span class="txt-en">Stock</span><span class="txt-ar">المخزون</span> *</label>
-                <input type="number" id="stock" class="form-control" min="0" required>
+                <input type="number" id="stock" class="form-control" min="0" required placeholder="Ex: 50">
               </div>
               <div class="col-md-4 mb-3">
                 <label class="form-label"><span class="txt-fr">Statut</span><span class="txt-en">Status</span><span class="txt-ar">الحالة</span></label>
@@ -197,7 +333,7 @@
                 <div id="apercuImage" class="mt-2"></div>
               </div>
             </div>
-            <button type="submit" class="btn btn-primaire w-100">
+            <button type="submit" class="btn btn-primaire w-100 fw-bold">
               💾 <span class="txt-fr">ENREGISTRER LE PRODUIT</span><span class="txt-en">SAVE PRODUCT</span><span class="txt-ar">حفظ المنتج</span>
             </button>
           </form>
@@ -207,7 +343,7 @@
         <div class="tab-pane fade" id="commandes">
           <div class="table-responsive">
             <table class="table table-hover table-bordered">
-              <thead class="table-dark">
+              <thead>
                 <tr>
                   <th>N°</th>
                   <th><span class="txt-fr">Nom</span><span class="txt-en">Name</span><span class="txt-ar">الاسم</span></th>
@@ -230,6 +366,10 @@
 <script>
   let produits = [];
   let commandes = [];
+
+  // 🌙 INITIALISATION THÈME
+  appliquerTheme(themeActuel);
+  document.getElementById('btnTheme').addEventListener('click', basculerTheme);
 
   // 🗣️ CHANGEMENT DE LANGUE
   function changerLangue(lang) {
@@ -308,7 +448,7 @@
     document.getElementById('prix').value = p.prix_unitaire;
     document.getElementById('stock').value = p.stock;
     document.getElementById('actif').value = String(p.actif);
-    document.getElementById('apercuImage').innerHTML = '';
+    document.getElementById('apercuImage').innerHTML = p.image_url ? `<img src="${p.image_url}" style="max-height:120px;border-radius:8px;">` : '';
 
     document.querySelector('[data-bs-target="#ajouter"]').click();
   };
@@ -331,7 +471,7 @@
     } catch {
       liste = liste.filter(p => String(p.id_produit) !== String(id));
       sauvegarderProduitsLocaux(liste);
-      alert(m('supprOk') + " (local)");
+      alert(m('supprOk') + " (enregistré localement)");
       chargerProduits(true);
     }
   };
@@ -390,7 +530,7 @@
       }
       sauvegarderProduitsLocaux(liste);
 
-      alert(m('enregistreOk') + " (local)");
+      alert(m('enregistreOk') + " (enregistré localement)");
       e.target.reset();
       document.getElementById('idProduit').value = '';
       document.getElementById('apercuImage').innerHTML = '';
@@ -438,13 +578,13 @@
     });
   }
 
-  // 🖼️ APERÇU IMAGE
+  // 🖼️ APERÇU IMAGE EN TEMPS RÉEL
   document.getElementById('imageProduit').addEventListener('change', e => {
     const f = e.target.files[0];
     if (f) {
       const reader = new FileReader();
       reader.onload = ev => {
-        document.getElementById('apercuImage').innerHTML = `<img src="${ev.target.result}" style="max-height:120px;border-radius:8px;">`;
+        document.getElementById('apercuImage').innerHTML = `<img src="${ev.target.result}" style="max-height:140px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">`;
       };
       reader.readAsDataURL(f);
     }
