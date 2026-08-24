@@ -11,105 +11,94 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    :root {
-      --sombre: #0f172a;
-      --sombre-clair: #1e293b;
-      --bord-orange: #f59e0b;
-      --fond-dore: #b78628;
-      --fond-dore-clair: #d4a03a;
-      --texte: #f8fafc;
-      --succes: #10b981;
-      --alerte: #ef4444;
+    /* ===== 🎨 VARIABLES — CLAIR / SOMBRE ===== */
+    :root, :root[data-bs-theme="light"] {
+      --primaire: #0c4a6e; --succes: #10b981; --alerte: #f59e0b;
+      --danger: #ef4444; --info: #3b82f6; --sombre: #ffffff;
+      --sombre-clair: #f1f5f9; --texte-clair: #1e293b; --texte-dore: #b45309;
+      --bordure: #e2e8f0; --carte: #ffffff; --ombre: rgba(15,23,42,.08);
+      --input-fond: #f8fafc; --fond-dore: #b78628; --fond-dore-clair: #d4a03a;
     }
 
+    :root[data-bs-theme="dark"] {
+      --primaire: #0369a1; --succes: #34d399; --alerte: #fbbf24;
+      --danger: #f87171; --info: #60a5fa; --sombre: #0f172a;
+      --sombre-clair: #1e293b; --texte-clair: #f8fafc; --texte-dore: #fcd34d;
+      --bordure: rgba(245,158,11,.25); --carte: rgba(30,41,59,.85); --ombre: rgba(0,0,0,.3);
+      --input-fond: rgba(15,23,42,.6); --fond-dore: #9a6f22; --fond-dore-clair: #b78628;
+    }
+
+    /* ===== 🗣️ TRILINGUE ===== */
+    .txt-en,.txt-ar{display:none}
+    body.lang-fr .txt-fr{display:inline}
+    body.lang-en .txt-en{display:inline}
+    body.lang-ar .txt-ar{display:inline}
+    body.lang-en .txt-fr,body.lang-en .txt-ar{display:none}
+    body.lang-fr .txt-en,body.lang-fr .txt-ar{display:none}
+    body.lang-ar .txt-fr,body.lang-ar .txt-en{display:none}
+    body.lang-ar { direction: rtl; }
+
+    /* ===== GÉNÉRAL ===== */
     body {
       background: linear-gradient(160deg, var(--fond-dore), var(--fond-dore-clair));
-      color: var(--texte);
+      color: var(--texte-clair);
       min-height: 100vh;
+      transition: background .4s ease, color .3s ease;
     }
 
     .entete {
       background: rgba(15,23,42,0.85);
-      border-bottom: 2px solid var(--bord-orange);
+      border-bottom: 2px solid var(--alerte);
       padding: 1.5rem 0;
+      backdrop-filter: blur(10px);
     }
 
     .carte {
-      background: rgba(15,23,42,0.9);
+      background: var(--carte);
       border-radius: 12px;
       padding: 1.25rem;
-      border-left: 3px solid var(--bord-orange);
+      border-left: 3px solid var(--alerte);
       margin-bottom: 1.5rem;
+      box-shadow: 0 4px 20px var(--ombre);
+      transition: all .3s ease;
     }
+    .carte:hover { transform: translateY(-2px); box-shadow: 0 8px 25px var(--ombre); }
 
     .form-control, .form-select {
-      background: rgba(15,23,42,0.95);
-      border: 1px solid #334155;
-      color: white;
+      background: var(--input-fond);
+      border: 1px solid var(--bordure);
+      color: var(--texte-clair);
       border-radius: 8px;
     }
-
     .form-control:focus, .form-select:focus {
-      background: rgba(15,23,42,0.95);
-      border-color: var(--bord-orange);
-      color: white;
-      box-shadow: 0 0 0 3px rgba(245,158,11,0.15);
+      background: var(--input-fond);
+      border-color: var(--alerte);
+      color: var(--texte-clair);
+      box-shadow: 0 0 0 .25rem rgba(245,158,11,.15);
     }
 
-    .barre-langue {
-      display: flex;
-      gap: 0.75rem;
-      justify-content: center;
-      margin-bottom: 2rem;
+    .barre-langue { display: flex; gap: .75rem; justify-content: center; margin-bottom: 2rem; }
+    .lang-btn.active { background:var(--alerte); border-color:var(--alerte); color:#000; }
+
+    .carte-document {
+      background: #fff; color: #000;
+      border-radius: 10px; padding: 2rem;
+      max-width: 520px; margin: 1rem auto;
+      border: 3px solid var(--alerte);
+      box-shadow: 0 8px 30px rgba(0,0,0,.15);
     }
+    .logo-carte { font-size: 1.8rem; font-weight: bold; color: var(--fond-dore); }
+    .numero-ref { font-family:'Courier New',monospace; font-weight:bold; color:#666; }
+    .alerte-api { border-left:4px solid var(--danger); background:rgba(239,68,68,.1); border-radius:8px; padding:.75rem 1rem; margin-bottom:1rem; }
 
-    .carte-scolaire {
-      background: white;
-      color: black;
-      border-radius: 10px;
-      padding: 2rem;
-      max-width: 480px;
-      margin: 1rem auto;
-      border: 3px solid var(--bord-orange);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-    }
+    .theme-btn { width:38px; height:38px; border-radius:50%; border:2px solid; padding:0; display:flex; align-items:center; justify-content:center; }
 
-    .logo-carte {
-      font-size: 1.8rem;
-      font-weight: bold;
-      color: var(--fond-dore);
-    }
-
-    .numero-ref {
-      font-family: 'Courier New', monospace;
-      font-weight: bold;
-      color: #666;
-    }
-
-    .alerte-api {
-      border-left: 4px solid var(--alerte);
-      background: rgba(239,68,68,0.1);
-      border-radius: 8px;
-      padding: 0.75rem 1rem;
-      margin-bottom: 1rem;
-    }
-
-    /* ===== TRADUCTIONS ===== */
-    .txt-en, .txt-ar { display: none; }
-    body.lang-fr .txt-fr { display: inline; }
-    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
-    body.lang-en { direction: ltr; }
-    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
-    body.lang-en .txt-en { display: inline; }
-    body.lang-ar { direction: rtl; }
-    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
-    body.lang-ar .txt-ar { display: inline; }
-
+    /* ===== IMPRESSION — TOUT SAUF DOCUMENT MASQUÉ ===== */
     @media print {
       body { background: white !important; color: black !important; }
-      .entete, .barre-langue, .btn, .no-print, .alerte-api { display: none !important; }
-      .carte { border: none; background: white; padding: 0; }
-      .carte-scolaire { box-shadow: none; margin: 0; border-width: 2px; }
+      .entete, .barre-langue, .btn, .no-print, .alerte-api, .theme-btn { display: none !important; }
+      .carte { border: none !important; background: white !important; padding: 0 !important; box-shadow: none !important; }
+      .carte-document { box-shadow: none !important; margin: 0 !important; border-width: 2px; }
     }
   </style>
 </head>
@@ -123,41 +112,44 @@
 
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
-  let langueActuelle = localStorage.getItem('langue') || 'fr';
+  const langueActuelle = localStorage.getItem('langue') || 'fr';
+  const themeActuel = localStorage.getItem('theme') || 'light';
+
+  // ✅ Appliquer thème et langue au chargement
+  document.documentElement.setAttribute('data-bs-theme', themeActuel);
+  document.body.classList.add('lang-' + langueActuel);
 
   // 💾 Stockage local
   function obtenirElevesLocaux() { return JSON.parse(localStorage.getItem('liste_eleves') || '[]'); }
   function sauvegarderElevesLocaux(liste) { localStorage.setItem('liste_eleves', JSON.stringify(liste)); }
-  function obtenirDocumentsLocaux() { return JSON.parse(localStorage.getItem('documents_crees') || '[]'); }
-  function sauvegarderDocumentLocal(doc) {
-    const liste = obtenirDocumentsLocaux();
-    doc.id = Date.now();
-    liste.push(doc);
-    localStorage.setItem('documents_crees', JSON.stringify(liste));
-  }
+  function obtenirEmployesLocaux() { return JSON.parse(localStorage.getItem('liste_employes') || '[]'); }
+  function sauvegarderEmployesLocaux(liste) { localStorage.setItem('liste_employes', JSON.stringify(liste)); }
 
-  // 🗣️ Messages
+  // 🗣️ Messages multilingues
   const MSG = {
     fr: {
       accesReserve: "⛔ Accès réservé à l'Administrateur",
       serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
-      eleve: "Élève", typeDoc: "Type de document", annee: "Année Scolaire", generer: "💾 Générer & Enregistrer",
-      imprimer: "🖨️ Imprimer en PDF", erreurChargement: "Erreur de chargement des élèves", aucunEleve: "Aucun élève trouvé",
-      genereOk: "✅ Document généré !"
+      eleve: "Élève", employe: "Personnel", typeDoc: "Type de document", annee: "Année Scolaire",
+      generer: "💾 Générer & Enregistrer", imprimer: "🖨️ Imprimer en PDF",
+      erreurChargement: "Erreur de chargement", aucunResultat: "Aucune donnée trouvée",
+      genereOk: "✅ Document généré !", selectClasse: "Sélectionnez d'abord"
     },
     en: {
       accesReserve: "⛔ Access restricted to Administrator",
       serveurIndispo: "⚠️ Server offline — Local mode active",
-      eleve: "Student", typeDoc: "Document Type", annee: "School Year", generer: "💾 Generate & Save",
-      imprimer: "🖨️ Print as PDF", erreurChargement: "Failed to load students", aucunEleve: "No student found",
-      genereOk: "✅ Document generated!"
+      eleve: "Student", employe: "Staff", typeDoc: "Document Type", annee: "School Year",
+      generer: "💾 Generate & Save", imprimer: "🖨️ Print as PDF",
+      erreurChargement: "Loading error", aucunResultat: "No data found",
+      genereOk: "✅ Document generated!", selectClasse: "Select first"
     },
     ar: {
       accesReserve: "⛔ الوصول مقصور على المدير",
       serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
-      eleve: "التلميذ", typeDoc: "نوع الوثيقة", annee: "السنة الدراسية", generer: "💾 إنشاء وحفظ",
-      imprimer: "🖨️ طباعة PDF", erreurChargement: "خطأ في تحميل قائمة التلاميذ", aucunEleve: "لم يتم العثور على تلاميذ",
-      genereOk: "✅ تم إنشاء الوثيقة!"
+      eleve: "التلميذ", employe: "الموظف", typeDoc: "نوع الوثيقة", annee: "السنة الدراسية",
+      generer: "💾 إنشاء وحفظ", imprimer: "🖨️ طباعة PDF",
+      erreurChargement: "خطأ في التحميل", aucunResultat: "لم يتم العثور على بيانات",
+      genereOk: "✅ تم إنشاء الوثيقة!", selectClasse: "اختر أولاً"
     }
   };
   function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
@@ -168,88 +160,125 @@
     localStorage.clear();
     location.href='dashboard.html';
   }
-
-  document.body.classList.add('lang-' + langueActuelle);
 </script>
 
-<div class="entete">
-  <div class="container d-flex justify-content-between align-items-center">
+<!-- 📌 EN-TÊTE -->
+<div class="entete no-print">
+  <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
     <div>
-      <h3 class="mb-1">
-        🪪
+      <h3 class="mb-1">🪪
         <span class="txt-fr">Documents Officiels</span>
         <span class="txt-en">Official Documents</span>
         <span class="txt-ar">الوثائق الرسمية</span>
       </h3>
-      <p class="mb-0 opacity-80">
-        <span class="txt-fr">Carte Scolaire — Attestations — Certificats</span>
-        <span class="txt-en">School Card — Attestations — Certificates</span>
-        <span class="txt-ar">البطاقة المدرسية — الشهادات</span>
+      <p class="mb-0 opacity-75 small">
+        <span class="txt-fr">Élèves : Carte, Attestation, Bulletin, Facture | Personnel : Attestation de travail</span>
+        <span class="txt-en">Students: Card, Attestation, Report, Invoice | Staff: Work Certificate</span>
+        <span class="txt-ar">التلاميذ: بطاقة، شهادة، كشف، فاتورة | الموظفين: شهادة عمل</span>
       </p>
     </div>
-    <a href="dashboard.html" class="btn btn-outline-light">
-      <i class="bi bi-arrow-left me-1"></i>
-      <span class="txt-fr">Retour</span>
-      <span class="txt-en">Back</span>
-      <span class="txt-ar">رجوع</span>
-    </a>
+    <div class="d-flex gap-2 align-items-center">
+      <button id="btnTheme" class="btn theme-btn btn-outline-light" title="Mode clair/sombre">
+        <i id="iconeTheme" class="bi"></i>
+      </button>
+      <a href="dashboard.html" class="btn btn-outline-light">
+        <i class="bi bi-arrow-left me-1"></i>
+        <span class="txt-fr">Retour</span>
+        <span class="txt-en">Back</span>
+        <span class="txt-ar">رجوع</span>
+      </a>
+    </div>
   </div>
 </div>
 
 <div class="container py-4">
   <!-- ⚠️ ALERTE API -->
-  <div id="alerteApi" class="alerte-api d-none">
+  <div id="alerteApi" class="alerte-api d-none no-print">
     <i class="bi bi-wifi-off me-2"></i>
     <span id="texteAlerteApi"></span>
   </div>
 
   <!-- 🌐 LANGUES -->
-  <div class="barre-langue">
-    <button class="btn btn-outline-warning" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
-    <button class="btn btn-outline-warning" onclick="changerLangue('ar')" id="btn-ar">🇸🇦 AR</button>
-    <button class="btn btn-outline-warning" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
+  <div class="barre-langue no-print">
+    <button class="btn lang-btn btn-outline-warning" data-lang="fr">🇫🇷 FR</button>
+    <button class="btn lang-btn btn-outline-warning" data-lang="en">🇬🇧 EN</button>
+    <button class="btn lang-btn btn-outline-warning" data-lang="ar">🇸🇦 AR</button>
   </div>
 
   <div class="row g-4">
-    <!-- ➕ FORMULAIRE -->
+    <!-- ➕ FORMULAIRE DE GÉNÉRATION -->
     <div class="col-md-5">
-      <div class="carte">
-        <h5 class="mb-4">
+      <div class="carte no-print">
+        <h5 class="mb-4">📄
           <span class="txt-fr">Délivrer un document</span>
           <span class="txt-en">Issue a document</span>
           <span class="txt-ar">إصدار وثيقة</span>
         </h5>
         <form id="formDoc">
+          <!-- CHOIX CATÉGORIE -->
           <div class="mb-3">
-            <label class="form-label fw-semibold">${m('eleve')} *</label>
-            <select name="id_eleve" id="sel-eleve" class="form-select" required>
-              <option value="">--- <span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جار التحميل...</span> ---</option>
+            <label class="form-label fw-semibold">
+              <span class="txt-fr">Bénéficiaire</span>
+              <span class="txt-en">Recipient Type</span>
+              <span class="txt-ar">نوع المستفيد</span>
+            </label>
+            <select id="categorieBeneficiaire" class="form-select">
+              <option value="eleve" selected>🎓 <span class="txt-fr">Élève</span><span class="txt-en">Student</span><span class="txt-ar">تلميذ</span></option>
+              <option value="employe">👨‍🏫 <span class="txt-fr">Personnel</span><span class="txt-en">Staff</span><span class="txt-ar">موظف</span></option>
             </select>
           </div>
+
+          <!-- ÉLÈVE -->
+          <div id="blocEleve">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">🎓 ${m('eleve')} *</label>
+              <select name="id_eleve" id="sel-eleve" class="form-select" required>
+                <option value="">--- <span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جار التحميل...</span> ---</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- PERSONNEL -->
+          <div id="blocEmploye" class="d-none">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">👨‍🏫 ${m('employe')} *</label>
+              <select name="id_employe" id="sel-employe" class="form-select">
+                <option value="">--- <span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جار التحميل...</span> ---</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- TYPE DE DOCUMENT -->
           <div class="mb-3">
             <label class="form-label fw-semibold">${m('typeDoc')} *</label>
             <select name="type_doc" id="sel-type" class="form-select" required>
-              <option value="carte_scolaire">🪪 <span class="txt-fr">Carte Scolaire</span><span class="txt-en">School Card</span><span class="txt-ar">البطاقة المدرسية</span></option>
-              <option value="attestation_scolarite">📄 <span class="txt-fr">Attestation de Scolarité</span><span class="txt-en">School Attestation</span><span class="txt-ar">شهادة دراسية</span></option>
-              <option value="certificat_scolarite">📃 <span class="txt-fr">Certificat de Scolarité</span><span class="txt-en">School Certificate</span><span class="txt-ar">إفادة دراسية</span></option>
-              <option value="releve_notes">📊 <span class="txt-fr">Relevé de Notes</span><span class="txt-en">Transcript</span><span class="txt-ar">كشف النقاط</span></option>
+              <optgroup id="groupeEleve" label="🎓 Élèves">
+                <option value="carte_scolaire">🪪 Carte Scolaire</option>
+                <option value="attestation_scolarite">📄 Attestation de Scolarité</option>
+                <option value="certificat_scolarite">📃 Certificat de Scolarité</option>
+                <option value="bulletin_notes">📊 Bulletin de Notes</option>
+                <option value="facture_frais">💰 Facture / Quittance</option>
+              </optgroup>
+              <optgroup id="groupeEmploye" label="👨‍🏫 Personnel" class="d-none">
+                <option value="attestation_travail">📄 Attestation de Travail</option>
+                <option value="certificat_travail">📃 Certificat de Travail</option>
+              </optgroup>
             </select>
           </div>
+
           <div class="mb-4">
             <label class="form-label fw-semibold">${m('annee')} *</label>
             <input type="text" name="annee_scolaire" class="form-control" value="2026-2027" required>
           </div>
+
           <button type="submit" class="btn btn-success w-100 py-2">
-            <i class="bi bi-save me-2"></i>
-            <span class="txt-fr">Générer & Enregistrer</span>
-            <span class="txt-en">Generate & Save</span>
-            <span class="txt-ar">إنشاء وحفظ</span>
+            <i class="bi bi-save me-2"></i> ${m('generer')}
           </button>
         </form>
       </div>
     </div>
 
-    <!-- 📄 PRÉVISUALISATION -->
+    <!-- 📄 PRÉVISUALISATION DU DOCUMENT -->
     <div class="col-md-7">
       <div id="affichage-carte">
         <div class="text-center text-muted py-5">
@@ -265,145 +294,319 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  let donneesEleve = [];
+  let listeEleves = [], listeEmployes = [];
+
+  // 🌙 BASCULEMENT CLAIR / SOMBRE
+  document.getElementById('btnTheme').addEventListener('click', () => {
+    const actuel = document.documentElement.getAttribute('data-bs-theme') || 'light';
+    const nouveau = actuel === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-bs-theme', nouveau);
+    localStorage.setItem('theme', nouveau);
+    mettreAJourIconeTheme(nouveau);
+  });
+  function mettreAJourIconeTheme(t){
+    document.getElementById('iconeTheme').className = t === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+  }
+  mettreAJourIconeTheme(themeActuel);
 
   // 🗣️ CHANGEMENT DE LANGUE
-  function changerLangue(lang){
-    langueActuelle = lang;
-    localStorage.setItem('langue', lang);
-    document.body.className = 'lang-' + lang;
-    document.querySelectorAll('.barre-langue button').forEach(b => b.classList.remove('active'));
-    document.getElementById('btn-'+lang).classList.add('active');
-  }
-  document.getElementById('btn-'+langueActuelle)?.classList.add('active');
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const lang = btn.dataset.lang;
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.body.className = `lang-${lang}`;
+      localStorage.setItem('langue', lang);
+    });
+  });
+  document.querySelector(`.lang-btn[data-lang="${langueActuelle}"]`)?.classList.add('active');
+
+  // 🔄 BASCULEMENT ÉLÈVE / PERSONNEL
+  document.getElementById('categorieBeneficiaire').addEventListener('change', e => {
+    const cat = e.target.value;
+    document.getElementById('blocEleve').classList.toggle('d-none', cat !== 'eleve');
+    document.getElementById('blocEmploye').classList.toggle('d-none', cat !== 'employe');
+    document.getElementById('groupeEleve').classList.toggle('d-none', cat !== 'eleve');
+    document.getElementById('groupeEmploye').classList.toggle('d-none', cat !== 'employe');
+    // Mettre à jour l'attribut required
+    document.getElementById('sel-eleve').required = (cat === 'eleve');
+    document.getElementById('sel-employe').required = (cat === 'employe');
+  });
 
   // 📄 Libellé type de document
   function libelleTypeDoc(code){
     const lib = {
-      fr: {carte_scolaire:"CARTE SCOLAIRE", attestation_scolarite:"ATTESTATION DE SCOLARITÉ", certificat_scolarite:"CERTIFICAT DE SCOLARITÉ", releve_notes:"RELEVÉ DE NOTES"},
-      en: {carte_scolaire:"SCHOOL CARD", attestation_scolarite:"SCHOOL ATTESTATION", certificat_scolarite:"SCHOOL CERTIFICATE", releve_notes:"TRANSCRIPT"},
-      ar: {carte_scolaire:"البطاقة المدرسية", attestation_scolarite:"شهادة دراسية", certificat_scolarite:"إفادة دراسية", releve_notes:"كشف النقاط"}
+      fr: {
+        carte_scolaire:"CARTE SCOLAIRE", attestation_scolarite:"ATTESTATION DE SCOLARITÉ",
+        certificat_scolarite:"CERTIFICAT DE SCOLARITÉ", bulletin_notes:"BULLETIN DE NOTES",
+        facture_frais:"QUITTANCE / FACTURE DE FRAIS", attestation_travail:"ATTESTATION DE TRAVAIL",
+        certificat_travail:"CERTIFICAT DE TRAVAIL"
+      },
+      en: {
+        carte_scolaire:"SCHOOL CARD", attestation_scolarite:"SCHOOL ATTESTATION",
+        certificat_scolarite:"SCHOOL CERTIFICATE", bulletin_notes:"SCHOOL REPORT",
+        facture_frais:"TUITION FEE INVOICE", attestation_travail:"WORK CERTIFICATE",
+        certificat_travail:"EMPLOYMENT CERTIFICATE"
+      },
+      ar: {
+        carte_scolaire:"البطاقة المدرسية", attestation_scolarite:"شهادة دراسية",
+        certificat_scolarite:"إفادة دراسية", bulletin_notes:"كشف النقاط",
+        facture_frais:"فاتورة الرسوم الدراسية", attestation_travail:"شهادة عمل",
+        certificat_travail:"شهادة ممارسة عمل"
+      }
     };
     return lib[langueActuelle]?.[code] || lib.fr[code] || code.replace('_',' ').toUpperCase();
   }
 
-  // ✅ CHARGER LA LISTE DES ÉLÈVES
+  // ✅ CHARGER ÉLÈVES
   async function chargerEleves(){
     const sel = document.getElementById('sel-eleve');
     const alerteApi = document.getElementById('alerteApi');
-    const texteAlerteApi = document.getElementById('texteAlerteApi');
-
     try {
       const r = await fetch(`${API_URL}/eleves/tous`, {headers:{'Authorization':`Bearer ${token}`}});
       const data = await r.json();
       alerteApi.classList.add('d-none');
-
-      if(data.ok && data.lignes && data.lignes.length > 0){
-        donneesEleve = data.lignes;
+      if(data.ok && data.lignes?.length > 0){
+        listeEleves = data.lignes;
         sauvegarderElevesLocaux(data.lignes);
-        sel.innerHTML = '<option value="">--- Sélectionner ---</option>' +
-          data.lignes.map(e => `<option value="${e.id_utilisateur}">${e.nom} ${e.prenoms} — ${e.nom_classe || e.classe || ''}</option>`).join('');
-      } else {
-        sel.innerHTML = `<option value="">--- ${m('aucunEleve')} ---</option>`;
-      }
+      } else { listeEleves = []; }
     } catch {
-      // 📴 MODE LOCAL
-      console.warn("🔌 Chargement élèves depuis stockage local");
-      texteAlerteApi.textContent = m('serveurIndispo');
+      listeEleves = obtenirElevesLocaux();
+      document.getElementById('texteAlerteApi').textContent = m('serveurIndispo');
       alerteApi.classList.remove('d-none');
-      donneesEleve = obtenirElevesLocaux();
-      if(donneesEleve.length === 0){
-        sel.innerHTML = `<option value="">--- ${m('aucunEleve')} ---</option>`;
-        return;
-      }
-      sel.innerHTML = '<option value="">--- Sélectionner ---</option>' +
-        donneesEleve.map(e => `<option value="${e.id_utilisateur}">${e.nom} ${e.prenoms} — ${e.nom_classe || e.classe || ''}</option>`).join('');
     }
+    sel.innerHTML = listeEleves.length
+      ? `<option value="">--- Sélectionner ---</option>` + listeEleves.map(e => `<option value="${e.id_utilisateur}">${e.matricule||''} ${e.nom} ${e.prenoms} — ${e.nom_classe||e.classe||''}</option>`).join('')
+      : `<option value="">--- ${m('aucunResultat')} ---</option>`;
   }
 
-  // 💾 GÉNÉRER LE DOCUMENT
+  // ✅ CHARGER PERSONNEL
+  async function chargerEmployes(){
+    const sel = document.getElementById('sel-employe');
+    try {
+      const r = await fetch(`${API_URL}/utilisateurs/personnel`, {headers:{'Authorization':`Bearer ${token}`}});
+      const data = await r.json();
+      if(data.ok && data.lignes?.length > 0){
+        listeEmployes = data.lignes;
+        sauvegarderEmployesLocaux(data.lignes);
+      } else { listeEmployes = []; }
+    } catch {
+      listeEmployes = obtenirEmployesLocaux();
+    }
+    sel.innerHTML = listeEmployes.length
+      ? `<option value="">--- Sélectionner ---</option>` + listeEmployes.map(p => `<option value="${p.id_utilisateur}">${p.nom} ${p.prenoms} — ${p.role}</option>`).join('')
+      : `<option value="">--- ${m('aucunResultat')} ---</option>`;
+  }
+
+  // 🖨️ GÉNÉRER LE CONTENU SELON LE TYPE
+  function genererContenuDoc(beneficiaire, typeDoc, annee, numero){
+    const etab = "Établissement Scolaire MAMA-ZOUMANA — Centre Islamique";
+    const lieuDate = `Abidjan, le ${new Date().toLocaleDateString('fr-FR')}`;
+
+    // === CARTE SCOLAIRE ===
+    if(typeDoc === 'carte_scolaire') return `
+      <div class="carte-document">
+        <div class="text-center mb-3">
+          <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
+          <div class="small opacity-75">${etab}</div>
+          <hr style="border-color:var(--alerte)">
+        </div>
+        <h4 class="text-center text-uppercase fw-bold mb-4" style="color:var(--fond-dore)">CARTE SCOLAIRE</h4>
+        <div class="row">
+          <div class="col-4 text-center">
+            <div style="border:1px solid #ccc; border-radius:6px; padding:1.5rem .5rem; font-size:2.5rem; color:#999;">📷</div>
+            <small class="text-muted d-block mt-1">Photo</small>
+          </div>
+          <div class="col-8">
+            <p class="mb-1"><strong>NOM :</strong> ${beneficiaire.nom}</p>
+            <p class="mb-1"><strong>PRÉNOMS :</strong> ${beneficiaire.prenoms}</p>
+            <p class="mb-1"><strongMATRICULE :</strong> ${beneficiaire.matricule||'—'}</p>
+            <p class="mb-1"><strong>CLASSE :</strong> ${beneficiaire.nom_classe||beneficiaire.classe||'—'}</p>
+            <p class="mb-1"><strong>ANNÉE :</strong> ${annee}</p>
+          </div>
+        </div>
+        <hr class="mt-3">
+        <p class="numero-ref text-end mb-0">N° ${numero}</p>
+      </div>`;
+
+    // === ATTESTATION DE SCOLARITÉ ===
+    if(typeDoc === 'attestation_scolarite') return `
+      <div class="carte-document">
+        <div class="text-center mb-4">
+          <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
+          <div class="small">${etab}</div>
+          <hr style="border-color:var(--alerte)">
+          <h4 class="text-uppercase fw-bold mt-2" style="color:var(--fond-dore)">ATTESTATION DE SCOLARITÉ</h4>
+        </div>
+        <p class="lead">Nous soussignés, l'Établissement MAMA-ZOUMANA, certifions que :</p>
+        <p class="text-center text-uppercase fw-bold my-3" style="font-size:1.2rem">${beneficiaire.nom} ${beneficiaire.prenoms}</p>
+        <p>né(e) le ${beneficiaire.date_naissance||'____/__/__'} est régulièrement inscrit(e) dans notre établissement au titre de l'année scolaire <strong>${annee}</strong>, en classe de <strong>${beneficiaire.nom_classe||beneficiaire.classe||'—'}</strong>.</p>
+        <p class="mt-4">En foi de quoi, nous délivrons la présente attestation à l'intéressé(e) pour servir et valoir ce que de droit.</p>
+        <p class="mt-5">${lieuDate}</p>
+        <div class="d-flex justify-content-between mt-5 pt-3">
+          <span>Le Directeur</span>
+          <span class="numero-ref">N° ${numero}</span>
+        </div>
+      </div>`;
+
+    // === BULLETIN DE NOTES ===
+    if(typeDoc === 'bulletin_notes') return `
+      <div class="carte-document">
+        <div class="text-center mb-3">
+          <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
+          <div class="small">${etab}</div>
+          <hr style="border-color:var(--alerte)">
+          <h5 class="text-uppercase fw-bold" style="color:var(--fond-dore)">BULLETIN DE NOTES — ${annee}</h5>
+        </div>
+        <p><strong>Élève :</strong> ${beneficiaire.nom} ${beneficiaire.prenoms} — <strong>Classe :</strong> ${beneficiaire.nom_classe||beneficiaire.classe||'—'}</p>
+        <table class="table table-bordered table-sm mt-3">
+          <thead class="table-light"><tr><th>Matière</th><th>Note</th><th>Moyenne</th><th>Appréciation</th></tr></thead>
+          <tbody><tr><td colspan="4" class="text-center text-muted">Notes à compléter</td></tr></tbody>
+        </table>
+        <div class="row mt-4">
+          <div class="col-6 text-center border-end">
+            <h5 class="mb-1">Moyenne Générale</h5>
+            <div class="display-6 fw-bold text-success">— / 20</div>
+          </div>
+          <div class="col-6 text-center">
+            <h5 class="mb-1">Rang</h5>
+            <div class="display-6 fw-bold text-primary">—</div>
+          </div>
+        </div>
+        <p class="text-center mt-3"><strong>Mention :</strong> —</p>
+        <p class="numero-ref text-end mt-4 mb-0">N° ${numero}</p>
+      </div>`;
+
+    // === FACTURE / QUITTANCE ===
+    if(typeDoc === 'facture_frais') return `
+      <div class="carte-document">
+        <div class="text-center mb-3">
+          <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
+          <div class="small">${etab}</div>
+          <hr style="border-color:var(--alerte)">
+          <h5 class="text-uppercase fw-bold" style="color:var(--fond-dore)">QUITTANCE DE FRAIS SCOLAIRES</h5>
+        </div>
+        <p><strong>Élève :</strong> ${beneficiaire.nom} ${beneficiaire.prenoms}</p>
+        <p><strong>Classe :</strong> ${beneficiaire.nom_classe||beneficiaire.classe||'—'} | <strong>Année :</strong> ${annee}</p>
+        <table class="table table-bordered mt-3">
+          <thead class="table-light"><tr><th>Désignation</th><th class="text-end">Montant</th></tr></thead>
+          <tbody>
+            <tr><td>Frais de scolarité</td><td class="text-end">— F CFA</td></tr>
+            <tr><td>Cantine</td><td class="text-end">— F CFA</td></tr>
+            <tr><td>Transport</td><td class="text-end">— F CFA</td></tr>
+            <tr class="table-dark fw-bold"><td>TOTAL PAYÉ</td><td class="text-end">— F CFA</td></tr>
+          </tbody>
+        </table>
+        <p class="mt-4 text-center">La présente quittance atteste que les frais ont été acquittés pour l'année scolaire ${annee}.</p>
+        <p class="mt-5">${lieuDate}</p>
+        <p class="numero-ref text-end mb-0">N° ${numero}</p>
+      </div>`;
+
+    // === ATTESTATION DE TRAVAIL ===
+    if(typeDoc === 'attestation_travail') return `
+      <div class="carte-document">
+        <div class="text-center mb-4">
+          <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
+          <div class="small">${etab}</div>
+          <hr style="border-color:var(--alerte)">
+          <h4 class="text-uppercase fw-bold" style="color:var(--fond-dore)">ATTESTATION DE TRAVAIL</h4>
+        </div>
+        <p>Nous soussignés, l'Établissement MAMA-ZOUMANA, certifions que :</p>
+        <p class="text-center text-uppercase fw-bold my-3">${beneficiaire.nom} ${beneficiaire.prenoms}</p>
+        <p>exerce au sein de notre établissement la fonction de <strong>${(beneficiaire.role||'').toUpperCase()}</strong> depuis le _______________.</p>
+        <p>La présente attestation est délivrée à l'intéressé(e) sur sa demande pour servir et valoir ce que de droit.</p>
+        <p class="mt-5">${lieuDate}</p>
+        <div class="d-flex justify-content-between mt-5 pt-3">
+          <span>Le Directeur</span>
+          <span class="numero-ref">N° ${numero}</span>
+        </div>
+      </div>`;
+
+    // === CERTIFICAT DE TRAVAIL ===
+    if(typeDoc === 'certificat_travail') return `
+      <div class="carte-document">
+        <div class="text-center mb-4">
+          <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
+          <div class="small">${etab}</div>
+          <hr style="border-color:var(--alerte)">
+          <h4 class="text-uppercase fw-bold" style="color:var(--fond-dore)">CERTIFICAT DE TRAVAIL</h4>
+        </div>
+        <p>Le Directeur de l'Établissement MAMA-ZOUMANA certifie que :</p>
+        <p class="text-center text-uppercase fw-bold my-3">${beneficiaire.nom} ${beneficiaire.prenoms}</p>
+        <p>demeurant à _______________, exerce les fonctions de <strong>${(beneficiaire.role||'').toUpperCase()}</strong> dans notre établissement depuis le _______________.</p>
+        <p>En foi de quoi, le présent certificat est délivré pour faire valoir ce que de droit.</p>
+        <p class="mt-5">${lieuDate}</p>
+        <div class="d-flex justify-content-between mt-5 pt-3">
+          <span>Le Directeur</span>
+          <span class="numero-ref">N° ${numero}</span>
+        </div>
+      </div>`;
+
+    // === MODÈLE PAR DÉFAUT ===
+    return `
+      <div class="carte-document">
+        <div class="text-center mb-3">
+          <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
+          <div class="small">${etab}</div>
+          <hr style="border-color:var(--alerte)">
+          <h4 class="text-uppercase fw-bold" style="color:var(--fond-dore)">${libelleTypeDoc(typeDoc)}</h4>
+        </div>
+        <p><strong>Nom :</strong> ${beneficiaire.nom}</p>
+        <p><strong>Prénoms :</strong> ${beneficiaire.prenoms}</p>
+        <p><strong>Année :</strong> ${annee}</p>
+        <p class="numero-ref text-end mt-5">N° ${numero}</p>
+      </div>`;
+  }
+
+  // 💾 SOUMISSION DU FORMULAIRE
   document.getElementById('formDoc').addEventListener('submit', async e => {
     e.preventDefault();
     const d = Object.fromEntries(new FormData(e.target));
-    const selEleve = donneesEleve.find(x => String(x.id_utilisateur) === String(d.id_eleve));
-    if(!selEleve) return alert(m('aucunEleve'));
+    const cat = document.getElementById('categorieBeneficiaire').value;
+
+    // Sélectionner le bénéficiaire
+    let beneficiaire;
+    if(cat === 'eleve'){
+      beneficiaire = listeEleves.find(x => String(x.id_utilisateur) === String(d.id_eleve));
+    } else {
+      beneficiaire = listeEmployes.find(x => String(x.id_utilisateur) === String(d.id_employe));
+    }
+    if(!beneficiaire) return alert(m('aucunResultat'));
+
+    const numeroUnique = 'DOC-' + new Date().getFullYear() + '-' + Date.now().toString().slice(-6);
 
     try {
       const r = await fetch(`${API_URL}/documents/delivrer`, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-        body: JSON.stringify(d)
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+        body:JSON.stringify({...d, numero_unique: numeroUnique})
       });
       const rep = await r.json();
-
       if(!rep.ok) throw new Error(rep.erreur || "Erreur serveur");
-      afficherCarte(selEleve, d, rep.numero_unique);
-      alert(m('genereOk'));
-
     } catch {
-      // 📴 GÉNÉRATION LOCALE
-      console.warn("🔴 Génération en mode local");
-      const numeroUnique = 'LOC-' + Date.now().toString().slice(-8);
-      sauvegarderDocumentLocal({...d, numero_unique: numeroUnique, eleve: selEleve});
-      afficherCarte(selEleve, d, numeroUnique);
-      alert(m('genereOk') + " (mode local)");
+      console.warn("📴 Mode local — document généré sans API");
     }
+
+    // Afficher le document
+    document.getElementById('affichage-carte').innerHTML =
+      genererContenuDoc(beneficiaire, d.type_doc, d.annee_scolaire, numeroUnique) +
+      `<div class="text-center mt-4 no-print">
+        <button class="btn btn-warning px-4" onclick="window.print()">
+          <i class="bi bi-printer me-2"></i>
+          <span class="txt-fr">Imprimer en PDF</span>
+          <span class="txt-en">Print as PDF</span>
+          <span class="txt-ar">طباعة PDF</span>
+        </button>
+      </div>`;
+
+    alert(m('genereOk'));
   });
 
-  // 🖼️ AFFICHER LA CARTE / DOCUMENT
-  function afficherCarte(el, d, numero){
-    document.getElementById('affichage-carte').innerHTML = `
-      <div class="carte-scolaire">
-        <div class="text-center mb-4">
-          <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
-          <div class="small opacity-75">
-            <span class="txt-fr">Établissement Scolaire & Centre Islamique</span>
-            <span class="txt-en">School & Islamic Center</span>
-            <span class="txt-ar">مؤسسة تعليمية ومركز إسلامي</span>
-          </div>
-          <hr style="border-color:var(--bord-orange)">
-        </div>
-        <h4 class="text-center text-uppercase fw-bold mb-4" style="color:var(--fond-dore)">${libelleTypeDoc(d.type_doc)}</h4>
-        <div class="mt-4 px-2">
-          <p class="mb-2"><strong>
-            <span class="txt-fr">Nom :</span>
-            <span class="txt-en">Last Name:</span>
-            <span class="txt-ar">اللقب :</span>
-          </strong> ${el.nom}</p>
-          <p class="mb-2"><strong>
-            <span class="txt-fr">Prénoms :</span>
-            <span class="txt-en">First Names:</span>
-            <span class="txt-ar">الأسماء :</span>
-          </strong> ${el.prenoms}</p>
-          <p class="mb-2"><strong>
-            <span class="txt-fr">Classe :</span>
-            <span class="txt-en">Class:</span>
-            <span class="txt-ar">القسم :</span>
-          </strong> ${el.nom_classe || el.classe || '-'}</p>
-          <p class="mb-3"><strong>
-            <span class="txt-fr">Année Scolaire :</span>
-            <span class="txt-en">School Year:</span>
-            <span class="txt-ar">السنة الدراسية :</span>
-          </strong> ${d.annee_scolaire}</p>
-          <p class="numero-ref text-end mt-3">
-            N° ${numero}
-          </p>
-        </div>
-        <div class="text-center mt-4 no-print">
-          <button class="btn btn-warning px-4" onclick="window.print()">
-            <i class="bi bi-printer me-2"></i>
-            <span class="txt-fr">Imprimer en PDF</span>
-            <span class="txt-en">Print as PDF</span>
-            <span class="txt-ar">طباعة PDF</span>
-          </button>
-        </div>
-      </div>
-    `;
-  }
-
-  // 🚀 CHARGEMENT
+  // 🚀 CHARGEMENT AU DÉMARRAGE
   chargerEleves();
+  chargerEmployes();
 </script>
 
 </body>

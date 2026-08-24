@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Liste des Documents — Administration</span>
+    <span class="txt-en">Documents History — Administration</span>
+    <span class="txt-ar">قائمة الوثائق — الإدارة</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    /* ===== 🎨 VARIABLES CLAIR / SOMBRE ===== */
+    :root, :root[data-bs-theme="light"] {
+      --primaire: #0c4a6e; --succes: #10b981; --alerte: #f59e0b;
+      --danger: #ef4444; --info: #3b82f6; --sombre: #ffffff;
+      --sombre-clair: #f1f5f9; --texte: #1e293b; --texte-dore: #b45309;
+      --bordure: #e2e8f0; --carte: #ffffff; --ombre: rgba(15,23,42,.08);
+      --input-fond: #f8fafc; --dore: #b78628; --dore-clair: #d4a03a;
+    }
+    :root[data-bs-theme="dark"] {
+      --primaire: #0369a1; --succes: #34d399; --alerte: #fbbf24;
+      --danger: #f87171; --info: #60a5fa; --sombre: #0f172a;
+      --sombre-clair: #1e293b; --texte: #f8fafc; --texte-dore: #fcd34d;
+      --bordure: rgba(245,158,11,.25); --carte: rgba(30,41,59,.85); --ombre: rgba(0,0,0,.3);
+      --input-fond: rgba(15,23,42,.6); --dore: #9a6f22; --dore-clair: #b78628;
+    }
+
+    /* ===== 🗣️ TRILINGUE ===== */
+    .txt-en,.txt-ar{display:none}
+    body.lang-fr .txt-fr{display:inline}
+    body.lang-en .txt-en{display:inline}
+    body.lang-ar .txt-ar{display:inline}
+    body.lang-en .txt-fr,body.lang-en .txt-ar{display:none}
+    body.lang-fr .txt-en,body.lang-fr .txt-ar{display:none}
+    body.lang-ar .txt-fr,body.lang-ar .txt-en{display:none}
+    body.lang-ar { direction: rtl; }
+
+    /* ===== GÉNÉRAL ===== */
+    body {
+      background: linear-gradient(160deg, var(--dore), var(--dore-clair));
+      color: var(--texte);
+      min-height: 100vh;
+      transition: background .4s ease, color .3s ease;
+    }
+    .entete {
+      background: rgba(15,23,42,.85);
+      border-bottom: 2px solid var(--alerte);
+      padding: 1.5rem 0;
+      backdrop-filter: blur(10px);
+    }
+    .carte {
+      background: var(--carte);
+      border-radius: 12px;
+      padding: 1.25rem;
+      border-left: 3px solid var(--alerte);
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 20px var(--ombre);
+      transition: transform .3s ease;
+    }
+    .carte:hover { transform: translateY(-2px); }
+    .form-control, .form-select {
+      background: var(--input-fond);
+      border: 1px solid var(--bordure);
+      color: var(--texte);
+      border-radius: 8px;
+    }
+    .form-control:focus, .form-select:focus {
+      background: var(--input-fond);
+      border-color: var(--alerte);
+      color: var(--texte);
+      box-shadow: 0 0 0 .25rem rgba(245,158,11,.15);
+    }
+    .barre-langue { display: flex; gap: .75rem; justify-content: center; margin-bottom: 2rem; }
+    .lang-btn.active { background:var(--alerte); border-color:var(--alerte); color:#000; }
+    .theme-btn { width:38px; height:38px; border-radius:50%; border:2px solid; padding:0; display:flex; align-items:center; justify-content:center; }
+
+    /* ===== TABLEAU ===== */
+    .table { --bs-table-bg: transparent; }
+    .table th { border-top: none; border-bottom-width: 2px; border-color: var(--alerte); }
+    .badge-type { font-size: .75rem; padding: .25rem .5rem; border-radius: 6px; white-space: nowrap; }
+
+    /* ===== PAGINATION ===== */
+    .page-link {
+      background: var(--carte);
+      color: var(--texte);
+      border: 1px solid var(--bordure);
+    }
+    .page-link.active { background: var(--alerte); border-color: var(--alerte); color: #000; }
+    .page-link:focus { box-shadow: 0 0 0 .25rem rgba(245,158,11,.25); }
+
+    /* ===== MODALE DOCUMENT ===== */
+    .document {
+      background: #fff; color: #000;
+      border-radius: 8px; padding: 2.5rem;
+      border: 3px solid var(--alerte);
+    }
+    .doc-entete { text-align:center; margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:2px solid #ccc; }
+    .doc-titre { font-size:1.4rem; font-weight:700; text-transform:uppercase; color:var(--dore); margin:.5rem 0; }
+    .doc-nom-etab { font-size:1.1rem; font-weight:600; }
+    .doc-corps { line-height:1.7; font-size:1rem; }
+    .doc-num { text-align:right; margin-top:2rem; font-family:'Courier New',monospace; font-weight:700; color:#666; }
+
+    /* ===== IMPRESSION ===== */
+    @media print {
+      body { background: white !important; color: black !important; }
+      .entete, .barre-langue, .no-print, .theme-btn, .alerte-api, .modal-header, .modal-footer, .pagination { display: none !important; }
+      .modal { position: static; }
+      .modal-dialog { max-width: 100%; margin: 0; }
+      .modal-content { border: none; box-shadow: none; }
+      .document { box-shadow:none !important; border-width:2px !important; margin:0 auto !important; padding:1.5rem !important; }
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  // 🔗 Configuration
+  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api' : 'https://mama-zoumana-api.onrender.com/api';
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  const langueActuelle = localStorage.getItem('langue') || 'fr';
+  const themeActuel = localStorage.getItem('theme') || 'light';
+
+  // ✅ Appliquer au chargement
+  document.documentElement.setAttribute('data-bs-theme', themeActuel);
+  document.body.classList.add('lang-' + langueActuelle);
+
+  // 💾 Stockage local
+  function obtenirDocumentsLocaux() { return JSON.parse(localStorage.getItem('documents_crees') || '[]'); }
+  function sauvegarderDocumentsLocaux(liste) { localStorage.setItem('documents_crees', JSON.stringify(liste)); }
+
+  // 🗣️ Messages
+  const MSG = {
+    fr: {
+      accesReserve: "⛔ Accès réservé à l'Administrateur",
+      serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
+      titre: "Liste des Documents Délivrés",
+      recherche: "Rechercher...", filtrer: "Filtrer par type", annee: "Toutes les années",
+      aucun: "Aucun document trouvé", charger: "Chargement...",
+      reimprimer: "🖨️ Réimprimer", voir: "👁️ Voir", supprimer: "🗑️ Supprimer",
+      confirmerSuppr: "Confirmez-vous la suppression du document N° {num} ?",
+      supprimeOk: "✅ Document supprimé avec succès",
+      annuler: "Annuler", confirmer: "Confirmer la suppression",
+      numero: "N° Document", beneficiaire: "Bénéficiaire",
+      type: "Type", date: "Date", actions: "Actions", total: "Total des documents",
+      page: "Page", sur: "sur", elementsParPage: "éléments par page"
+    },
+    en: {
+      accesReserve: "⛔ Access restricted to Administrator",
+      serveurIndispo: "⚠️ Server offline — Local mode active",
+      titre: "Issued Documents List",
+      recherche: "Search...", filtrer: "Filter by type", annee: "All years",
+      aucun: "No document found", charger: "Loading...",
+      reimprimer: "🖨️ Reprint", voir: "👁️ View", supprimer: "🗑️ Delete",
+      confirmerSuppr: "Are you sure you want to delete document No. {num} ?",
+      supprimeOk: "✅ Document deleted successfully",
+      annuler: "Cancel", confirmer: "Confirm deletion",
+      numero: "Doc. No.", beneficiaire: "Recipient",
+      type: "Type", date: "Date", actions: "Actions", total: "Total documents",
+      page: "Page", sur: "of", elementsParPage: "items per page"
+    },
+    ar: {
+      accesReserve: "⛔ الوصول مقصور على المدير",
+      serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
+      titre: "قائمة الوثائق الصادرة",
+      recherche: "بحث...", filtrer: "تصفية حسب النوع", annee: "جميع السنوات",
+      aucun: "لم يتم العثور على وثائق", charger: "جار التحميل...",
+      reimprimer: "🖨️ إعادة طباعة", voir: "👁️ عرض", supprimer: "🗑️ حذف",
+      confirmerSuppr: "هل أنت متأكد من حذف الوثيقة رقم {num} ؟",
+      supprimeOk: "✅ تم حذف الوثيقة بنجاح",
+      annuler: "إلغاء", confirmer: "تأكيد الحذف",
+      numero: "رقم الوثيقة", beneficiaire: "المستفيد",
+      type: "النوع", date: "التاريخ", actions: "الإجراءات", total: "إجمالي الوثائق",
+      page: "صفحة", sur: "من", elementsParPage: "عناصر لكل صفحة"
+    }
+  };
+  function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
+
+  // 📄 Libellé type de document
+  function libelleDoc(code) {
+    const L = {
+      fr: {
+        carte_scolaire:"Carte Scolaire", attestation_scolarite:"Attestation Scolaire",
+        certificat_scolarite:"Certificat Scolaire", bulletin_notes:"Bulletin Notes",
+        facture_frais:"Facture/Frais", attestation_travail:"Attestation Travail",
+        certificat_travail:"Certificat Travail"
+      },
+      en: {
+        carte_scolaire:"School Card", attestation_scolarite:"School Attestation",
+        certificat_scolarite:"School Certificate", bulletin_notes:"Report Card",
+        facture_frais:"Invoice/Fees", attestation_travail:"Work Certificate",
+        certificat_travail:"Empl. Certificate"
+      },
+      ar: {
+        carte_scolaire:"بطاقة مدرسية", attestation_scolarite:"شهادة دراسية",
+        certificat_scolarite:"إفادة دراسية", bulletin_notes:"كشف نقاط",
+        facture_frais:"فاتورة رسوم", attestation_travail:"شهادة عمل",
+        certificat_travail:"شهادة ممارسة"
+      }
+    };
+    return L[langueActuelle]?.[code] || L.fr[code] || code.replace('_',' ');
+  }
+
+  // 🎨 Couleur badge selon type
+  function couleurBadge(code) {
+    const c = {
+      carte_scolaire:'bg-primary', attestation_scolarite:'bg-success', certificat_scolarite:'bg-info',
+      bulletin_notes:'bg-warning text-dark', facture_frais:'bg-danger',
+      attestation_travail:'bg-primary', certificat_travail:'bg-secondary'
+    };
+    return c[code] || 'bg-dark';
+  }
+
+  // 🔒 Sécurité
+  if(!token || role !== 'admin'){
+    alert(m('accesReserve'));
+    localStorage.clear();
+    location.href='dashboard.html';
+  }
+</script>
+
+<!-- 📌 EN-TÊTE -->
+<div class="entete no-print">
+  <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h3 class="mb-1">📋
+        <span class="txt-fr">Liste des Documents Délivrés</span>
+        <span class="txt-en">Issued Documents History</span>
+        <span class="txt-ar">قائمة الوثائق الصادرة</span>
+      </h3>
+      <p class="mb-0 opacity-75 small">
+        <span class="txt-fr">Gestion, recherche, réimpression & suppression</span>
+        <span class="txt-en">Management, search, reprint & deletion</span>
+        <span class="txt-ar">إدارة، بحث، إعادة طباعة وحذف</span>
+      </p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <a href="documents.html" class="btn btn-outline-light">
+        <i class="bi bi-plus-lg me-1"></i>
+        <span class="txt-fr">Nouveau</span>
+        <span class="txt-en">New</span>
+        <span class="txt-ar">جديد</span>
+      </a>
+      <button id="btnTheme" class="btn theme-btn btn-outline-light" title="Mode clair/sombre">
+        <i id="iconeTheme" class="bi"></i>
+      </button>
+      <a href="dashboard.html" class="btn btn-outline-light">
+        <i class="bi bi-arrow-left me-1"></i>
+        <span class="txt-fr">Retour</span>
+        <span class="txt-en">Back</span>
+        <span class="txt-ar">رجوع</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container py-4">
+  <!-- ⚠️ Alerte API -->
+  <div id="alerteApi" class="alert alert-warning no-print d-none">
+    <i class="bi bi-wifi-off me-2"></i><span id="texteAlerteApi"></span>
+  </div>
+
+  <!-- 🌐 Langues -->
+  <div class="barre-langue no-print">
+    <button class="btn lang-btn btn-outline-warning" data-lang="fr">🇫🇷 FR</button>
+    <button class="btn lang-btn btn-outline-warning" data-lang="en">🇬🇧 EN</button>
+    <button class="btn lang-btn btn-outline-warning" data-lang="ar">🇸🇦 AR</button>
+  </div>
+
+  <!-- 🔍 FILTRES & RECHERCHE -->
+  <div class="carte no-print">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">🔍 ${m('recherche')}</label>
+        <input type="text" id="recherche" class="form-control" placeholder="${m('recherche')}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">🏷️ ${m('filtrer')}</label>
+        <select id="filtreType" class="form-select">
+          <option value="">--- ${m('filtrer')} ---</option>
+          <option value="carte_scolaire">🪪 ${libelleDoc('carte_scolaire')}</option>
+          <option value="attestation_scolarite">📄 ${libelleDoc('attestation_scolarite')}</option>
+          <option value="certificat_scolarite">📃 ${libelleDoc('certificat_scolarite')}</option>
+          <option value="bulletin_notes">📊 ${libelleDoc('bulletin_notes')}</option>
+          <option value="facture_frais">💰 ${libelleDoc('facture_frais')}</option>
+          <option value="attestation_travail">📄 ${libelleDoc('attestation_travail')}</option>
+          <option value="certificat_travail">📃 ${libelleDoc('certificat_travail')}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">📅 ${m('annee')}</label>
+        <select id="filtreAnnee" class="form-select">
+          <option value="">--- ${m('annee')} ---</option>
+          <option>2026-2027</option>
+          <option>2025-2026</option>
+          <option>2024-2025</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">📄 ${m('elementsParPage')}</label>
+        <select id="taillePage" class="form-select">
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button id="btnReset" class="btn btn-outline-secondary w-100" title="Réinitialiser">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📊 COMPTEUR -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <span class="badge bg-dark" id="compteur">${m('total')} : 0</span>
+    <span class="badge bg-info text-dark small" id="infoPage"></span>
+  </div>
+
+  <!-- 📄 TABLEAU -->
+  <div class="carte">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th class="txt-fr">N° Document</th>
+            <th class="txt-en">Doc. No.</th>
+            <th class="txt-ar">رقم الوثيقة</th>
+            <th class="txt-fr">Bénéficiaire</th>
+            <th class="txt-en">Recipient</th>
+            <th class="txt-ar">المستفيد</th>
+            <th class="txt-fr">Type</th>
+            <th class="txt-en">Type</th>
+            <th class="txt-ar">النوع</th>
+            <th class="txt-fr">Date</th>
+            <th class="txt-en">Date</th>
+            <th class="txt-ar">التاريخ</th>
+            <th class="txt-fr">Actions</th>
+            <th class="txt-en">Actions</th>
+            <th class="txt-ar">الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="corpsTableau">
+          <tr><td colspan="5" class="text-center text-muted py-4">${m('charger')}</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 📑 PAGINATION -->
+    <nav id="pagination" class="mt-3 no-print d-flex justify-content-center">
+      <ul class="pagination mb-0"></ul>
+    </nav>
+  </div>
+</div>
+
+<!-- 🪟 MODALE : CONFIRMATION DE SUPPRESSION -->
+<div class="modal fade" id="modaleConfirmation" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content border-danger">
+      <div class="modal-header bg-danger text-white no-print">
+        <h5 class="modal-title">⚠️ ${m('supprimer')}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="texteConfirmation" class="fw-semibold"></p>
+        <div class="form-check form-switch mt-3">
+          <input class="form-check-input" type="checkbox" role="switch" id="confirmerSuppr">
+          <label class="form-check-label text-danger fw-semibold" for="confirmerSuppr">
+            ✅ ${m('confirmer')}
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer no-print">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-arrow-counterclockwise me-1"></i> ${m('annuler')}
+        </button>
+        <button type="button" id="btnSupprConfirme" class="btn btn-danger" disabled>
+          <i class="bi bi-trash3 me-1"></i> ${m('supprimer')}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 🪟 MODALE : APERÇU & IMPRESSION -->
+<div class="modal fade" id="modaleDocument" tabindex="-1" aria-labelledby="titreModale" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header no-print">
+        <h5 class="modal-title" id="titreModale">📄 ${m('voir')}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="contenuDocument"></div>
+      <div class="modal-footer no-print">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <span class="txt-fr">Fermer</span>
+          <span class="txt-en">Close</span>
+          <span class="txt-ar">إغلاق</span>
+        </button>
+        <button type="button" class="btn btn-warning" onclick="window.print()">
+          <i class="bi bi-printer me-2"></i> ${m('reimprimer')}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  let tousDocuments = [], documentsFiltres = [], documentASupprimer = null;
+  let pageActuelle = 1;
+  let taillePageActuelle = 10;
+
+  const modaleDocument = new bootstrap.Modal(document.getElementById('modaleDocument'));
+  const modaleConfirmation = new bootstrap.Modal(document.getElementById('modaleConfirmation'));
+
+  // 🌙 Mode clair/sombre
+  document.getElementById('btnTheme').addEventListener('click', () => {
+    const actuel = document.documentElement.getAttribute('data-bs-theme');
+    const nouveau = actuel === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-bs-theme', nouveau);
+    localStorage.setItem('theme', nouveau);
+    majIcone(nouveau);
+  });
+  function majIcone(t) {
+    document.getElementById('iconeTheme').className = t === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+  }
+  majIcone(themeActuel);
+
+  // 🗣️ Changement de langue
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const lang = b.dataset.lang;
+      document.querySelectorAll('.lang-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      document.body.className = `lang-${lang}`;
+      localStorage.setItem('langue', lang);
+      afficherTableau();
+    });
+  });
+  document.querySelector(`[data-lang="${langueActuelle}"]`)?.classList.add('active');
+
+  // 📄 Modèle de document pour réimpression
+  function genererModeleDoc(doc) {
+    const benef = doc.eleve || doc.personnel || { nom:'—', prenoms:'—', classe:'—', role:'—' };
+    const etab = "Établissement Scolaire MAMA-ZOUMANA — Centre Islamique";
+    const date = doc.date_delivrance ? new Date(doc.date_delivrance).toLocaleDateString('fr-FR', {dateStyle:'long'}) : '';
+
+    const modeles = {
+      carte_scolaire: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(doc.type_document||doc.type_doc)}</div></div><div class="doc-corps row"><div class="col-4 text-center"><div style="border:1px solid #ccc; border-radius:6px; padding:2rem .5rem; font-size:3rem; color:#999;">📷</div></div><div class="col-8"><p><strong>NOM :</strong> ${benef.nom}</p><p><strong>PRÉNOMS :</strong> ${benef.prenoms}</p><p><strong>MATRICULE :</strong> ${benef.matricule||'—'}</p><p><strong>CLASSE :</strong> ${benef.classe||benef.nom_classe||'—'}</p><p><strong>ANNÉE :</strong> ${doc.annee_scolaire}</p></div></div><p class="doc-num">N° ${doc.numero_unique}</p></div>`,
+      attestation_scolarite: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(doc.type_document||doc.type_doc)}</div></div><div class="doc-corps"><p>Nous soussignés, certifions que :</p><p class="text-center text-uppercase fw-bold my-3">${benef.nom} ${benef.prenoms}</p><p>est inscrit(e) en classe de <strong>${benef.classe||'—'}</strong> — <strong>${doc.annee_scolaire}</strong>.</p><p class="mt-4">En foi de quoi, délivrons la présente attestation.</p><p class="mt-5">Abidjan, le ${date}</p><div class="d-flex justify-content-between mt-5 pt-3"><span>Le Directeur</span><span class="doc-num">N° ${doc.numero_unique}</span></div></div></div>`,
+      certificat_scolarite: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(doc.type_document||doc.type_doc)}</div></div><div class="doc-corps"><p>Le Directeur certifie que :</p><p class="text-center text-uppercase fw-bold my-3">${benef.nom} ${benef.prenoms}</p><p>est régulièrement inscrit(e) pour l'année <strong>${doc.annee_scolaire}</strong>.</p><p class="mt-5">Abidjan, le ${date}</p><div class="d-flex justify-content-between mt-5 pt-3"><span>Le Directeur</span><span class="doc-num">N° ${doc.numero_unique}</span></div></div></div>`,
+      bulletin_notes: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(doc.type_document||doc.type_doc)} — ${doc.annee_scolaire}</div></div><div class="doc-corps"><p><strong>Élève :</strong> ${benef.nom} ${benef.prenoms} — <strong>Classe :</strong> ${benef.classe||'—'}</p><table class="table table-bordered mt-3"><thead class="table-light"><tr><th>Matière</th><th>Note</th><th>Coef.</th><th>Total</th></tr></thead><tbody><tr><td colspan="4" class="text-center text-muted">Notes à compléter</td></tr></tbody></table><p class="doc-num">N° ${doc.numero_unique}</p></div></div>`,
+      facture_frais: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(doc.type_document||doc.type_doc)}</div></div><div class="doc-corps"><p><strong>Élève :</strong> ${benef.nom} ${benef.prenoms}</p><p><strong>Classe :</strong> ${benef.classe||'—'} | <strong>Année :</strong> ${doc.annee_scolaire}</p><table class="table table-bordered mt-3"><thead class="table-light"><tr><th>Désignation</th><th class="text-end">Montant</th></tr></thead><tbody><tr><td>Frais de scolarité</td><td class="text-end">— F CFA</td></tr><tr class="table-dark fw-bold"><td>TOTAL</td><td class="text-end">— F CFA</td></tr></tbody></table><p class="doc-num">N° ${doc.numero_unique}</p></div></div>`,
+      attestation_travail: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(doc.type_document||doc.type_doc)}</div></div><div class="doc-corps"><p>Nous soussignés, certifions que :</p><p class="text-center text-uppercase fw-bold my-3">${benef.nom} ${benef.prenoms}</p><p>exerce la fonction de <strong>${(benef.role||'').toUpperCase()}</strong>.</p><p class="mt-5">Abidjan, le ${date}</p><div class="d-flex justify-content-between mt-5 pt-3"><span>Le Directeur</span><span class="doc-num">N° ${doc.numero_unique}</span></div></div></div>`,
+      certificat_travail: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(doc.type_document||doc.type_doc)}</div></div><div class="doc-corps"><p>Le Directeur certifie que :</p><p class="text-center text-uppercase fw-bold my-3">${benef.nom} ${benef.prenoms}</p><p>exerce les fonctions de <strong>${(benef.role||'').toUpperCase()}</strong>.</p><p class="mt-5">Abidjan, le ${date}</p><div class="d-flex justify-content-between mt-5 pt-3"><span>Le Directeur</span><span class="doc-num">N° ${doc.numero_unique}</span></div></div></div>`
+    };
+    return modeles[doc.type_document || doc.type_doc] || `<div class="document"><p>${doc.numero_unique}</p></div>`;
+  }
+
+  // ✅ Charger les documents
+  async function chargerDocuments() {
+    try {
+      const r = await fetch(`${API_URL}/documents/tous`, {headers:{Authorization:`Bearer ${token}`}});
+      const d = await r.json();
+      tousDocuments = d.ok && d.lignes ? d.lignes : [];
+      document.getElementById('alerteApi').classList.add('d-none');
+    } catch {
+      tousDocuments = obtenirDocumentsLocaux();
+      document.getElementById('texteAlerteApi').textContent = m('serveurIndispo');
+      document.getElementById('alerteApi').classList.remove('d-none');
+    }
+    pageActuelle = 1;
+    afficherTableau();
+  }
+
+  // 🔍 Filtrer les documents
+  function filtrerDocuments() {
+    const recherche = document.getElementById('recherche').value.toLowerCase().trim();
+    const typeFiltre = document.getElementById('filtreType').value;
+    const anneeFiltre = document.getElementById('filtreAnnee').value;
+
+    return tousDocuments.filter(doc => {
+      const benef = doc.eleve || doc.personnel || {};
+      const nomComplet = `${benef.nom||''} ${benef.prenoms||''}`.toLowerCase();
+      const type = doc.type_document || doc.type_doc || '';
+      const annee = doc.annee_scolaire || '';
+      return (!recherche || nomComplet.includes(recherche) || doc.numero_unique?.toLowerCase().includes(recherche))
+          && (!typeFiltre || type === typeFiltre)
+          && (!anneeFiltre || annee === anneeFiltre);
+    });
+  }
+
+  // 📑 Générer la pagination
+  function genererPagination(total, page, taille) {
+    const nbPages = Math.ceil(total / taille);
+    if(nbPages <= 1) {
+      document.querySelector('#pagination ul').innerHTML = '';
+      return;
+    }
+    let html = '';
+    html += `<li class="page-item ${page===1?'disabled':''}"><a class="page-link" href="#" data-page="${page-1}">&laquo;</a></li>`;
+    for(let i=1; i<=nbPages; i++) {
+      if(i===1 || i===nbPages || (i>=page-2 && i<=page+2)) {
+        html += `<li class="page-item ${i===page?'active':''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+      } else if(i===page-3 || i===page+3) {
+        html += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
+      }
+    }
+    html += `<li class="page-item ${page===nbPages?'disabled':''}"><a class="page-link" href="#" data-page="${page+1}">&raquo;</a></li>`;
+    document.querySelector('#pagination ul').innerHTML = html;
+
+    // Lier les clics
+    document.querySelectorAll('#pagination a.page-link').forEach(lien => {
+      lien.addEventListener('click', e => {
+        e.preventDefault();
+        const p = parseInt(lien.dataset.page);
+        if(p>=1 && p<=nbPages) { pageActuelle = p; afficherTableau(); window.scrollTo({top:0,behavior:'smooth'}); }
+      });
+    });
+  }
+
+  // 📊 Afficher le tableau avec pagination
+  function afficherTableau() {
+    taillePageActuelle = parseInt(document.getElementById('taillePage').value);
+    documentsFiltres = filtrerDocuments();
+
+    document.getElementById('compteur').textContent = `${m('total')} : ${documentsFiltres.length}`;
+
+    const debut = (pageActuelle - 1) * taillePageActuelle;
+    const fin = debut + taillePageActuelle;
+    const pageDonnees = documentsFiltres.slice(debut, fin);
+    const nbPages = Math.ceil(documentsFiltres.length / taillePageActuelle);
+
+    document.getElementById('infoPage').textContent = nbPages > 0
+      ? `${m('page')} ${pageActuelle} ${m('sur')} ${nbPages}` : '';
+
+    if(pageDonnees.length === 0) {
+      document.getElementById('corpsTableau').innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">${m('aucun')}</td></tr>`;
+      genererPagination(0, 1, taillePageActuelle);
+      return;
+    }
+
+    document.getElementById('corpsTableau').innerHTML = pageDonnees.map(doc => {
+      const benef = doc.eleve || doc.personnel || { nom:'—', prenoms:'—' };
+      const type = doc.type_document || doc.type_doc || '';
+      const date = doc.date_delivrance ? new Date(doc.date_delivrance).toLocaleDateString('fr-FR') : '—';
+      return `
+        <tr>
+          <td><code class="text-primary">${doc.numero_unique}</code></td>
+          <td><strong>${benef.nom} ${benef.prenoms}</strong></td>
+          <td><span class="badge-type ${couleurBadge(type)}">${libelleDoc(type)}</span></td>
+          <td class="text-nowrap">${date}</td>
+          <td class="text-center text-nowrap no-print">
+            <button class="btn btn-sm btn-outline-info" onclick="voirDocument(${JSON.stringify(doc).replace(/"/g,'&quot;')})" title="${m('voir')}">
+              <i class="bi bi-eye"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-warning" onclick="imprimerDocument(${JSON.stringify(doc).replace(/"/g,'&quot;')})" title="${m('reimprimer')}">
+              <i class="bi bi-printer"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="demanderSuppression(${JSON.stringify(doc).replace(/"/g,'&quot;')})" title="${m('supprimer')}">
+              <i class="bi bi-trash3"></i>
+            </button>
+          </td>
+        </tr>`;
+    }).join('');
+
+    genererPagination(documentsFiltres.length, pageActuelle, taillePageActuelle);
+  }
+
+  // 👁️ Voir le document
+  window.voirDocument = function(doc) {
+    document.getElementById('contenuDocument').innerHTML = genererModeleDoc(doc);
+    modaleDocument.show();
+  };
+
+  // 🖨️ Imprimer directement
+  window.imprimerDocument = function(doc) {
+    document.getElementById('contenuDocument').innerHTML = genererModeleDoc(doc);
+    setTimeout(() => window.print(), 300);
+  };
+
+  // 🗑️ Étape 1 : Demander confirmation
+  window.demanderSuppression = function(doc) {
+    documentASupprimer = doc;
+    document.getElementById('texteConfirmation').textContent = m('confirmerSuppr').replace('{num}', doc.numero_unique);
+    document.getElementById('confirmerSuppr').checked = false;
+    document.getElementById('btnSupprConfirme').disabled = true;
+    modaleConfirmation.show();
+  };
+
+  // ✅ Activer bouton seulement quand la case est cochée
+  document.getElementById('confirmerSuppr').addEventListener('change', e => {
+    document.getElementById('btnSupprConfirme').disabled = !e.target.checked;
+  });
+
+  // 🗑️ Étape 2 : Supprimer définitivement
+  document.getElementById('btnSupprConfirme').addEventListener('click', async () => {
+    if(!documentASupprimer) return;
+
+    try {
+      const r = await fetch(`${API_URL}/documents/supprimer`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json', Authorization:`Bearer ${token}`},
+        body:JSON.stringify({ numero_unique: documentASupprimer.numero_unique })
+      });
+      const d = await r.json();
+      if(!d.ok) throw new Error(d.erreur || 'Erreur suppression');
+    } catch {
+      // Mode local : filtrer hors de la liste
+      tousDocuments = tousDocuments.filter(x => x.numero_unique !== documentASupprimer.numero_unique);
+      sauvegarderDocumentsLocaux(tousDocuments);
+    }
+
+    alert(m('supprimeOk'));
+    modaleConfirmation.hide();
+    documentASupprimer = null;
+    // Revenir à la bonne page si la dernière ligne est supprimée
+    const nouvelleTotal = documentsFiltres.length - 1;
+    const nbPagesApres = Math.ceil(nouvelleTotal / taillePageActuelle) || 1;
+    if(pageActuelle > nbPagesApres) pageActuelle = nbPagesApres;
+    afficherTableau();
+  });
+
+  // 🔄 Réinitialiser les filtres
+  document.getElementById('btnReset').addEventListener('click', () => {
+    document.getElementById('recherche').value = '';
+    document.getElementById('filtreType').value = '';
+    document.getElementById('filtreAnnee').value = '';
+    pageActuelle = 1;
+    afficherTableau();
+  });
+
+  // 📌 Écouteurs des filtres
+  document.getElementById('recherche').addEventListener('input', () => { pageActuelle = 1; afficherTableau(); });
+  document.getElementById('filtreType').addEventListener('change', () => { pageActuelle = 1; afficherTableau(); });
+  document.getElementById('filtreAnnee').addEventListener('change', () => { pageActuelle = 1; afficherTableau(); });
+  document.getElementById('taillePage').addEventListener('change', () => { pageActuelle = 1; afficherTableau(); });
+
+  // 🚀 Chargement
+  chargerDocuments();
+</script>
+</body>
+</html>

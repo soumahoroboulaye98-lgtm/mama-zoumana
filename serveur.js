@@ -6,9 +6,6 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 
-
-
-
 // ==============================================
 // 📁 CONFIGURATION — Téléversement de fichiers
 // ==============================================
@@ -19,9 +16,6 @@ const stockage = multer.diskStorage({
 });
 const upload = multer({ storage: stockage });
 
-
-
-
 // ==============================================
 // ✅ CRÉATION DE L'APPLICATION
 // ==============================================
@@ -29,14 +23,10 @@ const upload = multer({ storage: stockage });
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-
-
-
 // ==============================================
 // 📦 MIDDLEWARES GLOBAUX — ✅ CORS RENFORCÉ
 // ==============================================
 
-// ✅ Autorise TOUTES les origines (ordinateur + portable + navigateurs variés)
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -45,14 +35,10 @@ app.use(cors({
   preflightContinue: false
 }));
 
-// ✅ Accepte les requêtes préalables OPTIONS
 app.options('*', cors());
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-
-
 
 // ==============================================
 // 📁 DOSSIER PUBLIC — Fichiers statiques
@@ -67,9 +53,6 @@ app.use(express.static(dossierPublic, {
     res.setHeader('Cache-Control', 'public, max-age=86400');
   }
 }));
-
-
-
 
 // ==============================================
 // ⚙️ CONFIGURATION DU SITE
@@ -89,17 +72,145 @@ async function chargerConfig() {
   }
 }
 
-// Rendre la config accessible dans toutes les réponses
 app.use((req, res, next) => {
   res.locals.configSite = configSite;
   next();
 });
 
+// ==============================================
+// 🔐 MIDDLEWARES D'AUTHENTIFICATION
+// ==============================================
 
-
+// ⚠️ Ces middlewares doivent être définis AVANT les routes qui les utilisent
+// Assurez-vous que ./routes/auth exporte bien ces deux fonctions
+const { veriftoken, verifadmin } = require('./routes/auth');
 
 // ==============================================
-// 🔐 DÉCLARATION DES ROUTES
+// 📄 ROUTES DOCUMENTS (intégrées directement)
+// ==============================================
+
+const routerDocuments = express.Router();
+
+// ✅ Lister TOUS les documents
+routerDocuments.get('/tous', [veriftoken, verifadmin], async (req, res) => {
+  try {
+    const r = await pool.query(`
+      SELECT d.*, 
+        json_build_object(
+          'id_utilisateur', e.id, 'nom', e.nom, 'prenoms', e.prenoms, 
+          'classe', e.classe, 'matricule', e.matricule
+        ) AS eleve,
+        json_build_object(
+          'id_utilisateur', p.id, 'nom', p.nom, 'prenoms', p.prenoms, 'role', p.role
+        ) AS personnel
+      FROM documents_delivres d
+      LEFT JOIN utilisateurs e ON d.id_eleve = e.id
+      LEFT JOIN utilisateurs p ON d.id_personnel = p.id
+      ORDER BY d.date_delivrance DESC
+    `);
+    res.json({ ok: true, lignes: r.rows });
+  } catch (e) {
+    console.error("❌ Erreur liste documents :", e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
+});
+
+// ✅ Enregistrer un document délivré
+routerDocuments.post('/delivrer', [veriftoken, verifadmin], async (req, res) => {
+  try {
+    const { id_eleve, id_personnel, type_doc, annee_scolaire, numero_unique } = req.body;
+    await pool.query(`
+      INSERT INTO documents_delivres(id_eleve, id_personnel, type_document, annee_scolaire, numero_unique, id_admin)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `, [id_eleve || null, id_personnel || null, type_doc, annee_scolaire, numero_unique, req.user?.id_utilisateur]);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("❌ Erreur enregistrement document :", e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
+});
+
+// ✅ Supprimer un document par numéro unique
+routerDocuments.post('/supprimer', [veriftoken, verifadmin], async (req, res) => {
+  try {
+    const { numero_unique } = req.body;
+    const r = await pool.query(`
+      DELETE FROM documents_delivres 
+      WHERE numero_unique = $1
+      RETURNING id
+    `, [numero_unique]);
+    
+    if (r.rowCount === 0) {
+      return res.json({ ok: false, erreur: "Document introuvable" });
+    }
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("❌ Erreur suppression document :", e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
+});
+
+// ✅ Statistiques documents
+routerDocuments.get('/statistiques', [veriftoken, verifadmin], async (req, res) => {
+  try {
+    const r = await pool.query(`
+      SELECT 
+        COUNT(*) AS total,
+        COUNT(CASE WHEN id_eleve IS NOT NULL THEN 1 END) AS eleves,
+        COUNT(CASE WHEN id_personnel IS NOT NULL THEN 1 END) AS professeurs,
+        COUNT(CASE WHEN EXTRACT(MONTH FROM date_delivrance) = EXTRACT(MONTH FROM CURRENT_DATE) 
+                    AND EXTRACT(YEAR FROM date_delivrance) = EXTRACT(YEAR FROM CURRENT_DATE) THEN 1 END) AS ce_mois
+      FROM documents_delivres
+    `);
+    res.json({ ok: true, stats: r.rows[0] });
+  } catch (e) {
+    console.error("❌ Erreur statistiques :", e.message);
+    res.json({ ok: false });
+  }
+});
+
+// ==============================================
+// 📊 ROUTES COMPLÉMENTAIRES (Tableau de bord)
+// ==============================================
+
+// ✅ Liste des élèves
+const routerEleves = express.Router();
+routerEleves.get('/liste', [veriftoken, verifadmin], async (req, res) => {
+  try {
+    const r = await pool.query("SELECT * FROM utilisateurs WHERE role='eleve' ORDER BY nom, prenoms");
+    res.json({ ok: true, lignes: r.rows });
+  } catch (e) { 
+    console.error("❌ Erreur liste élèves :", e.message);
+    res.json({ ok: false }); 
+  }
+});
+
+// ✅ Liste du personnel
+const routerPersonnel = express.Router();
+routerPersonnel.get('/liste', [veriftoken, verifadmin], async (req, res) => {
+  try {
+    const r = await pool.query("SELECT * FROM utilisateurs WHERE role!='eleve' ORDER BY nom, prenoms");
+    res.json({ ok: true, lignes: r.rows });
+  } catch (e) { 
+    console.error("❌ Erreur liste personnel :", e.message);
+    res.json({ ok: false }); 
+  }
+});
+
+// ✅ Tous les paiements
+const routerPaiements = express.Router();
+routerPaiements.get('/tous', [veriftoken, verifadmin], async (req, res) => {
+  try {
+    const r = await pool.query("SELECT * FROM paiements ORDER BY date_paiement DESC");
+    res.json({ ok: true, lignes: r.rows });
+  } catch (e) { 
+    console.error("❌ Erreur liste paiements :", e.message);
+    res.json({ ok: false }); 
+  }
+});
+
+// ==============================================
+// 🔗 DÉCLARATION DES ROUTES
 // ==============================================
 
 // — Administration & Utilisateurs
@@ -107,8 +218,8 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/utilisateurs', require('./routes/utilisateurs'));
 app.use('/api/preinscription', require('./routes/preinscription'));
 app.use('/api/auth', require('./routes/auth'));
-
 app.use('/api/admin', require('./routes/admin-crud'));
+
 // — Scolaire
 app.use('/api/classes', require('./routes/classes'));
 app.use('/api/matieres', require('./routes/matieres'));
@@ -122,7 +233,7 @@ app.use('/api/classe-emploi', require('./routes/classe_emploi'));
 
 // — Finances & Comptabilité
 app.use('/api/finances', require('./routes/finances'));
-app.use('/api/paiements', require('./routes/paiements'));
+app.use('/api/paiements', routerPaiements);
 app.use('/api/comptabilite', require('./routes/comptabilite'));
 
 // — Communication & Contenu
@@ -134,22 +245,22 @@ app.use('/api/config', require('./routes/config'));
 app.use('/api/boutique', require('./routes/boutique'));
 
 // — Espace Élève / Parent
-app.use('/api/eleve', require('./routes/eleve'));
+app.use('/api/eleve', routerEleves);
 app.use('/api/parent', require('./routes/parent'));
+
+// — Documents (NOUVEAU)
+app.use('/api/documents", routerDocuments);
 
 // — Pages Informations
 app.use('/api/calendrier', require('./routes/calendrier'));
 app.use('/api/reglement', require('./routes/reglement'));
 app.use('/api/equipe', require('./routes/equipe'));
-
-
-
+app.use('/api/personnel", routerPersonnel);
 
 // ==============================================
 // 🔄 ROUTE DE TEST API + COMPATIBILITÉ
 // ==============================================
 
-// ✅ Ajoutée pour éviter l'erreur 404 sur /api
 app.get('/api', (req, res) => {
   res.json({
     ok: true,
@@ -158,7 +269,7 @@ app.get('/api', (req, res) => {
     routes_disponibles: [
       "/api/admin", "/api/auth", "/api/classes", "/api/matieres",
       "/api/emploi", "/api/notes", "/api/annonces", "/api/config",
-      "/api/eleve", "/api/parent", "/api/test"
+      "/api/eleve", "/api/parent", "/api/documents", "/api/test"
     ]
   });
 });
@@ -166,9 +277,6 @@ app.get('/api', (req, res) => {
 // Redirections
 app.get('/inscription.html', (req, res) => res.redirect('/preinscription.html'));
 app.use('/api/inscription', (req, res) => res.json({ ok: false, message: "⚠️ Utilisez /api/preinscription à la place" }));
-
-
-
 
 // ==============================================
 // 🏠 PAGE D'ACCUEIL
@@ -195,9 +303,6 @@ app.get('/', (req, res) => {
   }
 });
 
-
-
-
 // ==============================================
 // 🧪 TEST DE CONNEXION BASE DE DONNÉES
 // ==============================================
@@ -216,19 +321,16 @@ app.get('/api/test', async (req, res) => {
   }
 });
 
-
-
-
 // ==============================================
 // 🚀 DÉMARRAGE DU SERVEUR — CORRIGÉ POUR RENDER ✅
 // ==============================================
 
 chargerConfig()
   .then(() => {
-    // ✅ OBLIGATOIRE SUR RENDER : ajouter '0.0.0.0'
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`\n🚀 Serveur démarré sur le port ${PORT}`);
       console.log(`🌍 API racine : https://mama-zoumana.onrender.com/api`);
+      console.log(`📄 Documents   : https://mama-zoumana.onrender.com/api/documents`);
       console.log(`🧪 Test base  : https://mama-zoumana.onrender.com/api/test`);
       console.log(`🏠 Accueil    : https://mama-zoumana.onrender.com/\n`);
     });

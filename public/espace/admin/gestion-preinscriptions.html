@@ -11,14 +11,40 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    :root { 
-      --primaire: #0c4a6e; 
-      --secondaire: #0369a1; 
-      --accent: #f59e0b; 
-      --succes: #10b981; 
-      --alerte: #ef4444; 
-      --sombre: #0f172a; 
-      --clair: #f8fafc; 
+    /* ===== 🎨 VARIABLES — MODE CLAIR ===== */
+    :root {
+      --primaire: #0c4a6e;
+      --secondaire: #0369a1;
+      --accent: #f59e0b;
+      --succes: #10b981;
+      --alerte: #ef4444;
+      --sombre: #0f172a;
+      --sombre-clair: #f1f5f9;
+      --clair: #f8fafc;
+      --texte: #1e293b;
+      --bordure: #cbd5e1;
+      --fond-tableau: #ffffff;
+      --ligne-alterne: #f8fafc;
+      --entete-debut: #0c4a6e;
+      --entete-fin: #0369a1;
+    }
+
+    /* ===== 🌙 MODE SOMBRE ===== */
+    [data-theme="sombre"] {
+      --primaire: #3b82f6;
+      --secondaire: #0ea5e9;
+      --accent: #fbbf24;
+      --succes: #22c55e;
+      --alerte: #f87171;
+      --sombre: #020617;
+      --sombre-clair: #1e293b;
+      --clair: #e2e8f0;
+      --texte: #e2e8f0;
+      --bordure: #334155;
+      --fond-tableau: #1e293b;
+      --ligne-alterne: #334155;
+      --entete-debut: #1e40af;
+      --entete-fin: #0369a1;
     }
 
     /* ===== 🌐 LANGUE ===== */
@@ -27,15 +53,19 @@
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
     body.lang-en .txt-en { display: inline; }
     body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
-    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-ar { display: inline; direction: rtl; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
-    body.lang-ar { direction: rtl; }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 10px !important; }
-    body { background: var(--sombre); color: var(--clair); font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+    * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 10px !important; transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease; }
+    body { 
+      background: var(--sombre-clair); 
+      color: var(--texte); 
+      font-family: 'Segoe UI', sans-serif; 
+      min-height: 100vh; 
+    }
 
     .entete {
-      background: linear-gradient(135deg, var(--primaire), var(--secondaire));
+      background: linear-gradient(135deg, var(--entete-debut), var(--entete-fin));
       padding: 20px 30px;
       margin-bottom: 25px;
       display: flex;
@@ -46,36 +76,54 @@
     }
 
     .btn-retour { color: white; text-decoration: none; font-weight: 500; }
-    .statut { padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+    .statut { padding: 4px 12px; border-radius: 20px !important; font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
     .attente { background: rgba(245,158,11,0.2); color: var(--accent); border: 1px solid var(--accent); }
     .validee { background: rgba(16,185,129,0.2); color: var(--succes); border: 1px solid var(--succes); }
     .refusee { background: rgba(239,68,68,0.2); color: var(--alerte); border: 1px solid var(--alerte); }
 
     .btn-valider { background: var(--succes); color: white; border: none; padding: 6px 12px; font-weight: 500; }
+    .btn-valider:hover { background: #059669; color: white; }
     .btn-refuser { background: var(--alerte); color: white; border: none; padding: 6px 12px; font-weight: 500; }
+    .btn-refuser:hover { background: #dc2626; color: white; }
     .btn-doc { background: var(--primaire); color: white; border: none; padding: 4px 8px; font-size: 0.8rem; font-weight: 500; text-decoration: none; display: inline-block; margin: 2px; }
     .btn-doc:hover { background: var(--secondaire); color: white; }
+    .btn-theme { background: transparent; border: 1px solid white; color: white; padding: 6px 12px; border-radius: 50% !important; }
+    .btn-theme:hover { background: rgba(255,255,255,0.2); color: white; }
 
     .matricule { font-weight: 700; color: var(--accent); font-size: 0.9rem; }
     .table-responsive { padding: 0 15px; }
-    table { background: rgba(15,23,42,0.95); border-radius: 12px; overflow: hidden; width: 100%; }
-    th { background: var(--primaire); color: white; text-align: center; padding: 12px; white-space: nowrap; }
-    td { padding: 10px; text-align: center; border-bottom: 1px solid #334155; vertical-align: middle; }
+    table { background: var(--fond-tableau); border-radius: 12px; overflow: hidden; width: 100%; }
+    th { background: var(--primaire); color: white; text-align: center; padding: 12px; white-space: nowrap; border: none; }
+    td { padding: 10px; text-align: center; border-bottom: 1px solid var(--bordure); vertical-align: middle; }
+    tbody tr { background: var(--fond-tableau); }
+    tbody tr:nth-child(even) { background: var(--ligne-alterne); }
     .alert { margin: 15px; border-radius: 10px; }
-    .mini-img { width: 45px; height: 45px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid #475569; }
-    .mini-img:hover { border-color: var(--accent); transform: scale(1.1); transition: 0.2s; }
+    .mini-img { width: 45px; height: 45px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid var(--bordure); }
+    .mini-img:hover { border-color: var(--accent); transform: scale(1.1); transition: all 0.2s; }
     .docs-col { min-width: 160px; }
     .nom-col { min-width: 160px; }
     .modal-img { max-width: 100%; max-height: 80vh; border-radius: 8px; }
+
+    /* ===== 📋 MODALE VÉRIFICATION ===== */
+    .card-verif { border: 2px dashed var(--accent); background: rgba(245,158,11,0.08); padding: 15px; margin-bottom: 10px; }
+    .card-verif h6 { color: var(--accent); margin-bottom: 8px; }
+    .badge-info { background: var(--primaire); color: white; }
+
+    /* ===== CORRECTION MODALE MODE SOMBRE ===== */
+    .modal-content { background: var(--fond-tableau); color: var(--texte); }
+    .modal-header, .modal-footer { border-color: var(--bordure); }
+    .bg-dark.text-white { background: var(--sombre) !important; color: var(--texte) !important; }
+    .btn-close { filter: invert(1); }
   </style>
 </head>
 <body>
 
-<!-- 🔒 PROTECTION -->
+
+<!-- 🔒 PROTECTION + CONFIG GLOBALE -->
 <script>
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
-  if (!token || !['admin','super_admin'].includes(role)) {
+  if (!token || !['admin','super_admin','comptable','directeur'].includes(role)) {
     alert("⛔ Accès réservé à l'administrateur");
     location.href = 'dashboard.html';
   }
@@ -83,9 +131,9 @@
   // 🔗 DÉTECTION AUTOMATIQUE DE L'API
   const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:10000/api'
-    : 'https://mama-zoumana-api.onrender.com/api';
+    : 'https://mama-zoumana.onrender.com/api';
 
-  // 💾 STOCKAGE LOCAL (FALLBACK SI API INDISPONIBLE)
+  // 💾 STOCKAGE LOCAL
   function obtenirPreinscriptionsLocales() {
     return JSON.parse(localStorage.getItem('preinscriptions') || '[]');
   }
@@ -96,7 +144,22 @@
   // 🌍 GESTION DE LA LANGUE
   let langueActuelle = localStorage.getItem('langue') || 'fr';
   document.body.classList.add('lang-' + langueActuelle);
+
+  // 🌙 GESTION MODE JOUR/NUIT — CORRIGÉ : démarre en mode clair
+  let themeActuel = localStorage.getItem('theme') || 'clair';
+  document.documentElement.setAttribute('data-theme', themeActuel);
+  function basculerTheme() {
+    themeActuel = themeActuel === 'clair' ? 'sombre' : 'clair';
+    document.documentElement.setAttribute('data-theme', themeActuel);
+    localStorage.setItem('theme', themeActuel);
+    mettreAJourIconeTheme();
+  }
+  function mettreAJourIconeTheme() {
+    const icone = document.getElementById('iconeTheme');
+    if (icone) icone.className = themeActuel === 'sombre' ? 'bi bi-moon-stars-fill' : 'bi bi-sun-fill';
+  }
 </script>
+
 
 <!-- 🧭 ENTÊTE -->
 <div class="entete">
@@ -112,18 +175,24 @@
     <span class="txt-en">Pre-registration Management</span>
     <span class="txt-ar">إدارة التسجيل المسبق</span>
   </h3>
-  <button class="btn btn-outline-light btn-sm" onclick="chargerListe()">
-    <i class="bi bi-arrow-clockwise"></i> 
-    <span class="txt-fr">Actualiser</span>
-    <span class="txt-en">Refresh</span>
-    <span class="txt-ar">تحديث</span>
-  </button>
+  <div class="d-flex gap-2">
+    <button class="btn-theme" onclick="basculerTheme()" title="Mode Jour/Nuit">
+      <i class="bi bi-sun-fill" id="iconeTheme"></i>
+    </button>
+    <button class="btn btn-outline-light btn-sm" onclick="chargerListe()">
+      <i class="bi bi-arrow-clockwise"></i> 
+      <span class="txt-fr">Actualiser</span>
+      <span class="txt-en">Refresh</span>
+      <span class="txt-ar">تحديث</span>
+    </button>
+  </div>
 </div>
+
 
 <div class="container-fluid">
   <div id="msg"></div>
   <div class="table-responsive">
-    <table class="table table-dark table-striped">
+    <table class="table">
       <thead>
         <tr>
           <th>#</th>
@@ -148,9 +217,14 @@
             <span class="txt-ar">المستندات / الصورة</span>
           </th>
           <th>
-            <span class="txt-fr">Contact</span>
-            <span class="txt-en">Contact</span>
-            <span class="txt-ar">الاتصال</span>
+            <span class="txt-fr">Parents</span>
+            <span class="txt-en">Parents</span>
+            <span class="txt-ar">الوالدين</span>
+          </th>
+          <th>
+            <span class="txt-fr">Services</span>
+            <span class="txt-en">Services</span>
+            <span class="txt-ar">الخدمات</span>
           </th>
           <th>
             <span class="txt-fr">Date demande</span>
@@ -176,7 +250,7 @@
       </thead>
       <tbody id="corpsTableau">
         <tr>
-          <td colspan="10" class="text-center py-4">
+          <td colspan="11" class="text-center py-4">
             <span class="txt-fr">Chargement en cours...</span>
             <span class="txt-en">Loading...</span>
             <span class="txt-ar">جار التحميل...</span>
@@ -187,18 +261,59 @@
   </div>
 </div>
 
+
+<!-- 📋 MODALE VÉRIFICATION AVANT VALIDATION -->
+<div class="modal fade" id="modalVerif" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-eye"></i>
+          <span class="txt-fr">Vérification complète de la demande</span>
+          <span class="txt-en">Full Request Verification</span>
+          <span class="txt-ar">التحقق الكامل من الطلب</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body p-4" id="contenuVerif">
+        <!-- Chargé dynamiquement -->
+      </div>
+      <div class="modal-footer d-flex justify-content-between">
+        <div>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-pencil"></i>
+            <span class="txt-fr">Modifier</span>
+            <span class="txt-en">Edit</span>
+            <span class="txt-ar">تعديل</span>
+          </button>
+          <button type="button" class="btn btn-danger" id="btnSupprimerDemande">
+            <i class="bi bi-trash"></i>
+            <span class="txt-fr">Supprimer</span>
+            <span class="txt-en">Delete</span>
+            <span class="txt-ar">حذف</span>
+          </button>
+        </div>
+        <div>
+          <button type="button" class="btn btn-success" id="btnConfirmerValidation">
+            <i class="bi bi-check-circle"></i>
+            <span class="txt-fr">✅ Confirmer et valider</span>
+            <span class="txt-en">✅ Confirm & Approve</span>
+            <span class="txt-ar">✅ تأكيد والموافقة</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- 🖼️ MODALE AFFICHAGE PHOTO -->
 <div class="modal fade" id="modalPhoto" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content bg-dark text-white">
-      <div class="modal-header border-secondary">
-        <h5 class="modal-title">
-          📷 
-          <span class="txt-fr">Photo d'identité</span>
-          <span class="txt-en">ID Photo</span>
-          <span class="txt-ar">صورة الهوية</span>
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">📷 <span class="txt-fr">Photo d'identité</span><span class="txt-en">ID Photo</span><span class="txt-ar">صورة الهوية</span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
       </div>
       <div class="modal-body text-center p-4">
         <img id="imgApercu" class="modal-img" src="" alt="Photo d'identité">
@@ -207,10 +322,14 @@
   </div>
 </div>
 
+
 <script>
+  let demandeEnCours = null;
+  mettreAJourIconeTheme();
+
   // ✂️ ÉCHAPPEMENT SÉCURITAIRE
   function escaperHtml(texte) {
-    if (!texte) return '';
+    if (!texte) return '—';
     const div = document.createElement('div');
     div.textContent = texte;
     return div.innerHTML;
@@ -222,24 +341,26 @@
     let liste = [];
 
     try {
-      const res = await fetch(`${API_BASE}/preinscription/en-attente`, {
+      const res = await fetch(`${API_BASE}/preinscription/liste`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const d = await res.json();
-      if (d.ok && Array.isArray(d.lignes)) {
-        liste = d.lignes;
+      if (d.ok && Array.isArray(d.liste)) {
+        liste = d.liste;
+        sauvegarderPreinscriptionsLocales(liste);
+      } else if (Array.isArray(d)) {
+        liste = d;
         sauvegarderPreinscriptionsLocales(liste);
       } else {
         throw Error("Réponse invalide");
       }
-    } catch {
-      // ⚠️ Mode hors-ligne
+    } catch (e) {
+      console.warn("Chargement depuis le cache :", e.message);
       liste = obtenirPreinscriptionsLocales().filter(x => x.statut === 'en_attente');
     }
 
-    // 📭 Liste vide
     if (!liste.length) {
-      conteneur.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-warning">
+      conteneur.innerHTML = `<tr><td colspan="11" class="text-center py-4 text-warning">
         <span class="txt-fr">Aucune demande en attente</span>
         <span class="txt-en">No pending requests</span>
         <span class="txt-ar">لا توجد طلبات قيد الانتظار</span>
@@ -247,78 +368,191 @@
       return;
     }
 
-    // 🎨 AFFICHAGE
     conteneur.innerHTML = liste.map((x, i) => {
-      // Déterminer la classe de statut
       let classeStatut = '';
       if (x.statut === 'en_attente') classeStatut = 'attente';
-      else if (x.statut === 'valide') classeStatut = 'validee';
-      else if (x.statut === 'refusee') classeStatut = 'refusee';
+      else if (x.statut === 'validee') classeStatut = 'validee';
+      else if (x.statut === 'annulee' || x.statut === 'refusee') classeStatut = 'refusee';
 
-      // Construire les URLs des documents
-      const photoUrl = x.photo_identite ? `${API_BASE}/uploads/${x.photo_identite}` : null;
-      const extraitUrl = x.extrait_naissance ? `${API_BASE}/uploads/${x.extrait_naissance}` : null;
-      const bulletinUrl = x.bulletin ? `${API_BASE}/uploads/${x.bulletin}` : null;
-      const cvUrl = x.cv ? `${API_BASE}/uploads/${x.cv}` : null;
+      const photoUrl = x.photo_identite ? (x.photo_identite.startsWith('http') ? x.photo_identite : `${API_BASE}/${x.photo_identite}`) : null;
+      const extraitUrl = x.documents?.includes('extrait') ? `${API_BASE}/${x.documents.split('|').find(f=>f.includes('extrait'))}` : null;
+      const bulletinUrl = x.documents?.includes('bulletin') ? `${API_BASE}/${x.documents.split('|').find(f=>f.includes('bulletin'))}` : null;
+      const cvUrl = x.documents?.includes('cv') ? `${API_BASE}/${x.documents.split('|').find(f=>f.includes('cv'))}` : null;
 
-      // Construire le bloc documents
       let blocDocs = '';
       if (photoUrl) {
         blocDocs += `<img src="${photoUrl}" class="mini-img me-1 mb-1" alt="Photo" onclick="voirPhoto('${photoUrl}')" title="${
           langueActuelle==='ar'?'انقر لعرض الصورة':langueActuelle==='en'?'Click to view photo':'Cliquer pour voir la photo'
         }">`;
-      } else {
-        blocDocs += `<span class="text-muted small">—</span>`;
-      }
-      if (extraitUrl) blocDocs += `<a href="${extraitUrl}" target="_blank" class="btn-doc"><i class="bi bi-file-earmark-text"></i> <span class="txt-fr">Extrait</span><span class="txt-en">Birth Cert.</span><span class="txt-ar">شهادة الولادة</span></a><br>`;
-      if (bulletinUrl) blocDocs += `<a href="${bulletinUrl}" target="_blank" class="btn-doc"><i class="bi bi-file-earmark-bar-graph"></i> <span class="txt-fr">Bulletin</span><span class="txt-en">Transcript</span><span class="txt-ar">كشف النقاط</span></a><br>`;
+      } else blocDocs += `<span class="text-muted small">—</span>`;
+      if (extraitUrl) blocDocs += `<a href="${extraitUrl}" target="_blank" class="btn-doc"><i class="bi bi-file-earmark-text"></i> <span class="txt-fr">Extrait</span><span class="txt-en">Birth Cert.</span></a><br>`;
+      if (bulletinUrl) blocDocs += `<a href="${bulletinUrl}" target="_blank" class="btn-doc"><i class="bi bi-file-earmark-bar-graph"></i> <span class="txt-fr">Bulletin</span><span class="txt-en">Transcript</span></a><br>`;
       if (cvUrl) blocDocs += `<a href="${cvUrl}" target="_blank" class="btn-doc"><i class="bi bi-file-earmark-pdf"></i> CV</a>`;
-      if (!extraitUrl && !bulletinUrl && !cvUrl) blocDocs += `<br><span class="text-muted small">
-        <span class="txt-fr">Aucun document</span>
-        <span class="txt-en">No documents</span>
-        <span class="txt-ar">لا مستندات</span>
-      </span>`;
 
-      // Formater la date
+      let parentsTxt = '';
+      if (x.nom_pere || x.nom_mere) {
+        parentsTxt = `<small>`;
+        if (x.nom_pere) parentsTxt += `<b>Père:</b> ${escaperHtml(x.nom_pere)}${x.profession_pere?` — ${escaperHtml(x.profession_pere)}`:''}<br>`;
+        if (x.nom_mere) parentsTxt += `<b>Mère:</b> ${escaperHtml(x.nom_mere)}${x.profession_mere?` — ${escaperHtml(x.profession_mere)}`:''}`;
+        parentsTxt += `</small>`;
+      } else parentsTxt = `<span class="text-muted small">—</span>`;
+
+      let servicesTxt = [];
+      if (x.cantine === 'oui') servicesTxt.push('🍽️ Cantine');
+      if (x.transport === 'oui') servicesTxt.push('🚌 Transport');
+      if (x.cours_renforcement === 'oui') servicesTxt.push('📚 Renforcement');
+      if (x.informatique === 'oui') servicesTxt.push('💻 Info');
+      if (x.club_langues === 'oui') servicesTxt.push('🗣️ Langues');
+      const paiementTxt = {orange_money:'🟠 Orange',moov_money:'🟦 Moov',mtn_money:'🟡 MTN',banque:'🏦 Banque'}[x.mode_paiement] || '';
+      if (paiementTxt) servicesTxt.push(paiementTxt);
+
       let dateFormatee = '';
-      try { dateFormatee = new Date(x.date_preinscription).toLocaleString('fr-FR'); }
+      try { dateFormatee = x.date_preinscription ? new Date(x.date_preinscription).toLocaleString(langueActuelle === 'ar' ? 'ar-MA' : 'fr-FR') : '—'; }
       catch { dateFormatee = x.date_preinscription || '—'; }
 
-      // Affichage de la ligne
+      const statutAffichage = {en_attente:'En attente',validee:'Validée',refusee:'Refusée',annulee:'Refusée'}[x.statut] || x.statut;
+      const idDemande = x.id_preinscription || x.id;
+
       return `
       <tr>
         <td>${i + 1}</td>
         <td class="text-start fw-medium">${escaperHtml(x.nom)} ${escaperHtml(x.prenoms)}</td>
         <td><span class="badge bg-secondary">${escaperHtml((x.profil || '').toUpperCase())}</span></td>
-        <td><small>${escaperHtml(x.libelle_classe || x.id_classe || '—')}</small></td>
+        <td><small>${escaperHtml(x.libelle_classe_fr || x.libelle_classe || '—')}</small><br><small class="text-muted">${escaperHtml(x.libelle_classe_ar || '')}</small></td>
         <td class="docs-col">${blocDocs}</td>
-        <td><small>${escaperHtml(x.email)}<br>${escaperHtml(x.telephone)}</small></td>
+        <td>${parentsTxt}</td>
+        <td><small>${servicesTxt.join(', ') || '—'}</small></td>
         <td><small>${dateFormatee}</small></td>
-        <td><span class="statut ${classeStatut}">${(x.statut || '').replace('_', ' ')}</span></td>
+        <td><span class="statut ${classeStatut}">${statutAffichage}</span></td>
         <td class="matricule">${escaperHtml(x.matricule || '—')}</td>
         <td>
           ${x.statut === 'en_attente' ? `
-            <button class="btn-valider me-1 mb-1" onclick="valider(${x.id_preinscription})">
-              <i class="bi bi-check-circle"></i> 
-              <span class="txt-fr">Valider</span>
-              <span class="txt-en">Approve</span>
-              <span class="txt-ar">موافقة</span>
+            <button class="btn btn-sm btn-primary me-1 mb-1" onclick='ouvrirVerification(${JSON.stringify(x).replace(/'/g,"\\'")})'>
+              <i class="bi bi-eye"></i> <span class="txt-fr">Vérifier</span>
             </button>
-            <button class="btn-refuser me-1 mb-1" onclick="refuser(${x.id_preinscription})">
-              <i class="bi bi-x-circle"></i> 
-              <span class="txt-fr">Refuser</span>
-              <span class="txt-en">Reject</span>
-              <span class="txt-ar">رفض</span>
-            </button>
-          ` : `<small class="text-muted">
-            <span class="txt-fr">Traité</span>
-            <span class="txt-en">Processed</span>
-            <span class="txt-ar">معالج</span>
-          </small>`}
+          ` : `<small class="text-muted"><span class="txt-fr">Traité</span></small>`}
         </td>
       </tr>`;
     }).join('');
   }
+
+  // 🧐 OUVRIR LA FENÊTRE DE VÉRIFICATION COMPLÈTE
+  function ouvrirVerification(demande) {
+    demandeEnCours = demande;
+    const d = demande;
+    const photoUrl = d.photo_identite ? (d.photo_identite.startsWith('http') ? d.photo_identite : `${API_BASE}/${d.photo_identite}`) : null;
+
+    document.getElementById('contenuVerif').innerHTML = `
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card-verif">
+            <h6>👤 <span class="txt-fr">Identité</span><span class="txt-en">Identity</span></h6>
+            <p><b>Nom :</b> ${escaperHtml(d.nom)}<br>
+            <b>Prénoms :</b> ${escaperHtml(d.prenoms)}<br>
+            <b>Email :</b> ${escaperHtml(d.email)}<br>
+            <b>Téléphone :</b> ${escaperHtml(d.telephone)}<br>
+            <b>Profil :</b> ${escaperHtml((d.profil||'').toUpperCase())}<br>
+            <b>Date naissance :</b> ${escaperHtml(d.date_naissance||'—')}</p>
+            ${photoUrl ? `<img src="${photoUrl}" class="img-thumbnail" style="max-width:150px;">` : ''}
+          </div>
+          <div class="card-verif">
+            <h6>🏫 <span class="txt-fr">Classe choisie</span><span class="txt-en">Selected Class</span></h6>
+            <p><b>Français :</b> ${escaperHtml(d.libelle_classe_fr||d.libelle_classe||'—')}<br>
+            <b>Arabe :</b> ${escaperHtml(d.libelle_classe_ar||'—')}</p>
+          </div>
+          ${d.profil==='eleve'?`<div class="card-verif">
+            <h6>👨‍👩‍👧 <span class="txt-fr">Informations Parents</span><span class="txt-en">Parent Info</span></h6>
+            <p><b>Père :</b> ${escaperHtml(d.nom_pere||'—')}${d.profession_pere?`<br>Profession : ${escaperHtml(d.profession_pere)}`:''}${d.date_naissance_pere?`<br>Naissance : ${escaperHtml(d.date_naissance_pere)}`:''}<br>
+            <b>Mère :</b> ${escaperHtml(d.nom_mere||'—')}${d.profession_mere?`<br>Profession : ${escaperHtml(d.profession_mere)}`:''}${d.date_naissance_mere?`<br>Naissance : ${escaperHtml(d.date_naissance_mere)}`:''}</p>
+          </div>`:''}
+        </div>
+        <div class="col-md-6">
+          <div class="card-verif">
+            <h6>📚 <span class="txt-fr">Année précédente</span><span class="txt-en">Previous Year</span></h6>
+            <p><b>Moyenne :</b> ${escaperHtml(d.moyenne_annee_precedente||'—')}/20<br>
+            <b>Rang :</b> ${escaperHtml(d.rang_annee_precedente||'—')}<br>
+            <b>Mention :</b> ${escaperHtml(d.mention_annee_precedente||'—')}<br>
+            <b>Conduite :</b> ${escaperHtml(d.conduite||'—')}</p>
+          </div>
+          <div class="card-verif">
+            <h6>⚙️ <span class="txt-fr">Services & Paiement</span><span class="txt-en">Services & Payment</span></h6>
+            <p>🍽️ Cantine : ${d.cantine==='oui'?'✅ OUI':'❌ NON'}<br>
+            🚌 Transport : ${d.transport==='oui'?'✅ OUI':'❌ NON'}<br>
+            📚 Cours renforcement : ${d.cours_renforcement==='oui'?'✅ OUI':'❌ NON'}<br>
+            💻 Informatique : ${d.informatique==='oui'?'✅ OUI':'❌ NON'}<br>
+            🗣️ Club de langues : ${d.club_langues==='oui'?'✅ OUI':'❌ NON'}<br>
+            💳 Mode paiement : ${({orange_money:'Orange Money',moov_money:'Moov Money',mtn_money:'MTN Money',banque:'Virement Bancaire'}[d.mode_paiement]||'—')}</p>
+          </div>
+          <div class="card-verif">
+            <h6>📄 <span class="txt-fr">Documents fournis</span><span class="txt-en">Provided Documents</span></h6>
+            <p>${d.documents?d.documents.split('|').map(f=>`<a href="${API_BASE}/${f}" target="_blank" class="btn-doc">📄 ${f.split('-').pop()}</a>`).join('<br>'):'Aucun document'}</p>
+          </div>
+          <div class="card-verif bg-success bg-opacity-10">
+            <h6>🔢 <span class="txt-fr">Matricule généré</span><span class="txt-en">Generated ID</span></h6>
+            <p class="h4 text-warning">${escaperHtml(d.matricule||'À la validation')}</p>
+          </div>
+        </div>
+      </div>
+    `;
+    new bootstrap.Modal(document.getElementById('modalVerif')).show();
+  }
+
+  // ✅ VALIDER APRÈS VÉRIFICATION
+  document.getElementById('btnConfirmerValidation').onclick = async function() {
+    if (!demandeEnCours) return;
+    const id = demandeEnCours.id_preinscription || demandeEnCours.id;
+    const msgConf = {
+      fr: '✅ Confirmer la validation ? Un compte sera créé et un email sera envoyé avec toutes les informations.',
+      en: '✅ Confirm approval? An account will be created and an email sent with all info.',
+      ar: '✅ تأكيد الموافقة؟ سيتم إنشاء حساب وإرسال بريد إلكتروني بجميع المعلومات.'
+    };
+    if (!confirm(msgConf[langueActuelle])) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/preinscription/valider/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+      });
+      const d = await res.json();
+      if (d.ok) {
+        afficherMsg('success', {
+          fr: '✅ Demande validée ! Compte créé et email envoyé avec toutes les informations.',
+          en: '✅ Approved! Account created and email sent with all information.',
+          ar: '✅ تمت الموافقة! تم إنشاء الحساب وإرسال البريد الإلكتروني بجميع المعلومات.'
+        }[langueActuelle]);
+        bootstrap.Modal.getInstance(document.getElementById('modalVerif')).hide();
+        chargerListe();
+      } else {
+        afficherMsg('danger', `❌ ${d.erreur || 'Erreur inconnue'}`);
+      }
+    } catch (e) {
+      afficherMsg('danger', "❌ Erreur réseau. Réessayez.");
+    }
+  };
+
+  // ❌ SUPPRIMER LA DEMANDE
+  document.getElementById('btnSupprimerDemande').onclick = async function() {
+    if (!demandeEnCours) return;
+    const msgConf = {
+      fr: '⚠️ Supprimer définitivement cette demande ?',
+      en: '⚠️ Permanently delete this request?',
+      ar: '⚠️ حذف هذا الطلب نهائيًا؟'
+    };
+    if (!confirm(msgConf[langueActuelle])) return;
+    const id = demandeEnCours.id_preinscription || demandeEnCours.id;
+    try {
+      const res = await fetch(`${API_BASE}/preinscription/supprimer/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const d = await res.json();
+      if (d.ok) {
+        afficherMsg('success', {fr:'✅ Demande supprimée.',en:'✅ Request deleted.',ar:'✅ تم حذف الطلب.'}[langueActuelle]);
+        bootstrap.Modal.getInstance(document.getElementById('modalVerif')).hide();
+        chargerListe();
+      } else afficherMsg('danger', `❌ ${d.erreur || 'Erreur'}`);
+    } catch { afficherMsg('danger', "❌ Erreur réseau."); }
+  };
 
   // 🖼️ AFFICHER LA PHOTO EN GRAND
   function voirPhoto(url) {
@@ -326,89 +560,17 @@
     new bootstrap.Modal(document.getElementById('modalPhoto')).show();
   }
 
-  // ✅ VALIDER UNE PRÉINSCRIPTION
-  async function valider(id) {
-    const msgConf = {
-      fr: '✅ Confirmer la validation ? Un compte sera créé pour cet utilisateur.',
-      en: '✅ Confirm approval? An account will be created for this user.',
-      ar: '✅ تأكيد الموافقة؟ سيتم إنشاء حساب لهذا المستخدم.'
-    };
-    if (!confirm(msgConf[langueActuelle])) return;
-
-    // Mise à jour immédiate en local
-    let liste = obtenirPreinscriptionsLocales();
-    const idx = liste.findIndex(x => x.id_preinscription === id);
-    if (idx !== -1) liste[idx].statut = 'valide';
-    sauvegarderPreinscriptionsLocales(liste);
-
-    // Envoyer à l'API en arrière-plan
-    try {
-      const res = await fetch(`${API_BASE}/preinscription/traiter/${id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ statut: 'valide' })
-      });
-      const d = await res.json();
-      afficherMsg(d.ok ? 'success' : 'danger', 
-        d.ok ? { fr: '✅ Demande validée ! Compte créé.', en: '✅ Approved! Account created.', ar: '✅ تمت الموافقة! تم إنشاء الحساب.' }[langueActuelle] 
-             : `❌ ${d.erreur || ''}`);
-    } catch {
-      afficherMsg('success', { fr: '✅ Enregistré localement. Sync en cours.', en: '✅ Saved locally. Sync pending.', ar: '✅ تم الحفظ محليًا. جارٍ المزامنة.' }[langueActuelle]);
-    }
-
-    chargerListe();
-  }
-
-  // ❌ REFUSER UNE PRÉINSCRIPTION
-  async function refuser(id) {
-    const msgConf = {
-      fr: '❌ Confirmer le refus ?',
-      en: '❌ Confirm rejection?',
-      ar: '❌ تأكيد الرفض؟'
-    };
-    if (!confirm(msgConf[langueActuelle])) return;
-
-    // Mise à jour immédiate en local
-    let liste = obtenirPreinscriptionsLocales();
-    const idx = liste.findIndex(x => x.id_preinscription === id);
-    if (idx !== -1) liste[idx].statut = 'refusee';
-    sauvegarderPreinscriptionsLocales(liste);
-
-    // Envoyer à l'API en arrière-plan
-    try {
-      const res = await fetch(`${API_BASE}/preinscription/traiter/${id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ statut: 'refusee' })
-      });
-      const d = await res.json();
-      afficherMsg(d.ok ? 'success' : 'danger', 
-        d.ok ? { fr: '❌ Demande refusée.', en: '❌ Rejected.', ar: '❌ تم الرفض.' }[langueActuelle] 
-             : `❌ ${d.erreur || ''}`);
-    } catch {
-      afficherMsg('success', { fr: '✅ Enregistré localement.', en: '✅ Saved locally.', ar: '✅ تم الحفظ محليًا.' }[langueActuelle]);
-    }
-
-    chargerListe();
-  }
-
   // 💬 AFFICHER UN MESSAGE
   function afficherMsg(type, texte) {
     document.getElementById('msg').innerHTML = `<div class="alert alert-${type}">${texte}</div>`;
-    setTimeout(() => document.getElementById('msg').innerHTML = '', 5000);
+    setTimeout(() => document.getElementById('msg').innerHTML = '', 6000);
   }
 
   // 🚀 AU CHARGEMENT
   document.addEventListener('DOMContentLoaded', chargerListe);
 </script>
 
-<!-- ✅ Bootstrap JS pour la modale -->
+<!-- ✅ Bootstrap JS pour les modales -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

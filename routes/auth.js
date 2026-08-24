@@ -9,18 +9,21 @@ const fs = require('fs');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-// ✅ CLÉ EN DUR — JAMAIS VIDE, MÊME SI Render n'a pas la variable
-const CLE_JWT = 'ma_cle_secrete_pour_le_site_2026';
+// ==================================================
+// ✅ CLÉ JWT UNIFIÉE — MÊME VALEUR PARTOUT
+// ==================================================
+const CLE_JWT = process.env.JWT_SECRET || 'ma_cle_secrete_pour_le_site_2026';
 
-
-// ✅ Middlewares importés selon la convention du projet
+// ==================================================
+// ✅ MIDDLEWARES IMPORTÉS ET HARMONISÉS
+// ==================================================
 const veriftoken = require('../middleware/veriftoken');
 const verifadmin = require('../middleware/verifadmin');
-
-// ✅ Protection groupée uniforme
 const protegerAdmin = [veriftoken, verifadmin];
 
+// ==================================================
 // 📁 CONFIGURATION UPLOAD FICHIERS
+// ==================================================
 const dossierUpload = path.join(__dirname, '../public/uploads');
 if (!fs.existsSync(dossierUpload)) {
   fs.mkdirSync(dossierUpload, { recursive: true });
@@ -35,7 +38,9 @@ const stockage = multer.diskStorage({
 });
 const upload = multer({ storage: stockage, limits: { fileSize: 10 * 1024 * 1024 } });
 
+// ==================================================
 // 📧 CONFIGURATION EMAIL
+// ==================================================
 const transport = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -45,8 +50,7 @@ const transport = nodemailer.createTransport({
 });
 
 // ==================================================
-// 🆕 GÉNÉRER MATRICULE — FORMAT IVOIRIEN
-// Format : MZ-AAAA-CLASSE-NNNN  Ex: MZ-2026-CE1-0042
+// 🆕 GÉNÉRER MATRICULE — FORMAT : MZ-ANNÉE-CLASSE-NNNN
 // ==================================================
 async function genererMatricule(profil, id_classe = null) {
   const annee = new Date().getFullYear();
@@ -79,8 +83,8 @@ async function genererMatricule(profil, id_classe = null) {
 }
 
 // ==================================================
-// 🔐 CONNEXION — ÉLÈVE=MATRICULE / AUTRES=EMAIL
-// ✅ HARMONISÉ : id et prenom conformes à la base Neon
+// 🔐 CONNEXION — Élève = Matricule / Autres = Email
+// ✅ CHAMPS : id / prenom (conforme à la base)
 // ==================================================
 router.post('/connexion', async (req, res) => {
   try {
@@ -132,10 +136,12 @@ router.post('/connexion', async (req, res) => {
 
     const u = r.rows[0];
 
+    // ✅ Vérification statut du compte
     if (u.statut_compte !== 'valide') {
       return res.json({ ok: false, erreur: "⚠️ Compte en attente de validation par l'administration" });
     }
 
+    // ✅ Gestion du verrouillage
     if (u.compte_verrouille) {
       const maintenant = new Date();
       if (maintenant < new Date(u.date_deverrouillage)) {
@@ -149,6 +155,7 @@ router.post('/connexion', async (req, res) => {
       }
     }
 
+    // ✅ Comparaison mot de passe (en clair ou haché)
     let mdpValide = false;
     if (u.mot_de_passe && !u.mot_de_passe.startsWith('$2b$')) {
       mdpValide = (mot_de_passe === u.mot_de_passe);
@@ -173,12 +180,13 @@ router.post('/connexion', async (req, res) => {
       return res.json({ ok: false, erreur: `⚠️ Mot de passe incorrect — ${5 - essais} essai(s) restant(s)` });
     }
 
+    // ✅ Réinitialisation compteur + dernière connexion
     await pool.query(
       'UPDATE utilisateurs SET tentatives_connexion = 0, derniere_connexion = NOW() WHERE id = $1',
       [u.id]
     );
 
-    // 🪪 Générer le token JWT — ✅ CLÉ EN DUR, JAMAIS VIDE
+    // 🪪 Génération token JWT
     const token = jwt.sign(
       { id: u.id, nom: u.nom, prenom: u.prenom, role: u.role, email: u.email },
       CLE_JWT,
@@ -204,7 +212,7 @@ router.post('/connexion', async (req, res) => {
 });
 
 // ==================================================
-// 📝 PRÉINSCRIPTION — AVEC NOUVEAU MATRICULE
+// 📝 PRÉINSCRIPTION — Avec génération matricule
 // ==================================================
 router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }, { name: 'documents' }]), async (req, res) => {
   try {
@@ -220,7 +228,7 @@ router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }
     const emailNettoye = email.toLowerCase().trim();
     const exist = await pool.query('SELECT * FROM preinscriptions WHERE email = $1', [emailNettoye]);
     if (exist.rows.length > 0) {
-      return res.json({ ok: false, erreur: "⚠️ Cet email est déjà utilisé" });
+      return res.json({ ok: false, erreur: "⚠️ Cet email est déjà utilisé pour une préinscription" });
     }
 
     const matricule = await genererMatricule(profil || role, id_classe);
@@ -250,7 +258,7 @@ router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }
 });
 
 // ==================================================
-// 🔑 MOT DE PASSE OUBLIÉ — ✅ HARMONISÉ
+// 🔑 MOT DE PASSE OUBLIÉ
 // ==================================================
 router.post('/mot-de-passe-oublie', async (req, res) => {
   try {
@@ -301,9 +309,9 @@ router.post('/mot-de-passe-oublie', async (req, res) => {
 });
 
 // ==================================================
-// 🔐 CHANGEMENT DE MOT DE PASSE — ✅ HARMONISÉ
+// 🔐 CHANGEMENT DE MOT DE PASSE
 // ==================================================
-router.post('/changer-mot-de-passe', async (req, res) => {
+router.post('/changer-mot-de-passe', veriftoken, async (req, res) => {
   try {
     const { id, ancien_mot_de_passe, nouveau_mot_de_passe } = req.body;
 
@@ -368,9 +376,20 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
       return res.json({ ok: false, erreur: "⚠️ Cette demande n'est pas en attente" });
     }
 
+    // ✅ Vérifie si l'email existe déjà avant création
+    const existeDeja = await pool.query(
+      'SELECT id FROM utilisateurs WHERE LOWER(email) = LOWER($1)',
+      [demande.email]
+    );
+    if (existeDeja.rows.length > 0) {
+      return res.json({ ok: false, erreur: "⚠️ Un compte avec cet email existe déjà" });
+    }
+
+    // ✅ Génère mot de passe temporaire + hash
     const motDePasseTemp = "MZ" + Math.floor(100000 + Math.random() * 900000);
     const hashMdp = await bcrypt.hash(motDePasseTemp, 10);
 
+    // ✅ Crée le compte utilisateur
     await pool.query(
       `INSERT INTO utilisateurs(
         nom, prenom, email, telephone, role, matricule,
@@ -379,11 +398,13 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
       [demande.nom, demande.prenoms, demande.email, demande.telephone, demande.profil, demande.matricule, hashMdp]
     );
 
+    // ✅ Marque la préinscription comme validée
     await pool.query(
       "UPDATE preinscriptions SET statut = 'validee' WHERE id_preinscription = $1",
       [id]
     );
 
+    // ✅ Envoie email identifiants
     await transport.sendMail({
       from: process.env.MAIL_USER,
       to: demande.email,
@@ -459,7 +480,7 @@ router.get('/preinscription/liste', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// 📋 LISTE TOUS LES UTILISATEURS — ✅ HARMONISÉ
+// 📋 LISTE TOUS LES UTILISATEURS
 // ==================================================
 router.get('/utilisateurs', protegerAdmin, async (req, res) => {
   try {
@@ -478,7 +499,7 @@ router.get('/utilisateurs', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// 🔴 LIRE UN SEUL UTILISATEUR — ✅ HARMONISÉ
+// 🔴 LIRE UN SEUL UTILISATEUR
 // ==================================================
 router.get('/utilisateur/:id', protegerAdmin, async (req, res) => {
   try {
@@ -507,7 +528,7 @@ router.get('/utilisateur/:id', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// ✏️ MODIFIER UN UTILISATEUR — ✅ HARMONISÉ
+// ✏️ MODIFIER UN UTILISATEUR
 // ==================================================
 router.put('/utilisateur/:id', protegerAdmin, async (req, res) => {
   try {
@@ -560,7 +581,7 @@ router.put('/utilisateur/:id', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// 🗑️ SUPPRIMER UN UTILISATEUR — ✅ HARMONISÉ
+// 🗑️ SUPPRIMER UN UTILISATEUR
 // ==================================================
 router.delete('/utilisateur/:id', protegerAdmin, async (req, res) => {
   try {

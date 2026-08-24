@@ -11,27 +11,38 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
+    /* ===== 🎨 VARIABLES UNIFIÉES ===== */
     :root {
+      --primaire: #0c4a6e;
+      --secondaire: #0369a1;
+      --accent: #f59e0b;
+      --succes: #10b981;
+      --action: #3b82f6;
+      --alerte: #ef4444;
       --sombre: #0f172a;
       --sombre-clair: #1e293b;
-      --bord-orange: #f59e0b;
-      --orange-clair: #fbbf24;
-      --valide: #10b981;
-      --action: #3b82f6;
-      --suppr: #ef4444;
+      --clair: #f8fafc;
       --texte: #f8fafc;
-      --alerte: #ef4444;
-      --fond-jour: #f0f9ff;
-      --texte-jour: #1e293b;
-      --carte-jour: #ffffff;
-      --bord-jour: #0c4a6e;
-      --input-fond-jour: #ffffff;
-      --input-bord-jour: #cbd5e1;
+      --texte-clair: #1e293b;
+      --bordure: #334155;
+      --fond-carte: #1e293b;
+      --fond-input: #0f172a;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.25s ease; }
+    /* ===== ☀️ MODE CLAIR ===== */
+    body.mode-jour {
+      --primaire: #0c4a6e;
+      --secondaire: #0369a1;
+      --sombre: #e0f2fe;
+      --sombre-clair: #f0f9ff;
+      --texte: #1e293b;
+      --bordure: #cbd5e1;
+      --fond-carte: #ffffff;
+      --fond-input: #ffffff;
+    }
 
-    /* 🌙 MODE NUIT (par défaut) */
+    * { margin: 0; padding: 0; box-sizing: border-box; transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease; }
+
     body {
       background: var(--sombre);
       color: var(--texte);
@@ -39,139 +50,76 @@
       font-family: 'Segoe UI', sans-serif;
     }
 
-    /* ☀️ MODE JOUR */
-    body.mode-jour {
-      background: linear-gradient(135deg, #e0f2fe, #f0f9ff);
-      color: var(--texte-jour);
-    }
-    body.mode-jour .entete-page {
-      background: white;
-      border-bottom-color: var(--bord-jour);
-    }
-    body.mode-jour .carte-gestion {
-      background: var(--carte-jour);
-      border-left-color: var(--bord-jour);
-      box-shadow: 0 4px 15px rgba(12,74,110,0.1);
-    }
-    body.mode-jour .form-control,
-    body.mode-jour .form-select {
-      background: var(--input-fond-jour);
-      border-color: var(--input-bord-jour);
-      color: var(--texte-jour);
-    }
-    body.mode-jour .form-control:focus,
-    body.mode-jour .form-select:focus {
-      border-color: var(--bord-orange);
-      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
-    }
-    body.mode-jour .alerte-api {
-      background: rgba(239,68,68,0.05);
-    }
-
-    @keyframes bordTourne {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .btn-anim-orange {
-      position: relative;
-      background: var(--sombre-clair);
-      color: var(--texte);
-      border: none;
-      border-radius: 10px;
-      overflow: hidden;
-      z-index: 1;
-    }
-    body.mode-jour .btn-anim-orange {
-      background: white;
-      color: var(--texte-jour);
-      border: 1px solid var(--bord-orange);
-    }
-    .btn-anim-orange::before {
-      content: '';
-      position: absolute;
-      top: -50%; left: -50%;
-      width: 200%; height: 200%;
-      background: conic-gradient(transparent, var(--bord-orange), transparent 30%);
-      animation: bordTourne 2.5s linear infinite;
-      z-index: -2;
-    }
-    .btn-anim-orange::after {
-      content: '';
-      position: absolute;
-      inset: 2px;
-      background: var(--sombre-clair);
-      border-radius: 8px;
-      z-index: -1;
-    }
-    body.mode-jour .btn-anim-orange::after { background: white; }
-    .btn-anim-orange:hover {
-      color: var(--orange-clair);
-      box-shadow: 0 0 15px rgba(245,158,11,0.4);
-    }
-
-    .btn-valide-lumineux {
-      background: var(--valide); color: white; border-radius: 8px;
-      box-shadow: 0 0 12px rgba(16,185,129,0.35); border: none;
-    }
-    .btn-valide-lumineux:hover {
-      box-shadow: 0 0 20px rgba(16,185,129,0.6); transform: translateY(-1px);
-    }
-    .btn-action-lumineux {
-      background: var(--action); color: white; border-radius: 8px;
-      box-shadow: 0 0 12px rgba(59,130,246,0.35); border: none;
-    }
-    .btn-action-lumineux:hover {
-      box-shadow: 0 0 20px rgba(59,130,246,0.6); transform: translateY(-1px);
-    }
-    .btn-suppr-lumineux {
-      background: var(--suppr); color: white; border-radius: 8px;
-      box-shadow: 0 0 12px rgba(239,68,68,0.35); border: none;
-    }
-    .btn-suppr-lumineux:hover {
-      box-shadow: 0 0 20px rgba(239,68,68,0.6); transform: translateY(-1px);
-    }
-
+    /* ===== 🧭 EN-TÊTE ===== */
     .entete-page {
-      background: var(--sombre-clair);
-      border-bottom: 2px solid var(--bord-orange);
+      background: linear-gradient(135deg, var(--primaire), var(--secondaire));
       padding: 1.5rem 0;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
     }
+
+    /* ===== 📇 CARTES ===== */
     .carte-gestion {
-      background: var(--sombre-clair);
+      background: var(--fond-carte);
       border-radius: 12px;
-      border-left: 3px solid var(--bord-orange);
+      border-left: 4px solid var(--accent);
       padding: 1.25rem;
       margin-bottom: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
+
+    /* ===== 📝 FORMULAIRES ===== */
     .form-control, .form-select {
-      background: #0f172a;
-      border: 1px solid #334155;
-      color: white;
+      background: var(--fond-input);
+      border: 1px solid var(--bordure);
+      color: var(--texte);
       border-radius: 8px;
     }
     .form-control:focus, .form-select:focus {
-      background: #0f172a;
-      border-color: var(--bord-orange);
-      color: white;
-      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.25);
+      background: var(--fond-input);
+      border-color: var(--accent);
+      color: var(--texte);
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
     }
-    .barre-outils {
-      display: flex; gap: 0.5rem; align-items: center; justify-content: center; margin-bottom: 2rem;
-    }
-    .menu-fixed { position: fixed; bottom: 2rem; right: 2rem; z-index: 999; }
-    .alerte-api {
-      border-left: 4px solid var(--alerte);
-      background: rgba(239,68,68,0.1);
-      border-radius: 8px;
-      padding: 0.75rem 1rem;
-      margin-bottom: 1rem;
-    }
-    .zone-liste {
-      border-top: 2px solid rgba(245,158,11,0.3);
-      margin-top: 2rem; padding-top: 2rem;
-    }
+    .form-label { color: var(--texte); }
 
-    /* ===== TRADUCTIONS ===== */
+    /* ===== 🔘 BOUTONS ===== */
+    .btn-anim-orange {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      border-radius: 8px;
+      padding: 0.375rem 1rem;
+      transition: all 0.25s;
+    }
+    .btn-anim-orange:hover, .btn-anim-orange.actif {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+    .btn-valide-lumineux {
+      background: var(--succes); color: white; border-radius: 8px; border: none;
+      box-shadow: 0 0 12px rgba(16,185,129,0.35);
+    }
+    .btn-valide-lumineux:hover { box-shadow: 0 0 20px rgba(16,185,129,0.5); transform: translateY(-1px); }
+    .btn-action-lumineux {
+      background: var(--action); color: white; border-radius: 8px; border: none;
+      box-shadow: 0 0 10px rgba(59,130,246,0.25);
+    }
+    .btn-action-lumineux:hover { box-shadow: 0 0 18px rgba(59,130,246,0.4); }
+    .btn-suppr-lumineux {
+      background: var(--alerte); color: white; border-radius: 8px; border: none;
+      box-shadow: 0 0 10px rgba(239,68,68,0.25);
+    }
+    .btn-suppr-lumineux:hover { box-shadow: 0 0 18px rgba(239,68,68,0.4); }
+
+    /* ===== 📋 ZONE LISTE ===== */
+    .zone-liste { border-top: 2px solid rgba(245,158,11,0.3); margin-top: 2rem; padding-top: 2rem; }
+    .barre-outils { display: flex; gap: 0.5rem; align-items: center; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
+    .alerte-api { border-left: 4px solid var(--alerte); background: rgba(239,68,68,0.1); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
+    .menu-fixed { position: fixed; bottom: 2rem; right: 2rem; z-index: 999; }
+
+    /* ===== 🌐 TRILINGUE ===== */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
@@ -181,97 +129,139 @@
     body.lang-ar { direction: rtl; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
     body.lang-ar .txt-ar { display: inline; }
+
+    /* ===== BADGES STATUT ===== */
+    .badge { font-size: 0.75rem; }
   </style>
 </head>
 <body class="lang-fr">
 
-
 <script>
-  // 🔗 URL adaptative
+  // ==================================================
+  // 🔗 URL API UNIFIÉE — identique sur tout le site
+  // ==================================================
   const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/api'
-    : 'https://mama-zoumana-api.onrender.com/api';
+    ? 'http://localhost:10000/api'
+    : 'https://mama-zoumana.onrender.com/api';
 
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
   let langueActuelle = localStorage.getItem('langue') || 'fr';
-  let estModeJour = localStorage.getItem('modeJour') === '1';
+  let estModeJour = localStorage.getItem('theme') === 'clair';
 
-  // ☀️🌙 BASCULE MODE JOUR / NUIT
+  // ==================================================
+  // ☀️🌙 MODE JOUR / NUIT — harmonisé avec TOUT le site
+  // ==================================================
   function appliquerTheme() {
+    estModeJour = localStorage.getItem('theme') === 'clair';
     document.body.classList.toggle('mode-jour', estModeJour);
-    document.getElementById('btnJourNuit').textContent = estModeJour ? '☀️' : '🌙';
+    document.getElementById('btnJourNuit').textContent = estModeJour ? '🌙' : '☀️';
   }
   function basculerTheme() {
     estModeJour = !estModeJour;
-    localStorage.setItem('modeJour', estModeJour ? '1' : '0');
+    localStorage.setItem('theme', estModeJour ? 'clair' : 'sombre');
     appliquerTheme();
   }
 
-  // 💾 Stockage local
-  function obtenirClassesLocales() { return JSON.parse(localStorage.getItem('liste_classes') || '[]'); }
-  function sauvegarderClassesLocales(liste) { localStorage.setItem('liste_classes', JSON.stringify(liste)); }
-  function obtenirMatieresLocales() { return JSON.parse(localStorage.getItem('liste_matieres') || '[]'); }
-  function sauvegarderMatieresLocales(liste) { localStorage.setItem('liste_matieres', JSON.stringify(liste)); }
-
-  // 🗣️ Messages
+  // ==================================================
+  // 🗣️ TRADUCTIONS TRILINGUES
+  // ==================================================
   const MSG = {
     fr: {
       accesReserve: "⛔ Accès réservé à l'Administrateur",
       serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
-      sauvegardeOk: "✅ Enregistré !",
-      supprConfirm: "⚠️ Supprimer cet élément ?",
-      supprOk: "✅ Supprimé !",
-      erreurReseau: "❌ Erreur réseau",
-      aucuneDonnee: "Aucune donnée enregistrée",
-      erreurCapacite: "⚠️ Capacité doit être entre 10 et 80"
+      sauvegardeOk: "✅ Enregistré avec succès !",
+      modifOk: "✅ Modifié avec succès !",
+      supprConfirm: "⚠️ Supprimer cet élément ? Cette action est irréversible.",
+      supprOk: "✅ Supprimé avec succès !",
+      erreurReseau: "❌ Erreur réseau. Vérifiez votre connexion.",
+      aucuneDonnee: "Aucune donnée enregistrée. Ajoutez votre première classe ou matière.",
+      erreurCapacite: "⚠️ La capacité doit être comprise entre 10 et 80 élèves.",
+      erreurChamp: "⚠️ Veuillez remplir tous les champs obligatoires (*).",
+      classeLiee: "⚠️ Impossible de supprimer : cette classe est utilisée dans des préinscriptions ou affectations."
     },
     en: {
       accesReserve: "⛔ Access restricted to Administrator",
-      serveurIndispo: "⚠️ Server offline — Local mode active",
-      sauvegardeOk: "✅ Saved!",
-      supprConfirm: "⚠️ Delete this item?",
-      supprOk: "✅ Deleted!",
-      erreurReseau: "❌ Network error",
-      aucuneDonnee: "No data saved yet",
-      erreurCapacite: "⚠️ Capacity must be between 10 and 80"
+      serveurIndispo: "⚠️ Server unavailable — Local mode active",
+      sauvegardeOk: "✅ Saved successfully!",
+      modifOk: "✅ Updated successfully!",
+      supprConfirm: "⚠️ Delete this item? This cannot be undone.",
+      supprOk: "✅ Deleted successfully!",
+      erreurReseau: "❌ Network error. Check your connection.",
+      aucuneDonnee: "No data yet. Add your first class or subject.",
+      erreurCapacite: "⚠️ Capacity must be between 10 and 80 students.",
+      erreurChamp: "⚠️ Please fill all required fields (*).",
+      classeLiee: "⚠️ Cannot delete: this class is used in registrations or assignments."
     },
     ar: {
-      accesReserve: "⛔ الوصول مقصور على المدير",
-      serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
-      sauvegardeOk: "✅ تم الحفظ!",
-      supprConfirm: "⚠️ حذف هذا العنصر؟",
-      supprOk: "✅ تم الحذف!",
-      erreurReseau: "❌ خطأ في الشبكة",
-      aucuneDonnee: "لا توجد بيانات",
-      erreurCapacite: "⚠️ السعة يجب أن تكون بين 10 و 80"
+      accesReserve: "⛔ الوصول مقصور على المدير فقط",
+      serveurIndispo: "⚠️ الخادم غير متاح — العمل محليًا",
+      sauvegardeOk: "✅ تم الحفظ بنجاح !",
+      modifOk: "✅ تم التحديث بنجاح !",
+      supprConfirm: "⚠️ حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.",
+      supprOk: "✅ تم الحذف بنجاح !",
+      erreurReseau: "❌ خطأ في الشبكة. تحقق من اتصالك.",
+      aucuneDonnee: "لا توجد بيانات. أضف فصلاً أو مادة جديدة.",
+      erreurCapacite: "⚠️ السعة يجب أن تكون بين 10 و 80 تلميذًا.",
+      erreurChamp: "⚠️ الرجاء ملء جميع الحقول المطلوبة (*).",
+      classeLiee: "⚠️ لا يمكن الحذف: هذا المستوى مستخدم في التسجيلات أو التوزيعات."
     }
   };
   function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
 
+  // ==================================================
   // 🔒 SÉCURITÉ
-  if (!token || role !== 'admin') {
+  // ==================================================
+  if (!token || !['admin','super_admin'].includes(role)) {
     alert(m('accesReserve'));
     localStorage.clear();
     location.href = 'dashboard.html';
   }
 
-  document.body.classList.add('lang-' + langueActuelle);
+  // ==================================================
+  // 💾 STOCKAGE LOCAL (si API indisponible)
+  // ==================================================
+  function obtenirClassesLocales() { return JSON.parse(localStorage.getItem('liste_classes') || '[]'); }
+  function sauvegarderClassesLocales(liste) { localStorage.setItem('liste_classes', JSON.stringify(liste)); }
+  function obtenirMatieresLocales() { return JSON.parse(localStorage.getItem('liste_matieres') || '[]'); }
+  function sauvegarderMatieresLocales(liste) { localStorage.setItem('liste_matieres', JSON.stringify(liste)); }
+
+  // ==================================================
+  // 🚀 INITIALISATION
+  // ==================================================
+  document.addEventListener('DOMContentLoaded', () => {
+    appliquerTheme();
+    document.body.classList.add('lang-' + langueActuelle);
+    document.getElementById('btn-' + langueActuelle)?.classList.add('actif');
+    chargerListe();
+  });
+
+  // ==================================================
+  // 🗣️ CHANGER DE LANGUE
+  // ==================================================
+  window.changerLangue = function(lang) {
+    langueActuelle = lang;
+    localStorage.setItem('langue', lang);
+    document.body.className = (estModeJour ? 'mode-jour ' : '') + 'lang-' + lang;
+    document.querySelectorAll('.barre-outils .btn').forEach(b => b.classList.remove('actif'));
+    document.getElementById('btn-' + lang)?.classList.add('actif');
+  };
 </script>
 
-
+<!-- 🧭 EN-TÊTE -->
 <div class="entete-page">
   <div class="container d-flex justify-content-between align-items-center">
     <div>
-      <h3 class="mb-1"><i class="bi bi-building me-2" style="color:var(--bord-orange)"></i>
+      <h3 class="mb-1 text-white">
+        <i class="bi bi-building me-2"></i>
         <span class="txt-fr">🏫 Classes & Matières</span>
         <span class="txt-en">🏫 Classes & Subjects</span>
         <span class="txt-ar">🏫 المستويات والمواد</span>
       </h3>
-      <p class="mb-0 opacity-80">
-        <span class="txt-fr">Ajouter / Modifier / Supprimer / Consulter</span>
-        <span class="txt-en">Add / Edit / Delete / View</span>
-        <span class="txt-ar">إضافة / تعديل / حذف / عرض</span>
+      <p class="mb-0 text-white-50">
+        <span class="txt-fr">Ajouter / Modifier / Supprimer / Consulter — données partagées avec préinscriptions et affectations</span>
+        <span class="txt-en">Add / Edit / Delete / View — shared with registrations & assignments</span>
+        <span class="txt-ar">إضافة / تعديل / حذف / عرض — بيانات مشتركة مع التسجيلات والتوزيعات</span>
       </p>
     </div>
     <a href="dashboard.html" class="btn btn-anim-orange px-4 py-2">
@@ -283,7 +273,6 @@
   </div>
 </div>
 
-
 <div class="container py-4">
   <!-- ⚠️ ALERTE API -->
   <div id="alerteApi" class="alerte-api d-none">
@@ -291,12 +280,12 @@
     <span id="texteAlerteApi"></span>
   </div>
 
-  <!-- 🛠️ BARRE OUTILS : LANGUE + JOUR/NUIT -->
+  <!-- 🛠️ BARRE OUTILS -->
   <div class="barre-outils">
     <button class="btn btn-anim-orange px-3 py-2" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
     <button class="btn btn-anim-orange px-3 py-2" onclick="changerLangue('ar')" id="btn-ar">🇸🇦 AR</button>
     <button class="btn btn-anim-orange px-3 py-2" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
-    <button class="btn btn-anim-orange px-3 py-2" id="btnJourNuit" title="Mode Jour/Nuit" onclick="basculerTheme()">🌙</button>
+    <button class="btn btn-anim-orange px-3 py-2" id="btnJourNuit" title="Mode Jour/Nuit" onclick="basculerTheme()">☀️</button>
   </div>
 
   <div class="row g-4">
@@ -312,11 +301,19 @@
           <input type="hidden" name="id_classe" id="edit-id-classe">
           <div class="mb-3">
             <label class="form-label fw-bold">
-              <span class="txt-fr">Nom de la Classe *</span>
-              <span class="txt-en">Class Name *</span>
-              <span class="txt-ar">اسم المستوى *</span>
+              <span class="txt-fr">Nom de la Classe * (Français)</span>
+              <span class="txt-en">Class Name * (French)</span>
+              <span class="txt-ar">اسم المستوى * (بالفرنسية)</span>
             </label>
-            <input type="text" name="libelle_classe" id="edit-libelle" class="form-control" placeholder="Ex: CP1" required>
+            <input type="text" name="libelle_classe" id="edit-libelle" class="form-control" placeholder="Ex: 3ème" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Nom de la Classe (Arabe)</span>
+              <span class="txt-en">Class Name (Arabic)</span>
+              <span class="txt-ar">اسم المستوى (بالعربية)</span>
+            </label>
+            <input type="text" name="libelle_classe_ar" id="edit-libelle-ar" class="form-control" placeholder="مثال: الثالثة إعدادي">
           </div>
           <div class="mb-3">
             <label class="form-label fw-bold">
@@ -326,10 +323,10 @@
             </label>
             <select name="cycle" id="edit-cycle" class="form-select" required>
               <option value="">-- Choisir --</option>
-              <option value="maternelle">Maternelle</option>
-              <option value="primaire">Primaire</option>
-              <option value="college">Collège</option>
-              <option value="lycee">Lycée</option>
+              <option value="maternelle">Maternelle / الحضانة</option>
+              <option value="primaire">Primaire / الابتدائي</option>
+              <option value="college">Collège / الإعدادي</option>
+              <option value="lycee">Lycée / الثانوي</option>
             </select>
           </div>
           <div class="mb-3">
@@ -346,7 +343,7 @@
               <span class="txt-en">Room</span>
               <span class="txt-ar">القاعة</span>
             </label>
-            <input type="text" name="salle" id="edit-salle" class="form-control" placeholder="Ex: Salle 1">
+            <input type="text" name="salle" id="edit-salle" class="form-control" placeholder="Ex: Salle 12">
           </div>
           <div class="mb-3">
             <label class="form-label fw-bold">
@@ -355,9 +352,9 @@
               <span class="txt-ar">الحالة</span>
             </label>
             <select name="statut" id="edit-statut" class="form-select">
-              <option value="ouverte">Ouverte</option>
-              <option value="complete">Complète</option>
-              <option value="fermee">Fermée</option>
+              <option value="ouverte" selected>✅ Ouverte</option>
+              <option value="complete">⚠️ Complète</option>
+              <option value="fermee">❌ Fermée</option>
             </select>
           </div>
           <button type="submit" class="btn btn-valide-lumineux w-100 py-2" id="btn-classe">
@@ -382,11 +379,19 @@
           <input type="hidden" name="id_matiere" id="edit-id-mat">
           <div class="mb-3">
             <label class="form-label fw-bold">
-              <span class="txt-fr">Nom de la Matière *</span>
-              <span class="txt-en">Subject Name *</span>
-              <span class="txt-ar">اسم المادة *</span>
+              <span class="txt-fr">Nom de la Matière * (Français)</span>
+              <span class="txt-en">Subject Name * (French)</span>
+              <span class="txt-ar">اسم المادة * (بالفرنسية)</span>
             </label>
             <input type="text" name="libelle_matiere" id="edit-nom-mat" class="form-control" placeholder="Ex: Mathématiques" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Nom de la Matière (Arabe)</span>
+              <span class="txt-en">Subject Name (Arabic)</span>
+              <span class="txt-ar">اسم المادة (بالعربية)</span>
+            </label>
+            <input type="text" name="libelle_matiere_ar" id="edit-nom-mat-ar" class="form-control" placeholder="مثال: الرياضيات">
           </div>
           <div class="row g-2 mb-3">
             <div class="col-md-4">
@@ -399,22 +404,22 @@
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">
-                <span class="txt-fr">Vol. Horaire</span>
+                <span class="txt-fr">Volume Horaire</span>
                 <span class="txt-en">Hours/Week</span>
-                <span class="txt-ar">الحصة</span>
+                <span class="txt-ar">الحصة الأسبوعية</span>
               </label>
               <input type="number" name="volume_horaire" id="edit-vol" class="form-control" value="3" min="0">
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">
-                <span class="txt-fr">Langue</span>
+                <span class="txt-fr">Langue d'enseignement</span>
                 <span class="txt-en">Language</span>
-                <span class="txt-ar">اللغة</span>
+                <span class="txt-ar">لغة التدريس</span>
               </label>
               <select name="langue_ens" id="edit-langue" class="form-select">
-                <option value="fr">🇫🇷 FR</option>
-                <option value="ar">🇸🇦 AR</option>
-                <option value="en">🇬🇧 EN</option>
+                <option value="fr" selected>🇫🇷 Français</option>
+                <option value="ar">🇸🇦 Arabe</option>
+                <option value="en">🇬🇧 Anglais</option>
               </select>
             </div>
           </div>
@@ -432,20 +437,25 @@
   <!-- 📋 LISTE DES ENREGISTREMENTS -->
   <div class="zone-liste">
     <h4 class="mb-3">
+      <i class="bi bi-list-ul me-2" style="color:var(--accent)"></i>
       <span class="txt-fr">📋 Liste des Classes & Matières</span>
       <span class="txt-en">📋 Classes & Subjects List</span>
       <span class="txt-ar">📋 قائمة المستويات والمواد</span>
     </h4>
     <div id="liste-complete" class="row g-3">
-      <div class="col-12 text-center py-5 text-muted">
-        <span class="txt-fr">Chargement...</span>
-        <span class="txt-en">Loading...</span>
-        <span class="txt-ar">جار التحميل...</span>
+      <div class="col-12 text-center py-5">
+        <i class="bi bi-hourglass-split fs-1 mb-2 opacity-50"></i>
+        <p class="opacity-75">
+          <span class="txt-fr">Chargement en cours...</span>
+          <span class="txt-en">Loading...</span>
+          <span class="txt-ar">جار التحميل...</span>
+        </p>
       </div>
     </div>
   </div>
 </div>
 
+<!-- 🔚 DÉCONNEXION -->
 <div class="menu-fixed">
   <a href="deconnexion.html" class="btn btn-suppr-lumineux px-4 py-2">
     <i class="bi bi-box-arrow-right"></i>
@@ -456,137 +466,127 @@
 </div>
 
 <script>
-  // 🚀 INITIALISATION AU CHARGEMENT
-  document.addEventListener('DOMContentLoaded', () => {
-    appliquerTheme();
-    document.body.classList.add('lang-' + langueActuelle);
-    document.getElementById('btn-' + langueActuelle)?.classList.add('actif');
-    chargerListe();
-  });
-
-  // 🗣️ CHANGEMENT DE LANGUE
-  function changerLangue(lang) {
-    langueActuelle = lang;
-    document.body.className = (estModeJour ? 'mode-jour ' : '') + 'lang-' + lang;
-    localStorage.setItem('langue', lang);
-    document.querySelectorAll('.barre-outils .btn').forEach(b => b.classList.remove('actif'));
-    document.getElementById('btn-' + lang)?.classList.add('actif');
-  }
-
-  // 📤 ENREGISTRER CLASSE — CORRIGÉ ✅
+  // ==================================================
+  // 📤 ENREGISTRER / MODIFIER UNE CLASSE
+  // ==================================================
   document.getElementById('formClasse').addEventListener('submit', async e => {
     e.preventDefault();
     const d = Object.fromEntries(new FormData(e.target));
     d.capacite_max = Number(d.capacite_max);
 
-    // ✅ Validation claire
-    if (d.capacite_max < 10 || d.capacite_max > 80) {
-      alert(m('erreurCapacite'));
-      return;
-    }
+    // ✅ Validation
+    if (!d.libelle_classe || !d.cycle) return alert(m('erreurChamp'));
+    if (d.capacite_max < 10 || d.capacite_max > 80) return alert(m('erreurCapacite'));
 
     const estModif = !!d.id_classe;
-    // ✅ CORRECTION : capacité_max (pas de faute de frappe)
-    const nouvelleClasse = {
-      libelle_classe: d.libelle_classe,
+    const donneesClasse = {
+      libelle_classe: d.libelle_classe.trim(),
+      libelle_classe_ar: (d.libelle_classe_ar || '').trim(),
       cycle: d.cycle,
       capacite_max: d.capacite_max,
-      salle: d.salle,
+      salle: (d.salle || '').trim(),
       statut: d.statut
     };
-
-    let listeLocale = obtenirClassesLocales();
 
     try {
       const url = estModif ? `${API_URL}/classes/${d.id_classe}` : `${API_URL}/classes/`;
       const methode = estModif ? 'PUT' : 'POST';
-      const r = await fetch(url, {
+      const res = await fetch(url, {
         method: methode,
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(nouvelleClasse)
-      });
-      const res = await r.json();
+        body: JSON.stringify(donneesClasse)
+      }).then(r => r.json());
 
       if (res.ok) {
-        alert(m('sauvegardeOk'));
-        e.target.reset();
-        document.getElementById('edit-id-classe').value = '';
-        document.getElementById('btn-classe').innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
+        alert(estModif ? m('modifOk') : m('sauvegardeOk'));
+        reinitFormulaireClasse();
         chargerListe();
       } else {
-        alert("❌ " + (res.erreur || "Erreur"));
+        alert("❌ " + (res.erreur || "Erreur serveur"));
       }
     } catch {
-      // 📴 MODE LOCAL
+      // 📴 Mode local si API indisponible
+      let liste = obtenirClassesLocales();
       if (estModif) {
-        const idx = listeLocale.findIndex(c => String(c.id_classe) === String(d.id_classe));
-        if (idx !== -1) listeLocale[idx] = { ...listeLocale[idx], ...nouvelleClasse };
+        const idx = liste.findIndex(c => String(c.id_classe) === String(d.id_classe));
+        if (idx !== -1) liste[idx] = { ...liste[idx], ...donneesClasse };
       } else {
-        listeLocale.push({ id_classe: Date.now(), ...nouvelleClasse });
+        liste.push({ id_classe: Date.now(), ...donneesClasse });
       }
-      sauvegarderClassesLocales(listeLocale);
-      alert(m('sauvegardeOk') + " (mode local)");
-      e.target.reset();
-      document.getElementById('edit-id-classe').value = '';
-      document.getElementById('btn-classe').innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
+      sauvegarderClassesLocales(liste);
+      alert((estModif ? m('modifOk') : m('sauvegardeOk')) + " (mode local)");
+      reinitFormulaireClasse();
       chargerListe(true);
     }
   });
 
-  // 📤 ENREGISTRER MATIÈRE
+  function reinitFormulaireClasse() {
+    document.getElementById('formClasse').reset();
+    document.getElementById('edit-id-classe').value = '';
+    document.getElementById('btn-classe').innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
+  }
+
+  // ==================================================
+  // 📤 ENREGISTRER / MODIFIER UNE MATIÈRE
+  // ==================================================
   document.getElementById('formMatiere').addEventListener('submit', async e => {
     e.preventDefault();
     const d = Object.fromEntries(new FormData(e.target));
     d.coefficient = Number(d.coefficient);
     d.volume_horaire = Number(d.volume_horaire);
 
+    if (!d.libelle_matiere) return alert(m('erreurChamp'));
+
     const estModif = !!d.id_matiere;
-    const nouvelleMatiere = {
-      libelle_matiere: d.libelle_matiere,
+    const donneesMatiere = {
+      libelle_matiere: d.libelle_matiere.trim(),
+      libelle_matiere_ar: (d.libelle_matiere_ar || '').trim(),
       coefficient: d.coefficient,
       volume_horaire: d.volume_horaire,
       langue_ens: d.langue_ens
     };
 
-    let listeLocale = obtenirMatieresLocales();
-
     try {
-      const url = estModif ? `${API_URL}/matieres/${d.id_matiere}` : `${API_URL}/matieres/ajouter`;
+      const url = estModif ? `${API_URL}/matieres/${d.id_matiere}` : `${API_URL}/matieres/`;
       const methode = estModif ? 'PUT' : 'POST';
-      const r = await fetch(url, {
+      const res = await fetch(url, {
         method: methode,
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(nouvelleMatiere)
-      });
-      const res = await r.json();
+        body: JSON.stringify(donneesMatiere)
+      }).then(r => r.json());
 
       if (res.ok) {
-        alert(m('sauvegardeOk'));
-        e.target.reset();
-        document.getElementById('edit-id-mat').value = '';
-        document.getElementById('btn-mat').innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
+        alert(estModif ? m('modifOk') : m('sauvegardeOk'));
+        reinitFormulaireMatiere();
         chargerListe();
       } else {
-        alert("❌ " + (res.erreur || "Erreur"));
+        alert("❌ " + (res.erreur || "Erreur serveur"));
       }
     } catch {
-      // 📴 MODE LOCAL
+      // 📴 Mode local
+      let liste = obtenirMatieresLocales();
       if (estModif) {
-        const idx = listeLocale.findIndex(m => String(m.id_matiere) === String(d.id_matiere));
-        if (idx !== -1) listeLocale[idx] = { ...listeLocale[idx], ...nouvelleMatiere };
+        const idx = liste.findIndex(m => String(m.id_matiere) === String(d.id_matiere));
+        if (idx !== -1) liste[idx] = { ...liste[idx], ...donneesMatiere };
       } else {
-        listeLocale.push({ id_matiere: Date.now(), ...nouvelleMatiere });
+        liste.push({ id_matiere: Date.now(), ...donneesMatiere });
       }
-      sauvegarderMatieresLocales(listeLocale);
-      alert(m('sauvegardeOk') + " (mode local)");
-      e.target.reset();
-      document.getElementById('edit-id-mat').value = '';
-      document.getElementById('btn-mat').innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
+      sauvegarderMatieresLocales(liste);
+      alert((estModif ? m('modifOk') : m('sauvegardeOk')) + " (mode local)");
+      reinitFormulaireMatiere();
       chargerListe(true);
     }
   });
 
-  // 📋 CHARGER LISTE
+  function reinitFormulaireMatiere() {
+    document.getElementById('formMatiere').reset();
+    document.getElementById('edit-id-mat').value = '';
+    document.getElementById('btn-mat').innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
+  }
+
+  // ==================================================
+  // 📋 CHARGER LA LISTE COMPLÈTE
+  // ==================================================
   async function chargerListe(forcerLocal = false) {
     const corps = document.getElementById('liste-complete');
     const alerteApi = document.getElementById('alerteApi');
@@ -597,12 +597,14 @@
 
     if (!forcerLocal) {
       try {
-        const [cl, mt] = await Promise.all([
-          fetch(`${API_URL}/classes/`, { headers: { 'Authorization': `Bearer ${token}` } }).then(x => x.json()),
-          fetch(`${API_URL}/matieres/`, { headers: { 'Authorization': `Bearer ${token}` } }).then(x => x.json())
+        const [clRes, mtRes] = await Promise.all([
+          fetch(`${API_URL}/classes/`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
+          fetch(`${API_URL}/matieres/`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json())
         ]);
-        if (cl.ok && cl.lignes) classes = cl.lignes;
-        if (mt.ok && mt.lignes) matieres = mt.lignes;
+        classes = clRes.ok ? (clRes.lignes || clRes.classes || clRes) : [];
+        matieres = mtRes.ok ? (mtRes.lignes || mtRes.matieres || mtRes) : [];
+        if (!Array.isArray(classes)) classes = [];
+        if (!Array.isArray(matieres)) matieres = [];
         sauvegarderClassesLocales(classes);
         sauvegarderMatieresLocales(matieres);
         alerteApi.classList.add('d-none');
@@ -620,21 +622,27 @@
 
     let html = '';
 
-    // 📚 AFFICHER CLASSES
+    // 📚 AFFICHER LES CLASSES
     if (classes.length > 0) {
-      html += `<div class="col-md-6"><h5 class="mb-3">📚 Classes</h5>`;
+      html += `<div class="col-md-6"><h5 class="mb-3 text-white"><i class="bi bi-building me-2 text-warning"></i>
+        <span class="txt-fr">Classes</span><span class="txt-en">Classes</span><span class="txt-ar">المستويات</span>
+      </h5>`;
       html += classes.map(x => {
-        const statutBadge = x.statut === 'ouverte' ? 'bg-success' : x.statut === 'complete' ? 'bg-primary' : 'bg-secondary';
+        const statutBadge = {ouverte:'bg-success',complete:'bg-primary',fermee:'bg-secondary'}[x.statut] || 'bg-secondary';
+        const statutTexte = {ouverte:'Ouverte',complete:'Complète',fermee:'Fermée'}[x.statut] || 'Ouverte';
+        const placesLibres = typeof x.capacite_restante !== 'undefined' ? `<span class="badge bg-info text-dark ms-1">${x.capacite_restante || x.capacite_max}/${x.capacite_max}</span>` : `<span class="badge bg-light text-dark ms-1">${x.capacite_max} pl</span>`;
         return `
         <div class="carte-gestion d-flex justify-content-between align-items-center">
           <div>
             <strong>${x.libelle_classe}</strong>
-            <span class="opacity-75 ms-2">(${x.cycle || '—'} • ${x.capacite_max} pl)</span>
-            ${x.salle ? `<span class="badge bg-info text-dark ms-1">${x.salle}</span>` : ''}
-            <span class="badge ${statutBadge} ms-1">${x.statut || 'ouverte'}</span>
+            ${x.libelle_classe_ar ? `<span class="text-muted ms-1">(${x.libelle_classe_ar})</span>` : ''}
+            <span class="opacity-75 ms-2 small">${x.cycle || '—'}</span>
+            ${placesLibres}
+            ${x.salle ? `<span class="badge bg-secondary ms-1">${x.salle}</span>` : ''}
+            <span class="badge ${statutBadge} ms-1">${statutTexte}</span>
           </div>
           <div class="d-flex gap-1">
-            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick="modifierClasse(${x.id_classe},'${(x.libelle_classe || '').replace(/'/g, "\\'")}','${x.cycle || ''}',${x.capacite_max},'${(x.salle || '').replace(/'/g, "\\'")}','${x.statut || 'ouverte'}')">✏️</button>
+            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierClasse(${JSON.stringify(x).replace(/'/g,"\\'")})'>✏️</button>
             <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerClasse(${x.id_classe})">🗑️</button>
           </div>
         </div>`;
@@ -642,21 +650,28 @@
       html += `</div>`;
     }
 
-    // 📖 AFFICHER MATIÈRES
+    // 📖 AFFICHER LES MATIÈRES
     if (matieres.length > 0) {
-      html += `<div class="col-md-6"><h5 class="mb-3">📖 Matières</h5>`;
-      html += matieres.map(x => `
-      <div class="carte-gestion d-flex justify-content-between align-items-center">
-        <div>
-          <strong>${x.libelle_matiere}</strong>
-          <span class="opacity-75 ms-2">(Coef: ${x.coefficient})</span>
-          <span class="badge bg-info text-dark ms-1">${(x.langue_ens || 'FR').toUpperCase()}</span>
-        </div>
-        <div class="d-flex gap-1">
-          <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick="modifierMatiere(${x.id_matiere},'${(x.libelle_matiere || '').replace(/'/g, "\\'")}',${x.coefficient},${x.volume_horaire || 0},'${x.langue_ens || 'fr'}')">✏️</button>
-          <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerMatiere(${x.id_matiere})">🗑️</button>
-        </div>
-      </div>`).join('');
+      html += `<div class="col-md-6"><h5 class="mb-3 text-white"><i class="bi bi-book me-2 text-warning"></i>
+        <span class="txt-fr">Matières</span><span class="txt-en">Subjects</span><span class="txt-ar">المواد</span>
+      </h5>`;
+      html += matieres.map(x => {
+        const langueLabel = {fr:'🇫🇷',ar:'🇸🇦',en:'🇬🇧'}[x.langue_ens] || '🇫🇷';
+        return `
+        <div class="carte-gestion d-flex justify-content-between align-items-center">
+          <div>
+            <strong>${x.libelle_matiere}</strong>
+            ${x.libelle_matiere_ar ? `<span class="text-muted ms-1">(${x.libelle_matiere_ar})</span>` : ''}
+            <span class="badge bg-info text-dark ms-1">Coef ${x.coefficient}</span>
+            <span class="badge bg-secondary ms-1">${x.volume_horaire || 0}h/sem</span>
+            <span class="badge bg-light text-dark ms-1">${langueLabel}</span>
+          </div>
+          <div class="d-flex gap-1">
+            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierMatiere(${JSON.stringify(x).replace(/'/g,"\\'")})'>✏️</button>
+            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerMatiere(${x.id_matiere})">🗑️</button>
+          </div>
+        </div>`;
+      }).join('');
       html += `</div>`;
     }
 
@@ -666,26 +681,48 @@
     </div>`;
   }
 
-  // ✏️ MODIFIER CLASSE
-  window.modifierClasse = function(id, libelle, cycle, capacite, salle, statut) {
-    document.getElementById('edit-id-classe').value = id;
-    document.getElementById('edit-libelle').value = libelle;
-    document.getElementById('edit-cycle').value = cycle;
-    document.getElementById('edit-capacite').value = capacite;
-    document.getElementById('edit-salle').value = salle;
-    document.getElementById('edit-statut').value = statut;
+  // ==================================================
+  // ✏️ MODIFIER — PRÉ-REMPLIR LE FORMULAIRE
+  // ==================================================
+  window.modifierClasse = function(x) {
+    document.getElementById('edit-id-classe').value = x.id_classe;
+    document.getElementById('edit-libelle').value = x.libelle_classe || '';
+    document.getElementById('edit-libelle-ar').value = x.libelle_classe_ar || '';
+    document.getElementById('edit-cycle').value = x.cycle || '';
+    document.getElementById('edit-capacite').value = x.capacite_max || 30;
+    document.getElementById('edit-salle').value = x.salle || '';
+    document.getElementById('edit-statut').value = x.statut || 'ouverte';
     document.getElementById('btn-classe').innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // ❌ SUPPRIMER CLASSE
+  window.modifierMatiere = function(x) {
+    document.getElementById('edit-id-mat').value = x.id_matiere;
+    document.getElementById('edit-nom-mat').value = x.libelle_matiere || '';
+    document.getElementById('edit-nom-mat-ar').value = x.libelle_matiere_ar || '';
+    document.getElementById('edit-coef').value = x.coefficient || 1;
+    document.getElementById('edit-vol').value = x.volume_horaire || 3;
+    document.getElementById('edit-langue').value = x.langue_ens || 'fr';
+    document.getElementById('btn-mat').innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // ==================================================
+  // ❌ SUPPRIMER
+  // ==================================================
   window.supprimerClasse = async function(id) {
     if (!confirm(m('supprConfirm'))) return;
     try {
-      const r = await fetch(`${API_URL}/classes/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-      const res = await r.json();
-      alert(m('supprOk'));
-      chargerListe();
+      const res = await fetch(`${API_URL}/classes/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).then(r => r.json());
+      if (res.ok) {
+        alert(m('supprOk'));
+        chargerListe();
+      } else {
+        alert("❌ " + (res.erreur || m('erreurReseau')));
+      }
     } catch {
       let liste = obtenirClassesLocales().filter(c => String(c.id_classe) !== String(id));
       sauvegarderClassesLocales(liste);
@@ -694,25 +731,19 @@
     }
   };
 
-  // ✏️ MODIFIER MATIÈRE
-  window.modifierMatiere = function(id, libelle, coef, vol, langue) {
-    document.getElementById('edit-id-mat').value = id;
-    document.getElementById('edit-nom-mat').value = libelle;
-    document.getElementById('edit-coef').value = coef;
-    document.getElementById('edit-vol').value = vol;
-    document.getElementById('edit-langue').value = langue;
-    document.getElementById('btn-mat').innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // ❌ SUPPRIMER MATIÈRE
   window.supprimerMatiere = async function(id) {
     if (!confirm(m('supprConfirm'))) return;
     try {
-      const r = await fetch(`${API_URL}/matieres/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-      const res = await r.json();
-      alert(m('supprOk'));
-      chargerListe();
+      const res = await fetch(`${API_URL}/matieres/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).then(r => r.json());
+      if (res.ok) {
+        alert(m('supprOk'));
+        chargerListe();
+      } else {
+        alert("❌ " + (res.erreur || m('erreurReseau')));
+      }
     } catch {
       let liste = obtenirMatieresLocales().filter(m => String(m.id_matiere) !== String(id));
       sauvegarderMatieresLocales(liste);
@@ -720,8 +751,7 @@
       chargerListe(true);
     }
   };
-
-  
 </script>
+
 </body>
 </html>
