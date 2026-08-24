@@ -1,15 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté systématiquement
-const verifadmin = require('../middleware/verifadmin');   // ✅ Administrateur seul
+const veriftoken = require('../middleware/veriftoken');
+const verifadmin = require('../middleware/verifadmin');
 
 // ✅ Protection groupée uniforme
 const protegerAdmin = [veriftoken, verifadmin];
 
-
 // ==================================================
-// 📋 LISTER LE CALENDRIER — Publique (tous les utilisateurs)
+// 📋 LISTER LE CALENDRIER — Publique (accueil + admin)
 // ==================================================
 router.get('/liste', async (req, res) => {
   try {
@@ -30,20 +29,22 @@ router.get('/liste', async (req, res) => {
     const clauseWhere = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const r = await pool.query(`
-      SELECT * FROM calendrier_scolaire
+      SELECT 
+        id AS id,
+        periode, date_debut, date_fin, type_periode,
+        annee_scolaire, description_fr, description_en, description_ar
+      FROM calendrier_scolaire
       ${clauseWhere}
       ORDER BY date_debut ASC
     `, valeurs);
 
     console.log(`✅ Calendrier consulté — ${r.rows.length} période(s)`);
     res.json({ ok: true, calendrier: r.rows });
-
   } catch (e) {
     console.error("❌ ERREUR LISTE CALENDRIER :", e.message);
     res.json({ ok: false, erreur: "⚠️ Impossible de charger le calendrier" });
   }
 });
-
 
 // ==================================================
 // ➕ AJOUTER UNE PÉRIODE — Administrateur seul
@@ -56,15 +57,13 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
       annee_scolaire
     } = req.body;
 
-    // Validations
+    // ✅ Validations
     if (!periode || !date_debut || !date_fin || !type_periode) {
       return res.json({
         ok: false,
         erreur: "⚠️ La période, les dates et le type sont obligatoires"
       });
     }
-
-    // Vérification de la cohérence des dates
     if (new Date(date_debut) > new Date(date_fin)) {
       return res.json({
         ok: false,
@@ -78,22 +77,20 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
         description_fr, description_en, description_ar,
         annee_scolaire, date_creation
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
-      RETURNING *
+      RETURNING id
     `, [
       periode, date_debut, date_fin, type_periode,
       description_fr || null, description_en || null, description_ar || null,
       annee_scolaire || '2026-2027'
     ]);
 
-    console.log(`✅ Période créée — ${periode} (${annee_scolaire || '2026-2027'})`);
-    res.json({ ok: true, periode: r.rows[0], message: "✅ Période ajoutée avec succès !" });
-
+    console.log(`✅ Période créée — ${periode}`);
+    res.json({ ok: true, id: r.rows[0].id, message: "✅ Période ajoutée !" });
   } catch (e) {
     console.error("❌ ERREUR AJOUT PÉRIODE :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
-
 
 // ==================================================
 // ✏️ MODIFIER UNE PÉRIODE — Administrateur seul
@@ -117,8 +114,6 @@ router.put('/:id', protegerAdmin, async (req, res) => {
         erreur: "⚠️ La période, les dates et le type sont obligatoires"
       });
     }
-
-    // Vérification de la cohérence des dates
     if (new Date(date_debut) > new Date(date_fin)) {
       return res.json({
         ok: false,
@@ -132,7 +127,7 @@ router.put('/:id', protegerAdmin, async (req, res) => {
         description_fr = $6, description_en = $7, description_ar = $8,
         annee_scolaire = $9
       WHERE id = $1
-      RETURNING *
+      RETURNING id
     `, [
       id, periode, date_debut, date_fin, type_periode,
       description_fr || null, description_en || null, description_ar || null,
@@ -144,14 +139,12 @@ router.put('/:id', protegerAdmin, async (req, res) => {
     }
 
     console.log(`✅ Période mise à jour — ID: ${id}`);
-    res.json({ ok: true, periode: r.rows[0], message: "✅ Période mise à jour !" });
-
+    res.json({ ok: true, message: "✅ Période mise à jour !" });
   } catch (e) {
     console.error("❌ ERREUR MODIFICATION PÉRIODE :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
-
 
 // ==================================================
 // ❌ SUPPRIMER UNE PÉRIODE — Administrateur seul
@@ -173,16 +166,14 @@ router.delete('/:id', protegerAdmin, async (req, res) => {
     }
 
     console.log(`✅ Période supprimée — ID: ${id}, Nom: ${r.rows[0].periode}`);
-    res.json({ ok: true, message: "✅ Période supprimée avec succès !" });
-
+    res.json({ ok: true, message: "✅ Période supprimée !" });
   } catch (e) {
     console.error("❌ ERREUR SUPPRESSION PÉRIODE :", e.message);
     if (e.code === '23503') {
-      return res.json({ ok: false, erreur: "⚠️ Impossible : cette période est utilisée dans d'autres modules" });
+      return res.json({ ok: false, erreur: "⚠️ Impossible : cette période est utilisée" });
     }
     res.json({ ok: false, erreur: e.message });
   }
 });
-
 
 module.exports = router;
