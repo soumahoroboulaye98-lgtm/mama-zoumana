@@ -6,6 +6,9 @@
   <title>Valider Inscriptions — Admin MAMA-ZOUMANA</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/pdfmake.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/vfs_fonts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     :root {
       --sombre: #0f172a;
@@ -14,150 +17,272 @@
       --orange-clair: #fbbf24;
       --valide: #10b981;
       --refuse: #ef4444;
+      --info: #3b82f6;
       --texte: #f8fafc;
+      --succes-fond: rgba(16,185,129,0.15);
+      --erreur-fond: rgba(239,68,68,0.15);
+      --info-fond: rgba(59,130,246,0.15);
+      --gris-doux: #64748b;
+      --attente-fond: rgba(245,158,11,0.15);
     }
     *{margin:0;padding:0;box-sizing:border-box;transition:all 0.25s ease}
     body{background:var(--sombre);color:var(--texte);min-height:100vh;font-family:'Segoe UI',sans-serif;}
     
-    @keyframes bordTourne {
-      0%{transform:rotate(0deg)}
-      100%{transform:rotate(360deg)}
-    }
-    .btn-anim-orange{
-      position:relative;background:var(--sombre-clair);color:var(--texte);border:none;
-      border-radius:10px;overflow:hidden;z-index:1;
-    }
-    .btn-anim-orange::before{
-      content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
-      background:conic-gradient(transparent,var(--bord-orange),transparent 30%);
-      animation:bordTourne 2.5s linear infinite;z-index:-2;
-    }
-    .btn-anim-orange::after{
-      content:'';position:absolute;inset:2px;background:var(--sombre-clair);
-      border-radius:8px;z-index:-1;
-    }
-    .btn-valide-lumineux{
-      background:var(--valide);color:white;border-radius:8px;
-      box-shadow:0 0 12px rgba(16,185,129,0.35);border:none;
-    }
-    .btn-valide-lumineux:hover{
-      box-shadow:0 0 20px rgba(16,185,129,0.6);transform:translateY(-1px)
-    }
-    .btn-refuse-lumineux{
-      background:var(--refuse);color:white;border-radius:8px;
-      box-shadow:0 0 12px rgba(239,68,68,0.35);border:none;
-    }
-    .btn-refuse-lumineux:hover{
-      box-shadow:0 0 20px rgba(239,68,68,0.6);transform:translateY(-1px)
-    }
-    .btn-imprimer{
-      background:var(--bord-orange);color:#000;border-radius:8px;border:none;
-    }
-    .entete-page{
-      background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.5rem 0;
-    }
-    .carte-demande{
-      background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);
-      padding:1.25rem;margin-bottom:1rem;
-    }
-    .carte-impression{
-      background:white;color:#000;border-radius:12px;padding:2rem;margin-top:1.5rem;
-      display:none;
-    }
-    .barre-langue{display:flex;gap:0.75rem;justify-content:center;margin-bottom:2rem;}
+    @keyframes bordTourne { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+    @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+    @keyframes slideIn { from{transform:translateY(-15px);opacity:0} to{transform:translateY(0);opacity:1} }
+    @keyframes fadeOut { from{opacity:1} to{opacity:0} }
+
+    .btn-anim-orange{position:relative;background:var(--sombre-clair);color:var(--texte);border:none;border-radius:10px;overflow:hidden;z-index:1;}
+    .btn-anim-orange::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(transparent,var(--bord-orange),transparent 30%);animation:bordTourne 2.5s linear infinite;z-index:-2;}
+    .btn-anim-orange::after{content:'';position:absolute;inset:2px;background:var(--sombre-clair);border-radius:8px;z-index:-1;}
+    .btn-valide-lumineux{background:var(--valide);color:white;border-radius:8px;box-shadow:0 0 12px rgba(16,185,129,0.35);border:none;}
+    .btn-valide-lumineux:hover:not(:disabled){box-shadow:0 0 20px rgba(16,185,129,0.6);transform:translateY(-1px)}
+    .btn-refuse-lumineux{background:var(--refuse);color:white;border-radius:8px;box-shadow:0 0 12px rgba(239,68,68,0.35);border:none;}
+    .btn-refuse-lumineux:hover:not(:disabled){box-shadow:0 0 20px rgba(239,68,68,0.6);transform:translateY(-1px)}
+    .btn-valide-lumineux:disabled, .btn-refuse-lumineux:disabled{opacity:0.6;cursor:not-allowed;transform:none !important;}
+    .btn-imprimer{background:var(--bord-orange);color:#000;border-radius:8px;border:none;}
+    .btn-pdf{background:var(--info);color:white;border-radius:8px;border:none;}
+    .btn-pdf:hover{background:#2563eb;transform:translateY(-1px);}
+    .btn-excel{background:#107c41;color:white;border-radius:8px;border:none;}
+    .btn-excel:hover{background:#0b6333;transform:translateY(-1px);}
+    .btn-csv{background:#e97428;color:white;border-radius:8px;border:none;}
+    .btn-csv:hover{background:#c65c17;transform:translateY(-1px);}
+
+    .entete-page{background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.5rem 0;}
+    .carte-stat{background:var(--sombre-clair);border-radius:12px;padding:1.25rem;border-left:3px solid;text-align:center;animation:slideIn 0.3s ease-out;}
+    .carte-stat.total{border-color:var(--info);}
+    .carte-stat.attente{border-color:var(--bord-orange);}
+    .carte-stat.validee{border-color:var(--valide);}
+    .carte-stat.refusee{border-color:var(--refuse);}
+    .carte-stat .chiffre{font-size:2rem;font-weight:700;}
+    .carte-demande{background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);padding:1.25rem;margin-bottom:1rem;animation:slideIn 0.3s ease-out;}
+    .carte-demande.triee{animation:none;}
+    .carte-historique{background:var(--sombre-clair);border-radius:12px;padding:1rem;margin-bottom:0.75rem;border-left:3px solid;}
+    .carte-historique.validee{border-color:var(--valide);background:rgba(16,185,129,0.08);}
+    .carte-historique.refusee{border-color:var(--refuse);background:rgba(239,68,68,0.08);}
+    .carte-impression{background:white;color:#000;border-radius:12px;padding:2rem;margin-top:1.5rem;display:none;}
+    .barre-langue{display:flex;gap:0.75rem;justify-content:center;margin-bottom:1.5rem;}
     .date-inscription{color:var(--bord-orange);font-weight:600;}
+    .date-demande{font-size:0.85rem;color:var(--gris-doux);}
     .badge-attente{background-color:rgba(245,158,11,0.2);color:var(--bord-orange);padding:4px 10px;border-radius:20px;font-size:0.85rem;}
     .badge-valide{background-color:rgba(16,185,129,0.2);color:var(--valide);padding:4px 10px;border-radius:20px;font-size:0.85rem;}
-    
+    .badge-refuse{background-color:rgba(239,68,68,0.2);color:var(--refuse);padding:4px 10px;border-radius:20px;font-size:0.85rem;}
+
+    .onglets-nav{display:flex;gap:0.5rem;margin-bottom:1.5rem;border-bottom:1px solid #334155;padding-bottom:0.5rem;}
+    .onglet{padding:0.5rem 1.2rem;border-radius:8px 8px 0 0;cursor:pointer;border:1px solid transparent;}
+    .onglet.actif{background:var(--sombre-clair);border-color:#334155 #334155 transparent;color:var(--orange-clair);font-weight:600;}
+    .onglet-contenu{display:none;}
+    .onglet-contenu.actif{display:block;animation:slideIn 0.3s ease-out;}
+
+    .entete-colonne{cursor:pointer;user-select:none;}
+    .entete-colonne:hover{color:var(--orange-clair);}
+    .icone-tri{font-size:0.75rem;margin-left:4px;opacity:0.6;}
+    .icone-tri.actif{opacity:1;color:var(--bord-orange);}
+
+    .conteneur-toast{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+    .toast-notif{padding:14px 20px;border-radius:10px;box-shadow:0 5px 20px rgba(0,0,0,0.3);display:flex;align-items:center;gap:10px;min-width:300px;animation:slideIn 0.3s ease-out;}
+    .toast-notif.succes{background:var(--succes-fond);border:1px solid var(--valide);color:#86efac}
+    .toast-notif.erreur{background:var(--erreur-fond);border:1px solid var(--refuse);color:#fca5a5}
+    .toast-notif.info{background:var(--info-fond);border:1px solid var(--info);color:#93c5fd}
+    .toast-notif .icone{font-size:1.3rem;}
+
+    .zone-recherche{background:var(--sombre-clair);border-radius:12px;padding:1rem;margin-bottom:1.5rem;border:1px solid rgba(245,158,11,0.2);}
+    .form-control, .form-select{background:#1e293b;border:1px solid #475569;color:white;border-radius:8px;}
+    .form-control:focus, .form-select:focus{background:#1e293b;color:white;border-color:var(--bord-orange);box-shadow:0 0 0 3px rgba(245,158,11,0.25);}
+
+    .pagination .page-link{background:var(--sombre-clair);color:var(--texte);border:1px solid #334155;}
+    .pagination .page-link:hover{background:#334155;color:white;}
+    .pagination .page-item.active .page-link{background:var(--bord-orange);border-color:var(--bord-orange);color:#000;}
+
+    .icone-chargement{animation:spin 0.8s linear infinite;display:inline-block;width:16px;height:16px;border:2px solid transparent;border-top:2px solid currentColor;border-radius:50%;margin-right:6px;vertical-align:middle;}
+
+    .barre-export{display:flex;gap:0.5rem;flex-wrap:wrap;}
+
     @media print {
       body{background:white;color:#000}
-      .entete-page,.barre-langue,.carte-demande,.no-print{display:none!important}
+      .entete-page,.barre-langue,.carte-demande,.zone-recherche,.pagination,.no-print,.grille-stats,.onglets-nav,.barre-export{display:none!important}
       .carte-impression{display:block!important;border:2px solid #ccc;}
     }
-    
-    [dir="rtl"]{font-family:'Segoe UI Tahoma',sans-serif}
+
+    [dir="rtl"]{font-family:'Segoe UI',Tahoma,sans-serif}
+    .barre-langue button.active{box-shadow:0 0 0 2px var(--bord-orange);}
   </style>
 </head>
 <body>
 
-
-<!-- 🔒 PROTECTION -->
 <script>
-if(!localStorage.getItem('token') || localStorage.getItem('role') !== 'admin'){
+const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
+if(!token || role !== 'admin'){
   alert("⛔ Accès réservé à l'administrateur");
+  localStorage.clear();
   location.href='connexion.html';
 }
 </script>
 
+<div class="conteneur-toast" id="conteneurNotifications"></div>
 
 <div class="entete-page">
   <div class="container d-flex justify-content-between align-items-center">
     <div>
       <h3 class="mb-1">🏫 Valider les Inscriptions</h3>
-      <p class="mb-0 opacity-80" id="sous-titre">Demandes en attente de validation</p>
+      <p class="mb-0 opacity-80" id="sous-titre">Gestion des demandes d'inscription</p>
     </div>
-    <a href="dashboard.html" class="btn btn-anim-orange px-4 py-2">
+    <a href="dashboard-admin.html" class="btn btn-anim-orange px-4 py-2">
       <i class="bi bi-arrow-left"></i> Retour
     </a>
   </div>
 </div>
 
-
 <div class="container py-4">
-  <!-- 🌐 CHOIX LANGUE -->
+  <div class="row grille-stats g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+      <div class="carte-stat total">
+        <div class="chiffre text-info" id="stat-total">0</div>
+        <div class="texte" id="lbl-total">Total demandes</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="carte-stat attente">
+        <div class="chiffre" style="color:var(--bord-orange)" id="stat-attente">0</div>
+        <div class="texte" id="lbl-attente">En attente</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="carte-stat validee">
+        <div class="chiffre" style="color:var(--valide)" id="stat-validee">0</div>
+        <div class="texte" id="lbl-validee">Validées</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="carte-stat refusee">
+        <div class="chiffre" style="color:var(--refuse)" id="stat-refusee">0</div>
+        <div class="texte" id="lbl-refusee">Refusées</div>
+      </div>
+    </div>
+  </div>
+
   <div class="barre-langue">
-    <button class="btn btn-anim-orange px-4 py-2 active" onclick="changerLangue('fr')">🇫🇷 Français</button>
-    <button class="btn btn-anim-orange px-4 py-2" onclick="changerLangue('ar')">🇸🇦 العربية</button>
-    <button class="btn btn-anim-orange px-4 py-2" onclick="changerLangue('en')">🇬🇧 English</button>
+    <button class="btn btn-anim-orange px-4 py-2 active" data-lang="fr">🇫🇷 Français</button>
+    <button class="btn btn-anim-orange px-4 py-2" data-lang="ar">🇸🇦 العربية</button>
+    <button class="btn btn-anim-orange px-4 py-2" data-lang="en">🇬🇧 English</button>
   </div>
 
-  <!-- 📄 FICHE À IMPRIMER (cachée jusqu'à validation) -->
-  <div id="zoneImpression" class="carte-impression">
-    <h3 class="text-center border-bottom pb-3 mb-4">🏫 FICHE D'INSCRIPTION</h3>
-    <div class="row mb-2">
-      <div class="col-md-4"><strong>N° Inscription :</strong> <span id="imp-num"></span></div>
-      <div class="col-md-4"><strong>Date d'inscription :</strong> <span id="imp-date" class="date-inscription"></span></div>
-      <div class="col-md-4"><strong>Statut :</strong> <span id="imp-statut" class="badge-valide">Validée</span></div>
-    </div>
-    <hr>
-    <div class="row mb-2">
-      <div class="col-md-6"><strong>Nom & Prénoms :</strong> <span id="imp-nom"></span></div>
-      <div class="col-md-6"><strong>Classe :</strong> <span id="imp-classe"></span></div>
-    </div>
-    <div class="row mb-2">
-      <div class="col-md-6"><strong>Email :</strong> <span id="imp-email"></span></div>
-      <div class="col-md-6"><strong>Téléphone :</strong> <span id="imp-tel"></span></div>
-    </div>
-    <div class="row mb-3">
-      <div class="col-md-6"><strong>Profil :</strong> <span id="imp-profil"></span></div>
-      <div class="col-md-6"><strong>Responsable :</strong> <span id="imp-resp"></span></div>
-    </div>
-    <hr>
-    <p class="text-center mt-4">Nous vous souhaitons la bienvenue au sein de l'établissement MAMA-ZOUMANA.</p>
-    <p class="text-center small text-muted">Signature de l'administrateur _______________________</p>
-    <div class="text-center mt-4 no-print">
-      <button class="btn btn-imprimer px-4" onclick="window.print()">
-        <i class="bi bi-printer"></i> Imprimer la fiche
-      </button>
-    </div>
+  <div class="onglets-nav no-print">
+    <div class="onglet actif" data-onglet="demandes">📋 Demandes en attente</div>
+    <div class="onglet" data-onglet="historique">📜 Historique des décisions</div>
   </div>
 
-  <!-- 📋 LISTE DES DEMANDES -->
-  <div id="liste-demandes" class="mt-4">
-    <div class="text-center py-5">
-      <div class="spinner-border text-warning"></div>
-      <p class="mt-3 opacity-80" id="chargement">Chargement des demandes...</p>
+  <div class="onglet-contenu actif" id="onglet-demandes">
+    <div class="zone-recherche">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <input type="text" id="champRecherche" class="form-control" placeholder="🔍 Rechercher par nom ou email...">
+        </div>
+        <div class="col-md-2">
+          <select id="filtreClasse" class="form-select">
+            <option value="">Toutes les classes</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select id="filtreProfil" class="form-select">
+            <option value="">Tous les profils</option>
+            <option value="Élève">Élève</option>
+            <option value="Enseignant">Enseignant</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select id="triColonne" class="form-select">
+            <option value="date">📅 Date (récent → ancien)</option>
+            <option value="date-desc">📅 Date (ancien → récent)</option>
+            <option value="nom">🔤 Nom A → Z</option>
+            <option value="nom-desc">🔤 Nom Z → A</option>
+            <option value="classe">🏫 Classe A → Z</option>
+          </select>
+        </div>
+        <div class="col-md-2 barre-export">
+          <button class="btn btn-excel" onclick="exporterExcel()" title="Exporter Excel"><i class="bi bi-file-earmark-excel"></i></button>
+          <button class="btn btn-csv" onclick="exporterCSV()" title="Exporter CSV"><i class="bi bi-file-earmark-spreadsheet"></i></button>
+        </div>
+      </div>
     </div>
+
+    <div id="zoneImpression" class="carte-impression">
+      <h3 class="text-center border-bottom pb-3 mb-4">🏫 FICHE D'INSCRIPTION</h3>
+      <div class="row mb-2">
+        <div class="col-md-4"><strong>N° Inscription :</strong> <span id="imp-num"></span></div>
+        <div class="col-md-4"><strong>Date d'inscription :</strong> <span id="imp-date" class="date-inscription"></span></div>
+        <div class="col-md-4"><strong>Statut :</strong> <span id="imp-statut" class="badge-valide">Validée</span></div>
+      </div>
+      <hr>
+      <div class="row mb-2">
+        <div class="col-md-6"><strong>Nom & Prénoms :</strong> <span id="imp-nom"></span></div>
+        <div class="col-md-6"><strong>Classe :</strong> <span id="imp-classe"></span></div>
+      </div>
+      <div class="row mb-2">
+        <div class="col-md-6"><strong>Email :</strong> <span id="imp-email"></span></div>
+        <div class="col-md-6"><strong>Téléphone :</strong> <span id="imp-tel"></span></div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-6"><strong>Profil :</strong> <span id="imp-profil"></span></div>
+        <div class="col-md-6"><strong>Responsable légal :</strong> <span id="imp-resp"></span></div>
+      </div>
+      <hr>
+      <p class="text-center mt-4">Nous vous souhaitons la bienvenue au sein de l'établissement MAMA-ZOUMANA.</p>
+      <p class="text-center small text-muted">Signature de l'administrateur _______________________</p>
+      <div class="text-center mt-4 no-print d-flex justify-content-center gap-2">
+        <button class="btn btn-imprimer px-4" onclick="window.print()"><i class="bi bi-printer"></i> Imprimer</button>
+        <button class="btn btn-pdf px-4" onclick="exporterFichePDF()"><i class="bi bi-file-earmark-pdf"></i> Télécharger PDF</button>
+      </div>
+    </div>
+
+    <div id="liste-demandes" class="mt-4">
+      <div class="text-center py-5"><div class="spinner-border text-warning"></div><p class="mt-3 opacity-80" id="chargement">Chargement des demandes...</p></div>
+    </div>
+    <div id="pagination" class="d-flex justify-content-center mt-4 no-print"></div>
+  </div>
+
+  <div class="onglet-contenu" id="onglet-historique">
+    <div class="zone-recherche">
+      <div class="row g-3">
+        <div class="col-md-5">
+          <input type="text" id="rechercheHistorique" class="form-control" placeholder="🔍 Rechercher dans l'historique...">
+        </div>
+        <div class="col-md-3">
+          <select id="filtreStatutHistorique" class="form-select">
+            <option value="">Tous les statuts</option>
+            <option value="validee">✅ Validées</option>
+            <option value="refusee">❌ Refusées</option>
+          </select>
+        </div>
+        <div class="col-md-2 barre-export">
+          <button class="btn btn-excel" onclick="exporterHistoriqueExcel()" title="Exporter Excel"><i class="bi bi-file-earmark-excel"></i></button>
+          <button class="btn btn-csv" onclick="exporterHistoriqueCSV()" title="Exporter CSV"><i class="bi bi-file-earmark-spreadsheet"></i></button>
+        </div>
+      </div>
+    </div>
+    <div id="liste-historique" class="mt-4"></div>
   </div>
 </div>
 
-
 <script>
 const API_BASE = "https://mama-zoumana-api.onrender.com/api";
+const JETON = localStorage.getItem('token');
+const ENTETE_AUTORISATION = { 'Authorization': `Bearer ${JETON}` };
+
+const ELEMENTS_PAR_PAGE = 8;
+let langueActuelle = localStorage.getItem('langue_admin') || 'fr';
+let listeDemandes = [];
+let listeDemandesFiltrees = [];
+let listeHistorique = [];
+let pageActuelle = 1;
+let derniereFiche = null;
+let stats = { total: 0, attente: 0, validee: 0, refusee: 0 };
 
 const textes = {
   fr: {
-    sous_titre: "Demandes en attente de validation",
+    sous_titre: "Gestion des demandes d'inscription",
     chargement: "Chargement des demandes...",
     nom: "Nom & Prénoms",
     mail: "Email",
@@ -165,16 +290,41 @@ const textes = {
     classe: "Classe",
     profil: "Profil",
     resp: "Responsable légal",
-    date_inscription: "Date d'inscription",
+    date_demande: "Date demande",
+    date_decision: "Date décision",
+    statut: "Statut",
     valider: "✅ Valider",
     refuser: "❌ Refuser",
     vide: "Aucune demande en attente",
-    ok_valide: "✅ Inscription validée ! La fiche est prête à être imprimée.",
+    vide_historique: "Aucune décision dans l'historique",
+    ok_valide: "✅ Inscription validée ! Fiche prête.",
     ok_refuse: "❌ Demande refusée.",
-    confirmer: "⚠️ Confirmer cette action ?"
+    confirmer_valide: "✅ Confirmer la validation ?",
+    confirmer_refus: "❌ Confirmer le refus ?",
+    erreur: "❌ Erreur",
+    err_reseau: "⚠️ Erreur réseau.",
+    session_expiree: "⏰ Session expirée. Reconnectez-vous...",
+    pdf_genere: "📄 PDF généré !",
+    excel_genere: "📊 Export Excel généré !",
+    csv_genere: "📄 Export CSV généré !",
+    recherche: "Rechercher par nom ou email...",
+    recherche_historique: "Rechercher dans l'historique...",
+    toutes_classes: "Toutes les classes",
+    tous_statuts: "Tous les statuts",
+    validee_label: "✅ Validée",
+    refusee_label: "❌ Refusée",
+    chargement_action: "Traitement...",
+    tri_date: "📅 Date (récent → ancien)",
+    tri_nom: "🔤 Nom A → Z",
+    total_demandes: "Total demandes",
+    en_attente: "En attente",
+    validees: "Validées",
+    refusees: "Refusées",
+    demandes_onglet: "📋 Demandes en attente",
+    historique_onglet: "📜 Historique des décisions"
   },
   ar: {
-    sous_titre: "الطلبات في انتظار الموافقة",
+    sous_titre: "إدارة طلبات التسجيل",
     chargement: "جاري التحميل...",
     nom: "الاسم الكامل",
     mail: "البريد الإلكتروني",
@@ -182,16 +332,41 @@ const textes = {
     classe: "المستوى الدراسي",
     profil: "الملف",
     resp: "ولي الأمر",
-    date_inscription: "تاريخ التسجيل",
+    date_demande: "تاريخ الطلب",
+    date_decision: "تاريخ القرار",
+    statut: "الحالة",
     valider: "✅ موافقة",
     refuser: "❌ رفض",
-    vide: "لا يوجد طلبات في الانتظار",
-    ok_valide: "✅ تمت الموافقة ! بطاقة التسجيل جاهزة للطباعة.",
+    vide: "لا يوجد طلبات قيد الدراسة",
+    vide_historique: "لا يوجد قرارات في السجل",
+    ok_valide: "✅ تمت الموافقة !",
     ok_refuse: "❌ تم الرفض.",
-    confirmer: "هل أنت متأكد ؟"
+    confirmer_valide: "✅ تأكيد الموافقة؟",
+    confirmer_refus: "❌ تأكيد الرفض؟",
+    erreur: "❌ خطأ",
+    err_reseau: "⚠️ خطأ في الشبكة.",
+    session_expiree: "⏰ انتهت الجلسة...",
+    pdf_genere: "📄 تم إنشاء PDF !",
+    excel_genere: "📊 تم إنشاء ملف Excel !",
+    csv_genere: "📄 تم إنشاء ملف CSV !",
+    recherche: "البحث بالاسم أو البريد...",
+    recherche_historique: "البحث في السجل...",
+    toutes_classes: "جميع المستويات",
+    tous_statuts: "جميع الحالات",
+    validee_label: "✅ موافق عليه",
+    refusee_label: "❌ مرفوض",
+    chargement_action: "جاري المعالجة...",
+    tri_date: "📅 الأحدث أولاً",
+    tri_nom: "🔤 الاسم أ-ي",
+    total_demandes: "إجمالي الطلبات",
+    en_attente: "قيد الانتظار",
+    validees: "الموافق عليها",
+    refusees: "المرفوضة",
+    demandes_onglet: "📋 الطلبات قيد الدراسة",
+    historique_onglet: "📜 سجل القرارات"
   },
   en: {
-    sous_titre: "Requests pending approval",
+    sous_titre: "Registration Requests Management",
     chargement: "Loading requests...",
     nom: "Full Name",
     mail: "Email",
@@ -199,130 +374,449 @@ const textes = {
     classe: "Class",
     profil: "Profile",
     resp: "Legal Guardian",
-    date_inscription: "Registration Date",
+    date_demande: "Request Date",
+    date_decision: "Decision Date",
+    statut: "Status",
     valider: "✅ Approve",
     refuser: "❌ Reject",
     vide: "No pending requests",
-    ok_valide: "✅ Approved! Registration form ready to print.",
-    ok_refuse: "❌ Rejected.",
-    confirmer: "⚠️ Confirm this action?"
+    vide_historique: "No decisions in history",
+    ok_valide: "✅ Approved! Registration form ready.",
+    ok_refuse: "❌ Request rejected.",
+    confirmer_valide: "✅ Confirm approval?",
+    confirmer_refus: "❌ Confirm rejection?",
+    erreur: "❌ Error",
+    err_reseau: "⚠️ Network error.",
+    session_expiree: "⏰ Session expired. Please log in again...",
+    pdf_genere: "📄 PDF generated successfully!",
+    excel_genere: "📊 Excel file exported!",
+    csv_genere: "📄 CSV file exported!",
+    recherche: "Search by name or email...",
+    recherche_historique: "Search history...",
+    toutes_classes: "All classes",
+    tous_statuts: "All statuses",
+    validee_label: "✅ Approved",
+    refusee_label: "❌ Rejected",
+    chargement_action: "Processing...",
+    tri_date: "📅 Date (newest first)",
+    tri_nom: "🔤 Name A → Z",
+    total_demandes: "Total requests",
+    en_attente: "Pending",
+    validees: "Approved",
+    refusees: "Rejected",
+    demandes_onglet: "📋 Pending Requests",
+    historique_onglet: "📜 Decision History"
   }
 };
 
-let langueActuelle = 'fr';
-let derniereValidation = null;
-
-function changerLangue(lang){
-  langueActuelle = lang;
-  document.querySelectorAll('.barre-langue button').forEach(b=>b.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById('sous-titre').textContent = textes[lang].sous_titre;
-  document.getElementById('chargement').textContent = textes[lang].chargement;
-  document.documentElement.lang = lang;
-  document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
-  chargerDemandes();
+function notifier(message, type = 'info') {
+  const conteneur = document.getElementById('conteneurNotifications');
+  const icones = { succes: 'bi-check-circle-fill', erreur: 'bi-exclamation-triangle-fill', info: 'bi-info-circle-fill' };
+  const toast = document.createElement('div');
+  toast.className = `toast-notif ${type}`;
+  toast.innerHTML = `<i class="bi ${icones[type]} icone"></i><span>${message}</span>`;
+  conteneur.appendChild(toast);
+  setTimeout(() => { toast.style.animation = 'fadeOut 0.3s ease forwards'; setTimeout(() => toast.remove(), 300); }, 4500);
 }
 
-// 📄 REMPLIR LA FICHE D'IMPRESSION
+function verifierReponseApi(reponse) {
+  if(reponse.status === 401) {
+    notifier(textes[langueActuelle].session_expiree, 'erreur');
+    localStorage.clear();
+    setTimeout(() => location.href = 'connexion.html', 2000);
+    return false;
+  }
+  return true;
+}
+
+function formaterDate(dateStr) {
+  if(!dateStr) return '—';
+  const d = new Date(dateStr);
+  if(isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString(langueActuelle === 'ar' ? 'ar-SA' : langueActuelle === 'en' ? 'en-GB' : 'fr-FR');
+}
+
+function mettreAJourStats() {
+  document.getElementById('stat-total').textContent = stats.total;
+  document.getElementById('stat-attente').textContent = stats.attente;
+  document.getElementById('stat-validee').textContent = stats.validee;
+  document.getElementById('stat-refusee').textContent = stats.refusee;
+  document.getElementById('lbl-total').textContent = textes[langueActuelle].total_demandes;
+  document.getElementById('lbl-attente').textContent = textes[langueActuelle].en_attente;
+  document.getElementById('lbl-validee').textContent = textes[langueActuelle].validees;
+  document.getElementById('lbl-refusee').textContent = textes[langueActuelle].refusees;
+}
+
+document.querySelectorAll('.onglet').forEach(onglet => {
+  onglet.addEventListener('click', () => {
+    document.querySelectorAll('.onglet').forEach(o => o.classList.remove('actif'));
+    document.querySelectorAll('.onglet-contenu').forEach(c => c.classList.remove('actif'));
+    onglet.classList.add('actif');
+    document.getElementById(`onglet-${onglet.dataset.onglet}`).classList.add('actif');
+    if(onglet.dataset.onglet === 'historique') chargerHistorique();
+  });
+});
+
+document.querySelectorAll('.barre-langue button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    langueActuelle = btn.dataset.lang;
+    localStorage.setItem('langue_admin', langueActuelle);
+    document.querySelectorAll('.barre-langue button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    appliquerLangue();
+    chargerDemandes();
+  });
+});
+
+function appliquerLangue(){
+  document.querySelector(`.barre-langue button[data-lang="${langueActuelle}"]`)?.classList.add('active');
+  document.getElementById('sous-titre').textContent = textes[langueActuelle].sous_titre;
+  document.getElementById('chargement').textContent = textes[langueActuelle].chargement;
+  document.getElementById('champRecherche').placeholder = textes[langueActuelle].recherche;
+  document.getElementById('rechercheHistorique').placeholder = textes[langueActuelle].recherche_historique;
+  document.querySelector('#filtreClasse option[value=""]').textContent = textes[langueActuelle].toutes_classes;
+  document.querySelector('#filtreStatutHistorique option[value=""]').textContent = textes[langueActuelle].tous_statuts;
+  document.documentElement.lang = langueActuelle;
+  document.body.dir = langueActuelle === 'ar' ? 'rtl' : 'ltr';
+  mettreAJourStats();
+}
+
 function preparerFicheImpression(demande){
-  const dateNormal = new Date().toISOString().split('T')[0]; // Date du jour = date d'inscription normale
+  derniereFiche = demande;
+  const dateInscription = new Date().toISOString().split('T')[0];
   document.getElementById('imp-num').textContent = demande.id_preinscription || demande.id || '—';
-  document.getElementById('imp-date').textContent = dateNormal;
+  document.getElementById('imp-date').textContent = dateInscription;
   document.getElementById('imp-nom').textContent = (demande.nom || '') + ' ' + (demande.prenoms || '');
   document.getElementById('imp-email').textContent = demande.email || '—';
   document.getElementById('imp-tel').textContent = demande.telephone || '—';
-  document.getElementById('imp-classe').textContent = demande.libelle_classe || demande.id_classe || '—';
+  document.getElementById('imp-classe').textContent = demande.libelle_classe_fr || demande.libelle_classe || demande.classe || '—';
   document.getElementById('imp-profil').textContent = demande.profil || 'Élève';
-  document.getElementById('imp-resp').textContent = demande.responsable || demande.nom_responsable || 'Non renseigné';
+  document.getElementById('imp-resp').textContent = demande.nom_responsable || demande.responsable || 'Non renseigné';
   document.getElementById('zoneImpression').style.display = 'block';
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-async function chargerDemandes(){
-  const token = localStorage.getItem('token');
-  try {
-    const res = await fetch(`${API_BASE}/preinscription/en-attente`, {
-      headers: {'Authorization':'Bearer '+token}
-    });
-    const data = await res.json();
-    const liste = document.getElementById('liste-demandes');
+function exporterFichePDF() {
+  if(!derniereFiche) return;
+  const dateInscription = new Date().toISOString().split('T')[0];
+  const nomComplet = `${derniereFiche.nom || ''} ${derniereFiche.prenoms || ''}`.trim();
+  const classe = derniereFiche.libelle_classe_fr || derniereFiche.libelle_classe || derniereFiche.classe || '—';
+  const docDefinition = {
+    content: [
+      { text: '🏫 FICHE D\'INSCRIPTION', fontSize: 18, bold: true, alignment: 'center', margin: [0,0,0,20] },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 530, y2: 0, lineWidth: 2, lineColor: '#f59e0b' }], margin: [0,0,0,15] },
+      { table: { widths: ['*', '*', '*'], body: [[{ text: `N°: ${derniereFiche.id_preinscription || derniereFiche.id || '—'}`, fontSize: 11 },{ text: `Date: ${dateInscription}`, fontSize: 11 },{ text: 'Statut: ✅ Validée', fontSize: 11, color: '#10b981' }]] }, layout: 'noBorders', margin: [0,0,0,10] },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 530, y2: 0, lineWidth: 1, lineColor: '#ccc' }], margin: [0,0,0,15] },
+      { table: { widths: ['50%', '50%'], body: [[{ text: `Nom: ${nomComplet}` },{ text: `Classe: ${classe}` }],[{ text: `Email: ${derniereFiche.email || '—'}` },{ text: `Téléphone: ${derniereFiche.telephone || '—'}` }],[{ text: `Profil: ${derniereFiche.profil || 'Élève'}` },{ text: `Resp. légal: ${derniereFiche.nom_responsable || derniereFiche.responsable || '—'}` }]] }, layout: { hLineWidth: () => 0.5, vLineWidth: () => 0 }, fontSize: 11, margin: [0,0,0,15] },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 530, y2: 0, lineWidth: 1, lineColor: '#ccc' }], margin: [0,0,0,15] },
+      { text: 'Nous vous souhaitons la bienvenue au sein de l\'établissement MAMA-ZOUMANA.', alignment: 'center', italics: true, margin: [0,10,0,30] },
+      { text: 'Signature de l\'administrateur: _________________________', alignment: 'right', fontSize: 10 }
+    ],
+    defaultStyle: { font: 'Helvetica', fontSize: 12 }, pageSize: 'A4',
+    info: { title: `Inscription-${nomComplet.replace(/\s+/g,'-')}` }
+  };
+  pdfMake.createPdf(docDefinition).download(`inscription-${nomComplet.replace(/\s+/g,'-')}-${dateInscription}.pdf`);
+  notifier(textes[langueActuelle].pdf_genere, 'succes');
+}
 
-    if(!data.ok || !data.lignes || data.lignes.length === 0){
-      liste.innerHTML = `<div class="text-center py-5 opacity-75">${textes[langueActuelle].vide}</div>`;
-      return;
+function genererDonneesExport(liste) {
+  return liste.map(d => ({
+    "N°": d.id_preinscription || d.id || '—',
+    "Nom": d.nom || '',
+    "Prénoms": d.prenoms || '',
+    "Email": d.email || '',
+    "Téléphone": d.telephone || '',
+    "Classe": d.libelle_classe_fr || d.libelle_classe || d.classe || '—',
+    "Profil": d.profil || 'Élève',
+    "Responsable légal": d.nom_responsable || d.responsable || '—',
+    "Date demande": formaterDate(d.date_demande || d.created_at || d.date_inscription),
+    "Statut": d.statut || 'En attente'
+  }));
+}
+
+function exporterExcel() {
+  const donnees = genererDonneesExport(listeDemandesFiltrees);
+  const feuille = XLSX.utils.json_to_sheet(donnees);
+  const classeur = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(classeur, feuille, "Demandes");
+  XLSX.writeFile(classeur, `demandes_inscription_${new Date().toISOString().split('T')[0]}.xlsx`);
+  notifier(textes[langueActuelle].excel_genere, 'succes');
+}
+
+function exporterCSV() {
+  const donnees = genererDonneesExport(listeDemandesFiltrees);
+  const feuille = XLSX.utils.json_to_sheet(donnees);
+  const csv = XLSX.utils.sheet_to_csv(feuille);
+  const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+  const lien = document.createElement('a');
+  lien.href = URL.createObjectURL(blob);
+  lien.download = `demandes_inscription_${new Date().toISOString().split('T')[0]}.csv`;
+  lien.click();
+  notifier(textes[langueActuelle].csv_genere, 'succes');
+}
+
+function exporterHistoriqueExcel() {
+  const donnees = listeHistorique.map(d => ({
+    "N°": d.id_preinscription || d.id || '—',
+    "Nom": d.nom || '',
+    "Prénoms": d.prenoms || '',
+    "Email": d.email || '',
+    "Classe": d.libelle_classe_fr || d.classe || '—',
+    "Date demande": formaterDate(d.date_demande || d.created_at),
+    "Date décision": formaterDate(d.date_decision || d.updated_at),
+    "Statut": d.statut === 'validee' ? textes[langueActuelle].validee_label : textes[langueActuelle].refusee_label
+  }));
+  const feuille = XLSX.utils.json_to_sheet(donnees);
+  const classeur = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(classeur, feuille, "Historique");
+  XLSX.writeFile(classeur, `historique_decision_${new Date().toISOString().split('T')[0]}.xlsx`);
+  notifier(textes[langueActuelle].excel_genere, 'succes');
+}
+
+function exporterHistoriqueCSV() {
+  const donnees = listeHistorique.map(d => ({
+    "N°": d.id_preinscription || d.id || '—',
+    "Nom": d.nom || '',
+    "Prénoms": d.prenoms || '',
+    "Email": d.email || '',
+    "Classe": d.libelle_classe_fr || d.classe || '—',
+    "Date demande": formaterDate(d.date_demande || d.created_at),
+    "Date décision": formaterDate(d.date_decision || d.updated_at),
+    "Statut": d.statut === 'validee' ? textes[langueActuelle].validee_label : textes[langueActuelle].refusee_label
+  }));
+  const feuille = XLSX.utils.json_to_sheet(donnees);
+  const csv = XLSX.utils.sheet_to_csv(feuille);
+  const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+  const lien = document.createElement('a');
+  lien.href = URL.createObjectURL(blob);
+  lien.download = `historique_decision_${new Date().toISOString().split('T')[0]}.csv`;
+  lien.click();
+  notifier(textes[langueActuelle].csv_genere, 'succes');
+}
+
+function trierDemandes() {
+  const valeurTri = document.getElementById('triColonne').value;
+  listeDemandesFiltrees.sort((a, b) => {
+    switch(valeurTri) {
+      case 'date': { const da = new Date(a.date_demande||a.created_at||0), db = new Date(b.date_demande||b.created_at||0); return db - da; }
+      case 'date-desc': { const da = new Date(a.date_demande||a.created_at||0), db = new Date(b.date_demande||b.created_at||0); return da - db; }
+      case 'nom': return `${a.nom||''} ${a.prenoms||''}`.localeCompare(`${b.nom||''} ${b.prenoms||''}`);
+      case 'nom-desc': return -`${a.nom||''} ${a.prenoms||''}`.localeCompare(`${b.nom||''} ${b.prenoms||''}`);
+      case 'classe': return (a.libelle_classe_fr||a.classe||'').localeCompare(b.libelle_classe_fr||b.classe||'');
+      default: return 0;
     }
+  });
+  pageActuelle = 1;
+  rendreListe();
+}
 
-    liste.innerHTML = data.lignes.map(d=>`
-      <div class="carte-demande">
-        <div class="row align-items-center g-3">
-          <div class="col-md-2"><strong>${textes[langueActuelle].nom}:</strong><br>${d.nom} ${d.prenoms}</div>
-          <div class="col-md-2"><strong>${textes[langueActuelle].mail}:</strong><br>${d.email}</div>
-          <div class="col-md-2"><strong>${textes[langueActuelle].tel}:</strong><br>${d.telephone}</div>
-          <div class="col-md-2"><strong>${textes[langueActuelle].classe}:</strong><br>${d.libelle_classe || d.id_classe || '—'}</div>
-          <div class="col-md-2"><strong>${textes[langueActuelle].profil}:</strong><br>${d.profil}</div>
-          <div class="col-md-2 d-flex gap-2">
-            <button class="btn btn-valide-lumineux btn-sm" onclick="traiter(${JSON.stringify(d).replace(/"/g,'&quot;')},'valide')">${textes[langueActuelle].valider}</button>
-            <button class="btn btn-refuse-lumineux btn-sm" onclick="traiter(${d.id_preinscription},'refusee')">${textes[langueActuelle].refuser}</button>
-          </div>
-        </div>
-      </div>
-    `).join('');
-  } catch(err) {
-    document.getElementById('liste-demandes').innerHTML = `<div class="text-center py-5 text-danger">⚠️ Erreur de connexion au serveur</div>`;
+function filtrerDemandes() {
+  const recherche = document.getElementById('champRecherche').value.toLowerCase().trim();
+  const classeFiltre = document.getElementById('filtreClasse').value;
+  const profilFiltre = document.getElementById('filtreProfil').value;
+  listeDemandesFiltrees = listeDemandes.filter(d => {
+    const nomComplet = `${d.nom||''} ${d.prenoms||''}`.toLowerCase();
+    const email = (d.email||'').toLowerCase();
+    const classe = d.libelle_classe_fr||d.libelle_classe||d.classe||'';
+    const profil = d.profil||'Élève';
+    return (!recherche || nomComplet.includes(recherche) || email.includes(recherche)) && (!classeFiltre || classe === classeFiltre) && (!profilFiltre || profil === profilFiltre);
+  });
+  trierDemandes();
+  stats.attente = listeDemandesFiltrees.length;
+  mettreAJourStats();
+}
+
+function rendrePagination(totalElements) {
+  const conteneur = document.getElementById('pagination');
+  const totalPages = Math.ceil(totalElements / ELEMENTS_PAR_PAGE);
+  if(totalPages <= 1) { conteneur.innerHTML = ''; return; }
+  let html = '<ul class="pagination justify-content-center">';
+  html += `<li class="page-item ${pageActuelle===1?'disabled':''}"><a class="page-link" href="#" onclick="changerPage(${pageActuelle-1});return false;"><i class="bi bi-chevron-left"></i></a></li>`;
+  for(let i=1;i<=totalPages;i++){ if(i===1||i===totalPages||(i>=pageActuelle-1&&i<=pageActuelle+1)) html += `<li class="page-item ${pageActuelle===i?'active':''}"><a class="page-link" href="#" onclick="changerPage(${i});return false;">${i}</a></li>`; else if(i===pageActuelle-2||i===pageActuelle+2) html += '<li class="page-item disabled"><span class="page-link">…</span></li>'; }
+  html += `<li class="page-item ${pageActuelle===totalPages?'disabled':''}"><a class="page-link" href="#" onclick="changerPage(${pageActuelle+1});return false;"><i class="bi bi-chevron-right"></i></a></li>`;
+  html += '</ul>';
+  conteneur.innerHTML = html;
+}
+
+function changerPage(nouvellePage) { pageActuelle = nouvellePage; rendreListe(); window.scrollTo({top:400,behavior:'smooth'}); }
+
+function rendreListe() {
+  const liste = document.getElementById('liste-demandes');
+  const debut = (pageActuelle-1)*ELEMENTS_PAR_PAGE, fin = debut + ELEMENTS_PAR_PAGE;
+  const pageDemandes = listeDemandesFiltrees.slice(debut, fin);
+  if(!listeDemandesFiltrees.length){ liste.innerHTML = `<div class="text-center py-5 opacity-75">${textes[langueActuelle].vide}</div>`; rendrePagination(0); return; }
+  liste.innerHTML = pageDemandes.map((d) => {
+    const idx = listeDemandesFiltrees.indexOf(d);
+    const classe = d.libelle_classe_fr||d.libelle_classe||d.classe||'—';
+    const dateDemande = formaterDate(d.date_demande||d.created_at||d.date_inscription);
+    return `<div class="carte-demande triee"><div class="row align-items-center g-3"><div class="col-md-2"><strong>${textes[langueActuelle].nom}:</strong><br>${d.nom||''} ${d.prenoms||''}</div><div class="col-md-2"><strong>${textes[langueActuelle].mail}:</strong><br>${d.email||'—'}</div><div class="col-md-2"><strong>${textes[langueActuelle].classe}:</strong><br>${classe}</div><div class="col-md-2"><strong>${textes[langueActuelle].date_demande}:</strong><br><span class="date-demande">${dateDemande}</span></div><div class="col-md-2"><strong>${textes[langueActuelle].profil}:</strong><br>${d.profil||'Élève'}</div><div class="col-md-2 d-flex gap-2"><button class="btn btn-valide-lumineux btn-sm" id="btn-valide-${idx}" onclick="validerDemande(${idx})">${textes[langueActuelle].valider}</button><button class="btn btn-refuse-lumineux btn-sm" id="btn-refus-${idx}" onclick="refuserDemande(${idx})">${textes[langueActuelle].refuser}</button></div></div></div>`;
+  }).join('');
+  rendrePagination(listeDemandesFiltrees.length);
+}
+
+async function chargerDemandes(){
+  const liste = document.getElementById('liste-demandes');
+  liste.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-warning"></div><p class="mt-3 opacity-80">${textes[langueActuelle].chargement}</p></div>`;
+  document.getElementById('zoneImpression').style.display = 'none';
+  try {
+    const res = await fetch(`${API_BASE}/preinscription/liste`, { headers: ENTETE_AUTORISATION });
+    if(!verifierReponseApi(res)) return;
+    const data = await res.json();
+    listeDemandes = (data.liste || data.lignes || data.demandes || []).map(d => ({...d, statut: 'attente'}));
+    listeHistorique = []; stats = { total: listeDemandes.length, attente: listeDemandes.length, validee: 0, refusee: 0 };
+    const selectClasse = document.getElementById('filtreClasse');
+    const classesUniques = [...new Set(listeDemandes.map(d => d.libelle_classe_fr||d.libelle_classe||d.classe||'—'))].sort();
+    selectClasse.innerHTML = `<option value="">${textes[langueActuelle].toutes_classes}</option>`;
+    classesUniques.forEach(c => { if(c!=='—') selectClasse.innerHTML += `<option value="${c}">${c}</option>`; });
+    filtrerDemandes();
+    mettreAJourStats();
+  } catch(err) { liste.innerHTML = `<div class="text-center py-5 text-danger">${textes[langueActuelle].err_reseau}</div>`;
+    console.error("Erreur chargement demandes :", err);
   }
 }
 
-async function traiter(demande, statut){
-  if(!confirm(textes[langueActuelle].confirmer)) return;
-  
-  let id;
-  let infosCompletes;
-  
-  // Gérer les deux formats : soit objet complet (valider), soit juste ID (refuser)
-  if(typeof demande === 'object'){
-    id = demande.id_preinscription;
-    infosCompletes = demande;
-  } else {
-    id = demande;
-    infosCompletes = null;
-  }
+// ✅ VALIDER UNE DEMANDE
+async function validerDemande(indexFiltre){
+  const demande = listeDemandesFiltrees[indexFiltre];
+  const id = demande.id_preinscription || demande.id;
+  const btn = document.getElementById(`btn-valide-${indexFiltre}`);
+  const texteOriginal = btn.innerHTML;
 
-  const token = localStorage.getItem('token');
+  if(!confirm(textes[langueActuelle].confirmer_valide)) return;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="icone-chargement"></span>${textes[langueActuelle].chargement_action}`;
+
+  const dateInscription = new Date().toISOString().split('T')[0];
   try {
-    const res = await fetch(`${API_BASE}/preinscription/traiter/${id}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer '+token
-      },
-      body: JSON.stringify({ 
-        statut: statut,
-        date_inscription: new Date().toISOString().split('T')[0] // ✅ Envoyer la date au serveur
-      })
+    const res = await fetch(`${API_BASE}/preinscription/valider/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...ENTETE_AUTORISATION },
+      body: JSON.stringify({ date_inscription: dateInscription })
     });
+    if(!verifierReponseApi(res)) { btn.disabled = false; btn.innerHTML = texteOriginal; return; }
     const r = await res.json();
-
     if(r.ok){
-      const message = statut==='valide' ? textes[langueActuelle].ok_valide : textes[langueActuelle].ok_refuse;
-      alert(message);
-      
-      // ✅ Si validée : afficher la fiche à imprimer
-      if(statut === 'valide' && infosCompletes){
-        preparerFicheImpression(infosCompletes);
-      }
+      notifier(textes[langueActuelle].ok_valide, 'succes');
+      // Déplacer dans l'historique
+      demande.statut = 'validee';
+      demande.date_decision = dateInscription;
+      listeHistorique.unshift(demande);
+      // Mettre à jour stats
+      stats.validee++;
+      stats.attente--;
+      preparerFicheImpression(demande);
     } else {
-      alert("❌ Erreur : " + (r.erreur || ''));
+      notifier(`${textes[langueActuelle].erreur} : ${r.erreur || ''}`, 'erreur');
     }
   } catch(err) {
-    alert("⚠️ Serveur inaccessible. Action enregistrée localement.");
-    if(statut === 'valide' && infosCompletes){
-      preparerFicheImpression(infosCompletes);
-    }
+    notifier(textes[langueActuelle].err_reseau, 'erreur');
+    console.error("Erreur validation :", err);
   }
-  
   chargerDemandes();
 }
 
+// ❌ REFUSER UNE DEMANDE
+async function refuserDemande(indexFiltre){
+  const demande = listeDemandesFiltrees[indexFiltre];
+  const id = demande.id_preinscription || demande.id;
+  const btn = document.getElementById(`btn-refus-${indexFiltre}`);
+  const texteOriginal = btn.innerHTML;
+
+  if(!id) return;
+  if(!confirm(textes[langueActuelle].confirmer_refus)) return;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="icone-chargement"></span>${textes[langueActuelle].chargement_action}`;
+
+  const dateDecision = new Date().toISOString().split('T')[0];
+  try {
+    const res = await fetch(`${API_BASE}/preinscription/refuser/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...ENTETE_AUTORISATION }
+    });
+    if(!verifierReponseApi(res)) { btn.disabled = false; btn.innerHTML = texteOriginal; return; }
+    const r = await res.json();
+    if(r.ok){
+      notifier(textes[langueActuelle].ok_refuse, 'succes');
+      // Déplacer dans l'historique
+      demande.statut = 'refusee';
+      demande.date_decision = dateDecision;
+      listeHistorique.unshift(demande);
+      // Mettre à jour stats
+      stats.refusee++;
+      stats.attente--;
+      document.getElementById('zoneImpression').style.display = 'none';
+    } else {
+      notifier(`${textes[langueActuelle].erreur} : ${r.erreur || ''}`, 'erreur');
+    }
+  } catch(err) {
+    notifier(textes[langueActuelle].err_reseau, 'erreur');
+    console.error("Erreur refus :", err);
+  }
+  chargerDemandes();
+}
+
+// 📜 CHARGER L'HISTORIQUE
+async function chargerHistorique(){
+  const conteneur = document.getElementById('liste-historique');
+  const recherche = document.getElementById('rechercheHistorique').value.toLowerCase().trim();
+  const filtreStatut = document.getElementById('filtreStatutHistorique').value;
+
+  let listeFiltree = listeHistorique;
+
+  // Appliquer recherche
+  if(recherche){
+    listeFiltree = listeFiltree.filter(d => {
+      const nomComplet = `${d.nom||''} ${d.prenoms||''}`.toLowerCase();
+      const email = (d.email||'').toLowerCase();
+      return nomComplet.includes(recherche) || email.includes(recherche);
+    });
+  }
+
+  // Appliquer filtre statut
+  if(filtreStatut){
+    listeFiltree = listeFiltree.filter(d => d.statut === filtreStatut);
+  }
+
+  // Afficher la liste
+  if(!listeFiltree.length){
+    conteneur.innerHTML = `<div class="text-center py-5 opacity-75">${textes[langueActuelle].vide_historique}</div>`;
+    return;
+  }
+
+  conteneur.innerHTML = listeFiltree.map(d => {
+    const classe = d.libelle_classe_fr || d.libelle_classe || d.classe || '—';
+    const dateDemande = formaterDate(d.date_demande || d.created_at);
+    const dateDecision = formaterDate(d.date_decision || d.updated_at);
+    const libelleStatut = d.statut === 'validee'
+      ? `<span class="badge-valide">${textes[langueActuelle].validee_label}</span>`
+      : `<span class="badge-refuse">${textes[langueActuelle].refusee_label}</span>`;
+
+    return `
+    <div class="carte-historique ${d.statut}">
+      <div class="row align-items-center g-3">
+        <div class="col-md-2"><strong>${textes[langueActuelle].nom}:</strong><br>${d.nom||''} ${d.prenoms||''}</div>
+        <div class="col-md-2"><strong>${textes[langueActuelle].mail}:</strong><br>${d.email||'—'}</div>
+        <div class="col-md-2"><strong>${textes[langueActuelle].classe}:</strong><br>${classe}</div>
+        <div class="col-md-2"><strong>${textes[langueActuelle].date_demande}:</strong><br>${dateDemande}</div>
+        <div class="col-md-2"><strong>${textes[langueActuelle].date_decision}:</strong><br>${dateDecision}</div>
+        <div class="col-md-2 text-center"><strong>${textes[langueActuelle].statut}:</strong><br>${libelleStatut}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// 🔍 Écouteurs historiques
+document.getElementById('rechercheHistorique').addEventListener('input', chargerHistorique);
+document.getElementById('filtreStatutHistorique').addEventListener('change', chargerHistorique);
+
+// 🔍 Écouteurs demandes
+document.getElementById('champRecherche').addEventListener('input', filtrerDemandes);
+document.getElementById('filtreClasse').addEventListener('change', filtrerDemandes);
+document.getElementById('filtreProfil').addEventListener('change', filtrerDemandes);
+document.getElementById('triColonne').addEventListener('change', trierDemandes);
+
+// 🚀 INITIALISATION
+appliquerLangue();
 chargerDemandes();
 </script>
 </body>

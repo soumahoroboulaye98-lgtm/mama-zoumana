@@ -10,10 +10,12 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 
+
 // ==================================================
 // ✅ CLÉ JWT UNIFIÉE — MÊME VALEUR PARTOUT
 // ==================================================
 const CLE_JWT = process.env.JWT_SECRET || 'ma_cle_secrete_pour_le_site_2026';
+
 
 
 // ==================================================
@@ -22,6 +24,7 @@ const CLE_JWT = process.env.JWT_SECRET || 'ma_cle_secrete_pour_le_site_2026';
 const veriftoken = require('../middleware/veriftoken');
 const verifadmin = require('../middleware/verifadmin');
 const protegerAdmin = [veriftoken, verifadmin];
+
 
 
 // ==================================================
@@ -42,6 +45,7 @@ const stockage = multer.diskStorage({
 const upload = multer({ storage: stockage, limits: { fileSize: 10 * 1024 * 1024 } });
 
 
+
 // ==================================================
 // 📧 CONFIGURATION EMAIL
 // ==================================================
@@ -52,6 +56,7 @@ const transport = nodemailer.createTransport({
     pass: process.env.MAIL_PASS
   }
 });
+
 
 
 // ==================================================
@@ -86,6 +91,7 @@ async function genererMatricule(profil, id_classe = null) {
   const numero = String(parseInt(compte.rows[0].count) + 1).padStart(4, '0');
   return `${codeEcole}-${annee}-${codeClasse}-${numero}`;
 }
+
 
 
 // ==================================================
@@ -218,6 +224,114 @@ router.post('/connexion', async (req, res) => {
 });
 
 
+
+// ==================================================
+// 👨‍👩‍👧 CONNEXION PARENT PAR MATRICULE ENFANT
+// ✅ APPELÉE DEPUIS LA PAGE DE CONNEXION
+// ==================================================
+router.post('/preinscription/parent-matricule', async (req, res) => {
+  try {
+    const { matricule, email_parent, telephone_parent } = req.body;
+
+    if (!matricule) {
+      return res.json({ ok: false, erreur: "⚠️ Saisissez le matricule de l'enfant" });
+    }
+    if (!email_parent && !telephone_parent) {
+      return res.json({ ok: false, erreur: "⚠️ Saisissez au moins email OU téléphone du parent" });
+    }
+
+    // Rechercher l'élève par son matricule
+    const eleve = await pool.query(
+      `SELECT id, nom, prenom, email, telephone, matricule, id_parent
+       FROM utilisateurs
+       WHERE UPPER(matricule) = UPPER($1) AND role = 'eleve' AND COALESCE(statut_compte, 'valide') = 'valide'`,
+      [matricule.trim()]
+    );
+
+    if (eleve.rows.length === 0) {
+      return res.json({ ok: false, erreur: "⚠️ Aucun élève trouvé avec ce matricule" });
+    }
+
+    const enfant = eleve.rows[0];
+
+    // Vérifier si les coordonnées correspondent
+    let parentTrouve = false;
+    const conditions = [];
+    const valeurs = [enfant.id];
+
+    if (email_parent && email_parent.trim()) {
+      conditions.push(`LOWER(email) = LOWER($${valeurs.push(email_parent.trim())})`);
+    }
+    if (telephone_parent && telephone_parent.trim()) {
+      conditions.push(`telephone = $${valeurs.push(telephone_parent.trim())}`);
+    }
+
+    if (enfant.id_parent) {
+      const parent = await pool.query(
+        `SELECT id, nom, prenom, email, telephone, role
+         FROM utilisateurs
+         WHERE id = $1 AND role = 'parent'`,
+        [enfant.id_parent]
+      );
+
+      if (parent.rows.length > 0) {
+        const p = parent.rows[0];
+        const correspondEmail = !email_parent || p.email?.toLowerCase().trim() === email_parent?.toLowerCase().trim();
+        const correspondTel = !telephone_parent || p.telephone?.trim() === telephone_parent?.trim();
+
+        if (correspondEmail || correspondTel) {
+          parentTrouve = true;
+          const token = jwt.sign(
+            { id: p.id, nom: p.nom, prenom: p.prenom, role: 'parent', email: p.email },
+            CLE_JWT,
+            { expiresIn: '8h' }
+          );
+
+          console.log(`✅ Connexion Parent réussie — Accès à ${enfant.matricule}`);
+          return res.json({
+            ok: true,
+            token,
+            role: 'parent',
+            nom: p.nom,
+            prenom: p.prenom,
+            enfants: [{ id: enfant.id, nom: enfant.nom, prenom: enfant.prenom, matricule: enfant.matricule }]
+          });
+        }
+      }
+    }
+
+    // Si pas de lien id_parent, vérifier directement sur l'élève (email/tel = parent)
+    const correspondEmail = !email_parent || enfant.email?.toLowerCase().trim() === email_parent?.toLowerCase().trim();
+    const correspondTel = !telephone_parent || enfant.telephone?.trim() === telephone_parent?.trim();
+
+    if (correspondEmail || correspondTel) {
+      const token = jwt.sign(
+        { id: enfant.id, nom: enfant.nom, prenom: enfant.prenom, role: 'parent', email: enfant.email },
+        CLE_JWT,
+        { expiresIn: '8h' }
+      );
+
+      console.log(`✅ Connexion Parent réussie (coordonnée élève) — ${enfant.matricule}`);
+      return res.json({
+        ok: true,
+        token,
+        role: 'parent',
+        nom: 'Parent',
+        prenom: '',
+        enfants: [{ id: enfant.id, nom: enfant.nom, prenom: enfant.prenom, matricule: enfant.matricule }]
+      });
+    }
+
+    return res.json({ ok: false, erreur: "⚠️ Email ou téléphone ne correspond pas à cet enfant" });
+
+  } catch (e) {
+    console.error("❌ ERREUR CONNEXION PARENT :", e.message);
+    res.json({ ok: false, erreur: "Erreur serveur : " + e.message });
+  }
+});
+
+
+
 // ==================================================
 // 📝 PRÉINSCRIPTION — Avec génération matricule
 // ✅ CORRIGÉ : champ prenom dans la table utilisateurs
@@ -264,6 +378,7 @@ router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }
     res.json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
+
 
 
 // ==================================================
@@ -319,6 +434,7 @@ router.post('/mot-de-passe-oublie', async (req, res) => {
 });
 
 
+
 // ==================================================
 // 🔐 CHANGEMENT DE MOT DE PASSE
 // ✅ CORRIGÉ : SELECT utilise prenom
@@ -363,6 +479,7 @@ router.post('/changer-mot-de-passe', veriftoken, async (req, res) => {
     res.json({ ok: false, erreur: "Erreur serveur" });
   }
 });
+
 
 
 // ==================================================
@@ -445,6 +562,7 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
 });
 
 
+
 // ==================================================
 // ❌ REFUSER UNE PRÉINSCRIPTION
 // ==================================================
@@ -473,6 +591,7 @@ router.put('/preinscription/refuser/:id', protegerAdmin, async (req, res) => {
 });
 
 
+
 // ==================================================
 // 📋 LISTER LES PRÉINSCRIPTIONS EN ATTENTE
 // ==================================================
@@ -496,6 +615,7 @@ router.get('/preinscription/liste', protegerAdmin, async (req, res) => {
 });
 
 
+
 // ==================================================
 // 📋 LISTE TOUS LES UTILISATEURS
 // ✅ CORRIGÉ : SELECT utilise prenom (conforme à la base)
@@ -515,6 +635,7 @@ router.get('/utilisateurs', protegerAdmin, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 
 // ==================================================
@@ -546,6 +667,7 @@ router.get('/utilisateur/:id', protegerAdmin, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 
 // ==================================================
@@ -603,6 +725,7 @@ router.put('/utilisateur/:id', protegerAdmin, async (req, res) => {
 });
 
 
+
 // ==================================================
 // 🗑️ SUPPRIMER UN UTILISATEUR
 // ✅ CORRIGÉ : RETURNING utilise prenom
@@ -636,5 +759,8 @@ router.delete('/utilisateur/:id', protegerAdmin, async (req, res) => {
 });
 
 
-// ✅ EXPORT UNIFIÉ — Pour que serveur.js trouve tout
-module.exports = { router, veriftoken, verifadmin, protegerAdmin };
+
+// ==================================================
+// ✅ EXPORT CORRIGÉ — SEUL router est exporté
+// ==================================================
+module.exports = router;

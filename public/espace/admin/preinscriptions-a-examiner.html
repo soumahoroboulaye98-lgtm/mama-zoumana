@@ -31,7 +31,7 @@
     }
 
     /* ===== 🌙 MODE SOMBRE ===== */
-    [data-theme="sombre"] {
+    [data-bs-theme="sombre"] {
       --primaire: #3b82f6;
       --secondaire: #0ea5e9;
       --succes: #22c55e;
@@ -59,7 +59,12 @@
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
     body.lang-ar { direction: rtl; }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 10px !important; transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease; }
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+      transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease; 
+    }
     body {
       background: var(--fond-page);
       color: var(--texte-principal);
@@ -120,11 +125,13 @@
     .btn-valider {
       background: linear-gradient(90deg, var(--succes), #059669);
       border: none;
+      border-radius: 10px;
     }
     .btn-valider:hover { filter: brightness(1.08); color:white; }
     .btn-refuser {
       background: linear-gradient(90deg, var(--danger), #dc2626);
       border: none;
+      border-radius: 10px;
     }
     .btn-refuser:hover { filter: brightness(1.08); color:white; }
     .empty-box {
@@ -164,13 +171,13 @@
       border: 2px solid white;
       color: white;
       padding: 4px 10px;
-      border-radius: 50% !important;
+      border-radius: 50%;
     }
     .btn-theme:hover { background: rgba(255,255,255,0.2); color:white; }
-    .bg-light { background: var(--table-alterne) !important; color: var(--texte-principal) !important; }
-    .modal-content { background: var(--fond-carte); color: var(--texte-principal); }
+    .bg-light { background: var(--table-alterne) !important; color: var(--texte-principal) !important; border-radius: 10px; }
+    .modal-content { background: var(--fond-carte); color: var(--texte-principal); border-radius: 16px; }
     .modal-header { border-bottom-color: var(--bordure); }
-    .form-control, .form-select { background: var(--table-fond); color: var(--texte-principal); border-color: var(--bordure); }
+    .form-control, .form-select { background: var(--table-fond); color: var(--texte-principal); border-color: var(--bordure); border-radius: 8px; }
   </style>
 </head>
 <body>
@@ -178,10 +185,10 @@
 <script>
   // 🌙 GESTION MODE JOUR/NUIT — SAUVEGARDÉ
   let themeActuel = localStorage.getItem('theme') || 'clair';
-  document.documentElement.setAttribute('data-theme', themeActuel);
+  document.documentElement.setAttribute('data-bs-theme', themeActuel);
   function basculerTheme() {
     themeActuel = themeActuel === 'clair' ? 'sombre' : 'clair';
-    document.documentElement.setAttribute('data-theme', themeActuel);
+    document.documentElement.setAttribute('data-bs-theme', themeActuel);
     localStorage.setItem('theme', themeActuel);
     mettreAJourIconeTheme();
   }
@@ -290,19 +297,19 @@
 </div>
 
 <!-- 🪟 MODALE : Voir la photo en grand -->
-<div class="modal fade" id="modalePhoto" tabindex="-1">
+<div class="modal fade" id="modalePhoto" tabindex="-1" aria-labelledby="modalePhotoLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header bg-dark text-white">
-        <h5 class="modal-title">
+        <h5 class="modal-title" id="modalePhotoLabel">
           <span class="txt-fr">📷 Photo d'identité</span>
           <span class="txt-en">📷 ID Photo</span>
           <span class="txt-ar">📷 صورة الهوية</span>
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
       </div>
       <div class="modal-body text-center p-4">
-        <img id="photoAffiche" src="" alt="Photo identité" class="img-fluid rounded">
+        <img id="photoAffiche" src="" alt="Photo d'identité" class="img-fluid rounded">
       </div>
     </div>
   </div>
@@ -317,6 +324,7 @@ let demandeSelectionnee = null;
 let listeDemandes = [];
 const modalePhoto = new bootstrap.Modal('#modalePhoto');
 
+// ✅ Icône de thème mise à jour dès le début
 mettreAJourIconeTheme();
 
 if (!token) {
@@ -354,8 +362,8 @@ const traductions = {
     docsFournis: "Provided documents", infosDemandeur: "Applicant information",
     validerConfirm: "✅ Confirm validation?\nAn account will be created and an email with credentials will be sent.",
     validerSucces: "✅ Registration validated!\n📧 Email sent to the student with credentials.",
-    refuserConfirm: "❌ Confirm refusal of this request?",
-    refuserSucces: "✅ Request refused.",
+    refuserConfirm: "❌ Confirm rejection of this request?",
+    refuserSucces: "✅ Request rejected.",
     erreur: "❌ Error", errReseau: "❌ Network error",
     dateInscription: "Registration Date", envoyerEmail: "📧 Resend Email"
   },
@@ -378,7 +386,11 @@ const traductions = {
 };
 
 let langueActuelle = localStorage.getItem('langue') || 'fr';
-function t(cle) { return traductions[langueActuelle][cle] || cle; }
+function t(cle) { return traductions[langueActuelle]?.[cle] || cle; }
+
+// 🌐 APPLIQUER LA LANGUE AU CHARGEMENT
+document.body.classList.add('lang-'+langueActuelle);
+document.querySelector(`.lang-btn[data-lang="${langueActuelle}"]`)?.classList.add('active');
 
 // 🌐 CHANGER DE LANGUE
 document.querySelectorAll('.lang-btn').forEach(btn => {
@@ -392,8 +404,6 @@ document.querySelectorAll('.lang-btn').forEach(btn => {
     chargerListe();
   });
 });
-document.body.classList.add('lang-'+langueActuelle);
-document.querySelector(`.lang-btn[data-lang="${langueActuelle}"]`)?.classList.add('active');
 
 // 📋 CHARGER LA LISTE DES DEMANDES EN ATTENTE
 async function chargerListe() {
@@ -419,7 +429,7 @@ async function chargerListe() {
       const tr = document.createElement('tr');
       tr.className = 'ligne-demande';
       tr.dataset.index = index;
-      tr.onclick = function() { afficherDetailsParIndex(parseInt(this.dataset.index)); };
+      tr.onclick = () => afficherDetailsParIndex(index);
 
       const afficherClasse = dem.libelle_classe_fr || dem.libelle_classe || dem.classe || (dem.id_classe ? `Classe #${dem.id_classe}` : '-');
       const dateAffichage = dem.date_preinscription 
@@ -447,7 +457,7 @@ async function chargerListe() {
 
 // 🔍 AFFICHER LES DÉTAILS
 function afficherDetailsParIndex(index) {
-  afficherDetails(listeDemandes[index]);
+  if (listeDemandes[index]) afficherDetails(listeDemandes[index]);
 }
 
 async function afficherDetails(dem) {
@@ -476,6 +486,7 @@ async function afficherDetails(dem) {
 
   const afficherClasse = dem.libelle_classe_fr || dem.libelle_classe || dem.classe || (dem.id_classe ? `Classe #${dem.id_classe}` : '-');
   const dateInscription = new Date().toISOString().split('T')[0];
+  const idDemande = dem.id_preinscription || dem.id;
 
   zone.innerHTML = `
     <div class="row g-4">
@@ -484,7 +495,7 @@ async function afficherDetails(dem) {
         <h6 class="mb-3">📷 <span class="txt-fr">Photo d'identité</span><span class="txt-en">ID Photo</span><span class="txt-ar">صورة الهوية</span></h6>
         ${photoUrl 
           ? `<img src="${photoUrl}" alt="Photo identité" class="photo-preview mb-2" 
-              onclick="document.getElementById('photoAffiche')..src='${photoUrl}'; modalePhoto.show();">
+              onclick="document.getElementById('photoAffiche').src='${photoUrl}'; modalePhoto.show();">
             <br><small class="text-muted">${t('cliqueAgrandir')}</small>`
           : `<div class="empty-box">${t('aucunPhoto')}</div>`
         }
@@ -512,13 +523,13 @@ async function afficherDetails(dem) {
     </div>
     <hr class="my-4">
     <div class="d-flex gap-3 justify-content-center flex-wrap">
-      <button class="btn btn-valider btn-lg text-white px-5" onclick="validerDemande(${dem.id_preinscription || dem.id})">
+      <button class="btn btn-valider btn-lg text-white px-5" onclick="validerDemande(${idDemande})">
         <i class="bi bi-check-circle me-2"></i>
         <span class="txt-fr">✅ VALIDER L'INSCRIPTION</span>
         <span class="txt-en">✅ VALIDATE REGISTRATION</span>
         <span class="txt-ar">✅ الموافقة على التسجيل</span>
       </button>
-      <button class="btn btn-refuser btn-lg text-white px-5" onclick="refuserDemande(${dem.id_preinscription || dem.id})">
+      <button class="btn btn-refuser btn-lg text-white px-5" onclick="refuserDemande(${idDemande})">
         <i class="bi bi-x-circle me-2"></i>
         <span class="txt-fr">❌ REFUSER LA DEMANDE</span>
         <span class="txt-en">❌ REJECT REQUEST</span>
@@ -555,6 +566,7 @@ async function validerDemande(id) {
 
 // ❌ REFUSER LA DEMANDE
 async function refuserDemande(id) {
+  if (!id) { alert(t('erreur')); return; }
   if (!confirm(t('refuserConfirm'))) return;
   try {
     const res = await fetch(`${API_URL}/preinscription/refuser/${id}`, {
