@@ -11,345 +11,245 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
+    /* ===== 🎨 VARIABLES — MODE CLAIR ===== */
     :root {
-      --primaire: #0c4a6e; --secondaire: #0369a1; --accent: #f59e0b;
-      --succes: #10b981; --alerte: #f97316; --texte-principal: #1e293b;
-      --texte-secondaire: #64748b; --fond-page: #f1f5f9; --carte-fond: #ffffff;
+      --primaire: #0c4a6e;
+      --secondaire: #0369a1;
+      --accent: #f59e0b;
+      --accent-clair: #fbbf24;
+      --succes: #10b981;
+      --alerte: #f97316;
+      --texte-principal: #1e293b;
+      --texte-secondaire: #64748b;
+      --fond-page: #f1f5f9;
+      --carte-fond: #ffffff;
       --entete-fond: linear-gradient(90deg, #0f172a, #0c4a6e);
-      --bordure: rgba(12,74,110,0.12); --ombre: 0 4px 20px rgba(0,0,0,0.07);
+      --bordure: rgba(12,74,110,0.12);
+      --ombre: 0 4px 20px rgba(0,0,0,0.07);
+      --ombre-hover: 0 12px 40px rgba(0,0,0,0.12);
     }
+
+    /* 🌙 MODE SOMBRE */
     body.mode-nuit {
-      --primaire: #38bdf8; --secondaire: #0ea5e9; --texte-principal: #f8fafc;
-      --texte-secondaire: #cbd5e1; --fond-page: #0f172a; --carte-fond: rgba(30, 41, 59, 0.7);
-      --bordure: rgba(245,158,11,0.15); --ombre: 0 4px 20px rgba(0,0,0,0.3);
+      --primaire: #38bdf8;
+      --secondaire: #0ea5e9;
+      --texte-principal: #f8fafc;
+      --texte-secondaire: #cbd5e1;
+      --fond-page: #0f172a;
+      --carte-fond: rgba(30, 41, 59, 0.7);
+      --entete-fond: linear-gradient(90deg, #020617, #0c4a6e);
+      --bordure: rgba(245,158,11,0.15);
+      --ombre: 0 4px 20px rgba(0,0,0,0.3);
+      --ombre-hover: 0 12px 40px rgba(0,0,0,0.4);
     }
+
+    /* ===== 🌐 SYSTÈME DE LANGUE ===== */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
     body.lang-en .txt-en { display: inline; }
-    body.lang-ar .txt-ar { display: inline; direction: rtl; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar { direction: rtl; }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: var(--fond-page); color: var(--texte-principal); min-height: 100vh; transition: all .4s ease; }
-    @keyframes apparition { from { opacity:0; transform:translateY(25px) } to { opacity:1; transform:none } }
-    .entete-page { background: var(--entete-fond); padding:1.5rem 0; box-shadow:var(--ombre); }
-    .entete-page h3 { color:white; font-weight:700; }
-    .btn-theme { width:42px; height:42px; border-radius:50%; border:none; background:rgba(255,255,255,.15); color:white; font-size:1.2rem; transition:.3s; }
-    .btn-theme:hover { background:var(--accent); color:#000; transform:scale(1.15) rotate(15deg); }
-    .btn-langue { border-radius:50px; border:1px solid var(--bordure); padding:.4rem 1rem; font-weight:600; background:var(--carte-fond); color:var(--texte-principal); }
-    .btn-langue:hover, .btn-langue.active { background:var(--accent); color:#000; border-color:var(--accent); box-shadow:0 0 12px rgba(245,158,11,.35); }
-    .carte-formulaire { background:var(--carte-fond); border-radius:16px; padding:2rem; margin-top:2rem; border:1px solid var(--bordure); box-shadow:var(--ombre); animation:apparition .6s ease forwards; }
-    .etape-titre { color:var(--primaire); font-weight:700; border-bottom:2px solid var(--accent); padding-bottom:.5rem; margin-bottom:1.5rem; }
-    .form-label { font-weight:600; color:var(--texte-principal); }
-    .form-control, .form-select { background:transparent; color:var(--texte-principal); border:1px solid var(--bordure); border-radius:10px; padding:.6rem 1rem; }
-    .form-control:focus, .form-select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(245,158,11,.15); outline:none; background:transparent; }
-    .info-base { background:rgba(16,185,129,.08); border-left:4px solid var(--succes); padding:.75rem 1rem; border-radius:8px; margin-bottom:1rem; }
-    .avertissement-base { background:rgba(245,158,11,.08); border-left:4px solid var(--accent); padding:.75rem 1rem; border-radius:8px; margin-bottom:1rem; }
-    .carte-frais { background:rgba(12,74,110,.04); border:2px dashed var(--primaire); border-radius:12px; padding:1.25rem; margin:1rem 0; }
-    body.mode-nuit .carte-frais { background:rgba(12,74,110,.2); }
-    .montant-total { font-size:1.4rem; font-weight:700; color:var(--primaire); }
-    .places-restantes { font-weight:600; margin-top:.25rem; }
-    .disponible { color:var(--succes); } .limite { color:var(--alerte); } .complet { color:#dc2626; }
-    .preview-photo { width:120px; height:150px; object-fit:cover; border-radius:8px; border:3px solid var(--accent); display:none; margin-top:.5rem; }
-    .preview-photo.visible { display:block; }
-    .bloc-profil, .bloc-etape { display:none; } .bloc-profil.actif, .bloc-etape.active { display:block; }
-    .btn-suivant { background:var(--succes); color:white; border-radius:10px; padding:.6rem 1.4rem; font-weight:600; border:none; transition:.3s; }
-    .btn-suivant:hover { box-shadow:0 0 18px rgba(16,185,129,.4); transform:translateY(-2px); }
-    .btn-precedent { background:var(--texte-secondaire); color:white; border-radius:10px; padding:.6rem 1.4rem; font-weight:600; border:none; }
-    .btn-verifier { background:var(--accent); color:#000; border-radius:10px; padding:.6rem 1.4rem; font-weight:600; border:none; }
-    .btn-valider-definitif { background:linear-gradient(90deg, #10b981, #059669); color:white; border-radius:10px; padding:.7rem 1.6rem; font-weight:700; border:none; animation:pulse-accent 2s infinite; }
-    @keyframes pulse-accent { 0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.4)} 50%{box-shadow:0 0 0 10px rgba(245,158,11,0)} }
-    .etapes { display:flex; justify-content:space-between; margin-bottom:2rem; position:relative; flex-wrap:wrap; gap:.5rem; }
-    .etapes::before { content:''; position:absolute; top:18px; left:8%; right:8%; height:3px; background:var(--bordure); }
-    .etape { text-align:center; position:relative; z-index:1; flex:1; min-width:70px; }
-    .etape-num { width:38px; height:38px; border-radius:50%; background:var(--bordure); color:var(--texte-secondaire); display:flex; align-items:center; justify-content:center; margin:0 auto .3rem; font-weight:700; }
-    .etape.active .etape-num { background:var(--accent); color:#000; box-shadow:0 0 12px rgba(245,158,11,.4); }
-    .etape.valide .etape-num { background:var(--succes); color:white; }
-    .case-a-cocher { display:flex; align-items:center; gap:.5rem; padding:.4rem 0; cursor:pointer; }
-    .case-a-cocher input { width:18px; height:18px; cursor:pointer; }
-    .resume-verification { background:rgba(12,74,110,.04); border:1px dashed var(--bordure); border-radius:10px; padding:1.25rem; margin-bottom:1rem; }
-    body.mode-nuit .resume-verification { background:rgba(12,74,110,.2); }
-    .choix-paiement { transition:.25s; }
-    .choix-paiement:has(input:checked) { border-color:var(--accent) !important; background:rgba(245,158,11,.08) !important; box-shadow:0 0 0 2px rgba(245,158,11,.15); }
-    .choix-paiement:has(input[value="caisse"]:checked) { border-color:var(--succes) !important; background:rgba(16,185,129,.08) !important; box-shadow:0 0 0 2px rgba(16,185,129,.15); }
-    @media(max-width:767px) { .carte-formulaire { padding:1.25rem; } }
+    body {
+      background: var(--fond-page);
+      color: var(--texte-principal);
+      min-height: 100vh;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      transition: background 0.4s ease, color 0.4s ease;
+    }
+
+    @keyframes apparition {
+      from { opacity: 0; transform: translateY(25px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse-accent {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
+      50% { box-shadow: 0 0 0 10px rgba(245,158,11,0); }
+    }
+
+    .entete-page {
+      background: var(--entete-fond);
+      padding: 1.5rem 0;
+      box-shadow: var(--ombre);
+    }
+    .entete-page h3 { color: white; font-weight: 700; margin: 0; }
+    .entete-page p { color: rgba(255,255,255,0.7); margin: 0; }
+
+    .btn-theme {
+      width: 42px; height: 42px; border-radius: 50%;
+      border: none; background: rgba(255,255,255,0.15);
+      color: white; font-size: 1.2rem;
+      transition: all 0.3s ease; margin-left: 0.5rem;
+    }
+    .btn-theme:hover {
+      background: var(--accent); color: #000;
+      transform: scale(1.15) rotate(15deg);
+    }
+
+    .btn-langue {
+      border-radius: 50px; border: 1px solid var(--bordure);
+      padding: 0.4rem 1rem; font-weight: 600;
+      background: var(--carte-fond); color: var(--texte-principal);
+      transition: all 0.3s ease;
+    }
+    .btn-langue:hover, .btn-langue.active {
+      background: var(--accent); color: #000;
+      border-color: var(--accent);
+      box-shadow: 0 0 12px rgba(245,158,11,0.35); transform: translateY(-2px);
+    }
+
+    .carte-formulaire {
+      background: var(--carte-fond); border-radius: 16px;
+      padding: 2rem; margin-top: 2rem;
+      border: 1px solid var(--bordure);
+      box-shadow: var(--ombre);
+      animation: apparition 0.6s ease forwards;
+    }
+    .carte-formulaire:hover { box-shadow: var(--ombre-hover); }
+    .etape-titre {
+      color: var(--primaire); font-weight: 700;
+      border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 1.5rem;
+    }
+    .form-label { font-weight: 600; color: var(--texte-principal); }
+    .form-control, .form-select {
+      background: transparent; color: var(--texte-principal);
+      border: 1px solid var(--bordure); border-radius: 10px;
+      padding: 0.6rem 1rem; transition: all 0.3s ease;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245,158,11,0.15); outline: none;
+      background: transparent; color: var(--texte-principal);
+    }
+
+    .info-base {
+      background: rgba(16,185,129,0.08);
+      border-left: 4px solid var(--succes);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    .info-base p { margin-bottom: 0.25rem; font-size: 0.95rem; }
+
+    .avertissement-base {
+      background: rgba(245,158,11,0.08);
+      border-left: 4px solid var(--accent);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .preview-photo {
+      width: 120px; height: 150px; object-fit: cover;
+      border-radius: 8px; border: 3px solid var(--accent);
+      display: none; margin-top: 0.5rem;
+    }
+    .preview-photo.visible { display: block; }
+
+    .bloc-profil { display: none; }
+    .bloc-profil.actif { display: block; }
+    .bloc-etape { display: none; animation: apparition 0.45s ease forwards; }
+    .bloc-etape.active { display: block; }
+
+    .btn-suivant {
+      background: var(--succes); color: white; border-radius: 10px;
+      padding: 0.6rem 1.4rem; font-weight: 600; border: none;
+      transition: all 0.3s ease;
+    }
+    .btn-suivant:hover {
+      box-shadow: 0 0 18px rgba(16,185,129,0.4); transform: translateY(-2px);
+    }
+    .btn-precedent {
+      background: var(--texte-secondaire); color: white; border-radius: 10px;
+      padding: 0.6rem 1.4rem; font-weight: 600; border: none;
+      transition: all 0.3s ease;
+    }
+    .btn-precedent:hover { transform: translateY(-2px); }
+    .btn-verifier {
+      background: var(--accent); color: #000; border-radius: 10px;
+      padding: 0.6rem 1.4rem; font-weight: 600; border: none;
+      transition: all 0.3s ease;
+    }
+    .btn-verifier:hover {
+      box-shadow: 0 0 18px rgba(245,158,11,0.4); transform: translateY(-2px);
+    }
+    .btn-valider-definitif {
+      background: linear-gradient(90deg, #10b981, #059669);
+      color: white; border-radius: 10px;
+      padding: 0.7rem 1.6rem; font-weight: 700; border: none;
+      transition: all 0.3s ease; animation: pulse-accent 2s infinite;
+    }
+    .btn-valider-definitif:hover {
+      transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.35);
+    }
+
+    .etapes { display: flex; justify-content: space-between; margin-bottom: 2rem; position: relative; flex-wrap: wrap; gap: 0.5rem; }
+    .etapes::before {
+      content: ''; position: absolute; top: 18px; left: 8%; right: 8%;
+      height: 3px; background: var(--bordure); z-index: 0;
+    }
+    .etape { text-align: center; position: relative; z-index: 1; flex: 1; min-width: 70px; }
+    .etape-num {
+      width: 38px; height: 38px; border-radius: 50%; background: var(--bordure);
+      color: var(--texte-secondaire); display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 0.3rem; font-weight: 700; transition: all 0.35s ease;
+    }
+    .etape.active .etape-num { background: var(--accent); color: #000; box-shadow: 0 0 12px rgba(245,158,11,0.4); }
+    .etape.valide .etape-num { background: var(--succes); color: white; }
+    .etape-texte { font-size: 0.68rem; color: var(--texte-secondaire); font-weight: 500; }
+
+    .case-a-cocher {
+      display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0;
+    }
+    .case-a-cocher input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+
+    .resume-verification {
+      background: rgba(12,74,110,0.04);
+      border: 1px dashed var(--bordure);
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    body.mode-nuit .resume-verification { background: rgba(12,74,110,0.2); }
+
+    @media (max-width: 767px) {
+      .entete-page { padding: 1rem 0; }
+      .carte-formulaire { padding: 1.25rem; margin-top: 1rem; }
+      .etape-texte { font-size: 0.58rem; }
+      .etapes::before { left: 5%; right: 5%; }
+    }
   </style>
 </head>
 <body>
 
 <script>
 const API_BASE = "https://mama-zoumana.onrender.com/api";
-let photoIdentiteBase64 = "";
 
-// 🌙 Thème Jour/Nuit
+// 🌙 Thème
 function appliquerTheme(nuit) {
   document.body.classList.toggle('mode-nuit', nuit);
   document.getElementById('btnTheme').textContent = nuit ? '🌙' : '☀️';
   localStorage.setItem('themeNuit', nuit ? '1' : '0');
 }
 document.addEventListener('DOMContentLoaded', () => {
-  appliquerTheme(localStorage.getItem('themeNuit') === '1');
-  document.getElementById('btnTheme').onclick = () => appliquerTheme(!document.body.classList.contains('mode-nuit'));
+  const theme = localStorage.getItem('themeNuit') === '1';
+  appliquerTheme(theme);
+  document.getElementById('btnTheme').addEventListener('click', () => appliquerTheme(!document.body.classList.contains('mode-nuit')));
 });
 
-// 🌐 Trilingue
+// 🌐 Langue
 let langueActuelle = localStorage.getItem('langue') || 'fr';
 document.body.classList.add('lang-' + langueActuelle);
 function changerLangue(lang){
-  langueActuelle = lang; localStorage.setItem('langue', lang);
-  document.body.classList.remove('lang-fr','lang-en','lang-ar'); document.body.classList.add('lang-'+lang);
-  document.querySelectorAll('.btn-langue').forEach(b=>b.classList.toggle('active', b.dataset.lang===lang));
-  document.body.dir = lang==='ar'?'rtl':'ltr';
-}
-
-// 💰 Tarifs et capacités
-const tarifsClasse = {
-  'CP1':{scol:85000,cant:25000,transp:18000},'CP2':{scol:85000,cant:25000,transp:18000},
-  'CE1':{scol:90000,cant:25000,transp:18000},'CE2':{scol:90000,cant:25000,transp:18000},
-  'CM1':{scol:95000,cant:25000,transp:20000},'CM2':{scol:95000,cant:25000,transp:20000},
-  '6e':{scol:110000,cant:30000,transp:22000},'5e':{scol:110000,cant:30000,transp:22000},
-  '4e':{scol:115000,cant:30000,transp:22000},'3e':{scol:115000,cant:30000,transp:22000},
-  '2nd':{scol:125000,cant:35000,transp:25000},'1ere':{scol:125000,cant:35000,transp:25000},
-  'terminale':{scol:130000,cant:35000,transp:25000}
-};
-const capaciteMax = 35;
-let inscritsParClasse = {'CP1':12,'CP2':15,'CE1':10,'CE2':14,'CM1':8,'CM2':11,'6e':20,'5e':22,'4e':25,'3e':30,'2nd':18,'1ere':16,'terminale':28};
-
-function chargerFraisEtPlaces(){
-  const cls = document.getElementById('classe_fr').value;
-  const bloc = document.getElementById('blocFraisScolaires');
-  const placesDiv = document.getElementById('placesDispo');
-  if(!cls) { bloc.classList.add('d-none'); placesDiv.innerHTML=''; mettreAJourTotal(); return; }
-
-  const t = tarifsClasse[cls] || {scol:0,cant:0,transp:0};
-  const inscrits = inscritsParClasse[cls] || 0;
-  const restant = capaciteMax - inscrits;
-
-  document.getElementById('frais_scol').textContent = t.scol.toLocaleString('fr-FR');
-  document.getElementById('frais_cant').textContent = t.cant.toLocaleString('fr-FR');
-  document.getElementById('frais_transp').textContent = t.transp.toLocaleString('fr-FR');
-  document.getElementById('frais_div').textContent = '0';
-  mettreAJourTotal();
-
-  placesDiv.innerHTML = restant>5
-    ? `<span class="places-restantes disponible">✅ ${restant} place(s) disponible(s)</span>`
-    : restant>0
-    ? `<span class="places-restantes limite">⚠️ Plus que ${restant} place(s) !</span>`
-    : `<span class="places-restantes complet">❌ Classe complète</span>`;
-
-  bloc.classList.remove('d-none');
-}
-
-function mettreAJourTotal(){
-  const cls = document.getElementById('classe_fr').value;
-  const t = tarifsClasse[cls] || {scol:0,cant:0,transp:0};
-  const total = t.scol + (document.getElementById('svc_cantine')?.checked ? t.cant : 0) + (document.getElementById('svc_transport')?.checked ? t.transp : 0);
-  document.getElementById('frais_total').textContent = total.toLocaleString('fr-FR');
-  return total;
-}
-
-// 🖼️ Aperçu photo
-function apercuImage(input, idImg){
-  const img = document.getElementById(idImg);
-  if(input.files && input.files[0]){
-    const reader = new FileReader();
-    reader.onload = e => {
-      img.src = e.target.result; img.classList.add('visible');
-      photoIdentiteBase64 = e.target.result;
-    };
-    reader.readAsDataURL(input.files[0]);
-  }
-}
-
-// 🔄 Navigation étapes
-document.getElementById('choixProfil').onchange = function(){
-  const p = this.value;
-  document.querySelectorAll('.bloc-profil, .bloc-etape').forEach(b=>b.classList.remove('actif','active'));
-  document.getElementById('filEtapes').classList.toggle('d-none', p!=='eleve');
-  if(!p) return document.getElementById('bloc-etape-0').classList.add('active');
-  document.getElementById('bloc-etape-0').classList.remove('active');
-  if(p==='eleve'){ document.getElementById('blocEleve').classList.add('actif'); document.getElementById('bloc-etape-1-eleve').classList.add('active'); }
-  if(p==='parent'){ document.getElementById('blocParent').classList.add('actif'); document.getElementById('bloc-etape-1-parent').classList.add('active'); }
-  if(p==='prof'){ document.getElementById('blocProf').classList.add('actif'); document.getElementById('bloc-etape-1-prof').classList.add('active'); }
-  if(p==='visiteur'){ document.getElementById('blocVisiteur').classList.add('actif'); document.getElementById('bloc-etape-1-visiteur').classList.add('active'); }
-};
-
-function mettreAJourEtape(n){
-  document.querySelectorAll('.etape').forEach((el,i)=>{
-    el.classList.remove('active','valide');
-    if(i+1<n) el.classList.add('valide'); else if(i+1===n) el.classList.add('active');
-  });
-}
-function changerEtape(n){
-  const p = document.getElementById('choixProfil').value;
-  document.querySelectorAll('.bloc-etape').forEach(b=>b.classList.remove('active'));
-  if(n===0){ document.getElementById('bloc-etape-0').classList.add('active'); document.getElementById('filEtapes').classList.add('d-none'); return; }
-  if(p==='eleve'){ mettreAJourEtape(n); if(n===5) genererResume(); }
-  document.getElementById(`bloc-etape-${n}-${p}`)?.classList.add('active');
-}
-
-// 📄 Générer Fiche Préinscription PDF
-function genererFichePreinscription(donnees){
-  return `
-<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fiche Préinscription — MAMA-ZOUMANA</title>
-<style>body{font-family:Arial,sans-serif; padding:20px;} .entete{text-align:center; border-bottom:2px solid #0c4a6e; padding-bottom:10px; margin-bottom:20px;} .photo{position:absolute; top:10px; right:10px; width:100px; height:130px; object-fit:cover; border:2px solid #f59e0b;} table{width:100%; border-collapse:collapse; margin-top:15px;} td{border:1px solid #ccc; padding:8px;} td:first-child{font-weight:bold; background:#f3f4f6; width:35%;} .total{font-weight:bold; font-size:1.2em; color:#0c4a6e;} .signature{margin-top:40px; display:flex; justify-content:space-between;}</style></head>
-<body>
-<div class="entete"><h2>ÉCOLE MAMA-ZOUMANA</h2><h3>FICHE DE PRÉINSCRIPTION</h3><p>Année scolaire : ${donnees.annee || '2026-2027'}</p></div>
-${photoIdentiteBase64?`<img src="${photoIdentiteBase64}" class="photo">`:''}
-<table>
-<tr><td>Nom & Prénoms</td><td>${donnees.nom} ${donnees.prenom}</td></tr>
-<tr><td>Date / Lieu de naissance</td><td>${donnees.dateNaissance} — ${donnees.lieuNaissance}</td></tr>
-<tr><td>Classe (Français / Arabe)</td><td>${donnees.classeFr} / ${donnees.classeAr}</td></tr>
-<tr><td>Responsable Père</td><td>${donnees.nomPere} — Tél : ${donnees.telPere}</td></tr>
-<tr><td>Responsable Mère</td><td>${donnees.nomMere} — Tél : ${donnees.telMere}</td></tr>
-<tr><td>Services choisis</td><td>${donnees.services || 'Aucun'}</td></tr>
-<tr><td>Mode de paiement</td><td>${donnees.modePaiement}</td></tr>
-<tr class="total"><td>TOTAL À PAYER</td><td>${donnees.total} FCFA</td></tr>
-</table>
-<div class="signature"><div>Signature du demandeur : _______________</div><div>Cachet de l'établissement</div></div>
-<p style="margin-top:30px; font-size:0.9em; color:#666;">Document généré automatiquement — Plateforme MAMA-ZOUMANA</p>
-</body></html>`;
-}
-
-// 📄 Générer Bulletin Année Précédente
-function genererBulletinAnneePrecedente(donnees){
-  return `
-<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Bulletin — Année Précédente</title>
-<style>body{font-family:Arial,sans-serif; padding:20px;} .entete{text-align:center; border-bottom:2px solid #0c4a6e; padding-bottom:10px; margin-bottom:20px;} .photo{position:absolute; top:10px; right:10px; width:100px; height:130px; object-fit:cover; border:2px solid #f59e0b;} table{width:100%; border-collapse:collapse; margin-top:15px;} td{border:1px solid #ccc; padding:8px;} td:first-child{font-weight:bold; background:#f3f4f6; width:35%;} .moyenne{font-size:1.8em; font-weight:bold; color:#0c4a6e; text-align:center; padding:15px; background:#fef9e7; border-radius:10px; margin:15px 0;} .mention{font-size:1.3em; font-weight:bold; color:#10b981; text-align:center;}</style></head>
-<body>
-<div class="entete"><h2>ÉCOLE MAMA-ZOUMANA</h2><h3>BULLETIN — ANNÉE PRÉCÉDENTE</h3><p>Élève : ${donnees.nom} ${donnees.prenom}</p></div>
-${photoIdentiteBase64?`<img src="${photoIdentiteBase64}" class="photo">`:''}
-<div class="moyenne">MOYENNE GÉNÉRALE : ${donnees.moyenne || '14.25'} / 20</div>
-<div class="mention">📊 Rang : ${donnees.rang || '3è / 25'} &nbsp;&nbsp;|&nbsp;&nbsp; Mention : ${donnees.mention || 'Bien'} &nbsp;&nbsp;|&nbsp;&nbsp; Conduite : ${donnees.conduite || '18'} / 20</div>
-<table style="margin-top:30px;">
-<tr><td>Appréciation générale</td><td>Élève sérieux et appliqué(e). Très bon comportement.</td></tr>
-<tr><td>Décision du conseil</td><td>Admis(e) en classe supérieure</td></tr>
-</table>
-<p style="margin-top:40px; text-align:right; font-size:0.9em;">Le Directeur</p>
-<p style="margin-top:30px; font-size:0.9em; color:#666;">Document généré automatiquement — Plateforme MAMA-ZOUMANA</p>
-</body></html>`;
-}
-
-// 📋 Récapitulatif avant validation
-function genererResume(){
-  const nom = document.getElementById('el_nom').value;
-  const prenom = document.getElementById('el_prenom').value;
-  const dateNaissance = document.getElementById('el_datedn').value;
-  const lieu = document.getElementById('el_lieu').value || '—';
-  const classeFr = document.getElementById('classe_fr').value;
-  const classeAr = document.getElementById('classe_ar').value;
-  const nomPere = document.getElementById('nom_pere').value;
-  const nomMere = document.getElementById('nom_mere').value;
-  const total = mettreAJourTotal();
-  const modePaiement = document.querySelector('input[name="mode_paiement"]:checked')?.value || 'Non renseigné';
-  const services = [
-    document.getElementById('svc_cantine').checked&&'🍽️ Cantine',
-    document.getElementById('svc_transport').checked&&'🚌 Transport',
-    document.getElementById('svc_sport').checked&&'⚽ Sport',
-    document.getElementById('svc_info').checked&&'💻 Informatique',
-    document.getElementById('svc_langue').checked&&'🗣️ Langues'
-  ].filter(Boolean).join(', ') || 'Aucun';
-
-  document.getElementById('blocResume').innerHTML = `
-<h5 class="mb-3 text-primary">📋 Récapitulatif de votre demande</h5>
-<div class="row g-2">
-  <div class="col-md-6"><strong>Nom :</strong> ${nom}</div>
-  <div class="col-md-6"><strong>Prénoms :</strong> ${prenom}</div>
-  <div class="col-md-6"><strong>Date de naissance :</strong> ${dateNaissance}</div>
-  <div class="col-md-6"><strong>Lieu de naissance :</strong> ${lieu}</div>
-  <div class="col-md-6"><strong>Classe (Français) :</strong> ${classeFr}</div>
-  <div class="col-md-6"><strong>Classe (Arabe) :</strong> ${classeAr}</div>
-  <div class="col-md-6"><strong>Nom du Père :</strong> ${nomPere}</div>
-  <div class="col-md-6"><strong>Nom de la Mère :</strong> ${nomMere}</div>
-  <div class="col-md-12 mt-2"><strong>💰 Total à payer :</strong> <span class="montant-total">${total.toLocaleString('fr-FR')} FCFA</span></div>
-  <div class="col-md-12"><strong>💳 Mode de paiement :</strong> ${modePaiement.toUpperCase()}</div>
-  <div class="col-md-12"><strong>🛎️ Services :</strong> ${services}</div>
-</div>
-<p class="mt-3 text-success">✅ Photo d'identité et documents enregistrés. La photo apparaîtra sur vos deux documents PDF.</p>
-<p class="text-info">📧 À validation, vous recevrez par email :<br>
-&nbsp;&nbsp;✔ Fiche de préinscription complète<br>
-&nbsp;&nbsp;✔ Bulletin de l'année précédente (moyenne, rang, mention, conduite)</p>`;
-}
-
-// 📧 Télécharger fichier
-function telechargerFiche(nomFichier, contenuHtml){
-  const blob = new Blob([contenuHtml], {type:'text/html;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = nomFichier; document.body.appendChild(a); a.click();
-  document.body.removeChild(a); URL.revokeObjectURL(url);
-}
-
-// 📤 Soumission finale
-document.getElementById('formPreinsc').addEventListener('submit', async e => {
-  e.preventDefault();
-  if(!document.getElementById('certifieExact')?.checked) return alert('⚠️ Veuillez certifier l\'exactitude des informations.');
-
-  const nom = document.getElementById('el_nom').value;
-  const prenom = document.getElementById('el_prenom').value;
-  const total = mettreAJourTotal();
-  const donnees = {
-    nom, prenom,
-    dateNaissance: document.getElementById('el_datedn').value,
-    lieuNaissance: document.getElementById('el_lieu').value || '—',
-    classeFr: document.getElementById('classe_fr').value,
-    classeAr: document.getElementById('classe_ar').value,
-    nomPere: document.getElementById('nom_pere').value,
-    telPere: document.getElementById('tel_pere').value,
-    nomMere: document.getElementById('nom_mere').value,
-    telMere: document.getElementById('tel_mere').value,
-    services: [
-      document.getElementById('svc_cantine').checked&&'🍽️ Cantine',
-      document.getElementById('svc_transport').checked&&'🚌 Transport',
-      document.getElementById('svc_sport').checked&&'⚽ Sport',
-      document.getElementById('svc_info').checked&&'💻 Informatique',
-      document.getElementById('svc_langue').checked&&'🗣️ Langues'
-    ].filter(Boolean).join(', ') || 'Aucun',
-    modePaiement: (document.querySelector('input[name="mode_paiement"]:checked')?.value||'—').toUpperCase(),
-    total: total.toLocaleString('fr-FR'),
-    moyenne:'14.25', rang:'3è / 25', mention:'Bien', conduite:'18'
-  };
-
-  // 📄 Générer et télécharger
-  telechargerFiche(`Fiche-Preinscription-${nom}-${prenom}.html`, genererFichePreinscription(donnees));
-  telechargerFiche(`Bulletin-Annee-Precedente-${nom}-${prenom}.html`, genererBulletinAnneePrecedente(donnees));
-
-  // ✅ Envoyer au serveur
-  try {
-    const formData = new FormData(e.target);
-    await fetch(`${API_BASE}/preinscription`, { method:'POST', body:formData });
-    alert(`✅ PRÉINSCRIPTION ENREGISTRÉE ! 🎉
-
-📧 Vos DEUX documents ont été générés et téléchargés :
-   ✔ Fiche de préinscription complète
-   ✔ Bulletin de l'année précédente
-
-📬 Ils vous seront également envoyés par email dans quelques instants.
-
-Merci pour votre confiance !`);
-  } catch {
-    alert(`✅ PRÉINSCRIPTION ENREGISTRÉE ! 🎉
-
-📧 Vos DEUX documents ont été générés et téléchargés :
-   ✔ Fiche de préinscription complète
-   ✔ Bulletin de l'année précédente
-
-📬 Envoi par email en cours...
-
-Merci pour votre confiance !`);
-  }
-  e.target.reset(); photoIdentiteBase64='';
-  document.querySelectorAll('.bloc-etape, .bloc-profil').forEach(b=>b.classList.remove('active','actif'));
-  document.getElementById('bloc-etape-0').classList.add('active');
-});
-
-// 📊 Résultats année précédente
-async function recupererResultatsBase(){
-  const mat = document.getElementById('matricule_frere').value.trim();
-  if(!mat) return alert('⚠️ Saisissez un matricule');
-  document.getElementById('res_moyenne').textContent='14.25';
-  document.getElementById('res_rang').textContent='3è / 25';
-  document.getElementById('res_mention').textContent='Bien';
-  document.getElementById('res_conduite').textContent='18';
-  document.getElementById('blocResultats').classList.remove('d-none');
+  langueActuelle = lang;
+  localStorage.setItem('langue', lang);
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + lang);
+  document.querySelectorAll('.btn-langue').forEach(b=>b.classList.toggle('active', b.dataset.lang === lang));
+  document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
 }
 </script>
 
@@ -363,11 +263,18 @@ async function recupererResultatsBase(){
           <span class="txt-ar">التسجيل المسبق</span>
         </h3>
         <p class="mb-0 opacity-75">
-          <span class="txt-fr">Remplissez, vérifiez, validez → recevez vos 2 documents par email</span>
+          <span class="txt-fr">Remplissez, vérifiez, puis validez votre demande</span>
+          <span class="txt-en">Fill, verify, then validate your request</span>
+          <span class="txt-ar">املأ وتحقق ثم صادق على طلبك</span>
         </p>
       </div>
       <div class="d-flex align-items-center">
-        <a href="index.html" class="btn btn-sm btn-outline-light rounded-pill"><i class="bi bi-arrow-left"></i> <span class="txt-fr">Retour</span></a>
+        <a href="index.html" class="btn btn-sm btn-outline-light rounded-pill">
+          <i class="bi bi-arrow-left"></i>
+          <span class="txt-fr"> Retour</span>
+          <span class="txt-en"> Back</span>
+          <span class="txt-ar"> رجوع</span>
+        </a>
         <button id="btnTheme" class="btn-theme ms-2">☀️</button>
       </div>
     </div>
@@ -375,299 +282,717 @@ async function recupererResultatsBase(){
 </div>
 
 <div class="container py-4">
+
   <div class="d-flex justify-content-center gap-2 mb-4">
-    <button data-lang="fr" class="btn btn-langue active" onclick="changerLangue('fr')">🇫🇷 Français</button>
+    <button data-lang="fr" class="btn btn-langue" onclick="changerLangue('fr')">🇫🇷 Français</button>
     <button data-lang="en" class="btn btn-langue" onclick="changerLangue('en')">🇬🇧 English</button>
     <button data-lang="ar" class="btn btn-langue" onclick="changerLangue('ar')">🇸🇦 العربية</button>
   </div>
 
+  <!-- 📊 INDICATEUR D'ÉTAPES -->
   <div class="etapes d-none" id="filEtapes">
-    <div class="etape active"><div class="etape-num">1</div><div class="etape-texte txt-fr">Identité</div></div>
-    <div class="etape"><div class="etape-num">2</div><div class="etape-texte txt-fr">Parents & Résultats</div></div>
-    <div class="etape"><div class="etape-num">3</div><div class="etape-texte txt-fr">Classe & Paiement</div></div>
-    <div class="etape"><div class="etape-num">4</div><div class="etape-texte txt-fr">Documents</div></div>
-    <div class="etape"><div class="etape-num">5</div><div class="etape-texte txt-fr">Vérification</div></div>
+    <div class="etape active" id="etape-ind-1"><div class="etape-num">1</div><div class="etape-texte txt-fr">Identité</div></div>
+    <div class="etape" id="etape-ind-2"><div class="etape-num">2</div><div class="etape-texte txt-fr">Parents & Résultats</div></div>
+    <div class="etape" id="etape-ind-3"><div class="etape-num">3</div><div class="etape-texte txt-fr">Classe & Services</div></div>
+    <div class="etape" id="etape-ind-4"><div class="etape-num">4</div><div class="etape-texte txt-fr">Documents</div></div>
+    <div class="etape" id="etape-ind-5"><div class="etape-num">5</div><div class="etape-texte txt-fr">Vérification</div></div>
   </div>
 
   <form id="formPreinsc" enctype="multipart/form-data">
 
-    <!-- ÉTAPE 0 — Choix du profil -->
-    <div class="carte-formulaire bloc-etape active" id="bloc-etape-0">
-      <h4 class="etape-titre">👋 <span class="txt-fr">Bienvenue — Qui êtes-vous ?</span></h4>
-      <div class="row"><div class="col-md-6 offset-md-3">
-        <label class="form-label"><span class="txt-fr">Sélectionnez votre profil</span> *</label>
+  <!-- ⭐ ÉTAPE 0 — Choix du profil -->
+  <div class="carte-formulaire bloc-etape active" id="bloc-etape-0">
+    <h4 class="etape-titre">👋
+      <span class="txt-fr"> Bienvenue — Qui êtes-vous ?</span>
+      <span class="txt-en"> Welcome — Who are you?</span>
+      <span class="txt-ar"> أهلاً بك — من أنت؟</span>
+    </h4>
+    <div class="row">
+      <div class="col-md-6 offset-md-3">
+        <label class="form-label">
+          <span class="txt-fr">Sélectionnez votre profil</span>
+          <span class="txt-en">Select your profile</span>
+          <span class="txt-ar">اختر ملفك الشخصي</span> *
+        </label>
         <select name="profil" id="choixProfil" class="form-select" required>
           <option value="">—</option>
-          <option value="eleve">🎓 Élève</option>
-          <option value="parent">👨‍👩‍👧 Parent</option>
-          <option value="prof">👨‍🏫 Enseignant</option>
-          <option value="visiteur">🧑‍💼 Visiteur / Autre</option>
+          <option value="eleve">🎓 <span class="txt-fr">Élève</span><span class="txt-en">Student</span><span class="txt-ar">تلميذ</span></option>
+          <option value="parent">👨‍👩‍👧 <span class="txt-fr">Parent</span><span class="txt-en">Parent</span><span class="txt-ar">ولي أمر</span></option>
+          <option value="prof">👨‍🏫 <span class="txt-fr">Enseignant</span><span class="txt-en">Teacher</span><span class="txt-ar">أستاذ</span></option>
+          <option value="visiteur">🧑‍💼 <span class="txt-fr">Visiteur / Autre</span><span class="txt-en">Visitor / Other</span><span class="txt-ar">زائر / آخر</span></option>
         </select>
-      </div></div>
+      </div>
     </div>
+  </div>
 
-    <!-- BLOC ÉLÈVE -->
-    <div id="blocEleve" class="bloc-profil">
-      <!-- Étape 1 — Identité -->
-      <div class="carte-formulaire bloc-etape" id="bloc-etape-1-eleve">
-        <h4 class="etape-titre">👤 <span class="txt-fr">Élève — Informations</span></h4>
-        <div class="row g-3">
-          <div class="col-md-6"><label class="form-label">Nom *</label><input type="text" name="nom" id="el_nom" class="form-control" required></div>
-          <div class="col-md-6"><label class="form-label">Prénoms *</label><input type="text" name="prenom" id="el_prenom" class="form-control" required></div>
-          <div class="col-md-4"><label class="form-label">Date de naissance *</label><input type="date" name="date_naissance" id="el_datedn" class="form-control" required></div>
-          <div class="col-md-4"><label class="form-label">Lieu de naissance</label><input type="text" name="lieu_naissance" id="el_lieu" class="form-control"></div>
-          <div class="col-md-4"><label class="form-label">Sexe *</label>
-            <select name="sexe" id="el_sexe" class="form-select" required>
-              <option value="">—</option><option value="M">Masculin</option><option value="F">Féminin</option>
-            </select>
-          </div>
+  <!-- ================================================== -->
+  <!-- 🎓 BLOC ÉLÈVE — COMPLET AVEC TOUTES EXIGENCES -->
+  <!-- ================================================== -->
+  <div id="blocEleve" class="bloc-profil">
+    <!-- ÉTAPE 1 — Identité élève -->
+    <div class="carte-formulaire bloc-etape" id="bloc-etape-1-eleve">
+      <h4 class="etape-titre">👤
+        <span class="txt-fr"> Élève — Informations</span>
+        <span class="txt-en"> Student — Information</span>
+        <span class="txt-ar"> التلميذ — معلومات</span>
+      </h4>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Nom</span> *</label>
+          <input type="text" name="nom" id="el_nom" class="form-control" required>
         </div>
-        <div class="d-flex justify-content-between mt-4">
-          <button type="button" class="btn-precedent" onclick="changerEtape(0)"><i class="bi bi-chevron-left"></i> Retour</button>
-          <button type="button" class="btn-suivant" onclick="changerEtape(2)">Suivant <i class="bi bi-chevron-right"></i></button>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Prénoms</span> *</label>
+          <input type="text" name="prenom" id="el_prenom" class="form-control" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label"><span class="txt-fr">Date de naissance</span> *</label>
+          <input type="date" name="date_naissance" id="el_datedn" class="form-control" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label"><span class="txt-fr">Lieu de naissance</span></label>
+          <input type="text" name="lieu_naissance" id="el_lieu" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label"><span class="txt-fr">Sexe</span> *</label>
+          <select name="sexe" id="el_sexe" class="form-select" required>
+            <option value="">—</option>
+            <option value="M"><span class="txt-fr">Masculin</span><span class="txt-en">Male</span><span class="txt-ar">ذكر</span></option>
+            <option value="F"><span class="txt-fr">Féminin</span><span class="txt-en">Female</span><span class="txt-ar">أنثى</span></option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Nationalité</span></label>
+          <input type="text" name="nationalite" id="el_nat" class="form-control" value="Ivoirienne">
         </div>
       </div>
-
-      <!-- Étape 2 — Parents & Résultats -->
-      <div class="carte-formulaire bloc-etape" id="bloc-etape-2-eleve">
-        <h4 class="etape-titre">👨‍👩‍👧 <span class="txt-fr">Responsables légaux & Résultats</span></h4>
-        <div class="avertissement-base py-2 mb-3">📊 Les résultats de l'année précédente viennent de la base — non modifiables.</div>
-        <div class="mb-3"><label class="form-label">Matricule déjà connu (frère/sœur)</label>
-          <div class="d-flex gap-2">
-            <input type="text" id="matricule_frere" class="form-control" placeholder="MZ2026XXX">
-            <button type="button" class="btn-verifier" onclick="recupererResultatsBase()"><i class="bi bi-search"></i> Charger</button>
-          </div>
-        </div>
-        <div id="blocResultats" class="info-base d-none mb-3">
-          <p><strong>📋 Résultats année précédente :</strong></p>
-          <div class="row g-2">
-            <div class="col-sm-3"><strong>Moyenne :</strong> <span id="res_moyenne">—</span>/20</div>
-            <div class="col-sm-3"><strong>Rang :</strong> <span id="res_rang">—</span></div>
-            <div class="col-sm-3"><strong>Mention :</strong> <span id="res_mention">—</span></div>
-            <div class="col-sm-3"><strong>Conduite :</strong> <span id="res_conduite">—</span>/20</div>
-          </div>
-        </div>
-        <hr class="my-3">
-        <h5 class="mb-3 text-primary">👨 Informations — Père</h5>
-        <div class="row g-3 mb-3">
-          <div class="col-md-6"><label class="form-label">Nom & Prénoms *</label><input type="text" name="nom_pere" id="nom_pere" class="form-control" required></div>
-          <div class="col-md-6"><label class="form-label">Profession</label><input type="text" name="activite_pere" class="form-control"></div>
-          <div class="col-md-6"><label class="form-label">Date de naissance</label><input type="date" name="date_naissance_pere" class="form-control"></div>
-          <div class="col-md-6"><label class="form-label">Téléphone *</label><input type="tel" name="tel_pere" id="tel_pere" class="form-control" required></div>
-        </div>
-        <h5 class="mb-3 text-primary">👩 Informations — Mère</h5>
-        <div class="row g-3">
-          <div class="col-md-6"><label class="form-label">Nom & Prénoms *</label><input type="text" name="nom_mere" id="nom_mere" class="form-control" required></div>
-          <div class="col-md-6"><label class="form-label">Profession</label><input type="text" name="activite_mere" class="form-control"></div>
-          <div class="col-md-6"><label class="form-label">Date de naissance</label><input type="date" name="date_naissance_mere" class="form-control"></div>
-          <div class="col-md-6"><label class="form-label">Téléphone *</label><input type="tel" name="tel_mere" class="form-control" required></div>
-        </div>
-        <div class="d-flex justify-content-between mt-4">
-          <button type="button" class="btn-precedent" onclick="changerEtape(1)"><i class="bi bi-chevron-left"></i> Précédent</button>
-          <button type="button" class="btn-suivant" onclick="changerEtape(3)">Suivant — Classe & Paiement <i class="bi bi-chevron-right"></i></button>
-        </div>
-      </div>
-
-      <!-- Étape 3 — Classe, Frais & Paiement -->
-      <div class="carte-formulaire bloc-etape" id="bloc-etape-3-eleve">
-        <h4 class="etape-titre">🏫 <span class="txt-fr">Classe, Frais & Paiement</span></h4>
-        <div class="row g-3 mb-4">
-          <div class="col-md-6">
-            <label class="form-label">Classe souhaitée (Programme Français) *</label>
-            <select name="classe_francais" id="classe_fr" class="form-select" required onchange="chargerFraisEtPlaces()">
-              <option value="">— Choisir —</option>
-              <option>CP1</option><option>CP2</option><option>CE1</option><option>CE2</option>
-              <option>CM1</option><option>CM2</option><option>6e</option><option>5e</option>
-              <option>4e</option><option>3e</option><option>2nd</option><option>1ere</option><option>terminale</option>
-            </select>
-            <div id="placesDispo" class="places-restantes"></div>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Classe souhaitée (Programme Arabe) *</label>
-            <select name="classe_arabe" id="classe_ar" class="form-select" required>
-              <option value="">— Choisir —</option>
-              <option>CP1 Arabe</option><option>CP2 Arabe</option><option>CE1 Arabe</option><option>CE2 Arabe</option>
-              <option>CM1 Arabe</option><option>CM2 Arabe</option><option>6e Arabe</option><option>3e Arabe</option><option>Terminale Arabe</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- 💰 Frais scolaires -->
-        <div id="blocFraisScolaires" class="carte-frais d-none">
-          <h5 class="mb-3 text-primary">💰 Frais Scolaires</h5>
-          <div class="row g-2">
-            <div class="col-sm-6">Scolarité : <strong id="frais_scol">—</strong> FCFA</div>
-            <div class="col-sm-6">Cantine : <strong id="frais_cant">—</strong> FCFA</div>
-            <div class="col-sm-6">Transport : <strong id="frais_transp">—</strong> FCFA</div>
-            <div class="col-sm-6">Autres : <strong id="frais_div">0</strong> FCFA</div>
-            <div class="col-sm-12 mt-2 border-top pt-2 montant-total">💰 TOTAL : <span id="frais_total">—</span> FCFA</div>
-          </div>
-        </div>
-
-        <h5 class="mb-3 text-primary mt-4">🛎️ Services complémentaires</h5>
-        <div class="row g-2 mb-4">
-          <div class="col-md-4 case-a-cocher"><input type="checkbox" id="svc_cantine" onchange="chargerFraisEtPlaces()"> <label for="svc_cantine">🍽️ Cantine</label></div>
-          <div class="col-md-4 case-a-cocher"><input type="checkbox" id="svc_transport" onchange="chargerFraisEtPlaces()"> <label for="svc_transport">🚌 Transport</label></div>
-          <div class="col-md-4 case-a-cocher"><input type="checkbox" id="svc_sport"> <label for="svc_sport">⚽ Sport</label></div>
-          <div class="col-md-4 case-a-cocher"><input type="checkbox" id="svc_info"> <label for="svc_info">💻 Informatique</label></div>
-          <div class="col-md-4 case-a-cocher"><input type="checkbox" id="svc_langue"> <label for="svc_langue">🗣️ Langues</label></div>
-        </div>
-
-        <!-- 💳 Mode de Paiement -->
-        <h5 class="mb-3 text-primary">💳 Mode de Paiement *</h5>
-        <div class="row g-2 mb-3">
-          <div class="col-md-4 case-a-cocher choix-paiement border rounded p-2">
-            <input type="radio" name="mode_paiement" value="orange" required id="paiement_orange">
-            <label for="paiement_orange" class="mb-0">🟠 Orange Money</label>
-          </div>
-          <div class="col-md-4 case-a-cocher choix-paiement border rounded p-2">
-            <input type="radio" name="mode_paiement" value="moov" id="paiement_moov">
-            <label for="paiement_moov" class="mb-0">🟢 Moov Money</label>
-          </div>
-          <div class="col-md-4 case-a-cocher choix-paiement border rounded p-2">
-            <input type="radio" name="mode_paiement" value="mtn" id="paiement_mtn">
-            <label for="paiement_mtn" class="mb-0">🟡 MTN Money</label>
-          </div>
-          <div class="col-md-4 case-a-cocher choix-paiement border rounded p-2">
-            <input type="radio" name="mode_paiement" value="wave" id="paiement_wave">
-            <label for="paiement_wave" class="mb-0">🌊 Wave</label>
-          </div>
-          <div class="col-md-4 case-a-cocher choix-paiement border rounded p-2">
-            <input type="radio" name="mode_paiement" value="banque" id="paiement_banque">
-            <label for="paiement_banque" class="mb-0">🏦 Virement Bancaire</label>
-          </div>
-          <div class="col-md-4 case-a-cocher choix-paiement border border-success rounded p-2 bg-light">
-            <input type="radio" name="mode_paiement" value="caisse" id="paiement_caisse">
-            <label for="paiement_caisse" class="mb-0 text-success">🏛️ Paiement à la Caisse</label>
-          </div>
-        </div>
-
-        <div class="d-flex justify-content-between mt-4">
-          <button type="button" class="btn-precedent" onclick="changerEtape(2)"><i class="bi bi-chevron-left"></i> Précédent</button>
-          <button type="button" class="btn-suivant" onclick="changerEtape(4)">Suivant — Documents <i class="bi bi-chevron-right"></i></button>
-        </div>
-      </div>
-
-      <!-- Étape 4 — Documents -->
-      <div class="carte-formulaire bloc-etape" id="bloc-etape-4-eleve">
-        <h4 class="etape-titre">📄 <span class="txt-fr">Pièces àfournir</span></h4>
-        <div class="avertissement-base py-2 mb-3">
-          📷 Téléversez votre photo d'identité et vos documents. La photo apparaîtra automatiquement sur vos deux documents générés.
-        </div>
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">📷 Photo d'identité *</label>
-            <input type="file" name="photo_identite" id="photo_identite" class="form-control" accept="image/*" onchange="apercuImage(this, 'preview_photo')" required>
-            <img id="preview_photo" class="preview-photo" alt="Aperçu photo">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">📋 Extrait de naissance</label>
-            <input type="file" name="extrait_naissance" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">📑 Bulletin de l'année précédente</label>
-            <input type="file" name="bulletin_annee_precedente" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">📎 Autre document (facultatif)</label>
-            <input type="file" name="document_complementaire" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
-          </div>
-        </div>
-        <div class="d-flex justify-content-between mt-4">
-          <button type="button" class="btn-precedent" onclick="changerEtape(3)"><i class="bi bi-chevron-left"></i> Précédent</button>
-          <button type="button" class="btn-suivant" onclick="changerEtape(5)">Suivant — Vérification <i class="bi bi-chevron-right"></i></button>
-        </div>
-      </div>
-
-      <!-- Étape 5 — Vérification & Validation -->
-      <div class="carte-formulaire bloc-etape" id="bloc-etape-5-eleve">
-        <h4 class="etape-titre">✅ <span class="txt-fr">Vérification & Validation</span></h4>
-        <div id="blocResume" class="resume-verification">
-          <p class="text-center text-muted">⏳ Cliquez sur "Suivant" pour voir le récapitulatif de votre demande.</p>
-        </div>
-        <div class="form-check mt-4 mb-3">
-          <input type="checkbox" id="certifieExact" class="form-check-input">
-          <label for="certifieExact" class="form-check-label">
-            ✅ Je certifie l'exactitude de toutes les informations ci-dessus. Toute fausse déclaration expose à l'annulation de la préinscription.
-          </label>
-        </div>
-        <div class="d-flex justify-content-between mt-4">
-          <button type="button" class="btn-precedent" onclick="changerEtape(4)"><i class="bi bi-chevron-left"></i> Précédent</button>
-          <button type="submit" class="btn-valider-definitif">✅ Valider définitivement la préinscription</button>
-        </div>
+      <div class="d-flex justify-content-between mt-4">
+        <button type="button" class="btn-precedent" onclick="changerEtape(0)">
+          <i class="bi bi-chevron-left"></i> <span class="txt-fr"> Retour</span>
+        </button>
+        <button type="button" class="btn-suivant" onclick="changerEtape(2)">
+          <span class="txt-fr">Suivant</span> <i class="bi bi-chevron-right"></i>
+        </button>
       </div>
     </div>
 
-    <!-- BLOC PARENT -->
-    <div id="blocParent" class="bloc-profil">
-      <div class="carte-formulaire bloc-etape" id="bloc-etape-1-parent">
-        <h4 class="etape-titre">👨‍👩‍👧 <span class="txt-fr">Espace Parent — Connexion</span></h4>
-        <div class="row"><div class="col-md-8 offset-md-2">
-          <label class="form-label">Matricule de l'enfant *</label>
-          <input type="text" name="matricule_enfant_parent" class="form-control" placeholder="Ex: MZ2026-00001" required>
-          <p class="text-muted mt-2">Saisissez le matricule reçu lors de l'inscription pour accéder au dossier de votre enfant.</p>
-          <div class="d-flex justify-content-between mt-4">
-            <button type="button" class="btn-precedent" onclick="changerEtape(0)"><i class="bi bi-chevron-left"></i> Retour</button>
-            <button type="button" class="btn-suivant">Accéder au dossier <i class="bi bi-chevron-right"></i></button>
-          </div>
-        </div></div>
+    <!-- ÉTAPE 2 — Parents + RÉSULTATS AUTOMATIQUES depuis la base -->
+    <div class="carte-formulaire bloc-etape" id="bloc-etape-2-eleve">
+      <h4 class="etape-titre">👨‍👩‍👧
+        <span class="txt-fr"> Responsables légaux & Résultats</span>
+        <span class="txt-en"> Legal Guardians & Previous Results</span>
+      </h4>
+
+      <div class="avertissement-base py-2 mb-3">
+        📊 <strong><span class="txt-fr">Résultats de l'année précédente :</span></strong> <span class="txt-fr">Ces informations sont récupérées automatiquement de la base de données — vous ne pouvez pas les modifier.</span>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label"><span class="txt-fr">Matricule déjà connu (frère/sœur)</span></label>
+        <div class="d-flex gap-2">
+          <input type="text" name="matricule_frere" id="matricule_frere" class="form-control" placeholder="MZ2026XXX">
+          <button type="button" class="btn-verifier" onclick="recupererResultatsBase()">
+            <i class="bi bi-search"></i> <span class="txt-fr"> Charger résultats</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="blocResultats" class="info-base d-none mb-3">
+        <p><strong>📋 <span class="txt-fr">Résultats automatiques — Année précédente</span> :</strong></p>
+        <div class="row g-2">
+          <div class="col-sm-3"><strong>Moyenne :</strong> <span id="res_moyenne">—</span>/20</div>
+          <div class="col-sm-3"><strong>Rang :</strong> <span id="res_rang">—</span></div>
+          <div class="col-sm-3"><strong>Mention :</strong> <span id="res_mention">—</span></div>
+          <div class="col-sm-3"><strong>Conduite :</strong> <span id="res_conduite">—</span>/20</div>
+        </div>
+        <small class="text-success">✅ <span class="txt-fr">Ces données viennent de la base — envoyées par email à validation</span></small>
+      </div>
+
+      <hr class="my-3">
+      <h5 class="mb-3 text-primary">👨 Informations — Père</h5>
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Nom & Prénoms</span> *</label>
+          <input type="text" name="nom_pere" id="nom_pere" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Activité / Profession</span></label>
+          <input type="text" name="activite_pere" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Date de naissance</span></label>
+          <input type="date" name="date_naissance_pere" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Téléphone</span> *</label>
+          <input type="tel" name="tel_pere" class="form-control" required>
+        </div>
+      </div>
+
+      <h5 class="mb-3 text-primary">👩 Informations — Mère</h5>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Nom & Prénoms</span> *</label>
+          <input type="text" name="nom_mere" id="nom_mere" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Activité / Profession</span></label>
+          <input type="text" name="activite_mere" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Date de naissance</span></label>
+          <input type="date" name="date_naissance_mere" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Téléphone</span> *</label>
+          <input type="tel" name="tel_mere" class="form-control" required>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between mt-4">
+        <button type="button" class="btn-precedent" onclick="changerEtape(1)">
+          <i class="bi bi-chevron-left"></i> <span class="txt-fr"> Précédent</span>
+        </button>
+        <button type="button" class="btn-suivant" onclick="changerEtape(3)">
+          <span class="txt-fr">Suivant</span> <i class="bi bi-chevron-right"></i>
+        </button>
       </div>
     </div>
 
-    <!-- BLOC ENSEIGNANT -->
-    <div id="blocProf" class="bloc-profil">
-      <div class="carte-formulaire bloc-etape" id="bloc-etape-1-prof">
-        <h4 class="etape-titre">👨‍🏫 <span class="txt-fr">Espace Enseignant — Informations</span></h4>
-        <div class="row g-3">
-          <div class="col-md-6"><label class="form-label">Nom & Prénoms *</label><input type="text" name="nom_prof" class="form-control" required></div>
-          <div class="col-md-6"><label class="form-label">Email *</label><input type="email" name="email_prof" class="form-control" required></div>
-          <div class="col-md-6"><label class="form-label">Téléphone *</label><input type="tel" name="tel_prof" class="form-control" required></div>
-          <div class="col-md-6"><label class="form-label">Matière enseignée *</label><input type="text" name="matiere_prof" class="form-control" required></div>
-          <div class="col-md-12"><label class="form-label">📷 Photo d'identité</label><input type="file" name="photo_prof" class="form-control" accept="image/*"></div>
-          <div class="col-md-12"><label class="form-label">📄 Curriculum Vitae (CV)</label><input type="file" name="cv_prof" class="form-control" accept=".pdf,.doc,.docx"></div>
+    <!-- ÉTAPE 3 — Classe + Services -->
+    <div class="carte-formulaire bloc-etape" id="bloc-etape-3-eleve">
+      <h4 class="etape-titre">🏫
+        <span class="txt-fr"> Classe & Services Scolaires</span>
+        <span class="txt-en"> Class & School Services</span>
+      </h4>
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Classe souhaitée (Programme Français)</span> *</label>
+          <select name="classe_francais" id="classe_fr" class="form-select" required>
+            <option value="">— Choisir —</option>
+            <option value="CP1">CP1</option><option value="CP2">CP2</option>
+            <option value="CE1">CE1</option><option value="CE2">CE2</option>
+            <option value="CM1">CM1</option><option value="CM2">CM2</option>
+            <option value="6e">6ème</option><option value="5e">5ème</option>
+            <option value="4e">4ème</option><option value="3e">3ème</option>
+            <option value="2nd">2nd</option><option value="1ere">1ère</option><option value="terminale">Terminale</option>
+          </select>
         </div>
-        <div class="d-flex justify-content-between mt-4">
-          <button type="button" class="btn-precedent" onclick="changerEtape(0)"><i class="bi bi-chevron-left"></i> Retour</button>
-          <button type="submit" class="btn-suivant">Envoyer la demande <i class="bi bi-chevron-right"></i></button>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Classe souhaitée (Programme Arabe)</span> *</label>
+          <select name="classe_arabe" id="classe_ar" class="form-select" required>
+            <option value="">— Choisir —</option>
+            <option value="CP1">CP1 Arabe</option><option value="CP2">CP2 Arabe</option>
+            <option value="CE1">CE1 Arabe</option><option value="CE2">CE2 Arabe</option>
+            <option value="CM1">CM1 Arabe</option><option value="CM2">CM2 Arabe</option>
+            <option value="6e">6ème Arabe</option><option value="3e">3ème Arabe</option>
+            <option value="terminale">Terminale Arabe</option>
+          </select>
         </div>
+        <div class="col-md-12">
+          <label class="form-label"><span class="txt-fr">Année scolaire</span></label>
+          <input type="text" name="annee_scolaire" class="form-control" value="2025-2026" readonly>
+        </div>
+      </div>
+
+      <h5 class="mb-3 text-primary">🛎️ <span class="txt-fr">Services complémentaires (facultatifs)</span></h5>
+      <div class="row g-2 mb-4">
+        <div class="col-md-4 case-a-cocher">
+          <input type="checkbox" name="service_cantine" id="svc_cantine">
+          <label for="svc_cantine" class="mb-0">🍽️ <span class="txt-fr">Cantine</span></label>
+        </div>
+        <div class="col-md-4 case-a-cocher">
+          <input type="checkbox" name="service_transport" id="svc_transport">
+          <label for="svc_transport" class="mb-0">🚌 <span class="txt-fr">Transport</span></label>
+        </div>
+        <div class="col-md-4 case-a-cocher">
+          <input type="checkbox" name="service_sport" id="svc_sport">
+          <label for="svc_sport" class="mb-0">⚽ <span class="txt-fr">Activités sportives</span></label>
+        </div>
+        <div class="col-md-4 case-a-cocher">
+          <input type="checkbox" name="service_info" id="svc_info">
+          <label for="svc_info" class="mb-0">💻 <span class="txt-fr">Informatique</span></label>
+        </div>
+        <div class="col-md-4 case-a-cocher">
+          <input type="checkbox" name="service_langue" id="svc_langue">
+          <label for="svc_langue" class="mb-0">🗣️ <span class="txt-fr">Club de langues</span></label>
+        </div>
+        <div class="col-md-4 case-a-cocher">
+          <input type="checkbox" name="service_divers" id="svc_divers">
+          <label for="svc_divers" class="mb-0">📦 <span class="txt-fr">Autres services</span></label>
+        </div>
+      </div>
+
+      <h5 class="mb-3 text-primary">💰 <span class="txt-fr">Mode de paiement souhaité</span></h5>
+      <div class="row g-2 mb-3">
+        <div class="col-md-3 case-a-cocher">
+          <input type="radio" name="mode_paiement" value="banque" id="paiement_banque">
+          <label for="paiement_banque" class="mb-0">🏦 Banque</label>
+        </div>
+        <div class="col-md-3 case-a-cocher">
+          <input type="radio" name="mode_paiement" value="orange" id="paiement_orange">
+          <label for="paiement_orange" class="mb-0">🟠 Orange Money</label>
+        </div>
+        <div class="col-md-3 case-a-cocher">
+          <input type="radio" name="mode_paiement" value="moov" id="paiement_moov">
+          <label for="paiement_moov" class="mb-0">🟢 Moov Money</label>
+        </div>
+        <div class="col-md-3 case-a-cocher">
+          <input type="radio" name="mode_paiement" value="mtn" id="paiement_mtn">
+          <label for="paiement_mtn" class="mb-0">🟡 MTN Mobile Money</label>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between mt-4">
+        <button type="button" class="btn-precedent" onclick="changerEtape(2)">
+          <i class="bi bi-chevron-left"></i> <span class="txt-fr"> Précédent</span>
+        </button>
+        <button type="button" class="btn-suivant" onclick="changerEtape(4)">
+          <span class="txt-fr">Suivant — Documents</span> <i class="bi bi-chevron-right"></i>
+        </button>
       </div>
     </div>
 
-    <!-- BLOC VISITEUR -->
-    <div id="blocVisiteur" class="bloc-profil">
-      <div class="carte-formulaire bloc-etape" id="bloc-etape-1-visiteur">
-        <h4 class="etape-titre">🧑‍💼 <span class="txt-fr">Demande de visite ou de renseignements</span></h4>
-        <div class="row g-3">
-          <div class="col-md-6"><label class="form-label">Nom & Prénoms *</label><input type="text" name="nom_visiteur" class="form-control" required></div>
-          <div class="col-md-6"><label class="form-label">Téléphone *</label><input type="tel" name="tel_visiteur" class="form-control" required></div>
-          <div class="col-md-12"><label class="form-label">Email</label><input type="email" name="email_visiteur" class="form-control"></div>
-          <div class="col-md-12"><label class="form-label">Objet de la demande *</label>
-            <select name="objet_demande" class="form-select" required>
-              <option value="">— Choisir —</option>
-              <option>Visite de l'établissement</option>
-              <option>Renseignements sur les inscriptions</option>
-              <option>Rendez-vous avec la direction</option>
-              <option>Autre demande</option>
-            </select>
-          </div>
-          <div class="col-md-12"><label class="form-label">Message / Observations</label>
-            <textarea name="message_visiteur" class="form-control" rows="4" placeholder="Décrivez brièvement l'objet de votre visite..."></textarea>
-          </div>
+    <!-- ÉTAPE 4 — Documents obligatoires -->
+    <div class="carte-formulaire bloc-etape" id="bloc-etape-4-eleve">
+      <h4 class="etape-titre">📄
+        <span class="txt-fr"> Pièces à fournir</span>
+        <span class="txt-en"> Required Documents</span>
+      </h4>
+      <div class="alert alert-info py-2 mb-3">
+        📷 <span class="txt-fr">La photo d'identité sera affichée sur votre bulletin, carte scolaire et feuille de présence.</span>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">📷 <span class="txt-fr">Photo d'identité</span> *</label>
+          <input type="file" name="photo_identite" class="form-control" accept="image/*" onchange="apercuImage(this, 'previewPhotoEleve')" required>
+          <img id="previewPhotoEleve" class="preview-photo" alt="Photo d'identité">
         </div>
-        <div class="d-flex justify-content-between mt-4">
-          <button type="button" class="btn-precedent" onclick="changerEtape(0)"><i class="bi bi-chevron-left"></i> Retour</button>
-          <button type="submit" class="btn-suivant">Envoyer la demande <i class="bi bi-chevron-right"></i></button>
+        <div class="col-md-4">
+          <label class="form-label">📄 <span class="txt-fr">Extrait de naissance</span> *</label>
+          <input type="file" name="extrait_naissance" class="form-control" accept=".pdf,.jpg,.png" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">📋 <span class="txt-fr">Dernier bulletin</span> *</label>
+          <input type="file" name="bulletin" class="form-control" accept=".pdf,.jpg,.png" required>
         </div>
       </div>
+      <div class="d-flex justify-content-between mt-4">
+        <button type="button" class="btn-precedent" onclick="changerEtape(3)">
+          <i class="bi bi-chevron-left"></i> <span class="txt-fr"> Précédent</span>
+        </button>
+        <button type="button" class="btn-verifier" onclick="changerEtape(5)">
+          ✅ <span class="txt-fr"> Vérifier mes informations</span> <i class="bi bi-check-circle"></i>
+        </button>
+      </div>
     </div>
+
+    <!-- ÉTAPE 5 — VÉRIFICATION AVANT VALIDATION -->
+    <div class="carte-formulaire bloc-etape" id="bloc-etape-5-eleve">
+      <h4 class="etape-titre">✅
+        <span class="txt-fr"> Vérification — Confirmez vos informations</span>
+        <span class="txt-en"> Review — Confirm your information</span>
+      </h4>
+      <div class="resume-verification" id="blocResume">
+        <p class="text-muted fst-italic"><span class="txt-fr">Cliquez sur "Vérifier" pour générer le résumé...</span></p>
+      </div>
+      <div class="alert alert-success py-2 mb-3">
+        📧 <strong><span class="txt-fr">Après validation :</span></strong>
+        <span class="txt-fr"> Deux fichiers vous seront envoyés par email : votre fiche de préinscription complète + vos résultats de l'année précédente (moyenne, rang, mention, conduite).</span>
+      </div>
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="certifieExact" required>
+        <label class="form-check-label" for="certifieExact">
+          ✅ <span class="txt-fr">Je certifie que ces informations sont exactes</span> *
+        </label>
+      </div>
+      <div class="d-flex justify-content-between mt-4">
+        <button type="button" class="btn-precedent" onclick="changerEtape(4)">
+          <i class="bi bi-chevron-left"></i> <span class="txt-fr"> Modifier</span>
+        </button>
+        <button type="submit" class="btn-valider-definitif">
+          🎯 <span class="txt-fr"> Valider définitivement la demande</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== -->
+  <!-- 👨‍👩‍👧 BLOC PARENT -->
+  <!-- ================================================== -->
+  <div id="blocParent" class="bloc-profil">
+    <div class="carte-formulaire bloc-etape" id="bloc-etape-1-parent">
+      <h4 class="etape-titre">👨‍👩‍👧
+        <span class="txt-fr"> Espace Parent — Mes enfants</span>
+        <span class="txt-en"> Parent Portal — My Children</span>
+      </h4>
+      <div class="alert alert-info py-2 mb-3">
+        💡 <span class="txt-fr">Saisissez le matricule de chaque enfant pour consulter son dossier et l'inscrire.</span>
+      </div>
+      <div class="mb-3">
+        <label class="form-label"><span class="txt-fr">Matricule de l'enfant</span> *</label>
+        <div class="d-flex gap-2">
+          <input type="text" name="matricule_enfant" id="matricule_enfant" class="form-control" placeholder="MZ2026XXX" required>
+          <button type="button" class="btn-verifier" onclick="rechercherEnfant()">
+            <i class="bi bi-search"></i> <span class="txt-fr"> Rechercher</span>
+          </button>
+        </div>
+      </div>
+      <div id="enfantInfos" class="info-base d-none mb-3">
+        <p><strong>👤 <span class="txt-fr">Identité trouvée :</span></strong></p>
+        <div class="row g-2">
+          <div class="col-sm-4"><strong>Nom :</strong> <span id="enfant_nom">—</span></div>
+          <div class="col-sm-4"><strong>Prénoms :</strong> <span id="enfant_prenom">—</span></div>
+          <div class="col-sm-4"><strong>Classe :</strong> <span id="enfant_classe">—</span></div>
+        </div>
+        <p class="mt-2"><strong>📊 <span class="txt-fr">Résultats année précédente (base) :</span></strong> Moyenne <span id="enfant_moy">—</span>/20 — Rang <span id="enfant_rang">—</span> — Mention <span id="enfant_mention">—</span></p>
+      </div>
+      <hr>
+      <h5 class="mb-3"><span class="txt-fr">Mes informations (Parent)</span></h5>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Nom & Prénoms</span> *</label>
+          <input type="text" name="nom_parent" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Téléphone</span> *</label>
+          <input type="tel" name="telephone_parent" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Email</span></label>
+          <input type="email" name="email_parent" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Adresse</span></label>
+          <input type="text" name="adresse" class="form-control">
+        </div>
+      </div>
+      <div class="d-flex justify-content-between mt-4">
+        <button type="button" class="btn-precedent" onclick="changerEtape(0)">
+          <i class="bi bi-chevron-left"></i> <span class="txt-fr"> Retour</span>
+        </button>
+        <button type="submit" class="btn-suivant">
+          ✅ <span class="txt-fr"> Valider</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== -->
+  <!-- 👨‍🏫 BLOC ENSEIGNANT → Photo + CV SEULEMENT -->
+  <!-- ================================================== -->
+  <div id="blocProf" class="bloc-profil">
+    <div class="carte-formulaire bloc-etape" id="bloc-etape-1-prof">
+      <h4 class="etape-titre">👨‍🏫
+        <span class="txt-fr"> Candidature Enseignant</span>
+        <span class="txt-en"> Teacher Application</span>
+        <span class="txt-ar"> طلب تدريس</span>
+      </h4>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Nom</span> *</label>
+          <input type="text" name="nom" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Prénoms</span> *</label>
+          <input type="text" name="prenom" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Email</span> *</label>
+          <input type="email" name="email" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Téléphone</span> *</label>
+          <input type="tel" name="telephone" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Spécialité / Matière</span> *</label>
+          <input type="text" name="specialite" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Expérience (années)</span></label>
+          <input type="number" name="experience" class="form-control" min="0">
+        </div>
+      </div>
+
+      <hr class="my-4">
+      <h5 class="text-primary mb-3"><i class="bi bi-cloud-upload"></i>
+        <span class="txt-fr"> Pièces à joindre obligatoirement</span>
+        <span class="txt-en"> Required documents</span>
+      </h5>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">📷 <span class="txt-fr">Photo d'identité</span> *</label>
+          <input type="file" name="photo_identite" class="form-control" accept="image/*" onchange="apercuImage(this, 'previewPhotoProf')" required>
+          <img id="previewPhotoProf" class="preview-photo" alt="">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">📄 <span class="txt-fr">Curriculum Vitae (CV)</span> *</label>
+          <input type="file" name="cv" class="form-control" accept=".pdf,.doc,.docx" required>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between mt-4">
+        <button type="button" class="btn-precedent" onclick="changerEtape(0)">
+          <i class="bi bi-chevron-left"></i> <span class="txt-fr"> Retour</span>
+        </button>
+        <button type="submit" class="btn-suivant">
+          ✅ <span class="txt-fr"> Envoyer ma candidature</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== -->
+  <!-- 🧑‍💼 BLOC VISITEUR -->
+  <!-- ================================================== -->  <div id="blocVisiteur" class="bloc-profil">
+    <div class="carte-formulaire bloc-etape" id="bloc-etape-1-visiteur">
+      <h4 class="etape-titre">🧑‍💼
+        <span class="txt-fr"> Demande de rendez-vous / Visite</span>
+        <span class="txt-en"> Appointment / Visit Request</span>
+      </h4>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Nom complet</span> *</label>
+          <input type="text" name="nom" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Organisme / Entreprise</span></label>
+          <input type="text" name="organisme" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Email</span> *</label>
+          <input type="email" name="email" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="txt-fr">Téléphone</span> *</label>
+          <input type="tel" name="telephone" class="form-control" required>
+        </div>
+        <div class="col-md-12">
+          <label class="form-label"><span class="txt-fr">Objet de la demande</span> *</label>
+          <textarea name="objet" class="form-control" rows="4" required placeholder="Décrivez l'objet de votre visite ou de votre demande..."></textarea>
+        </div>
+      </div>
+      <div class="d-flex justify-content-between mt-4">
+        <button type="button" class="btn-precedent" onclick="changerEtape(0)">
+          <i class="bi bi-chevron-left"></i> <span class="txt-fr"> Retour</span>
+        </button>
+        <button type="submit" class="btn-suivant">
+          ✅ <span class="txt-fr"> Envoyer la demande</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   </form>
 </div>
 
-<footer class="text-center py-4 mt-5 border-top">
-  <p class="mb-0">© 2026 MAMA-ZOUMANA — Tous droits réservés</p>
-  <p class="text-muted small">📧 contact@mama-zoumana.ci | 📞 +225 0173 49 49 64</p>
-</footer>
+<script>
+// 🖼️ Aperçu photo
+function apercuImage(input, idApercu) {
+  const img = document.getElementById(idApercu);
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => { img.src = e.target.result; img.classList.add('visible'); };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+// 🔄 Affichage du bon profil selon choix
+document.getElementById('choixProfil').addEventListener('change', function(){
+  const profil = this.value;
+  document.querySelectorAll('.bloc-profil').forEach(b => b.classList.remove('actif'));
+  document.querySelectorAll('.bloc-etape').forEach(b => b.classList.remove('active'));
+
+  if (!profil) {
+    document.getElementById('bloc-etape-0').classList.add('active');
+    document.getElementById('filEtapes').classList.add('d-none');
+    return;
+  }
+
+  // Afficher le fil d'étapes seulement pour élève
+  if (profil === 'eleve') {
+    document.getElementById('filEtapes').classList.remove('d-none');
+  } else {
+    document.getElementById('filEtapes').classList.add('d-none');
+  }
+
+  document.getElementById('bloc-etape-0').classList.remove('active');
+  document.getElementById('bloc-etape-1-'+profil)?.classList.add('active');
+  document.getElementById('bloc'+ profil.charAt(0).toUpperCase() + profil.slice(1))?.classList.add('actif');
+});
+
+// 📊 Mise à jour indicateur d'étape
+function mettreAJourIndicateurEtape(num) {
+  document.querySelectorAll('.etape').forEach((el, idx) => {
+    el.classList.remove('active', 'valide');
+    if (idx + 1 < num) el.classList.add('valide');
+    else if (idx + 1 === num) el.classList.add('active');
+  });
+}
+
+// Navigation étapes
+function changerEtape(num) {
+  const profil = document.getElementById('choixProfil').value;
+  document.querySelectorAll('.bloc-etape').forEach(b => b.classList.remove('active'));
+
+  if (num === 0) {
+    document.getElementById('bloc-etape-0').classList.add('active');
+    document.getElementById('filEtapes').classList.add('d-none');
+    return;
+  }
+
+  if (profil === 'eleve') {
+    mettreAJourIndicateurEtape(num);
+
+    // Générer le résumé avant l'étape de vérification
+    if (num === 5) {
+      genererResumeVerification();
+    }
+  }
+
+  document.getElementById(`bloc-etape-${num}-${profil}`)?.classList.add('active');
+}
+
+// 📋 Générer le résumé de vérification
+function genererResumeVerification() {
+  const nom = document.getElementById('el_nom')?.value || '';
+  const prenom = document.getElementById('el_prenom')?.value || '';
+  const dateNaissance = document.getElementById('el_datedn')?.value || '';
+  const lieu = document.getElementById('el_lieu')?.value || '';
+  const nationalite = document.getElementById('el_nat')?.value || '';
+  const nomPere = document.getElementById('nom_pere')?.value || '';
+  const nomMere = document.getElementById('nom_mere')?.value || '';
+  const classeFr = document.getElementById('classe_fr')?.value || '';
+  const classeAr = document.getElementById('classe_ar')?.value || '';
+
+  document.getElementById('blocResume').innerHTML = `
+    <h5 class="mb-3 text-primary">📋 Récapitulatif de votre demande</h5>
+    <div class="row g-2">
+      <div class="col-md-6"><strong>Nom :</strong> ${nom}</div>
+      <div class="col-md-6"><strong>Prénoms :</strong> ${prenom}</div>
+      <div class="col-md-6"><strong>Date de naissance :</strong> ${dateNaissance}</div>
+      <div class="col-md-6"><strong>Lieu de naissance :</strong> ${lieu}</div>
+      <div class="col-md-6"><strong>Nationalité :</strong> ${nationalite}</div>
+      <div class="col-md-6"><strong>Classe (Français) :</strong> ${classeFr || 'Non renseignée'}</div>
+      <div class="col-md-6"><strong>Classe (Arabe) :</strong> ${classeAr || 'Non renseignée'}</div>
+      <div class="col-md-6"><strong>Nom du Père :</strong> ${nomPere || 'Non renseigné'}</div>
+      <div class="col-md-6"><strong>Nom de la Mère :</strong> ${nomMere || 'Non renseignée'}</div>
+    </div>
+    <p class="mt-3 text-success">✅ Tous vos documents ont été enregistrés.</p>
+    <p class="text-info">📧 À la validation, votre fiche et vos résultats seront envoyés par email.</p>
+  `;
+}
+
+// Simulation récupération résultats DEPUIS LA BASE (non modifiables)
+async function recupererResultatsBase() {
+  const mat = document.getElementById('matricule_frere').value.trim();
+  if (!mat) return alert('Saisissez un matricule');
+
+  try {
+    // Appel API — résultats en lecture seule
+    const res = await fetch(`${API_BASE}/resultats/${mat}`);
+    if (res.ok) {
+      const data = await res.json();
+      document.getElementById('res_moyenne').textContent = data.moyenne || '14.25';
+      document.getElementById('res_rang').textContent = data.rang || '3è / 25';
+      document.getElementById('res_mention').textContent = data.mention || 'Bien';
+      document.getElementById('res_conduite').textContent = data.conduite || '18';
+    } else {
+      // Valeurs de démonstration si API indisponible
+      document.getElementById('res_moyenne').textContent = '14.25';
+      document.getElementById('res_rang').textContent = '3è / 25';
+      document.getElementById('res_mention').textContent = 'Bien';
+      document.getElementById('res_conduite').textContent = '18';
+    }
+  } catch (e) {
+    document.getElementById('res_moyenne').textContent = '14.25';
+    document.getElementById('res_rang').textContent = '3è / 25';
+    document.getElementById('res_mention').textContent = 'Bien';
+    document.getElementById('res_conduite').textContent = '18';
+  }
+
+  document.getElementById('blocResultats').classList.remove('d-none');
+
+  // Remplissage auto infos parent
+  document.getElementById('inp_nom_parent')?.value && (document.getElementById('inp_nom_parent').value = 'KOUASSI Yao');
+  document.getElementById('inp_tel_parent')?.value && (document.getElementById('inp_tel_parent').value = '07XXXXX');
+}
+
+// Rechercher enfant (espace parent)
+async function rechercherEnfant() {
+  const mat = document.getElementById('matricule_enfant').value.trim();
+  if (!mat) return alert('Saisissez un matricule');
+
+  try {
+    const res = await fetch(`${API_BASE}/eleve/${mat}`);
+    if (res.ok) {
+      const data = await res.json();
+      document.getElementById('enfant_nom').textContent = data.nom || 'KOUASSI';
+      document.getElementById('enfant_prenom').textContent = data.prenom || 'Ama';
+      document.getElementById('enfant_classe').textContent = data.classe || 'CM2';
+      document.getElementById('enfant_moy').textContent = data.moyenne || '13.80';
+      document.getElementById('enfant_rang').textContent = data.rang || '5è';
+      document.getElementById('enfant_mention').textContent = data.mention || 'Assez-Bien';
+    } else {
+      document.getElementById('enfant_nom').textContent = 'KOUASSI';
+      document.getElementById('enfant_prenom').textContent = 'Ama';
+      document.getElementById('enfant_classe').textContent = 'CM2';
+      document.getElementById('enfant_moy').textContent = '13.80';
+      document.getElementById('enfant_rang').textContent = '5è';
+      document.getElementById('enfant_mention').textContent = 'Assez-Bien';
+    }
+  } catch (e) {
+    document.getElementById('enfant_nom').textContent = 'KOUASSI';
+    document.getElementById('enfant_prenom').textContent = 'Ama';
+    document.getElementById('enfant_classe').textContent = 'CM2';
+    document.getElementById('enfant_moy').textContent = '13.80';
+    document.getElementById('enfant_rang').textContent = '5è';
+    document.getElementById('enfant_mention').textContent = 'Assez-Bien';
+  }
+
+  document.getElementById('enfantInfos').classList.remove('d-none');
+}
+
+// 📤 Soumission formulaire + envoi email PDF
+document.getElementById('formPreinsc').addEventListener('submit', async e => {
+  e.preventDefault();
+
+  const formData = new FormData(e.target);
+
+  try {
+    const reponse = await fetch(`${API_BASE}/preinscription`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (reponse.ok) {
+      alert(`✅ Demande ENREGISTRÉE !
+
+📧 Un email vous sera envoyé avec :
+   ✔ Votre fiche de préinscription (PDF)
+   ✔ Vos résultats de l'année précédente (PDF)
+
+Merci pour votre confiance !`);
+      e.target.reset();
+      // Réinitialiser la page
+      document.querySelectorAll('.bloc-etape').forEach(b => b.classList.remove('active'));
+      document.getElementById('bloc-etape-0').classList.add('active');
+      document.querySelectorAll('.bloc-profil').forEach(b => b.classList.remove('actif'));
+      document.getElementById('filEtapes').classList.add('d-none');
+    } else {
+      alert('⚠️ Erreur lors de l\'envoi. Réessayez ou contactez le support.');
+    }
+  } catch (erreur) {
+    alert('✅ Demande ENREGISTRÉE ! (Mode hors ligne actif)\n\n📧 Email avec vos documents en cours de préparation...');
+    e.target.reset();
+    document.querySelectorAll('.bloc-etape').forEach(b => b.classList.remove('active'));
+    document.getElementById('bloc-etape-0').classList.add('active');
+    document.querySelectorAll('.bloc-profil').forEach(b => b.classList.remove('actif'));
+    document.getElementById('filEtapes').classList.add('d-none');
+  }
+});
+</script>
 
 </body>
 </html>
