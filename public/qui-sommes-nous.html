@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <span class="txt-fr">Qui sommes-nous ? — MAMA-ZOUMANA</span>
+    <span class="txt-en">Who We Are — MAMA-ZOUMANA</span>
+    <span class="txt-ar">من نحن — ماما زومانا</span>
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primaire: #0c4a6e;
+      --secondaire: #0369a1;
+      --accent: #f59e0b;
+      --sombre: #0f172a;
+      --clair: #f8fafc;
+    }
+    * { box-sizing: border-box; border-radius: 12px !important; }
+    body { font-family: 'Segoe UI', sans-serif; background: var(--clair); color: var(--sombre); line-height: 1.7; }
+    body.lang-ar { direction: rtl; text-align: right; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    .titre-page { text-align: center; color: var(--primaire); font-weight: 800; margin: 40px 0; }
+    .section { padding: 40px 20px; }
+    .carte { background: white; padding: 28px; box-shadow: 0 4px 18px rgba(0,0,0,0.06); margin-bottom: 24px; transition: transform 0.3s; }
+    .carte:hover { transform: translateY(-4px); }
+    .carte h4 { color: var(--secondaire); font-weight: 700; margin-bottom: 18px; }
+    .mot-directeur { background: linear-gradient(135deg, #e0f2fe, #fef3c7); border-left: 5px solid var(--accent); }
+    .proverbe { font-style: italic; font-weight: 600; color: var(--primaire); margin-top: 12px; padding: 10px 15px; background: rgba(245,158,11,0.12); border-radius: 8px; display: inline-block; }
+    .equipe { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+    .membre { text-align: center; padding: 20px; }
+    .membre i { font-size: 2.8rem; color: var(--accent); margin-bottom: 12px; }
+    .membre h5 { color: var(--primaire); font-weight: 700; }
+    .membre p { font-size: 0.95rem; color: #475569; }
+    .prog-liste li { margin-bottom: 10px; padding-left: 8px; }
+    .boutons-langues { text-align: center; margin: 20px 0; }
+    .btn-lang { padding: 7px 16px; margin: 4px; border: none; border-radius: 25px; background: #e2e8f0; cursor: pointer; font-weight: 600; }
+    .btn-lang.active { background: var(--accent); color: var(--sombre); box-shadow: 0 0 10px rgba(245,158,11,0.4); }
+    .valeurs { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+    .valeur-item { background: rgba(12,74,110,0.08); padding: 8px 16px; border-radius: 20px; font-weight: 500; }
+  </style>
+</head>
+<body class="lang-fr">
+
+  <div class="boutons-langues">
+    <button class="btn-lang active" onclick="changerLangue('fr')">🇫🇷 Français</button>
+    <button class="btn-lang" onclick="changerLangue('en')">🇬🇧 English</button>
+    <button class="btn-lang" onclick="changerLangue('ar')">🇸🇦 العربية</button>
+  </div>
+
+  <h1 class="titre-page">
+    <span class="txt-fr">🏫 Qui sommes-nous ?</span>
+    <span class="txt-en">🏫 Who We Are</span>
+    <span class="txt-ar">🏫 من نحن؟</span>
+  </h1>
+
+  <section class="section container">
+    <!-- Présentation de l'Établissement -->
+    <div class="carte">
+      <h4>
+        <span class="txt-fr">Présentation de l'Établissement</span>
+        <span class="txt-en">Our Institution</span>
+        <span class="txt-ar">تعريف بالمؤسسة</span>
+      </h4>
+      <p>
+        <span class="txt-fr"><strong>MAMA-ZOUMANA</strong> est une école et centre islamique d'excellence, située à Abidjan en Côte d'Ivoire. Fondée sur des valeurs de rigueur, de piété et de dévouement, elle offre un enseignement alliant le savoir moderne et l'éducation aux valeurs islamiques. Nous formons les générations futures pour qu'elles deviennent des citoyens compétents, vertueux et utiles à leur communauté.</span>
+        <span class="txt-en"><strong>MAMA-ZOUMANA</strong> is an excellent school and Islamic center located in Abidjan, Côte d'Ivoire. Founded on values of rigor, piety, and dedication, it provides education that combines modern knowledge with Islamic moral training. We nurture future generations to become competent, virtuous citizens serving their community.</span>
+        <span class="txt-ar">مدرسة ومركز <strong>ماما زومانا</strong> للتميز الإسلامي بأبيدجان، كوت ديفوار. تأسست على قيم الجدية والتقوى والإخلاص، وتجمع بين التعليم الحديث والتربية الإسلامية. نُعدّ الأجيال ليكونوا مواطنين أكفاء وأمناء ونافعين لوطنهم ومجتمعهم.</span>
+      </p>
+      <div class="valeurs">
+        <span class="valeur-item"><span class="txt-fr">📘 Savoir</span><span class="txt-en">📘 Knowledge</span><span class="txt-ar">📘 العلم</span></span>
+        <span class="valeur-item"><span class="txt-fr">🤲 Piété</span><span class="txt-en">🤲 Piety</span><span class="txt-ar">🤲 التقوى</span></span>
+        <span class="valeur-item"><span class="txt-fr">💪 Excellence</span><span class="txt-en">💪 Excellence</span><span class="txt-ar">💪 التميز</span></span>
+        <span class="valeur-item"><span class="txt-fr">❤️ Vertu</span><span class="txt-en">❤️ Virtue</span><span class="txt-ar">❤️ الأخلاق</span></span>
+      </div>
+    </div>
+
+    <!-- Programme Académique -->
+    <div class="carte">
+      <h4>
+        <span class="txt-fr">📚 Notre Programme Académique</span>
+        <span class="txt-en">📚 Our Academic Program</span>
+        <span class="txt-ar">📚 برنامجنا الأكاديمي</span>
+      </h4>
+      <p>
+        <span class="txt-fr">Notre programme est équilibré et conforme aux normes éducatives nationales ivoiriennes, enrichi par un enseignement islamique solide. Il couvre :</span>
+        <span class="txt-en">Our balanced curriculum follows Ivorian national standards, enriched with robust Islamic education. It includes:</span>
+        <span class="txt-ar">منهجنا متوازن يخضع للمعايير التربوية الوطنية، مع تعزيز تربية إسلامية رصينة. يشمل:</span>
+      </p>
+      <ul class="prog-liste">
+        <li>
+          <span class="txt-fr"><strong>Enseignement Général :</strong> Français, Mathématiques, Sciences, Histoire-Géographie, Éducation Civique, Anglais</span>
+          <span class="txt-en"><strong>General Subjects:</strong> French, Mathematics, Sciences, History-Geography, Civics, English</span>
+          <span class="txt-ar"><strong>المواد العامة:</strong> اللغة الفرنسية، الرياضيات، العلوم، التاريخ والجغرافيا، التربية المدنية، الإنجليزية</span>
+        </li>
+        <li>
+          <span class="txt-fr"><strong>Enseignement Islamique :</strong> Coran, Tajwid, Hadith, Sîra, Fiqh, Culture Islamique, Arabe</span>
+          <span class="txt-en"><strong>Islamic Subjects:</strong> Quran, Tajwid, Hadith, Seerah, Fiqh, Islamic Culture, Arabic</span>
+          <span class="txt-ar"><strong>المواد الإسلامية:</strong> القرآن الكريم، التجويد، الحديث، السيرة، الفقه، الثقافة الإسلامية، اللغة العربية</span>
+        </li>
+        <li>
+          <span class="txt-fr"><strong>Activités Complémentaires :</strong> Arts, Sport, Éducation Physique, Projets éducatifs, Sorties culturelles</span>
+          <span class="txt-en"><strong>Extra-Curricular:</strong> Arts, Sports, Physical Education, Educational Projects, Field Trips</span>
+          <span class="txt-ar"><strong>أنشطة موازية:</strong> فنون، رياضة، مشاريع تربوية، رحلات تثقيفية</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Le Corps Enseignant et le Personnel -->
+    <div class="carte">
+      <h4>
+        <span class="txt-fr">👨‍🏫 Notre Corps Enseignant & Personnel</span>
+        <span class="txt-en">👨‍🏫 Our Teachers & Staff</span>
+        <span class="txt-ar">👨‍🏫 الهيئة التعليمية والإدارية</span>
+      </h4>
+      <p>
+        <span class="txt-fr">L'équipe de MAMA-ZOUMANA réunit des enseignants qualifiés, passionnés et dévoués, diplômés dans leurs domaines et animés par le souci de l'excellence et du bien-être des élèves. Notre personnel administratif et d'encadrement assure un environnement sûr, ordonné et propice à l'apprentissage.</span>
+        <span class="txt-en">MAMA-ZOUMANA’s team brings together qualified, passionate, and dedicated teachers, certified in their fields and driven by a commitment to excellence and student well-being. Our administrative and support staff ensure a safe, orderly, and nurturing environment.</span>
+        <span class="txt-ar">يضم فريق ماما زومانا معلمين أكفاء ومؤهلين، حاصلين على شهادات تخصصهم، متفانين في أداء رسالتهم التربوية. كما يضمن طاقمنا الإداري والتربوي بيئة آمنة ومنظمة ومحفزة للتعلم والانضباط.</span>
+      </p>
+      <div class="equipe">
+        <div class="membre carte">
+          <i class="bi bi-person-badge"></i>
+          <h5>
+            <span class="txt-fr">Direction</span>
+            <span class="txt-en">Management</span>
+            <span class="txt-ar">الإدارة العامة</span>
+          </h5>
+          <p>
+            <span class="txt-fr">Garantit la vision et le bon fonctionnement</span>
+            <span class="txt-en">Guides vision and daily operations</span>
+            <span class="txt-ar">تتولى الرؤية والتوجيه والمتابعة</span>
+          </p>
+        </div>
+        <div class="membre carte">
+          <i class="bi bi-book"></i>
+          <h5>
+            <span class="txt-fr">Enseignants Généraux</span>
+            <span class="txt-en">General Teachers</span>
+            <span class="txt-ar">أساتذة المواد العامة</span>
+          </h5>
+          <p>
+            <span class="txt-fr">Experts dans les matières du programme officiel</span>
+            <span class="txt-en">Subject-matter experts in national curriculum</span>
+            <span class="txt-ar">متخصصون في المناهج الدراسية المعتمدة</span>
+          </p>
+        </div>
+        <div class="membre carte">
+          <i class="bi bi-mosque"></i>
+          <h5>
+            <span class="txt-fr">Enseignants Islamiques</span>
+            <span class="txt-en">Islamic Instructors</span>
+            <span class="txt-ar">أساتذة العلوم الإسلامية</span>
+          </h5>
+          <p>
+            <span class="txt-fr">Spécialistes du Coran et des sciences religieuses</span>
+            <span class="txt-en">Quran and religious sciences specialists</span>
+            <span class="txt-ar">حفظة ومتخصصون في القرآن والعلوم الشرعية</span>
+          </p>
+        </div>
+        <div class="membre carte">
+          <i class="bi bi-people"></i>
+          <h5>
+            <span class="txt-fr">Personnel Administratif</span>
+            <span class="txt-en">Administrative Staff</span>
+            <span class="txt-ar">الفريق الإداري والخدمات</span>
+          </h5>
+          <p>
+            <span class="txt-fr">Accueil, suivi scolaire et services</span>
+            <span class="txt-en">Reception, records, and support services</span>
+            <span class="txt-ar">الاستقبال والمتابعة والخدمات المساعدة</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mot du Directeur avec Proverbe -->
+    <div class="carte mot-directeur">
+      <h4>
+        <span class="txt-fr">🎤 Mot du Directeur</span>
+        <span class="txt-en">🎤 Message from the Director</span>
+        <span class="txt-ar">🎤 كلمة المدير</span>
+      </h4>
+      <p style="font-size: 1.05rem;">
+        <span class="txt-fr">« Bienvenue à MAMA-ZOUMANA. Notre ambition est de faire de chaque élève un modèle : brillant dans ses études, solide dans sa foi et exemplaire dans son comportement. Nous croyons fermement que l'excellence académique et la vertu religieuse ne font qu'un. C'est pourquoi nous travaillons chaque jour à offrir à vos enfants le meilleur savoir et les meilleures valeurs. »</span>
+        <span class="txt-en">« Welcome to MAMA-ZOUMANA. Our ambition is to shape every student into a model citizen: academically brilliant, steadfast in faith, and exemplary in conduct. We firmly believe that academic excellence and religious virtue are inseparable. That is why we strive daily to provide your children with the finest knowledge and highest values. »</span>
+        <span class="txt-ar">« أهلاً بكم في ماما زومانا. طموحنا أن نجعل من كل تلميذ قدوةً يُحتذى به: متفوقاً في دراسته، راسخاً في إيمانه، مثالياً في سلوكه. نؤمن إيماناً راسخاً أن التميز العلمي لا ينفصل عن الفضيلة الخلقية. ولذلك نسعى كل يوم لنقدم لأبنائكم أسمى العلوم وأكرم القيم. »</span>
+      </p>
+      <p class="proverbe">
+        <span class="txt-fr">💡 « Qui apprend bien et agit bien, laisse une trace éternelle. »</span>
+        <span class="txt-en">💡 « One who learns well and acts well leaves an everlasting legacy. »</span>
+        <span class="txt-ar">💡 « من علِم وعمِل صالحاً خلّد ذكره وحمِد فعله. »</span>
+      </p>
+      <p style="margin-top: 16px; font-weight: 600; text-align: right;">
+        <span class="txt-fr">— Le Directeur de MAMA-ZOUMANA</span>
+        <span class="txt-en">— The Director of MAMA-ZOUMANA</span>
+        <span class="txt-ar">— مدير مؤسسة ماما زومانا</span>
+      </p>
+    </div>
+  </section>
+
+  <script>
+    function changerLangue(lang) {
+      document.body.classList.remove('lang-fr', 'lang-en', 'lang-ar');
+      document.body.classList.add('lang-' + lang);
+      document.documentElement.lang = lang;
+      document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+      document.querySelectorAll('.btn-lang').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>
