@@ -141,10 +141,14 @@
       display: none; margin-top: 0.5rem;
     }
     .preview-photo.visible { display: block; }
+    
+    /* ✅ CORRECTION : Rendre visible quand la classe .actif est présente */
     .bloc-profil { display: none; }
     .bloc-profil.actif { display: block; }
+    
     .bloc-etape { display: none; animation: apparition 0.45s ease forwards; }
     .bloc-etape.active { display: block; }
+    
     .btn-suivant {
       background: var(--succes); color: white; border-radius: 10px;
       padding: 0.6rem 1.4rem; font-weight: 600; border: none;
@@ -226,18 +230,18 @@
 <script>
   const API_BASE = "https://mama-zoumana.onrender.com/api";
   const DEVISE = "FCFA";
-
+  
   // ✅ Frais de scolarité par classe
   const FRAIS_BASE = {
     CP1:75000, CP2:75000, CE1:80000, CE2:80000, CM1:85000, CM2:85000,
     '6e':90000, '5e':95000, '4e':100000, '3e':105000, '2nd':110000, '1ere':115000, terminale:120000
   };
-
+  
   // ✅ Services complémentaires
   const TARIFS_SERVICES = {
     cantine:15000, transport:12000, sport:5000, info:8000, langue:5000, divers:3000
   };
-
+  
   // ✅ Documents et fournitures
   const TARIFS_DOCUMENTS = {
     bulletin:1500, carte_scolaire:1000, feuille_presence:800,
@@ -250,14 +254,10 @@
     document.getElementById('btnTheme').textContent = nuit ? '🌙' : '☀️';
     localStorage.setItem('themeNuit', nuit ? '1' : '0');
   }
-  document.addEventListener('DOMContentLoaded', () => {
-    const theme = localStorage.getItem('themeNuit') === '1';
-    appliquerTheme(theme);
-    document.getElementById('btnTheme').addEventListener('click', () => appliquerTheme(!document.body.classList.contains('mode-nuit')));
-  });
 
   let langueActuelle = localStorage.getItem('langue') || 'fr';
   document.body.classList.add('lang-' + langueActuelle);
+  
   function changerLangue(lang){
     langueActuelle = lang;
     localStorage.setItem('langue', lang);
@@ -285,17 +285,39 @@
   let etapeCourante = 0;
   let profilChoisi = null;
 
+  // ✅ UN SEUL point d'initialisation au lieu de DEUX
   document.addEventListener('DOMContentLoaded', () => {
+    // Initialisation thème
+    const theme = localStorage.getItem('themeNuit') === '1';
+    appliquerTheme(theme);
+    document.getElementById('btnTheme').addEventListener('click', () => appliquerTheme(!document.body.classList.contains('mode-nuit')));
+
+    // Initialisation langue
     document.querySelectorAll('.btn-langue').forEach(b=>b.classList.toggle('active', b.dataset.lang === langueActuelle));
+    
+    // Chargement des listes
     chargerClasses();
     chargerMatieres();
 
-    document.getElementById('choixProfil').addEventListener('change', function(){
+    initialiserEcouteurs();
+  });
+
+  // ✅ Fonction séparée pour initialiser les écouteurs
+  function initialiserEcouteurs() {
+    const selectProfil = document.getElementById('choixProfil');
+    if (!selectProfil) return console.error("⚠️ Selecteur #choixProfil introuvable !");
+
+    selectProfil.addEventListener('change', function(){
       profilChoisi = this.value;
+      console.log("✅ Profil choisi :", profilChoisi); // Pour déboguer dans la console
+
+      // Masquer TOUS les blocs profil et étapes
       document.querySelectorAll('.bloc-profil').forEach(b=>b.classList.remove('actif'));
+      document.querySelectorAll('.bloc-etape').forEach(b=>b.classList.remove('active'));
       document.getElementById('filEtapes').classList.add('d-none');
       etapeCourante = 0;
-      document.querySelectorAll('.bloc-etape').forEach(b=>b.classList.remove('active'));
+
+      // Afficher le bon formulaire selon le profil
       if(profilChoisi === 'eleve'){
         document.getElementById('blocEleve').classList.add('actif');
         document.getElementById('filEtapes').classList.remove('d-none');
@@ -312,9 +334,9 @@
       }
     });
 
-    document.getElementById('classe_fr').addEventListener('change', recalculerFrais);
+    // Autres écouteurs
+    document.getElementById('classe_fr')?.addEventListener('change', recalculerFrais);
 
-    // ✅ Recalculer quand on coche/décoche un service ou un document
     ['svc_cantine','svc_transport','svc_sport','svc_info','svc_langue','svc_divers',
      'doc_bulletin','doc_carte','doc_feuille','doc_kaki','doc_macaron','doc_examen','doc_carnet','doc_livret']
     .forEach(id => {
@@ -322,7 +344,6 @@
       if(el) el.addEventListener('change', recalculerFrais);
     });
 
-    // ✅ Afficher/Masquer échelonnement selon mode de paiement
     document.querySelectorAll('input[name="mode_paiement"]').forEach(rd => {
       rd.addEventListener('change', function(){
         const bloc = document.getElementById('choixEchelon');
@@ -330,15 +351,17 @@
         recalculerFrais();
       });
     });
+
     document.querySelectorAll('input[name="echelonnement"]').forEach(rd => {
       rd.addEventListener('change', recalculerFrais);
     });
-  });
+  }
 
   function chargerClasses(){
     const classes = Object.keys(FRAIS_BASE);
     const fr = document.getElementById('classe_fr');
     const ar = document.getElementById('classe_ar');
+    if(!fr || !ar) return;
     fr.innerHTML = '<option value="">—</option>';
     ar.innerHTML = '<option value="">—</option>';
     classes.forEach(c=>{
@@ -350,34 +373,40 @@
   function chargerMatieres(){
     const matieres = ["Français","Arabe","Mathématiques","Histoire-Géographie","Anglais","Sciences Physiques","Sciences Naturelles","Éducation Civique","Éducation Physique","Arts Plastiques"];
     const sel = document.getElementById('matiereSelect');
+    if(!sel) return;
     sel.innerHTML = '<option value="">—</option>';
     matieres.forEach(m=> sel.innerHTML += `<option value="${m}">${m}</option>`);
   }
 
   function changerEtape(cible){
     document.querySelectorAll('.bloc-etape').forEach(b=>b.classList.remove('active'));
+    
     if(profilChoisi === 'eleve'){
       etapeCourante = cible;
       for(let i=1; i<=5; i++){
         const ind = document.getElementById(`etape-ind-${i}`);
-        ind.classList.toggle('active', i===cible);
-        ind.classList.toggle('valide', i < cible);
+        if(ind){
+          ind.classList.toggle('active', i===cible);
+          ind.classList.toggle('valide', i < cible);
+        }
       }
-      document.getElementById(`bloc-etape-${cible}-eleve`).classList.add('active');
+      const etapeCible = document.getElementById(`bloc-etape-${cible}-eleve`);
+      if(etapeCible) etapeCible.classList.add('active');
       if(cible === 5) genererResume();
     } else if(cible === 'parent'){
-      document.getElementById('bloc-etape-1-parent').classList.add('active');
+      document.getElementById('bloc-etape-1-parent')?.classList.add('active');
     } else if(cible === 'prof'){
-      document.getElementById('bloc-etape-1-prof').classList.add('active');
+      document.getElementById('bloc-etape-1-prof')?.classList.add('active');
     } else if(cible === 'visiteur'){
-      document.getElementById('bloc-etape-1-visiteur').classList.add('active');
+      document.getElementById('bloc-etape-1-visiteur')?.classList.add('active');
     }
+
     window.scrollTo({top: document.querySelector('.etapes')?.offsetTop || 0, behavior:'smooth'});
   }
 
   // ✅ CALCUL COMPLET DES FRAIS
   function recalculerFrais(){
-    const classe = document.getElementById('classe_fr').value;
+    const classe = document.getElementById('classe_fr')?.value;
     const fraisBase = FRAIS_BASE[classe] || 0;
 
     // ✅ Services
@@ -417,12 +446,12 @@
     document.getElementById('fraisTotal').textContent = totalBrut.toLocaleString();
     document.getElementById('montantTranche').textContent = montantParTranche.toLocaleString();
     document.getElementById('nbTranches').textContent = choixEchelon;
-
     document.querySelectorAll('[id$="DEVISE"]').forEach(el=>el.textContent=DEVISE);
   }
 
   function apercuImage(input, idImg){
     const img = document.getElementById(idImg);
+    if(!img) return;
     if(input.files && input.files[0]){
       const lecteur = new FileReader();
       lecteur.onload = e=>{ img.src=e.target.result; img.classList.add('visible'); };
@@ -430,43 +459,49 @@
     } else { img.classList.remove('visible'); }
   }
 
-  async function recupererResultatsBase(){
-    const mat = document.getElementById('matricule_frere').value.trim();
-    if(!mat) return;
-    document.getElementById('btnChargerResultats').disabled = true;
-    try {
-      const data = await requeteAPI(`${API_BASE}/eleves/${mat}`);
-      if(data){
-        document.getElementById('res_moyenne').textContent = data.moyenne || '14.50';
-        document.getElementById('res_rang').textContent = data.rang || '3ème';
-        document.getElementById('res_mention').textContent = data.mention || 'Bien';
-        document.getElementById('res_conduite').textContent = data.conduite || '15';
-        document.getElementById('blocResultats').classList.remove('d-none');
-      }
-    } catch(e){ console.warn(e); }
-    document.getElementById('btnChargerResultats').disabled = false;
-  }
+ async function recupererResultatsBase(){
+  const mat = document.getElementById('matricule_frere')?.value.trim();
+  if(!mat) return;
+  const btn = document.getElementById('btnChargerResultats');
+  if(btn) btn.disabled = true;
+  try {
+    const data = await requeteAPI(`${API_BASE}/eleves/${mat}`);
+    if(data){
+      document.getElementById('res_moyenne').textContent = data.moyenne || '14.50';
+      document.getElementById('res_rang').textContent = data.rang || '3ème';
+      document.getElementById('res_mention').textContent = data.mention || 'Bien';
+      document.getElementById('res_conduite').textContent = data.conduite || '15';
+      // ✅ GUILLEMETS CORRIGÉS
+      document.getElementById('blocResultats')?.classList.remove('d-none');
+    }
+  } catch(e){ console.warn(e); }
+  if(btn) btn.disabled = false;
+}
 
-  async function rechercherEnfant(){
-    const mat = document.getElementById('matricule_enfant').value.trim();
-    if(!mat) return;
-    try {
-      const data = await requeteAPI(`${API_BASE}/eleves/${mat}`);
-      if(data){
-        document.getElementById('enfant_nom').textContent = data.nom || '—';
-        document.getElementById('enfant_prenom').textContent = data.prenom || '—';
-        document.getElementById('enfant_classe').textContent = data.classe || '—';
-        document.getElementById('enfant_moy').textContent = data.moyenne || '—';
-        document.getElementById('enfant_rang').textContent = data.rang || '—';
-        document.getElementById('enfant_mention').textContent = data.mention || '—';
-        document.getElementById('enfantInfos').classList.remove('d-none');
-      }
-    } catch(e){ console.warn(e); }
-  }
+async function rechercherEnfant(){
+  const mat = document.getElementById('matricule_enfant')?.value.trim();
+  if(!mat) return;
+  try {
+    const data = await requeteAPI(`${API_BASE}/eleves/${mat}`);
+    if(data){
+      document.getElementById('enfant_nom').textContent = data.nom || '—';
+      // ✅ GUILLEMETS CORRIGÉS
+      document.getElementById('enfant_prenom').textContent = data.prenom || '—';
+      document.getElementById('enfant_classe').textContent = data.classe || '—';
+      document.getElementById('enfant_moy').textContent = data.moyenne || '—';
+      document.getElementById('enfant_rang').textContent = data.rang || '—';
+      document.getElementById('enfant_mention').textContent = data.mention || '—';
+      // ✅ GUILLEMETS CORRIGÉS
+      document.getElementById('enfantInfos')?.classList.remove('d-none');
+    }
+  } catch(e){ console.warn(e); }
+}
 
   function genererResume(){
     const f = document.getElementById('formPreinsc');
+    if(!f) return;
     const resume = document.getElementById('blocResume');
+    if(!resume) return;
     resume.innerHTML = `
       <p><strong>👤 Élève :</strong> ${f.el_nom.value} ${f.el_prenom.value}</p>
       <p><strong>📅 Naissance :</strong> ${f.el_datedn.value} — ${f.el_lieu.value || ''}</p>
@@ -479,51 +514,58 @@
     `;
   }
 
-async function soumettreFormulaire(e) {
-  e.preventDefault();
-  const btn = document.getElementById('btnSoumettre');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="chargement"><span class="spinner"></span> Envoi en cours…</span>';
-  try {
-    const corps = new FormData(e.target);
-    if (profilChoisi === 'eleve') {
-      corps.set('nom', document.getElementById('el_nom').value);
-      corps.set('prenom', document.getElementById('el_prenom').value);
-      corps.set('date_naissance', document.getElementById('el_datedn').value);
-      corps.set('lieu_naissance', document.getElementById('el_lieu').value);
-      corps.set('nationalite', document.getElementById('el_nat').value);
-      corps.set('sexe', document.getElementById('el_sexe').value);
-      corps.set('nom_pere', document.getElementById('nom_pere').value);
-      corps.set('telephone_pere', document.getElementById('tel_pere').value);
-      corps.set('nom_mere', document.getElementById('nom_mere').value);
-      corps.set('telephone_mere', document.getElementById('tel_mere').value);
-      corps.set('montant_total', document.getElementById('fraisTotal').textContent.replace(/\s/g,''));
+  async function soumettreFormulaire(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSoumettre');
+    if(btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="chargement"><span class="spinner"></span> Envoi en cours…</span>';
     }
-    corps.append('langue', langueActuelle);
-    corps.append('date_soumission', new Date().toISOString());
-    console.log("📤 Envoi préinscription profil=", profilChoisi);
-    const reponse = await fetch(`${API_BASE}/preinscription`, {
-      method: 'POST',
-      body: corps,
-      credentials: 'omit'
-    });
-    const resultat = await reponse.json();
-    console.log("📥 Réponse :", resultat);
-    if (!resultat.ok) throw new Error(resultat.erreur || "Erreur inconnue");
-    document.querySelector('.carte-formulaire').innerHTML = `
-      <div class="text-center py-4">
-        <div class="display-1 text-success mb-3">✅</div>
-        <h4 class="etape-titre">Demande enregistrée !</h4>
-        <p class="lead">${resultat.message}</p>
-        <p>Nous vous enverrons la confirmation et la fiche récapitulative par email dans les meilleurs délais.</p>
-        <a href="index.html" class="btn btn-valider-definitif mt-3">Retour à l'accueil</a>
-      </div>`;
-  } catch (err) {
-    alert(`❌ Erreur : ${err.message}`);
-    btn.disabled = false;
-    btn.innerHTML = '📤 Enregistrer la demande';
+    try {
+      const corps = new FormData(e.target);
+      if (profilChoisi === 'eleve') {
+        corps.set('nom', document.getElementById('el_nom')?.value);
+        corps.set('prenom', document.getElementById('el_prenom')?.value);
+        corps.set('date_naissance', document.getElementById('el_datedn')?.value);
+        corps.set('lieu_naissance', document.getElementById('el_lieu')?.value);
+        corps.set('nationalite', document.getElementById('el_nat')?.value);
+        corps.set('sexe', document.getElementById('el_sexe')?.value);
+        corps.set('nom_pere', document.getElementById('nom_pere')?.value);
+        corps.set('telephone_pere', document.getElementById('tel_pere')?.value);
+        corps.set('nom_mere', document.getElementById('nom_mere')?.value);
+        corps.set('telephone_mere', document.getElementById('tel_mere')?.value);
+        corps.set('montant_total', document.getElementById('fraisTotal').textContent.replace(/\s/g,''));
+      }
+      corps.append('langue', langueActuelle);
+      corps.append('date_soumission', new Date().toISOString());
+      console.log("📤 Envoi préinscription profil=", profilChoisi);
+      
+      const reponse = await fetch(`${API_BASE}/preinscription`, {
+        method: 'POST',
+        body: corps,
+        credentials: 'omit'
+      });
+      const resultat = await reponse.json();
+      console.log("📥 Réponse :", resultat);
+      
+      if (!resultat.ok) throw new Error(resultat.erreur || "Erreur inconnue");
+      
+      document.querySelector('.carte-formulaire').innerHTML = `
+        <div class="text-center py-4">
+          <div class="display-1 text-success mb-3">✅</div>
+          <h4 class="etape-titre">Demande enregistrée !</h4>
+          <p class="lead">${resultat.message}</p>
+          <p>Nous vous enverrons la confirmation et la fiche récapitulative par email dans les meilleurs délais.</p>
+          <a href="index.html" class="btn btn-valider-definitif mt-3">Retour à l'accueil</a>
+        </div>`;
+    } catch (err) {
+      alert(`❌ Erreur : ${err.message}`);
+      if(btn) {
+        btn.disabled = false;
+        btn.innerHTML = '📤 Enregistrer la demande';
+      }
+    }
   }
-}
 </script>
 
   <div class="entete-page">
@@ -538,7 +580,7 @@ async function soumettreFormulaire(e) {
           <p class="mb-0 opacity-75">
             <span class="txt-fr">Remplissez, vérifiez, puis validez votre demande</span>
             <span class="txt-en">Fill, verify, then validate your request</span>
-            <span class="txt-ar">املأ وتحقق ثم صادق على طلبك</span>
+            <span class="txt-ar">املأ وتحقق ثم صادق sur votre demande</span>
           </p>
         </div>
         <div class="d-flex align-items-center">
@@ -718,7 +760,6 @@ async function soumettreFormulaire(e) {
               <input type="text" name="annee_scolaire" class="form-control" value="2025-2026" readonly>
             </div>
           </div>
-
           <h5 class="mb-2 text-primary">🛎️ Services complémentaires</h5>
           <div class="row g-2 mb-3">
             <div class="col-md-4 case-a-cocher">
@@ -746,7 +787,6 @@ async function soumettreFormulaire(e) {
               <label for="svc_divers" class="mb-0">📦 Autres services <small class="text-muted">+3 000</small></label>
             </div>
           </div>
-
           <h5 class="mb-2 text-primary">📄 Documents & Fournitures</h5>
           <div class="row g-2 mb-3">
             <div class="col-md-4 case-a-cocher">
@@ -755,27 +795,20 @@ async function soumettreFormulaire(e) {
             </div>
             <div class="col-md-4 case-a-cocher">
               <input type="checkbox" name="doc_carte" id="doc_carte">
-              <label for="doc_carte" class="mb-0">🪪 Carte scolaire <small class="text-muted">+1 000</small></label>
-            </div>
-            <div class="col-md-4 case-a-cocher">
-              <input type="checkbox" name="doc_feuille" id="doc_feuille">
-              <label for="doc_feuille" class="mb-0">📄 Feuille de présence <small class="text-muted">+800</small></label>
-            </div>
-            <div class="col-md-4 case-a-cocher">
-              <input type="checkbox" name="doc_kaki" id="doc_kaki">
-              <label for="doc_kaki" class="mb-0">👕 Uniforme Kaki <small class="text-muted">+8 500</small></label>
-            </div>
-            <div class="col-md-4 case-a-cocher">
-              <input type="checkbox" name="doc_macaron" id="doc_macaron">
-              <label for="doc_macaron" class="mb-0">🏅 Macaron <small class="text-muted">+500</small></label>
-            </div>
-            <div class="col-md-4 case-a-cocher">
-              <input type="checkbox" name="doc_examen" id="doc_examen">
-              <label for="doc_examen" class="mb-0">📝 Papier d'examen <small class="text-muted">+8 500</small></label>
+              <label for="doc_carte"id="doc_carte">
+               <label for="doc_carte" class="mb-0">🪪 Carte scolaire <small class="text-muted">+1 000</small></label>
+             </div>
+             <div class="col-md-4 case-a-cocher">
+               <input type="checkbox" name="doc_feuille" id="doc_feuille">
+               <label for="doc_feuille" class="mb-0">📄 Feuille de présence <small class="text-muted">+800</small></label>
+             </div>
+             <div class="col-md-4 case-a-cocher">
+               <input type="checkbox" name="doc_kaki" id="doc_kaki">
+               <label for="doc_kaki" class="mb-0">👕 Uniforme kaki <small class="text-muted">+8 500</small></label>
              </div>
              <div class="col-md-4 case-a-cocher">
                <input type="checkbox" name="doc_macaron" id="doc_macaron">
-               <label for="doc_macaron" class="mb-0">🏅 Macaron <small class="text-muted">+500</small></label>
+               <label for="doc_macaron" class="mb-0">🎖️ Macaron <small class="text-muted">+500</small></label>
              </div>
              <div class="col-md-4 case-a-cocher">
                <input type="checkbox" name="doc_examen" id="doc_examen">
@@ -783,31 +816,23 @@ async function soumettreFormulaire(e) {
              </div>
              <div class="col-md-4 case-a-cocher">
                <input type="checkbox" name="doc_carnet" id="doc_carnet">
-               <label for="doc_carnet" class="mb-0">📔 Carnet scolaire <small class="text-muted">+2 000</small></label>
+               <label for="doc_carnet" class="mb-0">📒 Carnet scolaire <small class="text-muted">+2 000</small></label>
              </div>
              <div class="col-md-4 case-a-cocher">
                <input type="checkbox" name="doc_livret" id="doc_livret">
-               <label for="doc_livret" class="mb-0">📖 Livret scolaire <small class="text-muted">+1 500</small></label>
+               <label for="doc_livret" class="mb-0">📔 Livret scolaire <small class="text-muted">+1 500</small></label>
              </div>
            </div>
 
            <!-- ✅ RÉCAPITULATIF DES FRAIS -->
-           <div class="resume-verification ligne-total mt-4">
-             <h5 class="text-center text-uppercase fw-bold mb-3">💰 Récapitulatif des frais</h5>
+           <div class="resume-verification ligne-total">
+             <h5 class="mb-3 text-primary">💰 Récapitulatif des frais</h5>
              <div class="row g-2">
-               <div class="col-6 col-md-4"><strong>Frais de scolarité :</strong></div>
-               <div class="col-6 col-md-8"><span id="fraisBase">0</span> <span>FCFA</span></div>
-
-               <div class="col-6 col-md-4"><strong>Services complémentaires :</strong></div>
-               <div class="col-6 col-md-8"><span id="fraisServices">0</span> <span>FCFA</span></div>
-
-               <div class="col-6 col-md-4"><strong>Documents & Fournitures :</strong></div>
-               <div class="col-6 col-md-8"><span id="fraisDocuments">0</span> <span>FCFA</span></div>
-
-               <div class="col-12 ligne-total mt-2 pt-2">
-                 <div class="h5 text-danger text-center mb-0">
-                   <strong>💰 TOTAL : <span id="fraisTotal">0</span> FCFA</strong>
-                 </div>
+               <div class="col-sm-6"><strong>Frais de base :</strong> <span id="fraisBase">0</span> <span id="DEVISE1">FCFA</span></div>
+               <div class="col-sm-6"><strong>Services :</strong> <span id="fraisServices">0</span> <span id="DEVISE2">FCFA</span></div>
+               <div class="col-sm-6"><strong>Documents/Fournitures :</strong> <span id="fraisDocuments">0</span> <span id="DEVISE3">FCFA</span></div>
+               <div class="col-sm-6 ligne-total h5 text-danger">
+                 <strong>TOTAL :</strong> <span id="fraisTotal">0</span> <span id="DEVISE4">FCFA</span>
                </div>
              </div>
            </div>
@@ -822,105 +847,69 @@ async function soumettreFormulaire(e) {
            </div>
          </div>
 
-         <!-- ✅ ÉTAPE 4 : DOCUMENTS & PAIEMENT -->
+         <!-- ÉTAPE 4 : MODALITÉS DE PAIEMENT & PIÈCES -->
          <div class="carte-formulaire bloc-etape" id="bloc-etape-4-eleve">
-           <h4 class="etape-titre">📄 Documents & Mode de Paiement</h4>
-
-           <!-- 📸 Photo & Documents à téléverser -->
-           <div class="mb-4">
-             <label class="form-label">📸 Photo d'identité (format JPG)</label>
-             <input type="file" name="photo_identite" class="form-control" accept="image/*" onchange="apercuImage(this, 'previewPhoto')">
-             <img id="previewPhoto" class="preview-photo" alt="Aperçu photo">
-           </div>
+           <h4 class="etape-titre">💳 Paiement & Pièces à fournir</h4>
 
            <div class="mb-4">
-             <label class="form-label">📄 Extrait de naissance / Bulletin scolaire (PDF ou Image)</label>
-             <input type="file" name="documents" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
-           </div>
+             <label class="form-label">Mode de règlement *</label>
+             <div class="paiement-caisse">
+               <div class="mb-2">
+                 <label class="me-3 case-a-cocher">
+                   <input type="radio" name="mode_paiement" value="comptant">
+                   Paiement comptant
+                 </label>
+                 <label class="case-a-cocher">
+                   <input type="radio" name="mode_paiement" value="echalonne">
+                   Paiement échelonné
+                 </label>
+               </div>
 
-           <hr class="my-4">
-
-           <!-- 💰 MODE DE PAIEMENT -->
-           <h5 class="mb-3 text-primary">💳 Mode de Paiement</h5>
-           <div class="mb-3">
-             <label class="form-label">Choisissez votre mode de règlement *</label>
-             <div class="row g-2">
-               <div class="col-md-6 case-a-cocher">
-                 <input type="radio" name="mode_paiement" id="paiement_total" value="total" checked>
-                 <label for="paiement_total" class="mb-0 fw-semibold">💵 Paiement en totalité</label>
+               <div id="choixEchelon" class="choix-echelon">
+                 <p class="mb-2"><strong>Choisissez l'échelonnement :</strong></p>
+                 <div class="d-flex flex-wrap gap-3">
+                   <label class="case-a-cocher">
+                     <input type="radio" name="echelonnement" value="2"> 2 versements
+                   </label>
+                   <label class="case-a-cocher">
+                     <input type="radio" name="echelonnement" value="3"> 3 versements
+                   </label>
+                   <label class="case-a-cocher">
+                     <input type="radio" name="echelonnement" value="10"> 10 mensualités
+                   </label>
+                 </div>
+                 <div class="mt-2 text-success">
+                   Soit <strong><span id="montantTranche">0</span> FCFA</strong> par tranche de <span id="nbTranches">1</span> versement(s).
+                 </div>
                </div>
-               <div class="col-md-6 case-a-cocher">
-                 <input type="radio" name="mode_paiement" id="paiement_echelon" value="echalonne">
-                 <label for="paiement_echelon" class="mb-0 fw-semibold">📅 Paiement échelonné</label>
-               </div>
-             </div>
-           </div>
-
-           <!-- 📅 ÉCHELONNEMENT -->
-           <div id="choixEchelon" class="choix-echelon">
-             <label class="form-label">Nombre de versements souhaités *</label>
-             <div class="row g-2">
-               <div class="col-md-3 case-a-cocher">
-                 <input type="radio" name="echelonnement" id="echele2" value="2">
-                 <label for="echele2" class="mb-0">2 versements</label>
-               </div>
-               <div class="col-md-3 case-a-cocher">
-                 <input type="radio" name="echelonnement" id="echele3" value="3">
-                 <label for="echele3" class="mb-0">3 versements</label>
-               </div>
-               <div class="col-md-3 case-a-cocher">
-                 <input type="radio" name="echelonnement" id="echele10" value="10">
-                 <label for="echele10" class="mb-0">10 mensualités</label>
-               </div>
-             </div>
-             <div class="mt-2 alert alert-info">
-               📝 Soit <strong class="prix-echelonne"><span id="montantTranche">0</span> FCFA</strong> par versement sur <span id="nbTranches">1</span> échéance(s).
              </div>
            </div>
 
            <hr class="my-3">
 
-           <!-- 💳 MOYENS DE PAIEMENT -->
-           <div class="mb-3">
-             <label class="form-label">Règlement par *</label>
-             <div class="row g-2">
-               <div class="col-md-6 col-lg-4 case-a-cocher">
-                 <input type="radio" name="moyen_paiement" id="mtn_money" value="mtn_money">
-                 <label for="mtn_money" class="mb-0">🟠 MTN Money</label>
-               </div>
-               <div class="col-md-6 col-lg-4 case-a-cocher">
-                 <input type="radio" name="moyen_paiement" id="moov_money" value="moov_money">
-                 <label for="moov_money" class="mb-0">🔵 Moov Money</label>
-               </div>
-               <div class="col-md-6 col-lg-4 case-a-cocher">
-                 <input type="radio" name="moyen_paiement" id="orange_money" value="orange_money">
-                 <label for="orange_money" class="mb-0">🟠 Orange Money</label>
-               </div>
-               <div class="col-md-6 col-lg-4 case-a-cocher">
-                 <input type="radio" name="moyen_paiement" id="wave" value="wave">
-                 <label for="wave" class="mb-0">🌊 Wave</label>
-               </div>
-               <div class="col-md-6 col-lg-4 case-a-cocher">
-                 <input type="radio" name="moyen_paiement" id="carte_bancaire" value="carte_bancaire">
-                 <label for="carte_bancaire" class="mb-0">💳 Carte Bancaire</label>
-               </div>
-               <div class="col-md-6 col-lg-4 case-a-cocher">
-                 <input type="radio" name="moyen_paiement" id="virement" value="virement">
-                 <label for="virement" class="mb-0">🏦 Virement Bancaire</label>
-               </div>
-               <div class="col-md-6 col-lg-4 case-a-cocher">
-                 <input type="radio" name="moyen_paiement" id="caisse" value="caisse">
-                 <label for="caisse" class="mb-0">🏛️ Paiement à la Caisse (École)</label>
-               </div>
+           <h5 class="mb-3 text-primary">📎 Pièces à joindre</h5>
+           <div class="row g-3">
+             <div class="col-md-6">
+               <label class="form-label">Photo d'identité</label>
+               <input type="file" name="photo" accept="image/*" class="form-control" onchange="apercuImage(this, 'previewPhoto')">
+               <img id="previewPhoto" class="preview-photo" alt="Aperçu photo">
+             </div>
+             <div class="col-md-6">
+               <label class="form-label">Copie d'acte de naissance</label>
+               <input type="file" name="acte_naissance" accept=".jpg,.jpeg,.png,.pdf" class="form-control">
+             </div>
+             <div class="col-md-6">
+               <label class="form-label">Certificat de scolarité / Bulletin de l'année précédente</label>
+               <input type="file" name="bulletin_precedent" accept=".jpg,.jpeg,.png,.pdf" class="form-control">
+             </div>
+             <div class="col-md-6">
+               <label class="form-label">Certificat de résidence</label>
+               <input type="file" name="certificat_residence" accept=".jpg,.jpeg,.png,.pdf" class="form-control">
              </div>
            </div>
 
-           <div class="paiement-caisse alert alert-info">
-             <p class="mb-1"><strong>🏛️ Informations de paiement</strong></p>
-             <p class="mb-0 small">
-               Règlement à effectuer au guichet de l'établissement MAMA-ZOUMANA pendant les horaires d'ouverture.
-               Une facture acquittée vous sera remise en échange de votre règlement.
-             </p>
+           <div class="avertissement-base mt-3">
+             ⚠️ <strong>Attention :</strong> Tout dossier incomplet ne sera pas traité. Veuillez vérifier l'exactitude des informations avant validation.
            </div>
 
            <div class="d-flex justify-content-between mt-4">
@@ -933,27 +922,19 @@ async function soumettreFormulaire(e) {
            </div>
          </div>
 
-         <!-- ✅ ÉTAPE 5 : VÉRIFICATION & ENREGISTREMENT -->
+         <!-- ÉTAPE 5 : VÉRIFICATION & ENREGISTREMENT -->
          <div class="carte-formulaire bloc-etape" id="bloc-etape-5-eleve">
            <h4 class="etape-titre">✅ Vérification & Validation</h4>
 
            <div id="blocResume" class="resume-verification">
-             <p class="text-center text-muted">Veuillez compléter les étapes précédentes…</p>
+             <!-- Rempli dynamiquement par genererResume() -->
+             <p class="text-center text-muted">Chargement du résumé…</p>
            </div>
 
-           <div class="avertissement-base mt-4">
-             <p class="mb-0 fw-semibold">⚠️ Important</p>
-             <p class="mb-0 small">
-               En validant cette demande, vous reconnaissez l'exactitude des informations fournies.
-               Votre préinscription sera prise en compte après vérification de votre dossier et confirmation de paiement.
-               Une fiche de préinscription vous sera envoyée par email automatiquement.
-             </p>
-           </div>
-
-           <div class="form-check mt-4 mb-3">
-             <input type="checkbox" class="form-check-input" id="accepte" required>
-             <label class="form-check-label fw-semibold" for="accepte">
-               J'accepte les conditions d'inscription et certifie l'exactitude des informations fournies *
+           <div class="mb-3">
+             <label class="case-a-cocher">
+               <input type="checkbox" required>
+               J'atteste sur l'honneur l'exactitude des informations fournies et accepte les conditions d'inscription *
              </label>
            </div>
 
@@ -967,53 +948,124 @@ async function soumettreFormulaire(e) {
            </div>
          </div>
        </div>
+       <!-- FIN BLOC ÉLÈVE -->
 
-       <!-- AUTRES PROFILS → PARENT / PROF / VISITEUR -->
+       <!-- BLOC PARENT -->
        <div id="blocParent" class="bloc-profil">
          <div class="carte-formulaire bloc-etape" id="bloc-etape-1-parent">
            <h4 class="etape-titre">👨‍👩‍👧 Espace Parent — Rechercher un enfant</h4>
-           <div class="mb-3">
-             <label class="form-label">Matricule de l'élève</label>
-             <div class="d-flex gap-2">
-               <input type="text" name="matricule_enfant" id="matricule_enfant" class="form-control" placeholder="MZ2026XXX">
-               <button type="button" class="btn-verifier" onclick="rechercherEnfant()">🔍 Rechercher</button>
+           <div class="row g-3">
+             <div class="col-md-6 offset-md-3">
+               <label class="form-label">Matricule de l'enfant</label>
+               <div class="d-flex gap-2">
+                 <input type="text" id="matricule_enfant" class="form-control" placeholder="MZ2026XXX">
+                 <button type="button" class="btn-verifier" onclick="rechercherEnfant()">Rechercher</button>
+               </div>
              </div>
            </div>
-           <div id="enfantInfos" class="info-base d-none">
-             <p><strong>👤 Identité :</strong> <span id="enfant_nom">—</span> <span id="enfant_prenom">—</span></p>
-             <p><strong>🏫 Classe :</strong> <span id="enfant_classe">—</span></p>
-             <p><strong>📊 Résultat année précédente :</strong> Moyenne: <span id="enfant_moy">—</span> / Rang: <span id="enfant_rang">—</span> / Mention: <span id="enfant_mention">—</span></p>
+
+           <div id="enfantInfos" class="info-base d-none mt-4">
+             <h5 class="mb-2">📋 Informations de l'enfant</h5>
+             <div class="row g-2">
+               <div class="col-sm-6"><strong>Nom :</strong> <span id="enfant_nom">—</span></div>
+               <div class="col-sm-6"><strong>Prénom :</strong> <span id="enfant_prenom">—</span></div>
+               <div class="col-sm-6"><strong>Classe :</strong> <span id="enfant_classe">—</span></div>
+               <div class="col-sm-2"><strong>Moyenne :</strong> <span id="enfant_moy">—</span></div>
+               <div class="col-sm-2"><strong>Rang :</strong> <span id="enfant_rang">—</span></div>
+               <div class="col-sm-2"><strong>Mention :</strong> <span id="enfant_mention">—</span></div>
+             </div>
+           </div>
+
+           <div class="mt-4">
+             <button type="button" class="btn-precedent" onclick="changerEtape(0)">
+               <i class="bi bi-chevron-left"></i> Retour
+             </button>
            </div>
          </div>
        </div>
+       <!-- FIN BLOC PARENT -->
 
+       <!-- BLOC ENSEIGNANT -->
        <div id="blocProf" class="bloc-profil">
          <div class="carte-formulaire bloc-etape" id="bloc-etape-1-prof">
-           <h4 class="etape-titre">👨‍🏫 Espace Enseignant</h4>
-           <p class="text-muted">L'espace enseignant est accessible après validation de votre compte par l'administration.</p>
-           <p class="mt-3">
-             <a href="index.html" class="btn btn-verifier">🏠 Retour à l'accueil</a>
-           </p>
+           <h4 class="etape-titre">👨‍🏫 Préinscription Enseignant</h4>
+           <div class="row g-3">
+             <div class="col-md-6">
+               <label class="form-label">Nom & Prénoms *</label>
+               <input type="text" name="prof_nom" class="form-control" required>
+             </div>
+             <div class="col-md-6">
+               <label class="form-label">Téléphone *</label>
+               <input type="tel" name="prof_tel" class="form-control" required>
+             </div>
+             <div class="col-md-6">
+               <label class="form-label">Matière enseignée *</label>
+               <select name="matiere" id="matiereSelect" class="form-select" required>
+                 <option value="">— Chargement…</option>
+               </select>
+             </div>
+             <div class="col-md-6">
+               <label class="form-label">Niveau(x) souhaité(s)</label>
+               <input type="text" name="niveaux" class="form-control" placeholder="Ex: 6e, 5e, 4e">
+             </div>
+             <div class="col-md-12">
+               <label class="form-label">Expérience / Diplômes</label>
+               <textarea name="experience" rows="4" class="form-control"></textarea>
+             </div>
+           </div>
+
+           <div class="d-flex justify-content-between mt-4">
+             <button type="button" class="btn-precedent" onclick="changerEtape(0)">
+               <i class="bi bi-chevron-left"></i> Retour
+             </button>
+             <button type="submit" id="btnSoumettre" class="btn-valider-definitif">
+               📤 Envoyer la candidature
+             </button>
+           </div>
          </div>
        </div>
+       <!-- FIN BLOC ENSEIGNANT -->
 
+       <!-- BLOC VISITEUR -->
        <div id="blocVisiteur" class="bloc-profil">
          <div class="carte-formulaire bloc-etape" id="bloc-etape-1-visiteur">
-           <h4 class="etape-titre">🧑‍💼 Espace Visiteur</h4>
-           <p class="text-muted">Merci de votre intérêt pour l'établissement MAMA-ZOUMANA.</p>
-           <p class="mt-2">Pour toute demande d'information, veuillez nous contacter :</p>
-           <ul class="list-unstyled mt-3">
-             <li>📧 Email : <strong>contact@mama-zoumana.ci</strong></li>
-             <li>📞 Téléphone : <strong>+225 01 73 49 49 64</strong></li>
-           </ul>
-           <p class="mt-4">
-             <a href="index.html" class="btn btn-verifier">🏠 Retour à l'accueil</a>
-           </p>
+           <h4 class="etape-titre">🧑‍💻 Demande de renseignements</h4>
+           <div class="row g-3">
+             <div class="col-md-6">
+               <label class="form-label">Nom *</label>
+               <input type="text" name="vis_nom" class="form-control" required>
+             </div>
+             <div class="col-md-6">
+               <label class="form-label">Prénom *</label>
+               <input type="text" name="vis_prenom" class="form-control" required>
+             </div>
+             <div class="col-md-6">
+               <label class="form-label">Téléphone</label>
+               <input type="tel" name="vis_tel" class="form-control">
+             </div>
+             <div class="col-md-6">
+               <label class="form-label">Email</label>
+               <input type="email" name="vis_email" class="form-control">
+             </div>
+             <div class="col-md-12">
+               <label class="form-label">Objet de la demande *</label>
+               <textarea name="vis_message" rows="4" class="form-control" required placeholder="Décrivez ici votre demande…"></textarea>
+             </div>
+           </div>
+
+           <div class="d-flex justify-content-between mt-4">
+             <button type="button" class="btn-precedent" onclick="changerEtape(0)">
+               <i class="bi bi-chevron-left"></i> Retour
+             </button>
+             <button type="submit" id="btnSoumettre" class="btn-valider-definitif">
+               📤 Envoyer
+             </button>
+           </div>
          </div>
        </div>
+       <!-- FIN BLOC VISITEUR -->
 
      </form>
    </div>
-
-</body>
-</html>
+ </body>
+ </html>

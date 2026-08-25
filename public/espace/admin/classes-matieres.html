@@ -28,7 +28,6 @@
       --fond-carte: #1e293b;
       --fond-input: #0f172a;
     }
-
     /* ===== ☀️ MODE CLAIR ===== */
     body.mode-jour {
       --primaire: #0c4a6e;
@@ -40,16 +39,13 @@
       --fond-carte: #ffffff;
       --fond-input: #ffffff;
     }
-
     * { margin: 0; padding: 0; box-sizing: border-box; transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease; }
-
     body {
       background: var(--sombre);
       color: var(--texte);
       min-height: 100vh;
       font-family: 'Segoe UI', sans-serif;
     }
-
     /* ===== 🧭 EN-TÊTE ===== */
     .entete-page {
       background: linear-gradient(135deg, var(--primaire), var(--secondaire));
@@ -57,7 +53,6 @@
       margin-bottom: 2rem;
       box-shadow: 0 2px 10px rgba(0,0,0,0.15);
     }
-
     /* ===== 📇 CARTES ===== */
     .carte-gestion {
       background: var(--fond-carte);
@@ -67,7 +62,6 @@
       margin-bottom: 1.5rem;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-
     /* ===== 📝 FORMULAIRES ===== */
     .form-control, .form-select {
       background: var(--fond-input);
@@ -82,7 +76,6 @@
       box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
     }
     .form-label { color: var(--texte); }
-
     /* ===== 🔘 BOUTONS ===== */
     .btn-anim-orange {
       background: transparent;
@@ -112,13 +105,11 @@
       box-shadow: 0 0 10px rgba(239,68,68,0.25);
     }
     .btn-suppr-lumineux:hover { box-shadow: 0 0 18px rgba(239,68,68,0.4); }
-
     /* ===== 📋 ZONE LISTE ===== */
     .zone-liste { border-top: 2px solid rgba(245,158,11,0.3); margin-top: 2rem; padding-top: 2rem; }
     .barre-outils { display: flex; gap: 0.5rem; align-items: center; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
     .alerte-api { border-left: 4px solid var(--alerte); background: rgba(239,68,68,0.1); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
     .menu-fixed { position: fixed; bottom: 2rem; right: 2rem; z-index: 999; }
-
     /* ===== 🌐 TRILINGUE ===== */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
@@ -129,40 +120,35 @@
     body.lang-ar { direction: rtl; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
     body.lang-ar .txt-ar { display: inline; }
-
     /* ===== BADGES STATUT ===== */
     .badge { font-size: 0.75rem; }
   </style>
 </head>
 <body class="lang-fr">
-
 <script>
   // ==================================================
-  // 🔗 URL API UNIFIÉE — CORRIGÉE
+  // 🔗 URL API UNIFIÉE
   // ==================================================
   const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:10000/api'
     : 'https://mama-zoumana.onrender.com/api';
-
   // ==================================================
-  // 🪟 RÉCUPÉRATION SESSION — CORRIGÉE
+  // 🪟 RÉCUPÉRATION SESSION
   // ==================================================
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
   let langueActuelle = localStorage.getItem('langue') || 'fr';
   let estModeJour = localStorage.getItem('theme') === 'clair';
-
   // ==================================================
-  // ✅ VÉRIFICATION SESSION — CORRIGÉE + MESSAGE CLAIR
+  // ✅ VÉRIFICATION SESSION
   // ==================================================
   if (!token || !['admin','super_admin'].includes(role || '')) {
     alert("⚠️ Session invalide ou expirée. Veuillez vous reconnecter.");
     localStorage.clear();
     location.href = 'connexion.html';
   }
-
   // ==================================================
-  // 🌐 TRADUCTIONS DES MESSAGES D'ERREUR
+  // 🌐 TRADUCTIONS DES MESSAGES
   // ==================================================
   const MSG = {
     fr: {
@@ -218,9 +204,8 @@
     }
   };
   function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
-
   // ==================================================
-  // 🛡️ GESTION CENTRALISÉE DES ERREURS API — CORRIGÉE
+  // 🛡️ GESTION CENTRALISÉE DES ERREURS API
   // ==================================================
   async function requeteAPI(url, options = {}) {
     const entetes = {
@@ -228,30 +213,22 @@
       'Authorization': `Bearer ${token}`,
       ...options.headers
     };
-
     try {
       const res = await fetch(url, { ...options, headers: entetes });
-
-      // ❌ Jeton expiré ou invalide
       if (res.status === 401) {
         alert(m('erreur401'));
         localStorage.clear();
         location.href = 'connexion.html';
         throw new Error('SESSION_EXPIREE');
       }
-
-      // ❌ Droits insuffisants
       if (res.status === 403) {
         alert(m('erreur403'));
         throw new Error('DROITS_INSUFFISANTS');
       }
-
-      // ❌ Erreur serveur
       if (res.status >= 500) {
         alert(m('erreurServeur'));
         throw new Error('ERREUR_SERVEUR');
       }
-
       return await res.json();
     } catch (err) {
       if (!['SESSION_EXPIREE','DROITS_INSUFFISANTS','ERREUR_SERVEUR'].includes(err.message)) {
@@ -260,7 +237,6 @@
       throw err;
     }
   }
-
   // ==================================================
   // 💾 STOCKAGE LOCAL (si API indisponible)
   // ==================================================
@@ -268,21 +244,20 @@
   function sauvegarderClassesLocales(liste) { localStorage.setItem('liste_classes', JSON.stringify(liste)); }
   function obtenirMatieresLocales() { return JSON.parse(localStorage.getItem('liste_matieres') || '[]'); }
   function sauvegarderMatieresLocales(liste) { localStorage.setItem('liste_matieres', JSON.stringify(liste)); }
-
   // ==================================================
   // ☀️🌙 MODE JOUR / NUIT
   // ==================================================
   function appliquerTheme() {
     estModeJour = localStorage.getItem('theme') === 'clair';
     document.body.classList.toggle('mode-jour', estModeJour);
-    document.getElementById('btnJourNuit').textContent = estModeJour ? '🌙' : '☀️';
+    const btn = document.getElementById('btnJourNuit');
+    if (btn) btn.textContent = estModeJour ? '🌙' : '☀️';
   }
-  function basculerTheme() {
+  window.basculerTheme = function() {
     estModeJour = !estModeJour;
     localStorage.setItem('theme', estModeJour ? 'clair' : 'sombre');
     appliquerTheme();
-  }
-
+  };
   // ==================================================
   // 🗣️ CHANGER DE LANGUE
   // ==================================================
@@ -293,7 +268,6 @@
     document.querySelectorAll('.barre-outils .btn').forEach(b => b.classList.remove('actif'));
     document.getElementById('btn-' + lang)?.classList.add('actif');
   };
-
   // ==================================================
   // 🚀 INITIALISATION
   // ==================================================
@@ -303,154 +277,150 @@
     document.getElementById('btn-' + langueActuelle)?.classList.add('actif');
     chargerListe();
   });
-
   // ==================================================
-  // 📤 ENREGISTRER / MODIFIER UNE CLASSE — ROUTE CORRIGÉE
+  // 📤 ENREGISTRER / MODIFIER UNE CLASSE
   // ==================================================
-  document.getElementById('formClasse').addEventListener('submit', async e => {
-    e.preventDefault();
-    const d = Object.fromEntries(new FormData(e.target));
-    d.capacite_max = Number(d.capacite_max);
-
-    if (!d.libelle_classe || !d.cycle) return alert(m('erreurChamp'));
-    if (d.capacite_max < 10 || d.capacite_max > 80) return alert(m('erreurCapacite'));
-
-    const estModif = !!d.id_classe;
-    const donneesClasse = {
-      libelle_classe: d.libelle_classe.trim(),
-      libelle_classe_ar: (d.libelle_classe_ar || '').trim(),
-      libelle_classe_en: '',
-      cycle: d.cycle,
-      capacite_max: d.capacite_max,
-      salle: (d.salle || '').trim(),
-      statut: d.statut
-    };
-
-    try {
-      // ✅ Route CORRIGÉE : /classes/toutes ← ancien /classes
-      const url = estModif 
-        ? `${API_URL}/classes/${d.id_classe}` 
-        : `${API_URL}/classes`;
-      const methode = estModif ? 'PUT' : 'POST';
-
-      const data = await requeteAPI(url, {
-        method: methode,
-        body: JSON.stringify(donneesClasse)
+  document.addEventListener('DOMContentLoaded', () => {
+    const formClasse = document.getElementById('formClasse');
+    if (formClasse) {
+      formClasse.addEventListener('submit', async e => {
+        e.preventDefault();
+        const d = Object.fromEntries(new FormData(e.target));
+        d.capacite_max = Number(d.capacite_max);
+        if (!d.libelle_classe || !d.cycle) return alert(m('erreurChamp'));
+        if (d.capacite_max < 10 || d.capacite_max > 80) return alert(m('erreurCapacite'));
+        const estModif = !!d.id_classe;
+        const donneesClasse = {
+          libelle_classe: d.libelle_classe.trim(),
+          libelle_classe_ar: (d.libelle_classe_ar || '').trim(),
+          libelle_classe_en: '',
+          cycle: d.cycle,
+          capacite_max: d.capacite_max,
+          salle: (d.salle || '').trim(),
+          statut: d.statut || 'ouverte'
+        };
+        try {
+          const url = estModif 
+            ? `${API_URL}/classes/${d.id_classe}` 
+            : `${API_URL}/classes`;
+          const methode = estModif ? 'PUT' : 'POST';
+          const data = await requeteAPI(url, {
+            method: methode,
+            body: JSON.stringify(donneesClasse)
+          });
+          if (data.ok || data.success) {
+            alert(estModif ? m('modifOk') : m('sauvegardeOk'));
+            reinitFormulaireClasse();
+            chargerListe();
+          } else {
+            alert("❌ " + (data.erreur || data.message || "Erreur serveur"));
+          }
+        } catch (err) {
+          console.error("⚠️ Mode local activé :", err.message);
+          let liste = obtenirClassesLocales();
+          if (estModif) {
+            const idx = liste.findIndex(c => String(c.id_classe) === String(d.id_classe) || String(c.id) === String(d.id_classe));
+            if (idx !== -1) liste[idx] = { ...liste[idx], ...donneesClasse };
+          } else {
+            liste.push({ id_classe: Date.now(), ...donneesClasse });
+          }
+          sauvegarderClassesLocales(liste);
+          alert((estModif ? m('modifOk') : m('sauvegardeOk')) + " (mode local)");
+          reinitFormulaireClasse();
+          chargerListe(true);
+        }
       });
-
-      if (data.ok || data.success) {
-        alert(estModif ? m('modifOk') : m('sauvegardeOk'));
-        reinitFormulaireClasse();
-        chargerListe();
-      } else {
-        alert("❌ " + (data.erreur || data.message || "Erreur serveur"));
-      }
-    } catch (err) {
-      console.error("⚠️ Mode local activé :", err.message);
-      let liste = obtenirClassesLocales();
-      if (estModif) {
-        const idx = liste.findIndex(c => String(c.id_classe) === String(d.id_classe));
-        if (idx !== -1) liste[idx] = { ...liste[idx], ...donneesClasse };
-      } else {
-        liste.push({ id_classe: Date.now(), ...donneesClasse });
-      }
-      sauvegarderClassesLocales(liste);
-      alert((estModif ? m('modifOk') : m('sauvegardeOk')) + " (mode local)");
-      reinitFormulaireClasse();
-      chargerListe(true);
+    }
+    // ==================================================
+    // 📤 ENREGISTRER / MODIFIER UNE MATIÈRE
+    // ==================================================
+    const formMatiere = document.getElementById('formMatiere');
+    if (formMatiere) {
+      formMatiere.addEventListener('submit', async e => {
+        e.preventDefault();
+        const d = Object.fromEntries(new FormData(e.target));
+        d.coefficient = Number(d.coefficient);
+        d.volume_horaire = Number(d.volume_horaire);
+        if (!d.libelle_matiere) return alert(m('erreurChamp'));
+        const estModif = !!d.id_matiere;
+        const donneesMatiere = {
+          libelle_matiere: d.libelle_matiere.trim(),
+          libelle_matiere_ar: (d.libelle_matiere_ar || '').trim(),
+          coefficient: d.coefficient,
+          volume_horaire: d.volume_horaire,
+          langue_ens: d.langue_ens || 'fr'
+        };
+        try {
+          const url = estModif 
+            ? `${API_URL}/matieres/${d.id_matiere}` 
+            : `${API_URL}/matieres`;
+          const methode = estModif ? 'PUT' : 'POST';
+          const data = await requeteAPI(url, {
+            method: methode,
+            body: JSON.stringify(donneesMatiere)
+          });
+          if (data.ok || data.success) {
+            alert(estModif ? m('modifOk') : m('sauvegardeOk'));
+            reinitFormulaireMatiere();
+            chargerListe();
+          } else {
+            alert("❌ " + (data.erreur || data.message || "Erreur serveur"));
+          }
+        } catch (err) {
+          console.error("⚠️ Mode local activé :", err.message);
+          let liste = obtenirMatieresLocales();
+          if (estModif) {
+            const idx = liste.findIndex(m => String(m.id_matiere) === String(d.id_matiere) || String(m.id) === String(d.id_matiere));
+            if (idx !== -1) liste[idx] = { ...liste[idx], ...donneesMatiere };
+          } else {
+            liste.push({ id_matiere: Date.now(), ...donneesMatiere });
+          }
+          sauvegarderMatieresLocales(liste);
+          alert((estModif ? m('modifOk') : m('sauvegardeOk')) + " (mode local)");
+          reinitFormulaireMatiere();
+          chargerListe(true);
+        }
+      });
     }
   });
 
   function reinitFormulaireClasse() {
-    document.getElementById('formClasse').reset();
+    document.getElementById('formClasse')?.reset();
     document.getElementById('edit-id-classe').value = '';
-    document.getElementById('btn-classe').innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
+    const btn = document.getElementById('btn-classe');
+    if (btn) btn.innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
   }
-
-  // ==================================================
-  // 📤 ENREGISTRER / MODIFIER UNE MATIÈRE — ROUTE CORRIGÉE
-  // ==================================================
-  document.getElementById('formMatiere').addEventListener('submit', async e => {
-    e.preventDefault();
-    const d = Object.fromEntries(new FormData(e.target));
-    d.coefficient = Number(d.coefficient);
-    d.volume_horaire = Number(d.volume_horaire);
-
-    if (!d.libelle_matiere) return alert(m('erreurChamp'));
-
-    const estModif = !!d.id_matiere;
-    const donneesMatiere = {
-      libelle_matiere: d.libelle_matiere.trim(),
-      coefficient: d.coefficient,
-      volume_horaire: d.volume_horaire,
-      langue_ens: d.langue_ens
-    };
-
-    try {
-      const url = estModif 
-        ? `${API_URL}/matieres/${d.id_matiere}` 
-        : `${API_URL}/matieres`;
-      const methode = estModif ? 'PUT' : 'POST';
-
-      const data = await requeteAPI(url, {
-        method: methode,
-        body: JSON.stringify(donneesMatiere)
-      });
-
-      if (data.ok || data.success) {
-        alert(estModif ? m('modifOk') : m('sauvegardeOk'));
-        reinitFormulaireMatiere();
-        chargerListe();
-      } else {
-        alert("❌ " + (data.erreur || data.message || "Erreur serveur"));
-      }
-    } catch (err) {
-      console.error("⚠️ Mode local activé :", err.message);
-      let liste = obtenirMatieresLocales();
-      if (estModif) {
-        const idx = liste.findIndex(m => String(m.id_matiere) === String(d.id_matiere));
-        if (idx !== -1) liste[idx] = { ...liste[idx], ...donneesMatiere };
-      } else {
-        liste.push({ id_matiere: Date.now(), ...donneesMatiere });
-      }
-      sauvegarderMatieresLocales(liste);
-      alert((estModif ? m('modifOk') : m('sauvegardeOk')) + " (mode local)");
-      reinitFormulaireMatiere();
-      chargerListe(true);
-    }
-  });
-
   function reinitFormulaireMatiere() {
-    document.getElementById('formMatiere').reset();
+    document.getElementById('formMatiere')?.reset();
     document.getElementById('edit-id-mat').value = '';
-    document.getElementById('btn-mat').innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
+    const btn = document.getElementById('btn-mat');
+    if (btn) btn.innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
   }
 
   // ==================================================
-  // 📋 CHARGER LA LISTE COMPLÈTE — ROUTES CORRIGÉES
+  // 📋 CHARGER LA LISTE COMPLÈTE
   // ==================================================
+  function echapperHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
   async function chargerListe(forcerLocal = false) {
     const corps = document.getElementById('liste-complete');
     const alerteApi = document.getElementById('alerteApi');
     const texteAlerteApi = document.getElementById('texteAlerteApi');
-
     let classes = [];
     let matieres = [];
-
     if (!forcerLocal) {
       try {
-        // ✅ Route CORRIGÉE : /classes/toutes pour avoir TOUTES les classes
         const [clData, mtData] = await Promise.all([
           requeteAPI(`${API_URL}/classes/toutes`),
           requeteAPI(`${API_URL}/matieres`)
         ]);
-
         classes = clData.ok ? (clData.classes || clData.lignes || []) : [];
         matieres = mtData.ok ? (mtData.matieres || mtData.lignes || []) : [];
-
         if (!Array.isArray(classes)) classes = [];
         if (!Array.isArray(matieres)) matieres = [];
-
         sauvegarderClassesLocales(classes);
         sauvegarderMatieresLocales(matieres);
         alerteApi.classList.add('d-none');
@@ -458,16 +428,13 @@
         forcerLocal = true;
       }
     }
-
     if (forcerLocal) {
-      texteAlerteApi.textContent = m('serveurIndispo');
+      if (texteAlerteApi) texteAlerteApi.textContent = m('serveurIndispo');
       alerteApi.classList.remove('d-none');
       classes = obtenirClassesLocales();
       matieres = obtenirMatieresLocales();
     }
-
     let html = '';
-
     // 📚 AFFICHER LES CLASSES
     if (classes.length > 0) {
       html += `<div class="col-md-6"><h5 class="mb-3 text-white"><i class="bi bi-building me-2 text-warning"></i>
@@ -478,26 +445,26 @@
         const statutTexte = {ouverte:'Ouverte',complete:'Complète',fermee:'Fermée'}[x.statut] || 'Ouverte';
         const placesLibres = typeof x.places_restantes !== 'undefined' 
           ? `<span class="badge bg-info text-dark ms-1">${x.places_restantes}/${x.capacite_max}</span>` 
-          : `<span class="badge bg-light text-dark ms-1">${x.capacite_max} pl</span>`;
+          : `<span class="badge bg-light text-dark ms-1">${x.capacite_max || '—'} pl</span>`;
+        const idClasse = echapperHtml(x.id_classe || x.id);
         return `
         <div class="carte-gestion d-flex justify-content-between align-items-center">
           <div>
-            <strong>${x.libelle_classe}</strong>
-            ${x.libelle_classe_ar ? `<span class="text-muted ms-1">(${x.libelle_classe_ar})</span>` : ''}
-            <span class="opacity-75 ms-2 small">${x.cycle || '—'}</span>
+            <strong>${echapperHtml(x.libelle_classe)}</strong>
+            ${x.libelle_classe_ar ? `<span class="text-muted ms-1">(${echapperHtml(x.libelle_classe_ar)})</span>` : ''}
+            <span class="opacity-75 ms-2 small">${echapperHtml(x.cycle) || '—'}</span>
             ${placesLibres}
-            ${x.salle ? `<span class="badge bg-secondary ms-1">${x.salle}</span>` : ''}
+            ${x.salle ? `<span class="badge bg-secondary ms-1">${echapperHtml(x.salle)}</span>` : ''}
             <span class="badge ${statutBadge} ms-1">${statutTexte}</span>
           </div>
           <div class="d-flex gap-1">
-            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierClasse(${JSON.stringify(x).replace(/'/g,"\\'")})'>✏️</button>
-            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerClasse(${x.id})">🗑️</button>
+            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierClasse(${JSON.stringify(x).replace(/"/g, '&quot;')})'>✏️</button>
+            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerClasse('${idClasse}')">🗑️</button>
           </div>
         </div>`;
       }).join('');
       html += `</div>`;
     }
-
     // 📖 AFFICHER LES MATIÈRES
     if (matieres.length > 0) {
       html += `<div class="col-md-6"><h5 class="mb-3 text-white"><i class="bi bi-book me-2 text-warning"></i>
@@ -505,60 +472,60 @@
       </h5>`;
       html += matieres.map(x => {
         const langueLabel = {fr:'🇫🇷',ar:'🇸🇦',en:'🇬🇧'}[x.langue_ens] || '🇫🇷';
+        const idMat = echapperHtml(x.id_matiere || x.id);
         return `
         <div class="carte-gestion d-flex justify-content-between align-items-center">
           <div>
-            <strong>${x.libelle_matiere}</strong>
-            ${x.libelle_matiere_ar ? `<span class="text-muted ms-1">(${x.libelle_matiere_ar})</span>` : ''}
-            <span class="badge bg-info text-dark ms-1">Coef ${x.coefficient}</span>
-            <span class="badge bg-secondary ms-1">${x.volume_horaire || 0}h/sem</span>
+            <strong>${echapperHtml(x.libelle_matiere)}</strong>
+            ${x.libelle_matiere_ar ? `<span class="text-muted ms-1">(${echapperHtml(x.libelle_matiere_ar)})</span>` : ''}
+            <span class="badge bg-info text-dark ms-1">Coef ${echapperHtml(x.coefficient)}</span>
+            <span class="badge bg-secondary ms-1">${echapperHtml(x.volume_horaire) || 0}h/sem</span>
             <span class="badge bg-light text-dark ms-1">${langueLabel}</span>
           </div>
           <div class="d-flex gap-1">
-            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierMatiere(${JSON.stringify(x).replace(/'/g,"\\'")})'>✏️</button>
-            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerMatiere(${x.id_matiere})">🗑️</button>
+            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierMatiere(${JSON.stringify(x).replace(/"/g, '&quot;')})'>✏️</button>
+            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerMatiere('${idMat}')">🗑️</button>
           </div>
         </div>`;
       }).join('');
       html += `</div>`;
     }
-
     corps.innerHTML = html || `<div class="col-12 text-center opacity-75 py-5">
       <i class="bi bi-inbox fs-1 mb-2"></i>
       <p>${m('aucuneDonnee')}</p>
     </div>`;
   }
-
   // ==================================================
   // ✏️ MODIFIER — PRÉ-REMPLIR LE FORMULAIRE
   // ==================================================
   window.modifierClasse = function(x) {
-    document.getElementById('edit-id-classe').value = x.id;
+    document.getElementById('edit-id-classe').value = x.id_classe || x.id || '';
     document.getElementById('edit-libelle').value = x.libelle_classe || '';
     document.getElementById('edit-libelle-ar').value = x.libelle_classe_ar || '';
     document.getElementById('edit-cycle').value = x.cycle || '';
     document.getElementById('edit-capacite').value = x.capacite_max || 30;
     document.getElementById('edit-salle').value = x.salle || '';
     document.getElementById('edit-statut').value = x.statut || 'ouverte';
-    document.getElementById('btn-classe').innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
+    const btn = document.getElementById('btn-classe');
+    if (btn) btn.innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
   window.modifierMatiere = function(x) {
-    document.getElementById('edit-id-mat').value = x.id_matiere;
+    document.getElementById('edit-id-mat').value = x.id_matiere || x.id || '';
     document.getElementById('edit-nom-mat').value = x.libelle_matiere || '';
     document.getElementById('edit-nom-mat-ar').value = x.libelle_matiere_ar || '';
     document.getElementById('edit-coef').value = x.coefficient || 1;
     document.getElementById('edit-vol').value = x.volume_horaire || 3;
     document.getElementById('edit-langue').value = x.langue_ens || 'fr';
-    document.getElementById('btn-mat').innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
+    const btn = document.getElementById('btn-mat');
+    if (btn) btn.innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
   // ==================================================
-  // ❌ SUPPRIMER CLASSE — CORRIGÉ
+  // ❌ SUPPRIMER CLASSE
   // ==================================================
   window.supprimerClasse = async function(id) {
+    if (!id) return;
     if (!confirm(m('supprConfirm'))) return;
     try {
       const data = await requeteAPI(`${API_URL}/classes/${id}`, { method: 'DELETE' });
@@ -569,17 +536,17 @@
         alert("❌ " + (data.erreur || m('erreurReseau')));
       }
     } catch {
-      let liste = obtenirClassesLocales().filter(c => String(c.id_classe) !== String(id));
+      let liste = obtenirClassesLocales().filter(c => String(c.id_classe) !== String(id) && String(c.id) !== String(id));
       sauvegarderClassesLocales(liste);
       alert(m('supprOk') + " (mode local)");
       chargerListe(true);
     }
   };
-
   // ==================================================
-  // ❌ SUPPRIMER MATIÈRE — CORRIGÉ
+  // ❌ SUPPRIMER MATIÈRE
   // ==================================================
   window.supprimerMatiere = async function(id) {
+    if (!id) return;
     if (!confirm(m('supprConfirm'))) return;
     try {
       const data = await requeteAPI(`${API_URL}/matieres/${id}`, { method: 'DELETE' });
@@ -590,7 +557,7 @@
         alert("❌ " + (data.erreur || m('erreurReseau')));
       }
     } catch {
-      let liste = obtenirMatieresLocales().filter(m => String(m.id_matiere) !== String(id));
+      let liste = obtenirMatieresLocales().filter(m => String(m.id_matiere) !== String(id) && String(m.id) !== String(id));
       sauvegarderMatieresLocales(liste);
       alert(m('supprOk') + " (mode local)");
       chargerListe(true);
@@ -622,14 +589,12 @@
     </a>
   </div>
 </div>
-
 <div class="container py-4">
   <!-- ⚠️ ALERTE API -->
   <div id="alerteApi" class="alerte-api d-none">
     <i class="bi bi-wifi-off me-2"></i>
     <span id="texteAlerteApi"></span>
   </div>
-
   <!-- 🛠️ BARRE OUTILS -->
   <div class="barre-outils">
     <button class="btn btn-anim-orange px-3 py-2" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
@@ -637,7 +602,6 @@
     <button class="btn btn-anim-orange px-3 py-2" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
     <button class="btn btn-anim-orange px-3 py-2" id="btnJourNuit" title="Mode Jour/Nuit" onclick="basculerTheme()">☀️</button>
   </div>
-
   <div class="row g-4">
     <!-- 📚 FORMULAIRE CLASSE -->
     <div class="col-md-6">
@@ -708,7 +672,7 @@
             </select>
           </div>
           <button type="submit" class="btn btn-valide-lumineux w-100 py-2" id="btn-classe">
-            <i class="bi bi-floppy2-fill me-1"></i>
+            <i class="tw bi bi-floppy2-fill me-1"></i>
             <span class="txt-fr">Enregistrer</span>
             <span class="txt-en"> Save</span>
             <span class="txt-ar"> حفظ</span>
@@ -716,7 +680,6 @@
         </form>
       </div>
     </div>
-
     <!-- 📖 FORMULAIRE MATIÈRE -->
     <div class="col-md-6">
       <div class="carte-gestion">
@@ -783,8 +746,7 @@
       </div>
     </div>
   </div>
-
-  <!-- 📋 LISTE DES ENREGISTREMENTS -->
+  <!-- 📋 LISTE DES ENregistrements -->
   <div class="zone-liste">
     <h4 class="mb-3">
       <i class="bi bi-list-ul me-2" style="color:var(--accent)"></i>
@@ -804,8 +766,7 @@
     </div>
   </div>
 </div>
-
-<!-- 🔚 DÉCONNEXION -->
+<!-- 🔚 Déconnexion -->
 <div class="menu-fixed">
   <a href="deconnexion.html" class="btn btn-suppr-lumineux px-4 py-2">
     <i class="bi bi-box-arrow-right"></i>
@@ -814,6 +775,5 @@
     <span class="txt-ar"> خروج</span>
   </a>
 </div>
-
 </body>
 </html>
