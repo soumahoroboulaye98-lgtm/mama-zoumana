@@ -7,6 +7,7 @@ const fs = require('fs');
 const multer = require('multer');
 
 
+
 // ==============================================
 // 📁 CONFIGURATION — Téléversement de fichiers
 // ==============================================
@@ -17,11 +18,13 @@ const stockage = multer.diskStorage({
 const upload = multer({ storage: stockage });
 
 
+
 // ==============================================
 // ✅ CRÉATION DE L'APPLICATION
 // ==============================================
 const app = express();
 const PORT = process.env.PORT || 10000;
+
 
 
 // ==============================================
@@ -40,6 +43,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 
+
 // ==============================================
 // 📁 DOSSIER PUBLIC — Fichiers statiques
 // ==============================================
@@ -52,6 +56,7 @@ app.use(express.static(dossierPublic, {
     res.setHeader('Cache-Control', 'public, max-age=86400');
   }
 }));
+
 
 
 // ==============================================
@@ -77,20 +82,25 @@ app.use((req, res, next) => {
 });
 
 
+
 // ==============================================
-// 🔐 MIDDLEWARES D'AUTHENTIFICATION — CORRIGÉ : SANS verifprof
+// 🔐 MIDDLEWARES D'AUTHENTIFICATION — ✅ CORRIGÉ
 // ==============================================
-const { veriftoken, verifadmin } = require('./routes/auth');
+const veriftoken = require('./middleware/veriftoken');
+const verifadmin = require('./middleware/verifadmin');
+
+const protegerAdmin = [veriftoken, verifadmin];
+
 
 
 // ==============================================
 // 📄 ROUTES DOCUMENTS (intégrées directement)
-// ✅ CORRIGÉ : prenom au lieu de prenoms dans les requêtes
+// ✅ CORRIGÉ : prenom au lieu de prenoms
 // ==============================================
 const routerDocuments = express.Router();
 
 // ✅ Lister TOUS les documents délivrés
-routerDocuments.get('/tous', [veriftoken, verifadmin], async (req, res) => {
+routerDocuments.get('/tous', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
       SELECT d.*,
@@ -114,7 +124,7 @@ routerDocuments.get('/tous', [veriftoken, verifadmin], async (req, res) => {
 });
 
 // ✅ Enregistrer un document délivré
-routerDocuments.post('/delivrer', [veriftoken, verifadmin], async (req, res) => {
+routerDocuments.post('/delivrer', protegerAdmin, async (req, res) => {
   try {
     const { id_eleve, id_personnel, type_doc, annee_scolaire, numero_unique } = req.body;
     await pool.query(`
@@ -130,8 +140,8 @@ routerDocuments.post('/delivrer', [veriftoken, verifadmin], async (req, res) => 
   }
 });
 
-// ✅ Supprimer un document par numéro unique
-routerDocuments.post('/supprimer', [veriftoken, verifadmin], async (req, res) => {
+// ✅ Supprimer un document
+routerDocuments.post('/supprimer', protegerAdmin, async (req, res) => {
   try {
     const { numero_unique } = req.body;
     const { rowCount } = await pool.query(
@@ -148,7 +158,7 @@ routerDocuments.post('/supprimer', [veriftoken, verifadmin], async (req, res) =>
 });
 
 // ✅ Statistiques documents
-routerDocuments.get('/statistiques', [veriftoken, verifadmin], async (req, res) => {
+routerDocuments.get('/statistiques', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
       SELECT
@@ -167,12 +177,12 @@ routerDocuments.get('/statistiques', [veriftoken, verifadmin], async (req, res) 
 });
 
 
+
 // ==============================================
-// 📊 ROUTES COMPLÉMENTAIRES (Tableau de bord)
-// ✅ CORRIGÉ : prenom au lieu de prenoms
+// 📊 ROUTES COMPLÉMENTAIRES
 // ==============================================
 const routerEleves = express.Router();
-routerEleves.get('/liste', [veriftoken, verifadmin], async (req, res) => {
+routerEleves.get('/liste', protegerAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query(
       "SELECT id, nom, prenom, email, matricule, id_classe, photo_profil FROM utilisateurs WHERE role='eleve' ORDER BY nom, prenom"
@@ -185,7 +195,7 @@ routerEleves.get('/liste', [veriftoken, verifadmin], async (req, res) => {
 });
 
 const routerPersonnel = express.Router();
-routerPersonnel.get('/liste', [veriftoken, verifadmin], async (req, res) => {
+routerPersonnel.get('/liste', protegerAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query(
       "SELECT id, nom, prenom, email, role, matricule, photo_profil FROM utilisateurs WHERE role!='eleve' ORDER BY nom, prenom"
@@ -198,7 +208,7 @@ routerPersonnel.get('/liste', [veriftoken, verifadmin], async (req, res) => {
 });
 
 const routerPaiements = express.Router();
-routerPaiements.get('/tous', [veriftoken, verifadmin], async (req, res) => {
+routerPaiements.get('/tous', protegerAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query("SELECT * FROM paiements ORDER BY date_paiement DESC");
     res.json({ ok: true, paiements: rows });
@@ -209,14 +219,14 @@ routerPaiements.get('/tous', [veriftoken, verifadmin], async (req, res) => {
 });
 
 
+
 // ==============================================
 // 🔗 DÉCLARATION DES ROUTES — PRÉFIXES API
-// ✅ CORRIGÉ : /api/auth → .router + pas de doublon /api/admin
+// ✅ CORRIGÉ : Tous les require() pointent vers router
 // ==============================================
 // — Administration & Utilisateurs
-app.use('/api/auth', require('./routes/auth').router);
+app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin'));
-
 app.use('/api/utilisateurs', require('./routes/utilisateurs'));
 app.use('/api/preinscription', require('./routes/preinscription'));
 
@@ -258,8 +268,9 @@ app.use('/api/equipe', require('./routes/equipe'));
 app.use('/api/personnel', routerPersonnel);
 
 
+
 // ==============================================
-// 🔄 ROUTE DE TEST API + COMPATIBILITÉ
+// 🔄 ROUTE DE TEST API
 // ==============================================
 app.get('/api', (req, res) => {
   res.json({
@@ -274,11 +285,12 @@ app.get('/api', (req, res) => {
   });
 });
 
-// Redirections
+// Redirection pour uniformiser
 app.get('/inscription.html', (req, res) => res.redirect('/preinscription.html'));
 app.use('/api/inscription', (req, res) =>
   res.json({ ok: false, message: "⚠️ Utilisez /api/preinscription à la place" })
 );
+
 
 
 // ==============================================
@@ -306,6 +318,7 @@ app.get('/', (req, res) => {
 });
 
 
+
 // ==============================================
 // 🧪 TEST DE CONNEXION BASE DE DONNÉES
 // ==============================================
@@ -325,8 +338,9 @@ app.get('/api/test', async (req, res) => {
 });
 
 
+
 // ==============================================
-// 🚀 DÉMARRAGE DU SERVEUR — Pour Render
+// 🚀 DÉMARRAGE DU SERVEUR
 // ==============================================
 chargerConfig()
   .then(() => {
