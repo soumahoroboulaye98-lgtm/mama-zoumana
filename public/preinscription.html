@@ -196,7 +196,7 @@
     .case-a-cocher {
       display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0;
     }
-    .case-a-cocher input[type="checkbox"], .case-a-cocher input[type="radio"] { width: 18px; height: 18px; cursor: pointer; }
+    .case-a-cocher input[type="checkbox"], .case-a-cocher input[type="radio"] { width: 18px; height: 18px; cursor: pointer; margin-top: 0; }
     .resume-verification {
       background: rgba(12,74,110,0.04);
       border: 1px dashed var(--bordure);
@@ -210,6 +210,10 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .text-danger { color: #dc3545; }
     .text-success { color: #10b981; }
+    .ligne-total { border-top: 2px solid var(--primaire); padding-top: 0.75rem; margin-top: 0.5rem; }
+    .choix-echelon { background: rgba(16,185,129,0.06); border-radius: 8px; padding: 0.75rem; margin-top: 0.75rem; display: none; }
+    .choix-echelon.actif { display: block; }
+    .prix-echelonne { font-weight: 600; color: var(--succes); }
     @media (max-width: 767px) {
       .entete-page { padding: 1rem 0; }
       .carte-formulaire { padding: 1.25rem; margin-top: 1rem; }
@@ -219,22 +223,33 @@
   </style>
 </head>
 <body>
-
 <script>
   const API_BASE = "https://mama-zoumana.onrender.com/api";
   const DEVISE = "FCFA";
+
+  // ✅ Frais de scolarité par classe
   const FRAIS_BASE = {
     CP1:75000, CP2:75000, CE1:80000, CE2:80000, CM1:85000, CM2:85000,
     '6e':90000, '5e':95000, '4e':100000, '3e':105000, '2nd':110000, '1ere':115000, terminale:120000
   };
-  const TARIFS_SERVICES = { cantine:15000, transport:12000, sport:5000, info:8000, langue:5000, divers:3000 };
+
+  // ✅ Services complémentaires
+  const TARIFS_SERVICES = {
+    cantine:15000, transport:12000, sport:5000, info:8000, langue:5000, divers:3000
+  };
+
+  // ✅ Documents et fournitures
+  const TARIFS_DOCUMENTS = {
+    bulletin:1500, carte_scolaire:1000, feuille_presence:800,
+    uniforme_kaki:8500, macaron:500, papier_examen:1200,
+    carnet:2000, livret_scolaire:1500
+  };
 
   function appliquerTheme(nuit) {
     document.body.classList.toggle('mode-nuit', nuit);
     document.getElementById('btnTheme').textContent = nuit ? '🌙' : '☀️';
     localStorage.setItem('themeNuit', nuit ? '1' : '0');
   }
-
   document.addEventListener('DOMContentLoaded', () => {
     const theme = localStorage.getItem('themeNuit') === '1';
     appliquerTheme(theme);
@@ -269,7 +284,6 @@
 
   let etapeCourante = 0;
   let profilChoisi = null;
-  const etapesEleve = [0,1,2,3,4,5];
 
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.btn-langue').forEach(b=>b.classList.toggle('active', b.dataset.lang === langueActuelle));
@@ -282,7 +296,6 @@
       document.getElementById('filEtapes').classList.add('d-none');
       etapeCourante = 0;
       document.querySelectorAll('.bloc-etape').forEach(b=>b.classList.remove('active'));
-
       if(profilChoisi === 'eleve'){
         document.getElementById('blocEleve').classList.add('actif');
         document.getElementById('filEtapes').classList.remove('d-none');
@@ -300,6 +313,26 @@
     });
 
     document.getElementById('classe_fr').addEventListener('change', recalculerFrais);
+
+    // ✅ Recalculer quand on coche/décoche un service ou un document
+    ['svc_cantine','svc_transport','svc_sport','svc_info','svc_langue','svc_divers',
+     'doc_bulletin','doc_carte','doc_feuille','doc_kaki','doc_macaron','doc_examen','doc_carnet','doc_livret']
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.addEventListener('change', recalculerFrais);
+    });
+
+    // ✅ Afficher/Masquer échelonnement selon mode de paiement
+    document.querySelectorAll('input[name="mode_paiement"]').forEach(rd => {
+      rd.addEventListener('change', function(){
+        const bloc = document.getElementById('choixEchelon');
+        bloc.classList.toggle('actif', this.value === 'echalonne');
+        recalculerFrais();
+      });
+    });
+    document.querySelectorAll('input[name="echelonnement"]').forEach(rd => {
+      rd.addEventListener('change', recalculerFrais);
+    });
   });
 
   function chargerClasses(){
@@ -342,9 +375,12 @@
     window.scrollTo({top: document.querySelector('.etapes')?.offsetTop || 0, behavior:'smooth'});
   }
 
+  // ✅ CALCUL COMPLET DES FRAIS
   function recalculerFrais(){
     const classe = document.getElementById('classe_fr').value;
     const fraisBase = FRAIS_BASE[classe] || 0;
+
+    // ✅ Services
     let fraisServices = 0;
     if(document.getElementById('svc_cantine')?.checked) fraisServices += TARIFS_SERVICES.cantine;
     if(document.getElementById('svc_transport')?.checked) fraisServices += TARIFS_SERVICES.transport;
@@ -352,9 +388,36 @@
     if(document.getElementById('svc_info')?.checked) fraisServices += TARIFS_SERVICES.info;
     if(document.getElementById('svc_langue')?.checked) fraisServices += TARIFS_SERVICES.langue;
     if(document.getElementById('svc_divers')?.checked) fraisServices += TARIFS_SERVICES.divers;
-    document.getElementById('fraisBase').textContent = fraisBase.toLocaleString() + ' ';
-    document.getElementById('fraisServices').textContent = fraisServices.toLocaleString() + ' ';
-    document.getElementById('fraisTotal').textContent = (fraisBase + fraisServices).toLocaleString() + ' ';
+
+    // ✅ Documents et fournitures
+    let fraisDocuments = 0;
+    if(document.getElementById('doc_bulletin')?.checked) fraisDocuments += TARIFS_DOCUMENTS.bulletin;
+    if(document.getElementById('doc_carte')?.checked) fraisDocuments += TARIFS_DOCUMENTS.carte_scolaire;
+    if(document.getElementById('doc_feuille')?.checked) fraisDocuments += TARIFS_DOCUMENTS.feuille_presence;
+    if(document.getElementById('doc_kaki')?.checked) fraisDocuments += TARIFS_DOCUMENTS.uniforme_kaki;
+    if(document.getElementById('doc_macaron')?.checked) fraisDocuments += TARIFS_DOCUMENTS.macaron;
+    if(document.getElementById('doc_examen')?.checked) fraisDocuments += TARIFS_DOCUMENTS.papier_examen;
+    if(document.getElementById('doc_carnet')?.checked) fraisDocuments += TARIFS_DOCUMENTS.carnet;
+    if(document.getElementById('doc_livret')?.checked) fraisDocuments += TARIFS_DOCUMENTS.livret_scolaire;
+
+    // ✅ Total général
+    const totalBrut = fraisBase + fraisServices + fraisDocuments;
+
+    // ✅ Échelonnement
+    let choixEchelon = document.querySelector('input[name="echelonnement"]:checked')?.value || '1';
+    let montantParTranche = totalBrut;
+    if(choixEchelon === '2') montantParTranche = Math.round(totalBrut / 2);
+    if(choixEchelon === '3') montantParTranche = Math.round(totalBrut / 3);
+    if(choixEchelon === '10') montantParTranche = Math.round(totalBrut / 10);
+
+    // ✅ Affichage
+    document.getElementById('fraisBase').textContent = fraisBase.toLocaleString();
+    document.getElementById('fraisServices').textContent = fraisServices.toLocaleString();
+    document.getElementById('fraisDocuments').textContent = fraisDocuments.toLocaleString();
+    document.getElementById('fraisTotal').textContent = totalBrut.toLocaleString();
+    document.getElementById('montantTranche').textContent = montantParTranche.toLocaleString();
+    document.getElementById('nbTranches').textContent = choixEchelon;
+
     document.querySelectorAll('[id$="DEVISE"]').forEach(el=>el.textContent=DEVISE);
   }
 
@@ -406,12 +469,13 @@
     const resume = document.getElementById('blocResume');
     resume.innerHTML = `
       <p><strong>👤 Élève :</strong> ${f.el_nom.value} ${f.el_prenom.value}</p>
-      <p><strong>📅 Naissance :</strong> ${f.el_datedn.value} — ${f.el_lieu.value || ''} — ${f.el_nat.value}</p>
-      <p><strong>🏫 Classe :</strong> ${f.classe_fr.value} (Français) / ${f.classe_ar.value} (Arabe)</p>
-      <p><strong>👨 Père :</strong> ${f.nom_pere.value} — ☎️ ${f.tel_pere.value}</p>
-      <p><strong>👩 Mère :</strong> ${f.nom_mere.value} — ☎️ ${f.tel_mere.value}</p>
+      <p><strong>📅 Naissance :</strong> ${f.el_datedn.value} — ${f.el_lieu.value || ''}</p>
+      <p><strong>🏫 Classe :</strong> ${f.classe_fr.value}</p>
+      <p><strong>💰 Frais de scolarité :</strong> ${document.getElementById('fraisBase').textContent} ${DEVISE}</p>
+      <p><strong>🛎️ Services :</strong> ${document.getElementById('fraisServices').textContent} ${DEVISE}</p>
+      <p><strong>📄 Documents/Fournitures :</strong> ${document.getElementById('fraisDocuments').textContent} ${DEVISE}</p>
       <hr>
-      <p><strong>💰 Total frais :</strong> ${document.getElementById('fraisTotal').textContent}${DEVISE}</p>
+      <p class="h5 text-danger"><strong>💰 TOTAL À PAYER : ${document.getElementById('fraisTotal').textContent} ${DEVISE}</strong></p>
     `;
   }
 
@@ -420,11 +484,8 @@ async function soumettreFormulaire(e) {
   const btn = document.getElementById('btnSoumettre');
   btn.disabled = true;
   btn.innerHTML = '<span class="chargement"><span class="spinner"></span> Envoi en cours…</span>';
-
   try {
     const corps = new FormData(e.target);
-    
-    // ✅ Harmonisation des noms de champs
     if (profilChoisi === 'eleve') {
       corps.set('nom', document.getElementById('el_nom').value);
       corps.set('prenom', document.getElementById('el_prenom').value);
@@ -436,24 +497,19 @@ async function soumettreFormulaire(e) {
       corps.set('telephone_pere', document.getElementById('tel_pere').value);
       corps.set('nom_mere', document.getElementById('nom_mere').value);
       corps.set('telephone_mere', document.getElementById('tel_mere').value);
+      corps.set('montant_total', document.getElementById('fraisTotal').textContent.replace(/\s/g,''));
     }
-
     corps.append('langue', langueActuelle);
     corps.append('date_soumission', new Date().toISOString());
-
     console.log("📤 Envoi préinscription profil=", profilChoisi);
-
     const reponse = await fetch(`${API_BASE}/preinscription`, {
       method: 'POST',
       body: corps,
       credentials: 'omit'
     });
-
     const resultat = await reponse.json();
     console.log("📥 Réponse :", resultat);
-
     if (!resultat.ok) throw new Error(resultat.erreur || "Erreur inconnue");
-
     document.querySelector('.carte-formulaire').innerHTML = `
       <div class="text-center py-4">
         <div class="display-1 text-success mb-3">✅</div>
@@ -462,7 +518,6 @@ async function soumettreFormulaire(e) {
         <p>Nous vous enverrons la confirmation et la fiche récapitulative par email dans les meilleurs délais.</p>
         <a href="index.html" class="btn btn-valider-definitif mt-3">Retour à l'accueil</a>
       </div>`;
-
   } catch (err) {
     alert(`❌ Erreur : ${err.message}`);
     btn.disabled = false;
@@ -509,103 +564,91 @@ async function soumettreFormulaire(e) {
     <div class="etapes d-none" id="filEtapes">
       <div class="etape" id="etape-ind-1"><div class="etape-num">1</div><div class="etape-texte txt-fr">Identité</div></div>
       <div class="etape" id="etape-ind-2"><div class="etape-num">2</div><div class="etape-texte txt-fr">Parents & Résultats</div></div>
-      <div class="etape" id="etape-ind-3"><div class="etape-num">3</div><div class="etape-texte txt-fr">Classe & Paiement</div></div>
-      <div class="etape" id="etape-ind-4"><div class="etape-num">4</div><div class="etape-texte txt-fr">Documents</div></div>
+      <div class="etape" id="etape-ind-3"><div class="etape-num">3</div><div class="etape-texte txt-fr">Classe & Services</div></div>
+      <div class="etape" id="etape-ind-4"><div class="etape-num">4</div><div class="etape-texte txt-fr">Documents & Paiement</div></div>
       <div class="etape" id="etape-ind-5"><div class="etape-num">5</div><div class="etape-texte txt-fr">Vérification</div></div>
     </div>
 
-    <form id="formPreinsc" enctype="multipart/form-data">
+    <form id="formPreinsc" enctype="multipart/form-data" onsubmit="soumettreFormulaire(event)">
+      <!-- ÉTAPE 0 : CHOIX PROFIL -->
       <div class="carte-formulaire bloc-etape active" id="bloc-etape-0">
         <h4 class="etape-titre">👋
           <span class="txt-fr"> Bienvenue — Qui êtes-vous ?</span>
-          <span class="txt-en"> Welcome — Who are you?</span>
-          <span class="txt-ar"> أهلاً بك — من أنت؟</span>
         </h4>
         <div class="row">
           <div class="col-md-6 offset-md-3">
             <label class="form-label">
-              <span class="txt-fr">Sélectionnez votre profil</span>
-              <span class="txt-en">Select your profile</span>
-              <span class="txt-ar">اختر ملفك الشخصي</span> *
+              <span class="txt-fr">Sélectionnez votre profil</span> *
             </label>
             <select name="profil" id="choixProfil" class="form-select" required>
               <option value="">—</option>
-              <option value="eleve">🎓 <span class="txt-fr">Élève</span><span class="txt-en">Student</span><span class="txt-ar">تلميذ</span></option>
-              <option value="parent">👨‍👩‍👧 <span class="txt-fr">Parent</span><span class="txt-en">Parent</span><span class="txt-ar">ولي أمر</span></option>
-              <option value="prof">👨‍🏫 <span class="txt-fr">Enseignant</span><span class="txt-en">Teacher</span><span class="txt-ar">أستاذ</span></option>
-              <option value="visiteur">🧑‍💼 <span class="txt-fr">Visiteur / Autre</span><span class="txt-en">Visitor / Other</span><span class="txt-ar">زائر / آخر</span></option>
+              <option value="eleve">🎓 Élève</option>
+              <option value="parent">👨‍👩‍👧 Parent</option>
+              <option value="prof">👨‍🏫 Enseignant</option>
+              <option value="visiteur">🧑‍💼 Visiteur / Autre</option>
             </select>
-            <div class="invalid-feedback txt-fr">Veuillez choisir un profil</div>
           </div>
         </div>
       </div>
 
+      <!-- ÉLÈVE — ÉTAPE 1 : IDENTITÉ -->
       <div id="blocEleve" class="bloc-profil">
         <div class="carte-formulaire bloc-etape" id="bloc-etape-1-eleve">
-          <h4 class="etape-titre">👤
-            <span class="txt-fr"> Élève — Informations</span>
-            <span class="txt-en"> Student — Information</span>
-            <span class="txt-ar"> التلميذ — معلومات</span>
-          </h4>
+          <h4 class="etape-titre">👤 Élève — Informations</h4>
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label"><span class="txt-fr">Nom</span> *</label>
+              <label class="form-label">Nom *</label>
               <input type="text" name="nom" id="el_nom" class="form-control" required>
             </div>
             <div class="col-md-6">
-              <label class="form-label"><span class="txt-fr">Prénoms</span> *</label>
+              <label class="form-label">Prénoms *</label>
               <input type="text" name="prenom" id="el_prenom" class="form-control" required>
             </div>
             <div class="col-md-4">
-              <label class="form-label"><span class="txt-fr">Date de naissance</span> *</label>
+              <label class="form-label">Date de naissance *</label>
               <input type="date" name="date_naissance" id="el_datedn" class="form-control" required>
             </div>
             <div class="col-md-4">
-              <label class="form-label"><span class="txt-fr">Lieu de naissance</span></label>
+              <label class="form-label">Lieu de naissance</label>
               <input type="text" name="lieu_naissance" id="el_lieu" class="form-control">
             </div>
             <div class="col-md-4">
-              <label class="form-label"><span class="txt-fr">Sexe</span> *</label>
+              <label class="form-label">Sexe *</label>
               <select name="sexe" id="el_sexe" class="form-select" required>
                 <option value="">—</option>
-                <option value="M"><span class="txt-fr">Masculin</span><span class="txt-en">Male</span><span class="txt-ar">ذكر</span></option>
-                <option value="F"><span class="txt-fr">Féminin</span><span class="txt-en">Female</span><span class="txt-ar">أنثى</span></option>
+                <option value="M">Masculin</option>
+                <option value="F">Féminin</option>
               </select>
             </div>
             <div class="col-md-6">
-              <label class="form-label"><span class="txt-fr">Nationalité</span></label>
+              <label class="form-label">Nationalité</label>
               <input type="text" name="nationalite" id="el_nat" class="form-control" value="Ivoirienne">
             </div>
           </div>
           <div class="d-flex justify-content-between mt-4">
             <button type="button" class="btn-precedent" onclick="changerEtape(0)">
-              <i class="bi bi-chevron-left"></i> <span class="txt-fr"> Retour</span>
+              <i class="bi bi-chevron-left"></i> Retour
             </button>
             <button type="button" class="btn-suivant" onclick="changerEtape(2)">
-              <span class="txt-fr">Suivant</span> <i class="bi bi-chevron-right"></i>
+              Suivant <i class="bi bi-chevron-right"></i>
             </button>
           </div>
         </div>
 
+        <!-- ÉTAPE 2 : PARENTS & RÉSULTATS -->
         <div class="carte-formulaire bloc-etape" id="bloc-etape-2-eleve">
-          <h4 class="etape-titre">👨‍👩‍👧
-            <span class="txt-fr"> Responsables légaux & Résultats</span>
-            <span class="txt-en"> Legal Guardians & Previous Results</span>
-          </h4>
-          <div class="avertissement-base py-2 mb-3">
-            📊 <strong><span class="txt-fr">Résultats de l'année précédente :</span></strong> <span class="txt-fr">Informations automatiques — non modifiables.</span>
-          </div>
+          <h4 class="etape-titre">👨‍👩‍👧 Responsables légaux & Résultats</h4>
           <div class="mb-3">
-            <label class="form-label"><span class="txt-fr">Matricule déjà connu (frère/sœur)</span></label>
+            <label class="form-label">Matricule déjà connu (frère/sœur)</label>
             <div class="d-flex gap-2">
               <input type="text" name="matricule_frere" id="matricule_frere" class="form-control" placeholder="MZ2026XXX">
               <button type="button" class="btn-verifier" id="btnChargerResultats" onclick="recupererResultatsBase()">
-                <span class="chargement"><i class="bi bi-search"></i> <span class="txt-fr"> Charger</span></span>
+                <span class="chargement"><i class="bi bi-search"></i> Charger</span>
               </button>
             </div>
           </div>
           <div id="blocResultats" class="info-base d-none mb-3">
-            <p><strong>📋 <span class="txt-fr">Résultats — Année précédente</span> :</strong></p>
+            <p><strong>📋 Résultats — Année précédente :</strong></p>
             <div class="row g-2">
               <div class="col-sm-3"><strong>Moyenne :</strong> <span id="res_moyenne">—</span>/20</div>
               <div class="col-sm-3"><strong>Rang :</strong> <span id="res_rang">—</span></div>
@@ -614,353 +657,363 @@ async function soumettreFormulaire(e) {
             </div>
           </div>
           <hr class="my-3">
-          <h5 class="mb-3 text-primary">👨 <span class="txt-fr">Informations — Père</span></h5>
+          <h5 class="mb-3 text-primary">👨 Informations — Père</h5>
           <div class="row g-3 mb-3">
             <div class="col-md-6">
-              <label class="form-label"><span class="txt-fr">Nom & Prénoms</span> *</label>
+              <label class="form-label">Nom & Prénoms *</label>
               <input type="text" name="nom_pere" id="nom_pere" class="form-control" required>
             </div>
             <div class="col-md-6">
-              <label class="form-label"><span class="txt-fr">Activité / Profession</span></label>
+              <label class="form-label">Activité / Profession</label>
               <input type="text" name="activite_pere" class="form-control">
             </div>
             <div class="col-md-6">
-              <label class="form-label"><span class="txt-fr">Téléphone</span> *</label>
-              <input type="tel" name="tel_pere" class="form-control" required>
+              <label class="form-label">Téléphone *</label>
+              <input type="tel" name="telephone_pere" id="tel_pere" class="form-control" required>
             </div>
           </div>
-          <h5 class="mb-3 text-primary">👩 <span class="txt-fr">Informations — Mère</span></h5>
+          <h5 class="mb-3 text-primary">👩 Informations — Mère</h5>
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label"><span class="txt-fr">Nom & Prénoms</span> *</label>
+              <label class="form-label">Nom & Prénoms *</label>
               <input type="text" name="nom_mere" id="nom_mere" class="form-control" required>
             </div>
             <div class="col-md-6">
-              <label class="form-label"><span class="txt-fr">Activité / Profession</span></label>
+              <label class="form-label">Activité / Profession</label>
               <input type="text" name="activite_mere" class="form-control">
             </div>
             <div class="col-md-6">
-              <label class="form-label"><span class="txt-fr">Téléphone</span> *</label>
-              <input type="tel" name="tel_mere" class="form-control" required>
+              <label class="form-label">Téléphone *</label>
+              <input type="tel" name="telephone_mere" id="tel_mere" class="form-control" required>
             </div>
           </div>
           <div class="d-flex justify-content-between mt-4">
             <button type="button" class="btn-precedent" onclick="changerEtape(1)">
-              <i class="bi bi-chevron-left"></i> <span class="txt-fr"> Précédent</span>
+              <i class="bi bi-chevron-left"></i> Précédent
             </button>
             <button type="button" class="btn-suivant" onclick="changerEtape(3)">
-              <span class="txt-fr">Suivant</span> <i class="bi bi-chevron-right"></i>
+              Suivant <i class="bi bi-chevron-right"></i>
             </button>
           </div>
         </div>
 
+        <!-- ÉTAPE 3 : CLASSE, SERVICES & FOURNITURES -->
         <div class="carte-formulaire bloc-etape" id="bloc-etape-3-eleve">
-          <h4 class="etape-titre">🏫
-            <span class="txt-fr"> Classe, Frais & Paiement</span>
-            <span class="txt-en"> Class, Fees & Payment</span>
-          </h4>
+          <h4 class="etape-titre">🏫 Classe, Services & Fournitures</h4>
           <div class="row g-3 mb-4">
             <div class="col-md-6">
-              <label class="form-label"><span class="txt-fr">Classe souhaitée (Programme Français)</span> *</label>
+              <label class="form-label">Classe souhaitée (Programme Français) *</label>
               <select name="classe_francais" id="classe_fr" class="form-select" required>
                 <option value="">— Chargement…</option>
               </select>
             </div>
             <div class="col-md-6">
-              <label class="form-label"><span class="txt-fr">Classe souhaitée (Programme Arabe)</span> *</label>
+              <label class="form-label">Classe souhaitée (Programme Arabe) *</label>
               <select name="classe_arabe" id="classe_ar" class="form-select" required>
                 <option value="">— Chargement…</option>
               </select>
             </div>
             <div class="col-md-12">
-              <label class="form-label"><span class="txt-fr">Année scolaire</span></label>
+              <label class="form-label">Année scolaire</label>
               <input type="text" name="annee_scolaire" class="form-control" value="2025-2026" readonly>
             </div>
           </div>
-          <h5 class="mb-3 text-primary">🛎️ <span class="txt-fr">Services complémentaires</span></h5>
-          <div class="row g-2 mb-4">
+
+          <h5 class="mb-2 text-primary">🛎️ Services complémentaires</h5>
+          <div class="row g-2 mb-3">
             <div class="col-md-4 case-a-cocher">
-              <input type="checkbox" name="service_cantine" id="svc_cantine" onchange="recalculerFrais()">
+              <input type="checkbox" name="service_cantine" id="svc_cantine">
               <label for="svc_cantine" class="mb-0">🍽️ Cantine <small class="text-muted">+15 000</small></label>
             </div>
             <div class="col-md-4 case-a-cocher">
-              <input type="checkbox" name="service_transport" id="svc_transport" onchange="recalculerFrais()">
+              <input type="checkbox" name="service_transport" id="svc_transport">
               <label for="svc_transport" class="mb-0">🚌 Transport <small class="text-muted">+12 000</small></label>
             </div>
             <div class="col-md-4 case-a-cocher">
-              <input type="checkbox" name="service_sport" id="svc_sport" onchange="recalculerFrais()">
+              <input type="checkbox" name="service_sport" id="svc_sport">
               <label for="svc_sport" class="mb-0">⚽ Sport <small class="text-muted">+5 000</small></label>
             </div>
             <div class="col-md-4 case-a-cocher">
-              <input type="checkbox" name="service_info" id="svc_info" onchange="recalculerFrais()">
+              <input type="checkbox" name="service_info" id="svc_info">
               <label for="svc_info" class="mb-0">💻 Informatique <small class="text-muted">+8 000</small></label>
             </div>
             <div class="col-md-4 case-a-cocher">
-              <input type="checkbox" name="service_langue" id="svc_langue" onchange="recalculerFrais()">
+              <input type="checkbox" name="service_langue" id="svc_langue">
               <label for="svc_langue" class="mb-0">🗣️ Langues <small class="text-muted">+5 000</small></label>
             </div>
             <div class="col-md-4 case-a-cocher">
-              <input type="checkbox" name="service_divers" id="svc_divers" onchange="recalculerFrais()">
-              <label for="svc_divers" class="mb-0">📦 Autres <small class="text-muted">+3 000</small></label>
+              <input type="checkbox" name="service_divers" id="svc_divers">
+              <label for="svc_divers" class="mb-0">📦 Autres services <small class="text-muted">+3 000</small></label>
             </div>
           </div>
-          <div class="paiement-caisse">
-            <h5 class="mb-3 text-primary">💰 <span class="txt-fr">Récapitulatif des frais</span></h5>
-            <div class="row g-2 mb-3">
-              <div class="col-sm-6"><strong>Frais de scolarité :</strong> <span id="fraisBase">0</span> <span id="deviseBase">FCFA</span></div>
-              <div class="col-sm-6"><strong>Services :</strong> <span id="fraisServices">0</span> <span id="deviseServices">FCFA</span></div>
-              <div class="col-sm-12 h5 text-danger mt-2"><strong>TOTAL : <span id="fraisTotal">0</span> FCFA</strong></div>
+
+          <h5 class="mb-2 text-primary">📄 Documents & Fournitures</h5>
+          <div class="row g-2 mb-3">
+            <div class="col-md-4 case-a-cocher">
+              <input type="checkbox" name="doc_bulletin" id="doc_bulletin">
+              <label for="doc_bulletin" class="mb-0">📋 Bulletin scolaire <small class="text-muted">+1 500</small></label>
             </div>
-            <h5 class="mb-2 text-primary">💳 <span class="txt-fr">Mode de paiement</span> *</h5>
-            <div class="row g-2">
-              <div class="col-md-3 case-a-cocher">
-                <input type="radio" name="mode_paiement" value="caisse" id="paiement_caisse" required>
-                <label for="paiement_caisse" class="mb-0">🏦 À la caisse</label>
-              </div>
-              <div class="col-md-3 case-a-cocher">
-                <input type="radio" name="mode_paiement" value="banque" id="paiement_banque">
-                <label for="paiement_banque" class="mb-0">🏦 Virement</label>
-              </div>
-              <div class="col-md-3 case-a-cocher">
-                <input type="radio" name="mode_paiement" value="orange" id="paiement_orange">
-                <label for="paiement_orange" class="mb-0">🟠 Orange Money</label>
-              </div>
-              <div class="col-md-3 case-a-cocher">
-                <input type="radio" name="mode_paiement" value="moov" id="paiement_moov">
-                <label for="paiement_moov" class="mb-0">🟢 Moov Money</label>
-              </div>
-              <div class="col-md-3 case-a-cocher">
-                <input type="radio" name="mode_paiement" value="mtn" id="paiement_mtn">
-                <label for="paiement_mtn" class="mb-0">🟡 MTN Mobile Money</label>
-              </div>
+            <div class="col-md-4 case-a-cocher">
+              <input type="checkbox" name="doc_carte" id="doc_carte">
+              <label for="doc_carte" class="mb-0">🪪 Carte scolaire <small class="text-muted">+1 000</small></label>
             </div>
-          </div>
-          <div class="d-flex justify-content-between mt-4">
-            <button type="button" class="btn-precedent" onclick="changerEtape(2)">
-              <i class="bi bi-chevron-left"></i> <span class="txt-fr"> Précédent</span>
-            </button>
-            <button type="button" class="btn-suivant" onclick="changerEtape(4)">
-              <span class="txt-fr">Suivant — Documents</span> <i class="bi bi-chevron-right"></i>
-            </button>
-          </div>
-        </div>
-
-        <div class="carte-formulaire bloc-etape" id="bloc-etape-4-eleve">
-          <h4 class="etape-titre">📄
-            <span class="txt-fr"> Pièces à fournir</span>
-            <span class="txt-en"> Required Documents</span>
-          </h4>
-          <div class="alert alert-info py-2 mb-3">
-            📷 <span class="txt-fr">Photo d'identité sur bulletin, carte scolaire et feuille de présence.</span>
-          </div>
-          <div class="row g-3">
-            <div class="col-md-4">
-              <label class="form-label">📷 <span class="txt-fr">Photo d'identité</span> *</label>
-              <input type="file" name="photo_identite" class="form-control" accept="image/*" onchange="apercuImage(this, 'previewPhotoEleve')" required>
-              <img id="previewPhotoEleve" class="preview-photo" alt="Photo">
+            <div class="col-md-4 case-a-cocher">
+              <input type="checkbox" name="doc_feuille" id="doc_feuille">
+              <label for="doc_feuille" class="mb-0">📄 Feuille de présence <small class="text-muted">+800</small></label>
             </div>
-            <div class="col-md-4">
-              <label class="form-label">📄 <span class="txt-fr">Extrait de naissance</span> *</label>
-              <input type="file" name="extrait_naissance" class="form-control" accept=".pdf,.jpg,.png,.jpeg" required>
+            <div class="col-md-4 case-a-cocher">
+              <input type="checkbox" name="doc_kaki" id="doc_kaki">
+              <label for="doc_kaki" class="mb-0">👕 Uniforme Kaki <small class="text-muted">+8 500</small></label>
             </div>
-            <div class="col-md-4">
-              <label class="form-label">📋 <span class="txt-fr">Dernier bulletin</span> *</label>
-              <input type="file" name="bulletin" class="form-control" accept=".pdf,.jpg,.png,.jpeg" required>
+            <div class="col-md-4 case-a-cocher">
+              <input type="checkbox" name="doc_macaron" id="doc_macaron">
+              <label for="doc_macaron" class="mb-0">🏅 Macaron <small class="text-muted">+500</small></label>
             </div>
-          </div>
-          <div class="d-flex justify-content-between mt-4">
-            <button type="button" class="btn-precedent" onclick="changerEtape(3)">
-              <i class="bi bi-chevron-left"></i> <span class="txt-fr"> Précédent</span>
-            </button>
-            <button type="button" class="btn-verifier" onclick="changerEtape(5)">
-              ✅ <span class="txt-fr"> Vérifier mes informations</span> <i class="bi bi-check-circle"></i>
-            </button>
-          </div>
-        </div>
+            <div class="col-md-4 case-a-cocher">
+              <input type="checkbox" name="doc_examen" id="doc_examen">
+              <label for="doc_examen" class="mb-0">📝 Papier d'examen <small class="text-muted">+8 500</small></label>
+             </div>
+             <div class="col-md-4 case-a-cocher">
+               <input type="checkbox" name="doc_macaron" id="doc_macaron">
+               <label for="doc_macaron" class="mb-0">🏅 Macaron <small class="text-muted">+500</small></label>
+             </div>
+             <div class="col-md-4 case-a-cocher">
+               <input type="checkbox" name="doc_examen" id="doc_examen">
+               <label for="doc_examen" class="mb-0">📝 Papier d'examen <small class="text-muted">+1 200</small></label>
+             </div>
+             <div class="col-md-4 case-a-cocher">
+               <input type="checkbox" name="doc_carnet" id="doc_carnet">
+               <label for="doc_carnet" class="mb-0">📔 Carnet scolaire <small class="text-muted">+2 000</small></label>
+             </div>
+             <div class="col-md-4 case-a-cocher">
+               <input type="checkbox" name="doc_livret" id="doc_livret">
+               <label for="doc_livret" class="mb-0">📖 Livret scolaire <small class="text-muted">+1 500</small></label>
+             </div>
+           </div>
 
-        <div class="          <div class="carte-formulaire bloc-etape" id="bloc-etape-5-eleve">
-            <h4 class="etape-titre">✅
-              <span class="txt-fr"> Vérification & Validation Finale</span>
-              <span class="txt-en"> Review & Final Validation</span>
-              <span class="txt-ar"> المراجعة والمصادقة النهائية</span>
-            </h4>
+           <!-- ✅ RÉCAPITULATIF DES FRAIS -->
+           <div class="resume-verification ligne-total mt-4">
+             <h5 class="text-center text-uppercase fw-bold mb-3">💰 Récapitulatif des frais</h5>
+             <div class="row g-2">
+               <div class="col-6 col-md-4"><strong>Frais de scolarité :</strong></div>
+               <div class="col-6 col-md-8"><span id="fraisBase">0</span> <span>FCFA</span></div>
 
-            <div class="resume-verification" id="blocResume">
-              <p class="text-center text-muted fst-italic">
-                <span class="txt-fr">Chargement du récapitulatif…</span>
-                <span class="txt-en">Loading summary…</span>
-                <span class="txt-ar">جملة المعلومات قيد التحميل…</span>
-              </p>
-            </div>
+               <div class="col-6 col-md-4"><strong>Services complémentaires :</strong></div>
+               <div class="col-6 col-md-8"><span id="fraisServices">0</span> <span>FCFA</span></div>
 
-            <div class="mt-4 mb-3">
-              <div class="case-a-cocher">
-                <input type="checkbox" id="certifExact" required>
-                <label for="certifExact" class="form-label mb-0">
-                  ✅ <span class="txt-fr">Je certifie que ces informations sont exactes et complètes.</span>
-                  <span class="txt-en">I certify that this information is accurate and complete.</span>
-                  <span class="txt-ar">أقر بأن هذه المعلومات دقيقة وكاملة.</span>
-                </label>
-              </div>
-              <div class="case-a-cocher mt-2">
-                <input type="checkbox" id="accepteConditions" required>
-                <label for="accepteConditions" class="form-label mb-0">
-                  📜 <span class="txt-fr">J'accepte le Règlement Intérieur et les conditions d'inscription.</span>
-                  <span class="txt-en">I accept the Internal Rules and registration conditions.</span>
-                  <span class="txt-ar">أوافق على النظام الداخلي وشروط التسجيل.</span>
-                </label>
-              </div>
-            </div>
+               <div class="col-6 col-md-4"><strong>Documents & Fournitures :</strong></div>
+               <div class="col-6 col-md-8"><span id="fraisDocuments">0</span> <span>FCFA</span></div>
 
-            <div class="avertissement-base">
-              ⚠️ <strong><span class="txt-fr">Important :</span></strong>
-              <span class="txt-fr"> Après validation, vous recevrez par email votre fiche de préinscription et votre facture. L'inscription devient définitive après paiement et vérification des documents par l'administration.</span>
-            </div>
+               <div class="col-12 ligne-total mt-2 pt-2">
+                 <div class="h5 text-danger text-center mb-0">
+                   <strong>💰 TOTAL : <span id="fraisTotal">0</span> FCFA</strong>
+                 </div>
+               </div>
+             </div>
+           </div>
 
-            <div class="d-flex justify-content-between mt-4">
-              <button type="button" class="btn-precedent" onclick="changerEtape(4)">
-                <i class="bi bi-chevron-left"></i>
-                <span class="txt-fr"> Corriger</span>
-                <span class="txt-en"> Edit</span>
-                <span class="txt-ar"> تصحيح</span>
-              </button>
-              <button type="submit" class="btn-valider-definitif" id="btnSoumettre">
-                📤
-                <span class="txt-fr"> Enregistrer la demande</span>
-                <span class="txt-en"> Submit Request</span>
-                <span class="txt-ar"> إرسال الطلب</span>
-              </button>
-            </div>
-          </div>
-        </div>
+           <div class="d-flex justify-content-between mt-4">
+             <button type="button" class="btn-precedent" onclick="changerEtape(2)">
+               <i class="bi bi-chevron-left"></i> Précédent
+             </button>
+             <button type="button" class="btn-suivant" onclick="changerEtape(4)">
+               Suivant <i class="bi bi-chevron-right"></i>
+             </button>
+           </div>
+         </div>
 
-        <!-- === BLOC PARENT === -->
-        <div id="blocParent" class="bloc-profil">
-          <div class="carte-formulaire bloc-etape" id="bloc-etape-1-parent">
-            <h4 class="etape-titre">👨‍👩‍👧
-              <span class="txt-fr"> Espace Parent — Suivi des enfants</span>
-              <span class="txt-en"> Parent Portal — Child Monitoring</span>
-              <span class="txt-ar"> فضاء ولي الأمر — متابعة الأبناء</span>
-            </h4>
+         <!-- ✅ ÉTAPE 4 : DOCUMENTS & PAIEMENT -->
+         <div class="carte-formulaire bloc-etape" id="bloc-etape-4-eleve">
+           <h4 class="etape-titre">📄 Documents & Mode de Paiement</h4>
 
-            <div class="mb-4">
-              <label class="form-label"><span class="txt-fr">Matricule de l'enfant</span> *</label>
-              <div class="d-flex gap-2">
-                <input type="text" id="matricule_enfant" class="form-control" placeholder="MZ2026XXX">
-                <button type="button" class="btn-verifier" onclick="rechercherEnfant()">
-                  <i class="bi bi-search"></i>
-                  <span class="txt-fr"> Rechercher</span>
-                </button>
-              </div>
-            </div>
+           <!-- 📸 Photo & Documents à téléverser -->
+           <div class="mb-4">
+             <label class="form-label">📸 Photo d'identité (format JPG)</label>
+             <input type="file" name="photo_identite" class="form-control" accept="image/*" onchange="apercuImage(this, 'previewPhoto')">
+             <img id="previewPhoto" class="preview-photo" alt="Aperçu photo">
+           </div>
 
-            <div id="enfantInfos" class="info-base d-none">
-              <h5 class="mb-3">📋 <span class="txt-fr">Informations de l'enfant</span></h5>
-              <div class="row g-2">
-                <div class="col-sm-6"><strong><span class="txt-fr">Nom :</span></strong> <span id="enfant_nom">—</span></div>
-                <div class="col-sm-6"><strong><span class="txt-fr">Prénom :</span></strong> <span id="enfant_prenom">—</span></div>
-                <div class="col-sm-6"><strong><span class="txt-fr">Classe :</span></strong> <span id="enfant_classe">—</span></div>
-                <div class="col-sm-6"><strong><span class="txt-fr">Moyenne :</span></strong> <span id="enfant_moy">—</span>/20</div>
-                <div class="col-sm-6"><strong><span class="txt-fr">Rang :</span></strong> <span id="enfant_rang">—</span></div>
-                <div class="col-sm-6"><strong><span class="txt-fr">Mention :</span></strong> <span id="enfant_mention">—</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
+           <div class="mb-4">
+             <label class="form-label">📄 Extrait de naissance / Bulletin scolaire (PDF ou Image)</label>
+             <input type="file" name="documents" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+           </div>
 
-        <!-- === BLOC ENSEIGNANT === -->
-        <div id="blocProf" class="bloc-profil">
-          <div class="carte-formulaire bloc-etape" id="bloc-etape-1-prof">
-            <h4 class="etape-titre">👨‍🏫
-              <span class="txt-fr"> Candidature Enseignant</span>
-              <span class="txt-en"> Teacher Application</span>
-              <span class="txt-ar"> الترشح للتدريس</span>
-            </h4>
+           <hr class="my-4">
 
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label"><span class="txt-fr">Nom & Prénoms</span> *</label>
-                <input type="text" name="nom_prof" class="form-control" required>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label"><span class="txt-fr">Email</span> *</label>
-                <input type="email" name="email_prof" class="form-control" required>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label"><span class="txt-fr">Téléphone</span> *</label>
-                <input type="tel" name="tel_prof" class="form-control" required>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label"><span class="txt-fr">Matière(s) à enseigner</span> *</label>
-                <select id="matiereSelect" name="matiere" class="form-select" required>
-                  <option value="">— Chargement…</option>
-                </select>
-              </div>
-              <div class="col-md-12">
-                <label class="form-label">📄 <span class="txt-fr">Téléverser votre CV</span> *</label>
-                <input type="file" name="cv_prof" class="form-control" accept=".pdf,.doc,.docx,.jpg,.png" required>
-              </div>
-              <div class="col-md-12">
-                <label class="form-label">📷 <span class="txt-fr">Photo d'identité</span> *</label>
-                <input type="file" name="photo_prof" class="form-control" accept="image/*" onchange="apercuImage(this, 'previewProfPhoto')" required>
-                <img id="previewProfPhoto" class="preview-photo" alt="Photo">
-              </div>
-            </div>
+           <!-- 💰 MODE DE PAIEMENT -->
+           <h5 class="mb-3 text-primary">💳 Mode de Paiement</h5>
+           <div class="mb-3">
+             <label class="form-label">Choisissez votre mode de règlement *</label>
+             <div class="row g-2">
+               <div class="col-md-6 case-a-cocher">
+                 <input type="radio" name="mode_paiement" id="paiement_total" value="total" checked>
+                 <label for="paiement_total" class="mb-0 fw-semibold">💵 Paiement en totalité</label>
+               </div>
+               <div class="col-md-6 case-a-cocher">
+                 <input type="radio" name="mode_paiement" id="paiement_echelon" value="echalonne">
+                 <label for="paiement_echelon" class="mb-0 fw-semibold">📅 Paiement échelonné</label>
+               </div>
+             </div>
+           </div>
 
-            <div class="mt-4">
-              <button type="submit" class="btn-valider-definitif">
-                📤 <span class="txt-fr"> Envoyer ma candidature</span>
-              </button>
-            </div>
-          </div>
-        </div>
+           <!-- 📅 ÉCHELONNEMENT -->
+           <div id="choixEchelon" class="choix-echelon">
+             <label class="form-label">Nombre de versements souhaités *</label>
+             <div class="row g-2">
+               <div class="col-md-3 case-a-cocher">
+                 <input type="radio" name="echelonnement" id="echele2" value="2">
+                 <label for="echele2" class="mb-0">2 versements</label>
+               </div>
+               <div class="col-md-3 case-a-cocher">
+                 <input type="radio" name="echelonnement" id="echele3" value="3">
+                 <label for="echele3" class="mb-0">3 versements</label>
+               </div>
+               <div class="col-md-3 case-a-cocher">
+                 <input type="radio" name="echelonnement" id="echele10" value="10">
+                 <label for="echele10" class="mb-0">10 mensualités</label>
+               </div>
+             </div>
+             <div class="mt-2 alert alert-info">
+               📝 Soit <strong class="prix-echelonne"><span id="montantTranche">0</span> FCFA</strong> par versement sur <span id="nbTranches">1</span> échéance(s).
+             </div>
+           </div>
 
-        <!-- === BLOC VISITEUR / AUTRE === -->
-        <div id="blocVisiteur" class="bloc-profil">
-          <div class="carte-formulaire bloc-etape" id="bloc-etape-1-visiteur">
-            <h4 class="etape-titre">🧑‍💼
-              <span class="txt-fr"> Nous contacter</span>
-              <span class="txt-en"> Contact Us</span>
-              <span class="txt-ar"> تواصل معنا</span>
-            </h4>
+           <hr class="my-3">
 
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label"><span class="txt-fr">Nom & Prénoms</span> *</label>
-                <input type="text" name="nom_visiteur" class="form-control" required>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label"><span class="txt-fr">Email / Téléphone</span> *</label>
-                <input type="text" name="contact_visiteur" class="form-control" required>
-              </div>
-              <div class="col-md-12">
-                <label class="form-label"><span class="txt-fr">Objet du message</span> *</label>
-                <input type="text" name="objet_visiteur" class="form-control" required>
-              </div>
-              <div class="col-md-12">
-                <label class="form-label"><span class="txt-fr">Message</span> *</label>
-                <textarea name="message_visiteur" class="form-control" rows="5" required></textarea>
-              </div>
-            </div>
+           <!-- 💳 MOYENS DE PAIEMENT -->
+           <div class="mb-3">
+             <label class="form-label">Règlement par *</label>
+             <div class="row g-2">
+               <div class="col-md-6 col-lg-4 case-a-cocher">
+                 <input type="radio" name="moyen_paiement" id="mtn_money" value="mtn_money">
+                 <label for="mtn_money" class="mb-0">🟠 MTN Money</label>
+               </div>
+               <div class="col-md-6 col-lg-4 case-a-cocher">
+                 <input type="radio" name="moyen_paiement" id="moov_money" value="moov_money">
+                 <label for="moov_money" class="mb-0">🔵 Moov Money</label>
+               </div>
+               <div class="col-md-6 col-lg-4 case-a-cocher">
+                 <input type="radio" name="moyen_paiement" id="orange_money" value="orange_money">
+                 <label for="orange_money" class="mb-0">🟠 Orange Money</label>
+               </div>
+               <div class="col-md-6 col-lg-4 case-a-cocher">
+                 <input type="radio" name="moyen_paiement" id="wave" value="wave">
+                 <label for="wave" class="mb-0">🌊 Wave</label>
+               </div>
+               <div class="col-md-6 col-lg-4 case-a-cocher">
+                 <input type="radio" name="moyen_paiement" id="carte_bancaire" value="carte_bancaire">
+                 <label for="carte_bancaire" class="mb-0">💳 Carte Bancaire</label>
+               </div>
+               <div class="col-md-6 col-lg-4 case-a-cocher">
+                 <input type="radio" name="moyen_paiement" id="virement" value="virement">
+                 <label for="virement" class="mb-0">🏦 Virement Bancaire</label>
+               </div>
+               <div class="col-md-6 col-lg-4 case-a-cocher">
+                 <input type="radio" name="moyen_paiement" id="caisse" value="caisse">
+                 <label for="caisse" class="mb-0">🏛️ Paiement à la Caisse (École)</label>
+               </div>
+             </div>
+           </div>
 
-            <div class="mt-4">
-              <button type="submit" class="btn-valider-definitif">
-                ✉️ <span class="txt-fr"> Envoyer le message</span>
-              </button>
-            </div>
-          </div>
-        </div>
+           <div class="paiement-caisse alert alert-info">
+             <p class="mb-1"><strong>🏛️ Informations de paiement</strong></p>
+             <p class="mb-0 small">
+               Règlement à effectuer au guichet de l'établissement MAMA-ZOUMANA pendant les horaires d'ouverture.
+               Une facture acquittée vous sera remise en échange de votre règlement.
+             </p>
+           </div>
 
-      </form>
-    </div>
-  </div>
+           <div class="d-flex justify-content-between mt-4">
+             <button type="button" class="btn-precedent" onclick="changerEtape(3)">
+               <i class="bi bi-chevron-left"></i> Précédent
+             </button>
+             <button type="button" class="btn-suivant" onclick="changerEtape(5)">
+               Suivant <i class="bi bi-chevron-right"></i>
+             </button>
+           </div>
+         </div>
 
-  <footer class="text-center py-4 mt-5 border-top" style="border-color: var(--bordure) !important;">
-    <p class="mb-0">© 2026 MAMA-ZOUMANA — <span class="txt-fr">Tous droits réservés</span></p>
-    <small class="text-muted">
-      <span class="txt-fr">Année scolaire 2025-2026 — Préinscription ouverte jusqu'au 30 octobre 2026</span>
-    </small>
-  </footer>
+         <!-- ✅ ÉTAPE 5 : VÉRIFICATION & ENREGISTREMENT -->
+         <div class="carte-formulaire bloc-etape" id="bloc-etape-5-eleve">
+           <h4 class="etape-titre">✅ Vérification & Validation</h4>
+
+           <div id="blocResume" class="resume-verification">
+             <p class="text-center text-muted">Veuillez compléter les étapes précédentes…</p>
+           </div>
+
+           <div class="avertissement-base mt-4">
+             <p class="mb-0 fw-semibold">⚠️ Important</p>
+             <p class="mb-0 small">
+               En validant cette demande, vous reconnaissez l'exactitude des informations fournies.
+               Votre préinscription sera prise en compte après vérification de votre dossier et confirmation de paiement.
+               Une fiche de préinscription vous sera envoyée par email automatiquement.
+             </p>
+           </div>
+
+           <div class="form-check mt-4 mb-3">
+             <input type="checkbox" class="form-check-input" id="accepte" required>
+             <label class="form-check-label fw-semibold" for="accepte">
+               J'accepte les conditions d'inscription et certifie l'exactitude des informations fournies *
+             </label>
+           </div>
+
+           <div class="d-flex justify-content-between mt-4">
+             <button type="button" class="btn-precedent" onclick="changerEtape(4)">
+               <i class="bi bi-chevron-left"></i> Précédent
+             </button>
+             <button type="submit" id="btnSoumettre" class="btn-valider-definitif">
+               📤 Enregistrer la demande
+             </button>
+           </div>
+         </div>
+       </div>
+
+       <!-- AUTRES PROFILS → PARENT / PROF / VISITEUR -->
+       <div id="blocParent" class="bloc-profil">
+         <div class="carte-formulaire bloc-etape" id="bloc-etape-1-parent">
+           <h4 class="etape-titre">👨‍👩‍👧 Espace Parent — Rechercher un enfant</h4>
+           <div class="mb-3">
+             <label class="form-label">Matricule de l'élève</label>
+             <div class="d-flex gap-2">
+               <input type="text" name="matricule_enfant" id="matricule_enfant" class="form-control" placeholder="MZ2026XXX">
+               <button type="button" class="btn-verifier" onclick="rechercherEnfant()">🔍 Rechercher</button>
+             </div>
+           </div>
+           <div id="enfantInfos" class="info-base d-none">
+             <p><strong>👤 Identité :</strong> <span id="enfant_nom">—</span> <span id="enfant_prenom">—</span></p>
+             <p><strong>🏫 Classe :</strong> <span id="enfant_classe">—</span></p>
+             <p><strong>📊 Résultat année précédente :</strong> Moyenne: <span id="enfant_moy">—</span> / Rang: <span id="enfant_rang">—</span> / Mention: <span id="enfant_mention">—</span></p>
+           </div>
+         </div>
+       </div>
+
+       <div id="blocProf" class="bloc-profil">
+         <div class="carte-formulaire bloc-etape" id="bloc-etape-1-prof">
+           <h4 class="etape-titre">👨‍🏫 Espace Enseignant</h4>
+           <p class="text-muted">L'espace enseignant est accessible après validation de votre compte par l'administration.</p>
+           <p class="mt-3">
+             <a href="index.html" class="btn btn-verifier">🏠 Retour à l'accueil</a>
+           </p>
+         </div>
+       </div>
+
+       <div id="blocVisiteur" class="bloc-profil">
+         <div class="carte-formulaire bloc-etape" id="bloc-etape-1-visiteur">
+           <h4 class="etape-titre">🧑‍💼 Espace Visiteur</h4>
+           <p class="text-muted">Merci de votre intérêt pour l'établissement MAMA-ZOUMANA.</p>
+           <p class="mt-2">Pour toute demande d'information, veuillez nous contacter :</p>
+           <ul class="list-unstyled mt-3">
+             <li>📧 Email : <strong>contact@mama-zoumana.ci</strong></li>
+             <li>📞 Téléphone : <strong>+225 01 73 49 49 64</strong></li>
+           </ul>
+           <p class="mt-4">
+             <a href="index.html" class="btn btn-verifier">🏠 Retour à l'accueil</a>
+           </p>
+         </div>
+       </div>
+
+     </form>
+   </div>
 
 </body>
 </html>
