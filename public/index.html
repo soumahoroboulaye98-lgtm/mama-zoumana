@@ -20,11 +20,9 @@
       couleur_texte: '#f8fafc',
       couleur_accent: '#f59e0b',
 
-
       image_fond: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1920&q=80',
       image_entete: '',
       image_pied: '',
-
 
       police_titres: '"Segoe UI", sans-serif',
       police_texte: '"Segoe UI", sans-serif',
@@ -61,9 +59,7 @@
       lien_video_accueil: ''
     };
 
-
     let LANG = localStorage.getItem('langue_site') || 'fr';
-
 
     function appliquerCouleurs(cfg) {
       document.documentElement.style.setProperty('--primaire', cfg.couleur_primaire);
@@ -74,7 +70,6 @@
       document.documentElement.style.setProperty('--police-titres', cfg.police_titres);
       document.documentElement.style.setProperty('--police-texte', cfg.police_texte);
     }
-
 
     function appliquerFond(cfg) {
       const imageFond = document.getElementById('image-fond-affichee');
@@ -94,17 +89,14 @@
       }
     }
 
-
     function appliquerTextesEtLiens(cfg) {
       document.querySelectorAll('.texte-entete .txt-fr').forEach(el => el.textContent = cfg.texte_entete_fr);
       document.querySelectorAll('.texte-entete .txt-en').forEach(el => el.textContent = cfg.texte_entete_en);
       document.querySelectorAll('.texte-entete .txt-ar').forEach(el => el.textContent = cfg.texte_entete_ar);
 
-
       document.querySelectorAll('.bandeau-defilant .txt-fr').forEach(el => el.textContent = cfg.bandeau_defilant_fr);
       document.querySelectorAll('.bandeau-defilant .txt-en').forEach(el => el.textContent = cfg.bandeau_defilant_en);
       document.querySelectorAll('.bandeau-defilant .txt-ar').forEach(el => el.textContent = cfg.bandeau_defilant_ar);
-
 
       document.querySelectorAll('.titre-banniere .txt-fr').forEach(el => el.innerHTML = cfg.presentation_titre_fr);
       document.querySelectorAll('.titre-banniere .txt-en').forEach(el => el.innerHTML = cfg.presentation_titre_en);
@@ -113,21 +105,17 @@
       document.querySelectorAll('.desc-banniere .txt-en').forEach(el => el.textContent = cfg.presentation_desc_en);
       document.querySelectorAll('.desc-banniere .txt-ar').forEach(el => el.textContent = cfg.presentation_desc_ar);
 
-
       document.querySelectorAll('.texte-apropos .txt-fr').forEach(el => el.textContent = cfg.apropos_fr);
       document.querySelectorAll('.texte-apropos .txt-en').forEach(el => el.textContent = cfg.apropos_en);
       document.querySelectorAll('.texte-apropos .txt-ar').forEach(el => el.textContent = cfg.apropos_ar);
-
 
       document.querySelectorAll('.texte-admission .txt-fr').forEach(el => el.textContent = cfg.admission_fr);
       document.querySelectorAll('.texte-admission .txt-en').forEach(el => el.textContent = cfg.admission_en);
       document.querySelectorAll('.texte-admission .txt-ar').forEach(el => el.textContent = cfg.admission_ar);
 
-
       document.querySelectorAll('.texte-pied .txt-fr').forEach(el => el.textContent = cfg.texte_pied_fr);
       document.querySelectorAll('.texte-pied .txt-en').forEach(el => el.textContent = cfg.texte_pied_en);
       document.querySelectorAll('.texte-pied .txt-ar').forEach(el => el.textContent = cfg.texte_pied_ar);
-
 
       document.querySelectorAll('.lien-facebook').forEach(el => el.href = cfg.lien_facebook || '#');
       document.querySelectorAll('.lien-whatsapp').forEach(el => {
@@ -139,13 +127,11 @@
       document.querySelectorAll('.lien-instagram').forEach(el => el.href = cfg.lien_instagram || '#');
       document.querySelectorAll('.lien-email').forEach(el => el.href = cfg.lien_email ? 'mailto:' + cfg.lien_email : '#');
 
-
       document.querySelectorAll('.tel1').forEach(el => el.textContent = cfg.telephone1 || '---');
       document.querySelectorAll('.tel2').forEach(el => el.textContent = cfg.telephone2 || '---');
       document.querySelectorAll('.iframe-maps').forEach(el => el.src = cfg.lien_google_maps || '');
       document.querySelectorAll('.iframe-video-accueil').forEach(el => el.src = cfg.lien_video_accueil || '');
     }
-
 
     async function chargerAnnonces() {
       const zone = document.getElementById('zone-annonces');
@@ -189,7 +175,6 @@
       }
     }
 
-
     async function chargerActualites() {
       const zone = document.getElementById('zone-actualites');
       if (!zone) return;
@@ -206,10 +191,17 @@
               <h5 class="text-dark">${titre}</h5><p class="small text-muted">📅 ${date}</p><p class="text-secondary">${resume}</p>
             </div></div>`;
           }).join('');
+        } else {
+          zone.innerHTML = `<p class="text-center text-muted">
+            <span class="txt-fr">Aucune actualité pour l'instant</span><span class="txt-en">No news for now</span><span class="txt-ar">لا أخبار حتى الآن</span>
+          </p>`;
         }
-      } catch {}
+      } catch {
+        zone.innerHTML = `<p class="text-center text-muted">
+          <span class="txt-fr">Chargement des actualités...</span><span class="txt-en">Loading news...</span><span class="txt-ar">جارٍ تحميل الأخبار...</span>
+        </p>`;
+      }
     }
-
 
     async function chargerEvenements() {
       const zone = document.getElementById('zone-evenements');
@@ -231,7 +223,6 @@
         }
       } catch {}
     }
-
 
     async function chargerGalerie() {
       const zone = document.getElementById('zone-galerie');
@@ -256,7 +247,6 @@
       }
     }
 
-
     function appliquerLangue(lang) {
       LANG = lang;
       document.body.classList.remove('lang-fr', 'lang-en', 'lang-ar');
@@ -266,13 +256,13 @@
       document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
       document.querySelector(`.btn-langue[data-lang="${lang}"]`)?.classList.add('active');
       chargerAnnonces();
+      chargerActualites();
+      chargerGalerie();
     }
-
 
     document.addEventListener('DOMContentLoaded', async () => {
       LANG = localStorage.getItem('langue_site') || 'fr';
       appliquerLangue(LANG);
-
 
       const cfgLocale = JSON.parse(localStorage.getItem('config_site') || '{}');
       if (Object.keys(cfgLocale).length > 0) {
@@ -281,7 +271,6 @@
         appliquerFond(configSite);
         appliquerTextesEtLiens(configSite);
       }
-
 
       try {
         const resConfig = await fetch('/api/config');
@@ -300,12 +289,10 @@
         console.log("ℹ️ Mode local utilisé");
       }
 
-
       chargerAnnonces();
       chargerActualites();
       chargerEvenements();
       chargerGalerie();
-
 
       document.querySelectorAll('.btn-langue').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -314,7 +301,6 @@
         });
       });
 
-
       document.addEventListener('click', (e) => {
         const menu = document.getElementById('menu-mobile-deroulant');
         const bouton = document.getElementById('btn-menu-mobile');
@@ -322,7 +308,6 @@
           menu.classList.remove('ouvert');
         }
       });
-
 
       window.addEventListener('scroll', () => {
         const btn = document.getElementById('btn-retour-haut');
@@ -335,13 +320,11 @@
         }
       });
 
-
       document.querySelectorAll('#menu-mobile-deroulant a').forEach(lien => {
         lien.addEventListener('click', () => {
           document.getElementById('menu-mobile-deroulant')?.classList.remove('ouvert');
         });
       });
-
 
       document.addEventListener('submit', e => {
         const form = e.target;
@@ -356,7 +339,6 @@
         form.reset();
       });
     });
-
 
     function basculerMenuMobile() {
       const menu = document.getElementById('menu-mobile-deroulant');
@@ -380,12 +362,10 @@
       --police-texte: 'Segoe UI', sans-serif;
     }
 
-
     * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 12px !important; }
     body { font-family: var(--police-texte); background: var(--clair); color: var(--sombre); }
     body.lang-ar { font-family: 'Segoe UI', Tahoma, sans-serif; direction: rtl; text-align: right; }
     h1, h2, h3, h4, h5, h6 { font-family: var(--police-titres); }
-
 
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
@@ -395,7 +375,6 @@
     body.lang-ar .txt-ar { display: inline; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
     body.lang-ar .titre-section { text-align: right; }
-
 
     .entete-fixe {
       background: linear-gradient(135deg, var(--primaire), var(--secondaire));
@@ -409,7 +388,6 @@
     .logo-entete:hover { transform: scale(1.03); }
     .logo-entete-img { height: 45px; width: auto; display: none; border-radius: 8px !important; }
     .logo-icone { font-size: 1.8rem; }
-
 
     .nav-menu { display: flex; gap: 4px; }
     .menu-item { position: relative; }
@@ -433,7 +411,6 @@
       text-decoration: none; transition: all 0.2s; font-size: 0.95rem;
     }
     .sous-menu a:hover { background: rgba(245,158,11,0.18); color: var(--accent); }
-
 
     .btn-menu-mobile {
       display: none; background: rgba(255,255,255,0.15);
@@ -459,7 +436,6 @@
     .menu-mobile-deroulant a:hover,
     .menu-mobile-deroulant button:hover { background: rgba(245,158,11,0.18); color: var(--accent); }
 
-
     .btn-langue {
       background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25);
       border-radius: 20px; padding: 5px 10px; font-size: 0.85rem; cursor: pointer;
@@ -474,7 +450,6 @@
     }
     .btn-connexion:hover { transform: translateY(-2px); }
     .btn-connexion.clair { background: rgba(255,255,255,0.2); color: white; }
-
 
     .banniere {
       position: relative; height: 85vh; overflow: hidden;
@@ -501,7 +476,6 @@
     .btn-action:hover { transform: translateY(-3px); box-shadow: 0 6px 25px rgba(245,158,11,0.5); color: var(--sombre); }
     .btn-action.clair { background: white; color: var(--primaire); }
 
-
     .bande-info {
       background: var(--accent); color: var(--sombre); font-weight: 600;
       padding: 8px 0; overflow: hidden; white-space: nowrap;
@@ -509,10 +483,8 @@
     .defilement { display: inline-block; animation: defile 25s linear infinite; }
     @keyframes defile { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-
     .annonce-affichee { transition: all 0.3s ease; }
     .annonce-affichee:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.08) !important; }
-
 
     .section { padding: 50px 20px; }
     .titre-section {
@@ -529,7 +501,6 @@
     }
     .carte:hover { transform: translateY(-5px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
     .carte h5 { color: var(--secondaire); font-weight: 600; font-size: 1.2rem; }
-
 
     .pied-page { background: var(--sombre); color: #cbd5e1; padding: 40px 20px 25px; font-size: 0.95rem; }
     .pied-page h6 { color: var(--accent); font-weight: 700; margin-bottom: 15px; font-size: 1rem; }
@@ -551,7 +522,6 @@
     .pied-page p { margin-bottom: 6px; }
     .tel1, .tel2 { font-weight: 500; color: #f8fafc; }
 
-
     .btn-retour-haut {
       position: fixed; bottom: 25px; right: 25px; width: 50px; height: 50px;
       background: var(--accent); color: var(--sombre); border-radius: 50%;
@@ -563,7 +533,6 @@
     body.lang-ar .btn-retour-haut { right: auto; left: 25px; }
     .btn-retour-haut.visible { opacity: 1; visibility: visible; }
     .btn-retour-haut:hover { transform: translateY(-4px); color: var(--sombre); }
-
 
     form label { font-weight: 500; }
     form input, form textarea { border-radius: 8px !important; }
@@ -589,7 +558,6 @@
 </head>
 <body class="lang-fr">
 
-
 <!-- 🧭 ENTÊTE -->
 <header class="entete-fixe">
   <div class="container d-flex justify-content-between align-items-center py-3 position-relative">
@@ -602,7 +570,6 @@
         <span class="txt-ar">ماما زومانا</span>
       </span>
     </a>
-
 
     <!-- 📋 MENU GRAND ÉCRAN -->
     <nav class="nav-menu d-none d-lg-flex">
@@ -666,7 +633,6 @@
       </div>
     </nav>
 
-
     <!-- 📱 BOUTON MOBILE + LANGUES + CONNEXION -->
     <button class="btn-menu-mobile d-lg-none" id="btn-menu-mobile" onclick="basculerMenuMobile()">
       <i class="bi bi-list"></i>
@@ -689,7 +655,6 @@
     </div>
   </div>
 
-
   <!-- 📱 MENU DÉROULANT MOBILE -->
   <nav id="menu-mobile-deroulant" class="menu-mobile-deroulant d-lg-none">
     <a href="#accueil"><span class="txt-fr">🏠 Accueil — Présentation</span><span class="txt-en">🏠 Home — Presentation</span><span class="txt-ar">🏠 الرئيسية — نبذة عنا</span></a>
@@ -710,7 +675,6 @@
   </nav>
 </header>
 
-
 <!-- 📢 BANDEAU DÉFILANT -->
 <div class="bande-info">
   <div class="defilement bandeau-defilant">
@@ -721,7 +685,6 @@
     </span>
   </div>
 </div>
-
 
 <!-- 🎬 BANNIÈRE / PRÉSENTATION -->
 <section class="banniere" id="accueil">
@@ -753,334 +716,156 @@
   </div>
 </section>
 
-
 <!-- 📢 SECTION ANNONCES -->
-<section class="container mt-5 mb-5">
-  <h3 class="mb-4">📢
-    <span class="txt-fr">Annonces & Actualités</span>
-    <span class="txt-en">Announcements & News</span>
-    <span class="txt-ar">الإعلانات والأخبار</span>
-  </h3>
-  <div id="zone-annonces">
-    <p class="text-center text-muted py-3">
-      <span class="txt-fr">Chargement des annonces...</span>
-      <span class="txt-en">Loadingdes annonces...</span>
-      <span class="txt-ar">جارٍ تحميل الإعلانات...</span>
-    </p>
-  </div>
+<section class="container mt-  <h2 class="titre-section">
+    <span class="txt-fr">📢 Annonces Importantes</span>
+    <span class="txt-en">📢 Important Announcements</span>
+    <span class="txt-ar">📢 إعلانات هامة</span>
+  </h2>
+  <div id="zone-annonces" class="row justify-content-center"></div>
 </section>
 
-
-<!-- 📰 ACTUALITÉS -->
-<section class="section bg-claire">
-  <div class="container">
-    <h2 class="titre-section">📰
-      <span class="txt-fr">Actualités</span>
-      <span class="txt-en">News</span>
-      <span class="txt-ar">الأخبار</span>
-    </h2>
-    <div id="zone-actualites" class="row g-4">
-      <p class="text-center text-muted">
-        <span class="txt-fr">Chargement...</span>
-        <span class="txt-en">Loading...</span>
-        <span class="txt-ar">جارٍ التحميل...</span>
-      </p>
-    </div>
-  </div>
-</section>
-
-
-<!-- 🖼️ GALERIE -->
-<section class="section bg-dark text-white" id="galerie">
-  <div class="container">
-    <h2 class="titre-section text-white">📸
-      <span class="txt-fr">Galerie</span>
-      <span class="txt-en">Gallery</span>
-      <span class="txt-ar">معرض الصور</span>
-    </h2>
-    <div id="zone-galerie" class="row g-3">
-      <p class="text-center text-muted">
-        <span class="txt-fr">Chargement...</span>
-        <span class="txt-en">Loading...</span>
-        <span class="txt-ar">جارٍ التحميل...</span>
-      </p>
-    </div>
-  </div>
-</section>
-
-
-<!-- 🎥 VIDÉOS -->
-<section class="section" id="videos">
-  <div class="container">
-    <h2 class="titre-section">🎥
-      <span class="txt-fr">Vidéos</span>
-      <span class="txt-en">Videos</span>
-      <span class="txt-ar">فيديوهات</span>
-    </h2>
-    <div class="row g-4">
-      <div class="col-md-8">
-        <div class="carte">
-          <h5 class="mb-3 text-primary">
-            <span class="txt-fr">Dernière Vidéo</span>
-            <span class="txt-en">Latest Video</span>
-            <span class="txt-ar">أحدث فيديو</span>
-          </h5>
-          <div class="ratio ratio-16x9 bg-light rounded d-flex align-items-center justify-content-center">
-            <p class="text-muted">
-              <span class="txt-fr">Vidéo à venir</span>
-              <span class="txt-en">Video coming soon</span>
-              <span class="txt-ar">فيديو قادم قريباً</span>
-            </p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="carte">
-          <h5 class="mb-3 text-primary">
-            <span class="txt-fr">À découvrir</span>
-            <span class="txt-en">To discover</span>
-            <span class="txt-ar">لاكتشافه</span>
-          </h5>
-          <ul class="list-unstyled">
-            <li class="py-2 border-bottom">
-              <a href="#">
-                <span class="txt-fr">Présentation de l'établissement</span>
-                <span class="txt-en">School presentation</span>
-                <span class="txt-ar">تقديم المؤسسة</span>
-              </a>
-            </li>
-            <li class="py-2 border-bottom">
-              <a href="#">
-                <span class="txt-fr">Vie scolaire</span>
-                <span class="txt-en">School life</span>
-                <span class="txt-ar">الحياة المدرسية</span>
-              </a>
-            </li>
-            <li class="py-2">
-              <a href="#">
-                <span class="txt-fr">Événements & activités</span>
-                <span class="txt-en">Events & activities</span>
-                <span class="txt-ar">الفعاليات والأنشطة</span>
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- 📝 ADMISSION -->
-<section class="section bg-claire" id="admission">
-  <div class="container">
-    <h2 class="titre-section">📝
-      <span class="txt-fr">Admission & Conditions</span>
-      <span class="txt-en">Admission & Requirements</span>
-      <span class="txt-ar">شروط القبول والتسجيل</span>
-    </h2>
-    <div class="row g-4">
-      <div class="col-md-6">
-        <div class="carte">
-          <h5 class="text-success mb-3">
-            <span class="txt-fr">Conditions d'admission</span>
-            <span class="txt-en">Admission requirements</span>
-            <span class="txt-ar">شروط القبول</span>
-          </h5>
-          <ul>
-            <li>
-              <span class="txt-fr">Âge correspondant au niveau demandé</span>
-              <span class="txt-en">Age matching the requested level</span>
-              <span class="txt-ar">السن المناسب للمستوى المطلوب</span>
-            </li>
-            <li>
-              <span class="txt-fr">Documents administratifs complets</span>
-              <span class="txt-en">Complete administrative documents</span>
-              <span class="txt-ar">اكتمال المستندات الإدارية</span>
-            </li>
-            <li>
-              <span class="txt-fr">Entretien ou test de niveau selon le cycle</span>
-              <span class="txt-en">Interview or placement test depending on level</span>
-              <span class="txt-ar">مقابلة أو اختبار مستوى حسب المرحلة</span>
-            </li>
-            <li>
-              <span class="txt-fr">Adhésion au projet éducatif de l'établissement</span>
-              <span class="txt-en">Agreement with the school's educational project</span>
-              <span class="txt-ar">الموافقة على المشروع التربوي للمؤسسة</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="carte">
-          <h5 class="text-primary mb-3">
-            <span class="txt-fr">Démarche à suivre</span>
-            <span class="txt-en">Steps to follow</span>
-            <span class="txt-ar">خطوات الإجراء</span>
-          </h5>
-          <p class="texte-admission">
-            <span class="txt-fr">Préinscriptions ouvertes toute l'année. Étude du dossier + entretien. Utilisez notre formulaire en ligne.</span>
-            <span class="txt-en">Pre-registration open all year. File review + interview. Use our online form.</span>
-            <span class="txt-ar">التسجيلات الأولية مفتوحة طوال العام — دراسة الملف والمقابلة — استخدموا نموذجنا الإلكتروني.</span>
-          </p>
-          <a href="preinscription.html" class="btn-action mt-2">
-            <span class="txt-fr">Lancer la préinscription</span>
-            <span class="txt-en">Start pre-registration</span>
-            <span class="txt-ar">بدء التسجيل المسبق</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- 📚 ACCÈS RAPIDE SCOLARITÉ -->
-<section class="section">
-  <div class="container">
-    <h2 class="titre-section">📚
-      <span class="txt-fr">Espace Scolarité</span>
-      <span class="txt-en">School Services</span>
-      <span class="txt-ar">الخدمات المدرسية</span>
-    </h2>
-    <div class="row g-4">
-      <div class="col-md-6 col-lg-3">
-        <a href="classe-emploi.html" class="carte lien-bloc text-center">
-          <h5 class="text-primary">📚</h5>
-          <h5>
-            <span class="txt-fr">Emploi du Temps</span>
-            <span class="txt-en">Timetable</span>
-            <span class="txt-ar">الجدول الدراسي</span>
-          </h5>
-          <p class="text-muted small mb-0">
-            <span class="txt-fr">Consulter par niveau</span>
-            <span class="txt-en">View by level</span>
-            <span class="txt-ar">العرض حسب المستوى</span>
-          </p>
-        </a>
-      </div>
-      <div class="col-md-6 col-lg-3">
-        <a href="classement-general.html" class="carte lien-bloc text-center">
-          <h5 class="text-success">📋</h5>
-          <h5>
-            <span class="txt-fr">Classement Général</span>
-            <span class="txt-en">General Ranking</span>
-            <span class="txt-ar">الترتيب العام</span>
-          </h5>
-          <p class="text-muted small mb-0">
-            <span class="txt-fr">Toutes classes confondues</span>
-            <span class="txt-en">All levels combined</span>
-            <span class="txt-ar">لجميع الفصول</span>
-          </p>
-        </a>
-      </div>
-      <div class="col-md-6 col-lg-3">
-        <a href="classement-notes.html" class="carte lien-bloc text-center">
-          <h5 class="text-warning">🏅</h5>
-          <h5>
-            <span class="txt-fr">Classement par Notes</span>
-            <span class="txt-en">Grades Ranking</span>
-            <span class="txt-ar">ترتيب الدرجات</span>
-          </h5>
-          <p class="text-muted small mb-0">
-            <span class="txt-fr">Par matière et par élève</span>
-            <span class="txt-en">By subject and student</span>
-            <span class="txt-ar">حسب المادة والتلميذ</span>
-          </p>
-        </a>
-      </div>
-      <div class="col-md-6 col-lg-3">
-        <a href="liens-resources.html" class="carte lien-bloc text-center">
-          <h5 class="text-info">🔗</h5>
-          <h5>
-            <span class="txt-fr">Ressources & Recherche</span>
-            <span class="txt-en">Resources & Search</span>
-            <span class="txt-ar">مصادر وبحث</span>
-          </h5>
-          <p class="text-muted small mb-0">
-            <span class="txt-fr">Sites utiles et plateformes</span>
-            <span class="txt-en">Useful sites & platforms</span>
-            <span class="txt-ar">مواقع ومنصات مفيدة</span>
-          </p>
-        </a>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- ℹ️ À PROPOS -->
+<!-- ℹ️ SECTION À PROPOS -->
 <section class="section bg-claire" id="apropos">
   <div class="container">
-    <h2 class="titre-section">ℹ️
-      <span class="txt-fr">À Propos de nous</span>
-      <span class="txt-en">About Us</span>
-      <span class="txt-ar">من نحن</span>
+    <h2 class="titre-section">
+      <span class="txt-fr">ℹ️ À Propos de MAMA-ZOUMANA</span>
+      <span class="txt-en">ℹ️ About MAMA-ZOUMANA</span>
+      <span class="txt-ar">ℹ️ عن ماما زومانا</span>
     </h2>
-    <div class="row g-4 align-items-center">
-      <div class="col-md-6">
-        <h5 class="text-primary">
-          <span class="txt-fr">Notre Mission</span>
-          <span class="txt-en">Our Mission</span>
-          <span class="txt-ar">مهمتنا</span>
-        </h5>
-        <p class="texte-apropos">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 texte-apropos">
+        <p class="lead text-center">
           <span class="txt-fr">MAMA-ZOUMANA forme les générations dans un cadre alliant excellence académique et valeurs morales et religieuses.</span>
           <span class="txt-en">MAMA-ZOUMANA educates generations combining academic excellence and moral & religious values.</span>
           <span class="txt-ar">مؤسسة ماما زومانا تكوّن الأجيال بتميز دراسي وقيم أخلاقية ودينية.</span>
         </p>
       </div>
-      <div class="col-md-6">
-        <h5 class="text-success">
-          <span class="txt-fr">Nos Valeurs</span>
-          <span class="txt-en">Our Values</span>
-          <span class="txt-ar">قيمنا</span>
-        </h5>
-        <ul>
-          <li>
-            <span class="txt-fr">Excellence académique</span>
-            <span class="txt-en">Academic excellence</span>
-            <span class="txt-ar">التميز الأكاديمي</span>
-          </li>
-          <li>
-            <span class="txt-fr">Éducation aux valeurs islamiques</span>
-            <span class="txt-en">Education rooted in Islamic values</span>
-            <span class="txt-ar">التربية على القيم الإسلامية</span>
-          </li>
-          <li>
-            <span class="txt-fr">Discipline et rigueur</span>
-            <span class="txt-en">Discipline and diligence</span>
-            <span class="txt-ar">الانضباط والجدية</span>
-          </li>
-          <li>
-            <span class="txt-fr">Ouverture et respect mutuel</span>
-            <span class="txt-en">Openness and mutual respect</span>
-            <span class="txt-ar">الانفتاح والاحترام المتبادل</span>
-          </li>
-        </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 📝 SECTION ADMISSION -->
+<section class="section" id="admission">
+  <div class="container">
+    <h2 class="titre-section">
+      <span class="txt-fr">📝 Admission & Préinscription</span>
+      <span class="txt-en">📝 Admission & Pre-Registration</span>
+      <span class="txt-ar">📝 القبول والتسجيل المسبق</span>
+    </h2>
+    <div class="row justify-content-center">
+      <div class="col-lg-8 texte-admission text-center">
+        <p class="lead mb-4">
+          <span class="txt-fr">Préinscriptions ouvertes toute l'année. Étude du dossier + entretien. Utilisez notre formulaire en ligne.</span>
+          <span class="txt-en">Pre-registration open all year. File review + interview. Use our online form.</span>
+          <span class="txt-ar">التسجيلات الأولية مفتوحة طوال العام — دراسة الملف والمقابلة — استخدموا نموذجنا الإلكتروني.</span>
+        </p>
+        <a href="preinscription.html" class="btn-action btn-lg">
+          <span class="txt-fr">Accéder au formulaire</span>
+          <span class="txt-en">Access the form</span>
+          <span class="txt-ar">الوصول إلى النموذج</span>
+        </a>
       </div>
     </div>
   </div>
 </section>
 
+<!-- 📰 SECTION ACTUALITÉS -->
+<section class="section bg-claire">
+  <div class="container">
+    <h2 class="titre-section">
+      <span class="txt-fr">📰 Actualités</span>
+      <span class="txt-en">📰 News</span>
+      <span class="txt-ar">📰 الأخبار</span>
+    </h2>
+    <div id="zone-actualites" class="row g-4"></div>
+  </div>
+</section>
 
-<!-- 📞 CONTACT -->
+<!-- 📅 SECTION ÉVÉNEMENTS -->
+<section class="section">
+  <div class="container">
+    <h2 class="titre-section">
+      <span class="txt-fr">📅 Événements à Venir</span>
+      <span class="txt-en">📅 Upcoming Events</span>
+      <span class="txt-ar">📅 الفعاليات القادمة</span>
+    </h2>
+    <div id="zone-evenements" class="row g-4"></div>
+  </div>
+</section>
+
+<!-- 📸 GALERIE -->
+<section class="section bg-dark text-white" id="galerie">
+  <div class="container">
+    <h2 class="titre-section text-white">
+      <span class="txt-fr">📸 Galerie Photos</span>
+      <span class="txt-en">📸 Photo Gallery</span>
+      <span class="txt-ar">📸 معرض الصور</span>
+    </h2>
+    <div id="zone-galerie" class="row g-3"></div>
+  </div>
+</section>
+
+<!-- 🎥 SECTION VIDÉOS -->
+<section class="section bg-claire" id="videos">
+  <div class="container">
+    <h2 class="titre-section">
+      <span class="txt-fr">🎥 Vidéos</span>
+      <span class="txt-en">🎥 Videos</span>
+      <span class="txt-ar">🎥 فيديوهات</span>
+    </h2>
+    <div class="row justify-content-center">
+      <div class="col-lg-8 text-center">
+        <p class="lead mb-4">
+          <span class="txt-fr">Découvrez en vidéo la vie de l'établissement et nos temps forts.</span>
+          <span class="txt-en">Discover school life and highlights in video.</span>
+          <span class="txt-ar">اكتشفوا حياة المؤسسة وأبرز أنشطتنا عبر الفيديوهات.</span>
+        </p>
+        <div class="ratio ratio-16x9 rounded-3 shadow-lg overflow-hidden bg-dark">
+          <iframe class="iframe-video-accueil" src="" title="Vidéo de présentation" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 📞 SECTION CONTACT -->
 <section class="section" id="contact">
   <div class="container">
-    <h2 class="titre-section">📞
-      <span class="txt-fr">Contact & Localisation</span>
-      <span class="txt-en">Contact & Location</span>
-      <span class="txt-ar">اتصل بنا والموقع</span>
+    <h2 class="titre-section">
+      <span class="txt-fr">📞 Contact & Localisation</span>
+      <span class="txt-en">📞 Contact & Location</span>
+      <span class="txt-ar">📞 الاتصال والموقع</span>
     </h2>
     <div class="row g-4">
       <div class="col-md-6">
-        <div class="carte">
-          <h5 class="text-primary mb-3">
-            <span class="txt-fr">Nous écrire</span>
-            <span class="txt-en">Write to us</span>
+        <div class="carte h-100">
+          <h5 class="mb-3">
+            <span class="txt-fr">Coordonnées</span>
+            <span class="txt-en">Contact Info</span>
+            <span class="txt-ar">معلومات الاتصال</span>
+          </h5>
+          <p><i class="bi bi-geo-alt-fill text-danger me-2"></i> Abidjan, Côte d'Ivoire</p>
+          <p><i class="bi bi-telephone-fill me-2"></i> <span class="tel1">01 73 49 49 64</span></p>
+          <p><i class="bi bi-telephone-fill me-2"></i> <span class="tel2">05 46 38 98 98</span></p>
+          <p><i class="bi bi-envelope-fill text-primary me-2"></i> <a href="#" class="lien-email text-decoration-none">contact@mama-zoumana.ci</a></p>
+          <div class="reseaux mt-3">
+            <a href="#" class="lien-facebook" target="_blank" title="Facebook"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="lien-whatsapp" target="_blank" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+            <a href="#" class="lien-instagram" target="_blank" title="Instagram"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="lien-youtube" target="_blank" title="YouTube"><i class="bi bi-youtube"></i></a>
+            <a href="#" class="lien-tiktok" target="_blank" title="TikTok"><i class="bi bi-tiktok"></i></a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="carte h-100">
+          <h5 class="mb-3">
+            <span class="txt-fr">Nous Écrire</span>
+            <span class="txt-en">Write to Us</span>
             <span class="txt-ar">راسلنا</span>
           </h5>
-          <form>
+          <form id="form-contact">
             <div class="mb-3">
               <label class="form-label">
                 <span class="txt-fr">Nom & Prénom</span>
@@ -1091,11 +876,11 @@
             </div>
             <div class="mb-3">
               <label class="form-label">
-                <span class="txt-fr">Adresse email ou téléphone</span>
-                <span class="txt-en">Email or phone number</span>
-                <span class="txt-ar">البريد الإلكتروني أو الهاتف</span>
+                <span class="txt-fr">Adresse E-mail</span>
+                <span class="txt-en">E-mail Address</span>
+                <span class="txt-ar">البريد الإلكتروني</span>
               </label>
-              <input type="text" class="form-control" required>
+              <input type="email" class="form-control" required>
             </div>
             <div class="mb-3">
               <label class="form-label">
@@ -1105,7 +890,7 @@
               </label>
               <textarea class="form-control" rows="4" required></textarea>
             </div>
-            <button type="submit" class="btn-action">
+            <button type="submit" class="btn-action w-100">
               <span class="txt-fr">Envoyer</span>
               <span class="txt-en">Send</span>
               <span class="txt-ar">إرسال</span>
@@ -1113,26 +898,15 @@
           </form>
         </div>
       </div>
-      <div class="col-md-6">
-        <div class="carte">
-          <h5 class="text-success mb-3">
-            <span class="txt-fr">Localisation</span>
-            <span class="txt-en">Location</span>
-            <span class="txt-ar">الموقع</span>
+      <div class="col-12 mt-4">
+        <div class="carte p-0 overflow-hidden">
+          <h5 class="p-4 pb-2 mb-0">
+            <span class="txt-fr">📍 Nous Trouver</span>
+            <span class="txt-en">📍 Find Us</span>
+            <span class="txt-ar">📍 موقعنا</span>
           </h5>
-          <p>
-            <strong>📍 <span class="txt-fr">Abidjan, Côte d'Ivoire</span><span class="txt-en">Abidjan, Côte d'Ivoire</span><span class="txt-ar">أبيدجان، كوت ديفوار</span></strong>
-          </p>
-          <p>
-            📧 <span class="txt-fr">contact@mama-zoumana.ci</span><span class="txt-en">contact@mama-zoumana.ci</span><span class="txt-ar">contact@mama-zoumana.ci</span>
-          </p>
-          <p>
-            📞 <span class="tel1">+225 XX XX XX XX XX</span>
-          </p>
-          <div class="mt-3 bg-light rounded p-3 text-center text-muted">
-            <span class="txt-fr">Carte interactive à venir</span>
-            <span class="txt-en">Interactive map coming soon</span>
-            <span class="txt-ar">خريطة تفاعلية قريباً</span>
+          <div class="ratio ratio-16x9">
+            <iframe class="iframe-maps" src="" allowfullscreen loading="lazy"></iframe>
           </div>
         </div>
       </div>
@@ -1140,95 +914,70 @@
   </div>
 </section>
 
-
-<!-- 🛒 BOUTIQUE SCOLAIRE -->
-<section class="section bg-claire">
-  <div class="container">
-    <h2 class="titre-section">🛍️
-      <span class="txt-fr">Boutique Scolaire</span>
-      <span class="txt-en">School Store</span>
-      <span class="txt-ar">المتجر المدرسي</span>
-    </h2>
-    <div class="carte text-center py-4">
-      <p class="mb-3">
-        <span class="txt-fr">Fournitures, uniformes et matériel conforme aux besoins de l'établissement.</span>
-        <span class="txt-en">Supplies, uniforms, and equipment matching the school's requirements.</span>
-        <span class="txt-ar">لوازم ومستلزمات وزي مدرسي وفق متطلبات المؤسسة.</span>
-      </p>
-      <a href="boutique.html" class="btn-action">
-        <span class="txt-fr">Accéder à la boutique</span>
-        <span class="txt-en">Visit the store</span>
-        <span class="txt-ar">زيارة المتجر</span>
-      </a>
-    </div>
-  </div>
-</section>
-
-
 <!-- 🦶 PIED DE PAGE -->
-<footer class="pied-page bg-dark text-white py-5">
+<footer class="pied-page">
   <div class="container">
-    <div class="row g-4">
+    <div class="pied-logo">
+      <img id="logo-pied-image" class="pied-logo-img" alt="Logo">
+      <h4 class="texte-entete">
+        <span class="txt-fr">MAMA-ZOUMANA</span>
+        <span class="txt-en">MAMA-ZOUMANA</span>
+        <span class="txt-ar">ماما زومانا</span>
+      </h4>
+    </div>
+    <div class="row">
       <div class="col-md-4">
-        <h5 class="mb-3">MAMA-ZOUMANA</h5>
-        <p>
-          <span class="txt-fr">École & Centre Islamique — Abidjan</span><br>
-          <span class="txt-en">School & Islamic Center — Abidjan</span><br>
-          <span class="txt-ar">مدرسة ومركز إسلامي — أبيدجان</span>
-        </p>
-      </div>
-      <div class="col-md-4">
-        <h5 class="mb-3">
-          <span class="txt-fr">Liens rapides</span>
-          <span class="txt-en">Quick links</span>
+        <h6>
+          <span class="txt-fr">Liens Rapides</span>
+          <span class="txt-en">Quick Links</span>
           <span class="txt-ar">روابط سريعة</span>
-        </h5>
-        <ul class="list-unstyled">
-          <li><a href="#accueil" class="text-white-50 text-decoration-none"><span class="txt-fr">Accueil</span><span class="txt-en">Home</span><span class="txt-ar">الرئيسية</span></a></li>
-          <li><a href="classe-emploi.html" class="text-white-50 text-decoration-none"><span class="txt-fr">Emploi du Temps</span><span class="txt-en">Timetable</span><span class="txt-ar">الجدول الدراسي</span></a></li>
-          <li><a href="classement-general.html" class="text-white-50 text-decoration-none"><span class="txt-fr">Classement Général</span><span class="txt-en">General Ranking</span><span class="txt-ar">الترتيب العام</span></a></li>
-          <li><a href="classement-notes.html" class="text-white-50 text-decoration-none"><span class="txt-fr">Classement par Notes</span><span class="txt-en">Grades Ranking</span><span class="txt-ar">ترتيب الدرجات</span></a></li>
-          <li><a href="liens-resources.html" class="text-white-50 text-decoration-none"><span class="txt-fr">Ressources</span><span class="txt-en">Resources</span><span class="txt-ar">المصادر</span></a></li>
-          <li><a href="#admission" class="text-white-50 text-decoration-none"><span class="txt-fr">Admission</span><span class="txt-en">Admission</span><span class="txt-ar">القبول</span></a></li>
-          <li><a href="#contact" class="text-white-50 text-decoration-none"><span class="txt-fr">Contact</span><span class="txt-en">Contact</span><span class="txt-ar">اتصل بنا</span></a></li>
-          <li><a href="boutique.html" class="text-white-50 text-decoration-none"><span class="txt-fr">Boutique</span><span class="txt-en">Store</span><span class="txt-ar">المتجر</span></a></li>
-        </ul>
+        </h6>
+        <a href="#accueil"><span class="txt-fr">Accueil</span><span class="txt-en">Home</span><span class="txt-ar">الرئيسية</span></a>
+        <a href="preinscription.html"><span class="txt-fr">Préinscription</span><span class="txt-en">Pre-Registration</span><span class="txt-ar">التسجيل المسبق</span></a>
+        <a href="connexion.html"><span class="txt-fr">Connexion</span><span class="txt-en">Login</span><span class="txt-ar">تسجيل الدخول</span></a>
       </div>
       <div class="col-md-4">
-        <h5 class="mb-3">
-          <span class="txt-fr">Suivez-nous</span>
-          <span class="txt-en">Follow us</span>
-          <span class="txt-ar">تابعنا</span>
-        </h5>
-        <p class="text-white-50">
-          📧 contact@mama-zoumana.ci<br>
-          📞 <span class="tel1">+225 XX XX XX XX XX</span>
+        <h6>
+          <span class="txt-fr">Contact</span>
+          <span class="txt-en">Contact</span>
+          <span class="txt-ar">اتصل بنا</span>
+        </h6>
+        <p class="texte-pied">
+          <span class="txt-fr">Abidjan, Côte d'Ivoire</span>
+          <span class="txt-en">Abidjan, Côte d'Ivoire</span>
+          <span class="txt-ar">أبيدجان، كوت ديفوار</span>
         </p>
+        <p>📞 <span class="tel1">01 73 49 49 64</span></p>
+        <p>📞 <span class="tel2">05 46 38 98 98</span></p>
+      </div>
+      <div class="col-md-4">
+        <h6>
+          <span class="txt-fr">Suivez-Nous</span>
+          <span class="txt-en">Follow Us</span>
+          <span class="txt-ar">تابعنا</span>
+        </h6>
         <div class="reseaux">
-          <a href="#" class="lien-facebook" title="Facebook"><i class="bi bi-facebook"></i></a>
-          <a href="#" class="lien-whatsapp" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
-          <a href="#" class="lien-instagram" title="Instagram"><i class="bi bi-instagram"></i></a>
-          <a href="#" class="lien-youtube" title="YouTube"><i class="bi bi-youtube"></i></a>
-          <a href="#" class="lien-tiktok" title="TikTok"><i class="bi bi-tiktok"></i></a>
+          <a href="#" class="lien-facebook" target="_blank"><i class="bi bi-facebook"></i></a>
+          <a href="#" class="lien-whatsapp" target="_blank"><i class="bi bi-whatsapp"></i></a>
+          <a href="#" class="lien-instagram" target="_blank"><i class="bi bi-instagram"></i></a>
+          <a href="#" class="lien-youtube" target="_blank"><i class="bi bi-youtube"></i></a>
+          <a href="#" class="lien-tiktok" target="_blank"><i class="bi bi-tiktok"></i></a>
         </div>
       </div>
     </div>
-    <div class="text-center pt-4 mt-3 border-top border-secondary">
-      <p class="mb-0">© 2026 MAMA-ZOUMANA —
-        <span class="txt-fr">Tous droits réservés</span>
-        <span class="txt-en">All rights reserved</span>
-        <span class="txt-ar">جميع الحقوق محفوظة</span>
-      </p>
+    <div class="copyright">
+      © 2026 MAMA-ZOUMANA —
+      <span class="txt-fr">Tous droits réservés.</span>
+      <span class="txt-en">All rights reserved.</span>
+      <span class="txt-ar">جميع الحقوق محفوظة.</span>
     </div>
   </div>
 </footer>
 
-
 <!-- ⬆️ BOUTON RETOUR EN HAUT -->
-<a href="#haut" class="btn-retour-haut" id="btn-retour-haut">
+<a href="#haut" id="btn-retour-haut" class="btn-retour-haut">
   <i class="bi bi-chevron-up"></i>
 </a>
-
 
 </body>
 </html>
