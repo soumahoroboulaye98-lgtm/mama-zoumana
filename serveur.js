@@ -216,7 +216,7 @@ routerPaiements.get('/tous', [veriftoken, verifadmin], async (req, res) => {
 // — Administration & Utilisateurs
 app.use('/api/auth', require('./routes/auth').router);
 app.use('/api/admin', require('./routes/admin'));
-app.use('/api/admin', require('./routes/admin-crud'));
+
 app.use('/api/utilisateurs', require('./routes/utilisateurs'));
 app.use('/api/preinscription', require('./routes/preinscription'));
 

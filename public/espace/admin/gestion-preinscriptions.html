@@ -118,14 +118,23 @@
 </head>
 <body>
 
-
 <!-- 🔒 PROTECTION + CONFIG GLOBALE -->
 <script>
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
+
+  // ✅ FONCTION EN-TÊTE RÉUTILISABLE — CORRIGÉ
+  function enteteRequete() {
+    return {
+      "Authorization": "Bearer " + token,
+      "Content-Type": "application/json"
+    };
+  }
+
+  // ✅ Vérification immédiate
   if (!token || !['admin','super_admin','comptable','directeur'].includes(role)) {
-    alert("⛔ Accès réservé à l'administrateur");
-    location.href = 'dashboard.html';
+    alert("⛔ Accès réservé à l'administrateur — Veuillez vous reconnecter");
+    location.href = 'connexion.html';
   }
 
   // 🔗 DÉTECTION AUTOMATIQUE DE L'API
@@ -145,21 +154,25 @@
   let langueActuelle = localStorage.getItem('langue') || 'fr';
   document.body.classList.add('lang-' + langueActuelle);
 
-  // 🌙 GESTION MODE JOUR/NUIT — CORRIGÉ : démarre en mode clair
+  // 🌙 GESTION MODE JOUR/NUIT
   let themeActuel = localStorage.getItem('theme') || 'clair';
   document.documentElement.setAttribute('data-theme', themeActuel);
+  
   function basculerTheme() {
     themeActuel = themeActuel === 'clair' ? 'sombre' : 'clair';
     document.documentElement.setAttribute('data-theme', themeActuel);
     localStorage.setItem('theme', themeActuel);
     mettreAJourIconeTheme();
   }
+  
   function mettreAJourIconeTheme() {
     const icone = document.getElementById('iconeTheme');
     if (icone) icone.className = themeActuel === 'sombre' ? 'bi bi-moon-stars-fill' : 'bi bi-sun-fill';
   }
-</script>
 
+  // ✅ Icône mise à jour APRÈS la fonction
+  mettreAJourIconeTheme();
+</script>
 
 <!-- 🧭 ENTÊTE -->
 <div class="entete">
@@ -187,7 +200,6 @@
     </button>
   </div>
 </div>
-
 
 <div class="container-fluid">
   <div id="msg"></div>
@@ -261,7 +273,6 @@
   </div>
 </div>
 
-
 <!-- 📋 MODALE VÉRIFICATION AVANT VALIDATION -->
 <div class="modal fade" id="modalVerif" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
@@ -306,7 +317,6 @@
   </div>
 </div>
 
-
 <!-- 🖼️ MODALE AFFICHAGE PHOTO -->
 <div class="modal fade" id="modalPhoto" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -322,10 +332,8 @@
   </div>
 </div>
 
-
 <script>
   let demandeEnCours = null;
-  mettreAJourIconeTheme();
 
   // ✂️ ÉCHAPPEMENT SÉCURITAIRE
   function escaperHtml(texte) {
@@ -342,7 +350,7 @@
 
     try {
       const res = await fetch(`${API_BASE}/preinscription/liste`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: enteteRequete() // ✅ Utilisation de la fonction centralisée
       });
       const d = await res.json();
       if (d.ok && Array.isArray(d.liste)) {
@@ -511,7 +519,7 @@
     try {
       const res = await fetch(`${API_BASE}/preinscription/valider/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+        headers: enteteRequete() // ✅ Utilisation centralisée
       });
       const d = await res.json();
       if (d.ok) {
@@ -543,7 +551,7 @@
     try {
       const res = await fetch(`${API_BASE}/preinscription/supprimer/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: enteteRequete() // ✅ Utilisation centralisée
       });
       const d = await res.json();
       if (d.ok) {
