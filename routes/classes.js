@@ -5,20 +5,23 @@ const veriftoken = require('../middleware/veriftoken');
 const verifadmin = require('../middleware/verifadmin');
 const verifprof = require('../middleware/verifprof');
 
+
 // ✅ Protections
 const protegerAdmin = [veriftoken, verifadmin];
 const protegerProf = [veriftoken, verifprof];
 
 
+
 // ==================================================
-// 📚 LISTE PUBLIQUE — Classes ouvertes (Préinscription)
+// 📚 LISTE Classes — Format exact attendu par le frontend
 // ==================================================
+// ✅ CORRIGÉ : Renvoie TOUTES les classes + champs libelle_classe attendus
 router.get('/', async (req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT 
         id_classe AS id,
-        libelle_classe AS nom,
+        libelle_classe,
         libelle_classe_ar,
         libelle_classe_en,
         cycle,
@@ -27,10 +30,10 @@ router.get('/', async (req, res) => {
         (capacite_max - places_occupees) AS places_restantes,
         statut
       FROM classes
-      WHERE statut = 'ouverte'
       ORDER BY libelle_classe ASC
     `);
-    console.log(`✅ Classes ouvertes chargées — ${rows.length} classe(s)`);
+
+    console.log(`✅ Classes chargées — ${rows.length} classe(s)`);
     res.json({ ok: true, classes: rows });
   } catch (e) {
     console.error("❌ ERREUR /classes :", e.code, e.message);
@@ -39,13 +42,14 @@ router.get('/', async (req, res) => {
 });
 
 
+
 // ==================================================
 // 📚 TOUTES LES CLASSES — Admin
 // ==================================================
 router.get('/toutes', protegerAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query(`
-      SELECT id_classe AS id, libelle_classe AS nom,
+      SELECT id_classe AS id, libelle_classe,
              libelle_classe_ar, libelle_classe_en, cycle,
              capacite_max, places_occupees,
              (capacite_max - places_occupees) AS places_restantes,
@@ -59,6 +63,7 @@ router.get('/toutes', protegerAdmin, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 
 // ==================================================
@@ -80,26 +85,26 @@ router.get('/liste', protegerAdmin, async (req, res) => {
 });
 
 
+
 // ==================================================
 // 📚 INITIALISER CLASSES PAR DÉFAUT — Admin
 // ==================================================
 router.post('/init', protegerAdmin, async (req, res) => {
   try {
     const classes = [
-      ['CP1','الصف الأول ابتدائي','First Year Primary','primaire',35],
-      ['CP2','الصف الثاني ابتدائي','Second Year Primary','primaire',35],
-      ['CE1','الصف الثالث ابتدائي','Third Year Primary','primaire',35],
-      ['CE2','الصف الرابع ابتدائي','Fourth Year Primary','primaire',35],
-      ['CM1','الصف الخامس ابتدائي','Fifth Year Primary','primaire',35],
-      ['CM2','الصف السادس ابتدائي','Sixth Year Primary','primaire',35],
-      ['6ème','السنة الأولى إعدادي','First Year Middle School','college',40],
-      ['5ème','السنة الثانية إعدادي','Second Year Middle School','college',40],
-      ['4ème','السنة الثالثة إعدادي','Third Year Middle School','college',40],
-      ['3ème','السنة الرابعة إعدادي','Fourth Year Middle School','college',40],
-      ['2nde','السنة الأولى ثانوي','First Year High School','lycee',45],
-      ['1ère','السنة الثانية ثانوي','Second Year High School','lycee',45],
-      ['Terminale','السنة الثالثة ثانوي','Final Year High School','lycee',45],
-      ['Maternelle','التمهيدي','Kindergarten','maternelle',30]
+      ['PS','الصف الأول تمهيدي','Petite Section','maternelle',30],
+      ['MS','الصف الثاني تمهيدي','Moyenne Section','maternelle',30],
+      ['GS','الصف الثالث تمهيدي','Grande Section','maternelle',30],
+      ['CP','الصف الأول ابتدائي','Cours Préparatoire','primaire',35],
+      ['CE1','الصف الثاني ابتدائي','Cours Élémentaire 1','primaire',35],
+      ['CE2','الصف الثالث ابتدائي','Cours Élémentaire 2','primaire',35],
+      ['6ème','السنة الأولى إعدادي','Sixième','college',40],
+      ['5ème','السنة الثانية إعدادي','Cinquième','college',40],
+      ['4ème','السنة الثالثة إعدادي','Quatrième','college',40],
+      ['3ème','السنة الرابعة إعدادي','Troisième','college',40],
+      ['2nde','السنة الأولى ثانوي','Seconde','lycee',45],
+      ['1ère','السنة الثانية ثانوي','Première','lycee',45],
+      ['Terminale','السنة الثالثة ثانوي','Terminale','lycee',45]
     ];
 
     let inseres = 0;
@@ -124,6 +129,7 @@ router.post('/init', protegerAdmin, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 
 // ==================================================
@@ -161,6 +167,7 @@ router.post('/', protegerAdmin, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 
 // ==================================================
@@ -204,6 +211,7 @@ router.put('/:id', protegerAdmin, async (req, res) => {
 });
 
 
+
 // ==================================================
 // 🗑️ SUPPRIMER UNE CLASSE — Admin
 // ==================================================
@@ -230,6 +238,7 @@ router.delete('/:id', protegerAdmin, async (req, res) => {
 });
 
 
+
 // ==================================================
 // 👨‍🏫 MES CLASSES — Prof connecté
 // ==================================================
@@ -237,7 +246,7 @@ router.get('/prof', protegerProf, async (req, res) => {
   try {
     const id_prof = req.user.id;
     const { rows } = await pool.query(`
-      SELECT DISTINCT c.id_classe AS id, c.libelle_classe AS nom,
+      SELECT DISTINCT c.id_classe AS id, c.libelle_classe,
              c.libelle_classe_ar, c.libelle_classe_en, c.cycle,
              c.capacite_max, (c.capacite_max - c.places_occupees) AS places_restantes
       FROM affectations_ens a
@@ -251,6 +260,7 @@ router.get('/prof', protegerProf, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 
 module.exports = router;

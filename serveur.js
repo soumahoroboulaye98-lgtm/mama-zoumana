@@ -7,7 +7,6 @@ const fs = require('fs');
 const multer = require('multer');
 
 
-
 // ==============================================
 // 📁 CONFIGURATION — Téléversement de fichiers
 // ==============================================
@@ -18,13 +17,11 @@ const stockage = multer.diskStorage({
 const upload = multer({ storage: stockage });
 
 
-
 // ==============================================
 // ✅ CRÉATION DE L'APPLICATION
 // ==============================================
 const app = express();
 const PORT = process.env.PORT || 10000;
-
 
 
 // ==============================================
@@ -43,7 +40,6 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 
-
 // ==============================================
 // 📁 DOSSIER PUBLIC — Fichiers statiques
 // ==============================================
@@ -58,9 +54,8 @@ app.use(express.static(dossierPublic, {
 }));
 
 
-
 // ==============================================
-// ⚙️ CONFIGURATION DU SITE
+// ⚙️ CHARGEMENT CONFIGURATION DEPUIS LA BASE
 // ==============================================
 let configSite = {};
 
@@ -82,9 +77,8 @@ app.use((req, res, next) => {
 });
 
 
-
 // ==============================================
-// 🔐 MIDDLEWARES D'AUTHENTIFICATION — ✅ CORRIGÉ
+// 🔐 MIDDLEWARES D'AUTHENTIFICATION
 // ==============================================
 const veriftoken = require('./middleware/veriftoken');
 const verifadmin = require('./middleware/verifadmin');
@@ -92,10 +86,8 @@ const verifadmin = require('./middleware/verifadmin');
 const protegerAdmin = [veriftoken, verifadmin];
 
 
-
 // ==============================================
 // 📄 ROUTES DOCUMENTS (intégrées directement)
-// ✅ CORRIGÉ : prenom au lieu de prenoms
 // ==============================================
 const routerDocuments = express.Router();
 
@@ -177,7 +169,6 @@ routerDocuments.get('/statistiques', protegerAdmin, async (req, res) => {
 });
 
 
-
 // ==============================================
 // 📊 ROUTES COMPLÉMENTAIRES
 // ==============================================
@@ -219,16 +210,15 @@ routerPaiements.get('/tous', protegerAdmin, async (req, res) => {
 });
 
 
-
 // ==============================================
-// 🔗 DÉCLARATION DES ROUTES — PRÉFIXES API
-// ✅ CORRIGÉ : Tous les require() pointent vers router
+// 🔗 DÉCLARATION DES ROUTES — PAR CATÉGORIE
 // ==============================================
 // — Administration & Utilisateurs
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/utilisateurs', require('./routes/utilisateurs'));
 app.use('/api/preinscription', require('./routes/preinscription'));
+app.use('/api/references', require('./routes/references'));
 
 // — Scolaire
 app.use('/api/classes', require('./routes/classes'));
@@ -268,7 +258,6 @@ app.use('/api/equipe', require('./routes/equipe'));
 app.use('/api/personnel', routerPersonnel);
 
 
-
 // ==============================================
 // 🔄 ROUTE DE TEST API
 // ==============================================
@@ -290,7 +279,6 @@ app.get('/inscription.html', (req, res) => res.redirect('/preinscription.html'))
 app.use('/api/inscription', (req, res) =>
   res.json({ ok: false, message: "⚠️ Utilisez /api/preinscription à la place" })
 );
-
 
 
 // ==============================================
@@ -318,7 +306,6 @@ app.get('/', (req, res) => {
 });
 
 
-
 // ==============================================
 // 🧪 TEST DE CONNEXION BASE DE DONNÉES
 // ==============================================
@@ -336,7 +323,6 @@ app.get('/api/test', async (req, res) => {
     res.json({ ok: false, erreur: e.message, message: "❌ Connexion base échouée" });
   }
 });
-
 
 
 // ==============================================

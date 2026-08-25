@@ -1,45 +1,33 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté systématiquement
-const verifadmin = require('../middleware/verifadmin');   // ✅ Administrateur seul
-const verifprof = require('../middleware/verifprof');     // ✅ Professeur seul
+const veriftoken = require('../middleware/veriftoken');
+const verifadmin = require('../middleware/verifadmin');
+const verifprof = require('../middleware/verifprof');
 
 // ✅ Protections groupées uniformes
 const protegerAdminOuProf = [veriftoken, verifprof];
+const protegerAdmin = [veriftoken, verifadmin];
 
 
 // ==================================================
-// 🏷️ FONCTIONS UTILITAIRES
+// 🏷️ FONCTIONS UTILITAIRES — Mention & Appréciation
 // ==================================================
-
-// Attribution de la mention, tableau d'honneur et appréciation
 function attribuerMentionEtTableau(moyenne) {
   const m = parseFloat(moyenne) || 0;
   let mention = '';
   let tableauHonneur = false;
 
-  if (m >= 18) {
-    mention = '🏆 EXCELLENT';
-    tableauHonneur = true;
-  } else if (m >= 16) {
-    mention = '⭐ TRÈS BIEN';
-    tableauHonneur = true;
-  } else if (m >= 14) {
-    mention = '✅ BIEN';
-  } else if (m >= 12) {
-    mention = '🟡 ASSEZ BIEN';
-  } else if (m >= 10) {
-    mention = '⚠️ PASSABLE';
-  } else {
-    mention = '❌ INSUFFISANT';
-  }
+  if (m >= 18) { mention = '🏆 EXCELLENT'; tableauHonneur = true; }
+  else if (m >= 16) { mention = '⭐ TRÈS BIEN'; tableauHonneur = true; }
+  else if (m >= 14) { mention = '✅ BIEN'; }
+  else if (m >= 12) { mention = '🟡 ASSEZ BIEN'; }
+  else if (m >= 10) { mention = '⚠️ PASSABLE'; }
+  else { mention = '❌ INSUFFISANT'; }
 
-  const appreciation = genererAppreciation(m);
-  return { mention, tableauHonneur, appreciation };
+  return { mention, tableauHonneur, appreciation: genererAppreciation(m) };
 }
 
-// Génération de l'appréciation
 function genererAppreciation(m) {
   if (m >= 18) return "Exceptionnel ! Félicitations chaleureuses et encouragements à poursuivre sur cette excellente lancée.";
   if (m >= 16) return "Très remarquable. Excellent travail, maintenez les efforts !";
@@ -60,8 +48,7 @@ async function calculerMoyenneEleve(id_eleve, id_classe, trimestre, annee) {
     ORDER BY m.libelle_matiere
   `, [id_eleve, id_classe, trimestre, annee]);
 
-  let totalPoints = 0;
-  let totalCoef = 0;
+  let totalPoints = 0, totalCoef = 0;
   notes.rows.forEach(n => {
     const moy = parseFloat(n.moyenne_matiere) || 0;
     const coef = parseFloat(n.coefficient) || 1;
@@ -83,8 +70,7 @@ async function calculerMoyenneEleve(id_eleve, id_classe, trimestre, annee) {
 
 
 // ==================================================
-// 📊 CALCULER BULLETINS, MOYENNES, CLASSEMENT
-// ✅ ADMIN ou PROFESSEUR autorisé
+// 📊 CALCULER BULLETINS — Classe + Trimestre
 // ==================================================
 router.post('/calculer', protegerAdminOuProf, async (req, res) => {
   try {
@@ -92,21 +78,13 @@ router.post('/calculer', protegerAdminOuProf, async (req, res) => {
     const annee = annee_scolaire || '2026-2027';
 
     if (!id_classe || !trimestre) {
-      return res.json({ ok: false, erreur: "⚠️ Classe et Trimestre sont obligatoires" });
+      return res.json({ ok: false, erreur: "⚠️ Classe et Trimestre obligatoires" });
     }
 
-    // ✅ Récupérer les élèves depuis utilisateurs
     const resultatsEleves = await pool.query(`
       SELECT DISTINCT 
-        n.id_eleve,
-        u.nom,
-        u.prenom,
-        u.matricule,
-        u.photo_profil,
-        u.qr_code,
-        u.email,
-        u.telephone,
-        c.libelle_classe
+        n.id_eleve, u.nom, u.prenom, u.matricule, u.photo_profil,
+        u.qr_code, u.email, u.telephone, c.libelle_classe
       FROM notes n
       JOIN utilisateurs u ON n.id_eleve = u.id
       JOIN classes c ON n.id_classe = c.id_classe
@@ -116,78 +94,52 @@ router.post('/calculer', protegerAdminOuProf, async (req, res) => {
     `, [id_classe, trimestre, annee]);
 
     if (resultatsEleves.rows.length === 0) {
-      return res.json({ ok: false, erreur: "⚠️ Aucune note trouvée pour cette classe / ce trimestre" });
+      return res.json({ ok: false, erreur: "⚠️ Aucune note trouvée" });
     }
 
-    // ✅ Calculer pour chaque élève
     const resultatsFinaux = [];
     for (const eleve of resultatsEleves.rows) {
       const { total_points, total_coef, moyenne_generale, details } = 
         await calculerMoyenneEleve(eleve.id_eleve, id_classe, trimestre, annee);
-
-      const { mention, tableauHonneur, appreciation } = 
-        attribuerMentionEtTableau(moyenne_generale);
+      const { mention, tableauHonneur, appreciation } = attribuerMentionEtTableau(moyenne_generale);
 
       resultatsFinaux.push({
         id_eleve: eleve.id_eleve,
         nom: eleve.nom,
-        prenoms: eleve.prenoms,
+        prenoms: eleve.prenom,
         matricule: eleve.matricule,
         photo_profil: eleve.photo_profil,
         qr_code: eleve.qr_code,
         email: eleve.email,
         telephone: eleve.telephone,
         libelle_classe: eleve.libelle_classe,
-        total_points,
-        total_coef,
-        moyenne_generale,
-        mention,
-        tableau_honneur: tableauHonneur,
-        appreciation,
-        details
+        total_points, total_coef, moyenne_generale,
+        mention, tableau_honneur: tableauHonneur, appreciation, details
       });
     }
 
-    // ✅ Classer par moyenne décroissante
+    // Classement
     resultatsFinaux.sort((a, b) => b.moyenne_generale - a.moyenne_generale);
-
-    // ✅ Attribuer le rang et enregistrer dans bulletins
     for (let i = 0; i < resultatsFinaux.length; i++) {
-      const rang = i + 1;
+      resultatsFinaux[i].rang = i + 1;
       const el = resultatsFinaux[i];
-      el.rang = rang;
-
       await pool.query(`
         INSERT INTO bulletins(
-          id_eleve, id_classe, trimestre, annee_scolaire, 
-          total_points, total_coef, moyenne_generale, rang, 
-          mention, tableau_honneur, appreciation, date_generation
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, CURRENT_TIMESTAMP)
+          id_eleve, id_classe, trimestre, annee_scolaire, total_points, total_coef,
+          moyenne_generale, rang, mention, tableau_honneur, appreciation, date_generation
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, CURRENT_TIMESTAMP)
         ON CONFLICT (id_eleve, id_classe, trimestre, annee_scolaire) DO UPDATE SET
-          total_points = EXCLUDED.total_points,
-          total_coef = EXCLUDED.total_coef,
-          moyenne_generale = EXCLUDED.moyenne_generale,
-          rang = EXCLUDED.rang,
-          mention = EXCLUDED.mention,
-          tableau_honneur = EXCLUDED.tableau_honneur,
-          appreciation = EXCLUDED.appreciation,
-          date_generation = CURRENT_TIMESTAMP
-      `, [
-        el.id_eleve, id_classe, trimestre, annee,
-        el.total_points, el.total_coef, el.moyenne_generale, rang,
-        el.mention, el.tableau_honneur, el.appreciation
-      ]);
+          total_points=EXCLUDED.total_points, total_coef=EXCLUDED.total_coef,
+          moyenne_generale=EXCLUDED.moyenne_generale, rang=EXCLUDED.rang,
+          mention=EXCLUDED.mention, tableau_honneur=EXCLUDED.tableau_honneur,
+          appreciation=EXCLUDED.appreciation, date_generation=CURRENT_TIMESTAMP
+      `, [el.id_eleve, id_classe, trimestre, annee, el.total_points, el.total_coef,
+          el.moyenne_generale, el.rang, el.mention, el.tableau_honneur, el.appreciation]);
     }
 
-    console.log(`✅ Calcul bulletins terminé — Classe ${id_classe}, Trimestre ${trimestre}, ${resultatsFinaux.length} élève(s)`);
-    res.json({ 
-      ok: true, 
-      effectif: resultatsFinaux.length,
-      classement: resultatsFinaux,
-      message: `✅ ${resultatsFinaux.length} bulletin(s) calculé(s) et classé(s) !`
-    });
-
+    console.log(`✅ Bulletins calculés — ${resultatsFinaux.length} élève(s)`);
+    res.json({ ok: true, effectif: resultatsFinaux.length, classement: resultatsFinaux,
+      message: `✅ ${resultatsFinaux.length} bulletin(s) généré(s) !` });
   } catch (e) {
     console.error("❌ ERREUR CALCUL BULLETINS :", e.message);
     res.json({ ok: false, erreur: e.message });
@@ -196,25 +148,21 @@ router.post('/calculer', protegerAdminOuProf, async (req, res) => {
 
 
 // ==================================================
-// 📋 VOIR LE BULLETIN D'UN ÉLÈVE
-// ✅ ÉLÈVE / PARENT / PROFESSEUR peuvent consulter
+// 📋 CONSULTER UN BULLETIN
 // ==================================================
-router.get('/voir/:id_eleve', async (req, res) => {
+router.get('/voir/:id_eleve', protegerAdminOuProf, async (req, res) => {
   try {
     const { id_classe, trimestre, annee_scolaire } = req.query;
     const annee = annee_scolaire || '2026-2027';
     const { id_eleve } = req.params;
 
     if (!id_classe || !trimestre) {
-      return res.json({ ok: false, erreur: "⚠️ Classe et Trimestre sont obligatoires" });
+      return res.json({ ok: false, erreur: "⚠️ Classe et Trimestre obligatoires" });
     }
 
-    // ✅ Infos élève complètes depuis utilisateurs
     const eleve = await pool.query(`
-      SELECT 
-        u.nom, u.prenom, u.matricule, u.photo_profil, u.qr_code,
-        u.email, u.telephone,
-        c.libelle_classe
+      SELECT u.nom, u.prenom, u.matricule, u.photo_profil, u.qr_code,
+             u.email, u.telephone, c.libelle_classe
       FROM utilisateurs u
       JOIN classes c ON u.id_classe = c.id_classe
       WHERE u.id = $1 AND u.role = 'eleve'
@@ -224,32 +172,22 @@ router.get('/voir/:id_eleve', async (req, res) => {
       return res.json({ ok: false, erreur: "⚠️ Élève introuvable" });
     }
 
-    // ✅ Notes détaillées
     const notes = await pool.query(`
-      SELECT n.note1, n.note2, n.note3, n.moyenne_matiere, 
+      SELECT n.note1, n.note2, n.note3, n.moyenne_matiere,
              m.coefficient, m.libelle_matiere
       FROM notes n
       JOIN matieres m ON n.id_matiere = m.id_matiere
-      WHERE n.id_eleve = $1 AND n.id_classe = $2 
+      WHERE n.id_eleve = $1 AND n.id_classe = $2
         AND n.trimestre = $3 AND n.annee_scolaire = $4
       ORDER BY m.libelle_matiere
     `, [id_eleve, id_classe, trimestre, annee]);
 
-    // ✅ Bulletin enregistré
     const bulletin = await pool.query(`
       SELECT * FROM bulletins 
-      WHERE id_eleve = $1 AND id_classe = $2 
-        AND trimestre = $3 AND annee_scolaire = $4
+      WHERE id_eleve = $1 AND id_classe = $2 AND trimestre = $3 AND annee_scolaire = $4
     `, [id_eleve, id_classe, trimestre, annee]);
 
-    console.log(`✅ Consultation bulletin — Élève ${id_eleve}, T${trimestre} ${annee}`);
-    res.json({ 
-      ok: true, 
-      eleve: eleve.rows[0],
-      notes: notes.rows,
-      bulletin: bulletin.rows[0] || null
-    });
-
+    res.json({ ok: true, eleve: eleve.rows[0], notes: notes.rows, bulletin: bulletin.rows[0] || null });
   } catch (e) {
     console.error("❌ ERREUR CONSULTATION BULLETIN :", e.message);
     res.json({ ok: false, erreur: e.message });
@@ -259,7 +197,6 @@ router.get('/voir/:id_eleve', async (req, res) => {
 
 // ==================================================
 // 🏆 CLASSEMENT DE LA CLASSE
-// ✅ ADMIN / PROFESSEUR autorisé
 // ==================================================
 router.get('/classement', protegerAdminOuProf, async (req, res) => {
   try {
@@ -267,27 +204,22 @@ router.get('/classement', protegerAdminOuProf, async (req, res) => {
     const annee = annee_scolaire || '2026-2027';
 
     if (!id_classe || !trimestre) {
-      return res.json({ ok: false, erreur: "⚠️ Classe et Trimestre sont obligatoires" });
+      return res.json({ ok: false, erreur: "⚠️ Classe et Trimestre obligatoires" });
     }
 
     const r = await pool.query(`
-      SELECT 
-        b.*,
-        u.nom, u.prenom, u.matricule, u.photo_profil, u.qr_code
+      SELECT b.*, u.nom, u.prenom, u.matricule, u.photo_profil, u.qr_code
       FROM bulletins b
       JOIN utilisateurs u ON b.id_eleve = u.id
       WHERE b.id_classe = $1 AND b.trimestre = $2 AND b.annee_scolaire = $3
       ORDER BY b.moyenne_generale DESC
     `, [id_classe, trimestre, annee]);
 
-    console.log(`✅ Consultation classement — Classe ${id_classe}, Trimestre ${trimestre}, ${r.rows.length} élève(s)`);
     res.json({ ok: true, classement: r.rows });
-
   } catch (e) {
-    console.error("❌ ERREUR CHARGEMENT CLASSEMENT :", e.message);
+    console.error("❌ ERREUR CLASSEMENT :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
-
 
 module.exports = router;

@@ -4,18 +4,17 @@ const pool = require('../db');
 const veriftoken = require('../middleware/veriftoken');
 const verifadmin = require('../middleware/verifadmin');
 
-// ✅ Protections
 const protegerTous = [veriftoken];
 const protegerAdmin = [veriftoken, verifadmin];
 
 
 // ==================================================
-// 📊 CONSULTER — Classement / Liste Élèves par Classe
+// 📊 CLASSEMENT ÉLÈVES PAR CLASSE
 // ==================================================
 router.get('/classement/:id_classe', protegerTous, async (req, res) => {
   try {
     const id_classe = parseInt(req.params.id_classe);
-    if (isNaN(id_classe)) return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
+    if (isNaN(id_classe)) return res.json({ ok: false, erreur: "⚠️ ID invalide" });
 
     const r = await pool.query(`
       SELECT u.id, u.matricule, u.nom, u.prenom, u.email, u.telephone
@@ -24,28 +23,22 @@ router.get('/classement/:id_classe', protegerTous, async (req, res) => {
       ORDER BY u.nom ASC, u.prenom ASC
     `, [id_classe]);
 
-    const classe = await pool.query(`SELECT libelle_classe, niveau FROM classes WHERE id_classe = $1`, [id_classe]);
-
-    res.json({
-      ok: true,
-      classe: classe.rows[0] || null,
-      effectif: r.rows.length,
-      classement: r.rows
-    });
+    const classe = await pool.query(`SELECT libelle_classe, cycle FROM classes WHERE id_classe=$1`, [id_classe]);
+    res.json({ ok: true, classe: classe.rows[0]||null, effectif: r.rows.length, classement: r.rows });
   } catch (e) {
-    console.error("❌ ERREUR CLASSEMENT :", e.message);
+    console.error("❌ ERREUR CLASSEMENT :", e.code, e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 
 // ==================================================
-// 📋 CONSULTER — Emploi du Temps par Classe
+// 📋 EMPLOI DU TEMPS PAR CLASSE — Affiche sur l'accueil
 // ==================================================
 router.get('/emploi-temps/:id_classe', protegerTous, async (req, res) => {
   try {
     const id_classe = parseInt(req.params.id_classe);
-    if (isNaN(id_classe)) return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
+    if (isNaN(id_classe)) return res.json({ ok: false, erreur: "⚠️ ID invalide" });
 
     const r = await pool.query(`
       SELECT et.id_emploi, et.jour, et.heure_debut, et.heure_fin, et.matiere,
@@ -61,64 +54,64 @@ router.get('/emploi-temps/:id_classe', protegerTous, async (req, res) => {
         et.heure_debut ASC
     `, [id_classe]);
 
-    const classe = await pool.query(`SELECT libelle_classe, niveau FROM classes WHERE id_classe = $1`, [id_classe]);
-
-    res.json({ ok: true, classe: classe.rows[0] || null, emploi_temps: r.rows });
+    const classe = await pool.query(`SELECT libelle_classe, cycle FROM classes WHERE id_classe=$1`, [id_classe]);
+    res.json({ ok: true, classe: classe.rows[0]||null, emploi_temps: r.rows });
   } catch (e) {
-    console.error("❌ ERREUR EMPLOI :", e.message);
+    console.error("❌ ERREUR EMPLOI :", e.code, e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 
 // ==================================================
-// 📋 LISTE — Toutes Classes
+// 📋 LISTE DES CLASSES
 // ==================================================
 router.get('/liste-classes', protegerTous, async (req, res) => {
   try {
-    const r = await pool.query(`SELECT id_classe, libelle_classe, niveau FROM classes ORDER BY niveau, libelle_classe`);
+    const r = await pool.query(`
+      SELECT id_classe, libelle_classe, cycle FROM classes ORDER BY 
+        CASE cycle WHEN 'maternelle' THEN 1 WHEN 'primaire' THEN 2 
+                   WHEN 'college' THEN 3 WHEN 'lycee' THEN 4 ELSE 5 END,
+        libelle_classe ASC
+    `);
     res.json({ ok: true, classes: r.rows });
   } catch (e) {
-    console.error("❌ ERREUR LISTE CLASSES :", e.message);
+    console.error("❌ ERREUR LISTE CLASSES :", e.code, e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 
 // ==================================================
-// ⚙️ ADMIN — Ajouter un cours
+// ➕ AJOUTER UN COURS — Admin
 // ==================================================
 router.post('/cours/ajouter', protegerAdmin, async (req, res) => {
   try {
     const { id_classe, id_professeur, jour, heure_debut, heure_fin, matiere } = req.body;
-
     if (!id_classe || !id_professeur || !jour || !heure_debut || !heure_fin || !matiere) {
-      return res.json({ ok: false, erreur: "⚠️ Tous les champs sont obligatoires" });
+      return res.json({ ok: false, erreur: "⚠️ Tous les champs obligatoires" });
     }
 
     const r = await pool.query(`
       INSERT INTO emploi_temps(id_classe, id_professeur, jour, heure_debut, heure_fin, matiere)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING id_emploi
+      VALUES ($1, $2, $3, $4, $5, $6) RETURNING id_emploi
     `, [id_classe, id_professeur, jour, heure_debut, heure_fin, matiere]);
 
-    console.log(`✅ Cours ajouté — ${matiere}, ${jour} ${heure_debut}-${heure_fin}`);
-    res.json({ ok: true, message: "✅ Cours ajouté avec succès !", id_emploi: r.rows[0].id_emploi });
+    res.json({ ok: true, message: "✅ Cours ajouté !", id_emploi: r.rows[0].id_emploi });
   } catch (e) {
-    console.error("❌ ERREUR AJOUT COURS :", e.message);
+    console.error("❌ ERREUR AJOUT COURS :", e.code, e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 
 // ==================================================
-// ⚙️ ADMIN — Modifier un cours
+// ✏️ MODIFIER UN COURS — Admin
 // ==================================================
 router.put('/cours/modifier/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
-
+    if (isNaN(id)) return res.json({ ok: false, erreur: "⚠️ ID invalide" });
     const { id_classe, id_professeur, jour, heure_debut, heure_fin, matiere } = req.body;
 
     await pool.query(`
@@ -127,52 +120,48 @@ router.put('/cours/modifier/:id', protegerAdmin, async (req, res) => {
       WHERE id_emploi=$7
     `, [id_classe, id_professeur, jour, heure_debut, heure_fin, matiere, id]);
 
-    console.log(`✅ Cours modifié — ID: ${id}`);
-    res.json({ ok: true, message: "✅ Cours modifié avec succès !" });
+    res.json({ ok: true, message: "✅ Cours modifié !" });
   } catch (e) {
-    console.error("❌ ERREUR MODIFICATION COURS :", e.message);
+    console.error("❌ ERREUR MODIFICATION COURS :", e.code, e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 
 // ==================================================
-// ⚙️ ADMIN — Supprimer un cours
+// ❌ SUPPRIMER UN COURS — Admin
 // ==================================================
 router.delete('/cours/supprimer/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
+    if (isNaN(id)) return res.json({ ok: false, erreur: "⚠️ ID invalide" });
 
     const r = await pool.query(`DELETE FROM emploi_temps WHERE id_emploi=$1 RETURNING matiere`, [id]);
     if (r.rows.length === 0) return res.json({ ok: false, erreur: "⚠️ Cours introuvable" });
-
-    console.log(`✅ Cours supprimé — ${r.rows[0].matiere}`);
-    res.json({ ok: true, message: "✅ Cours supprimé avec succès !" });
+    res.json({ ok: true, message: "✅ Cours supprimé !" });
   } catch (e) {
-    console.error("❌ ERREUR SUPPRESSION COURS :", e.message);
+    console.error("❌ ERREUR SUPPRESSION COURS :", e.code, e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 
 // ==================================================
-// 📋 LISTE — Professeurs (pour formulaire)
+// 📋 LISTE DES PROFESSEURS (pour formulaire)
 // ==================================================
 router.get('/liste-professeurs', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
-      SELECT id_utilisateur, nom, prenoms 
-      FROM utilisateurs 
-      WHERE role = 'prof' AND statut_compte = 'valide'
-      ORDER BY nom, prenoms
+      SELECT id, nom, prenom FROM utilisateurs 
+      WHERE role = 'prof' AND statut_compte = 'valide' ORDER BY nom, prenom
     `);
     res.json({ ok: true, professeurs: r.rows });
   } catch (e) {
-    console.error("❌ ERREUR LISTE PROFS :", e.message);
+    console.error("❌ ERREUR LISTE PROFS :", e.code, e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
+
 
 // ==================================================
 // 📊 CLASSEMENT GÉNÉRAL — Toutes Classes
@@ -180,159 +169,88 @@ router.get('/liste-professeurs', protegerAdmin, async (req, res) => {
 router.get('/classement-general', protegerTous, async (req, res) => {
   try {
     const r = await pool.query(`
-      SELECT 
-        u.id,
-        u.matricule,
-        u.nom,
-        u.prenom,
-        u.email,
-        u.telephone,
-        c.id_classe,
-        c.libelle_classe,
-        c.niveau
+      SELECT u.id, u.matricule, u.nom, u.prenom, u.email, u.telephone,
+             c.id_classe, c.libelle_classe, c.cycle
       FROM utilisateurs u
-      JOIN classes c ON u.id_classe = c.id_classe
-      WHERE u.role = 'eleve' 
-        AND u.statut_compte = 'valide'
+      LEFT JOIN classes c ON u.id_classe = c.id_classe
+      WHERE u.role = 'eleve' AND u.statut_compte = 'valide'
       ORDER BY 
-        c.niveau ASC,
-        c.libelle_classe ASC,
-        u.nom ASC,
-        u.prenom ASC
+        CASE c.cycle WHEN 'maternelle' THEN 1 WHEN 'primaire' THEN 2 
+                     WHEN 'college' THEN 3 WHEN 'lycee' THEN 4 ELSE 5 END,
+        c.libelle_classe ASC NULLS LAST, u.nom ASC, u.prenom ASC
     `);
-
-    const total = await pool.query(`
-      SELECT COUNT(*) 
-      FROM utilisateurs 
-      WHERE role = 'eleve' AND statut_compte = 'valide'
-    `);
-
-    res.json({
-      ok: true,
-      total_eleves: parseInt(total.rows[0].count),
-      classement: r.rows
-    });
-
+    const total = await pool.query(`SELECT COUNT(*)::int FROM utilisateurs WHERE role='eleve' AND statut_compte='valide'`);
+    res.json({ ok: true, total_eleves: total.rows[0].count, classement: r.rows });
   } catch (e) {
-    console.error("❌ ERREUR CLASSEMENT GÉNÉRAL :", e.message);
-    res.json({ ok: false, erreur: "Erreur serveur : " + e.message });
+    console.error("❌ ERREUR CLASSEMENT GÉNÉRAL :", e.code, e.message);
+    res.json({ ok: false, erreur: e.message });
   }
 });
 
+
 // ==================================================
-// 📊 CLASSEMENT PAR NOTES — PAR CLASSE (avec Mention)
+// 📊 CLASSEMENT PAR NOTES — Par Classe
 // ==================================================
 router.get('/classement-notes/classe/:id_classe', protegerTous, async (req, res) => {
   try {
     const id_classe = parseInt(req.params.id_classe);
-    if (isNaN(id_classe)) return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
+    if (isNaN(id_classe)) return res.json({ ok: false, erreur: "⚠️ ID invalide" });
 
     const r = await pool.query(`
-      SELECT 
-        u.id,
-        u.matricule,
-        u.nom,
-        u.prenom,
-        ROUND(AVG(n.note), 2) AS moyenne,
-        COUNT(n.id_note) AS nb_matiere
+      SELECT u.id, u.matricule, u.nom, u.prenom,
+             ROUND(AVG(n.note), 2) AS moyenne, COUNT(n.id_note)::int AS nb_matiere
       FROM utilisateurs u
-      LEFT JOIN notes n ON u.id = n.id_utilisateur
-      WHERE u.role = 'eleve' 
-        AND u.id_classe = $1 
-        AND u.statut_compte = 'valide'
+      LEFT JOIN notes n ON u.id = n.id_eleve
+      WHERE u.role = 'eleve' AND u.id_classe = $1 AND u.statut_compte = 'valide'
       GROUP BY u.id, u.matricule, u.nom, u.prenom
-      ORDER BY moyenne DESC NULLS LAST, u.nom ASC
+      ORDER BY moyenne DESC NULLS LAST
     `, [id_classe]);
 
-    const classe = await pool.query(`SELECT libelle_classe, niveau FROM classes WHERE id_classe = $1`, [id_classe]);
-    const resultat = ajouterMentions(r.rows);
-
-    res.json({
-      ok: true,
-      classe: classe.rows[0] || null,
-      effectif: resultat.length,
-      classement: resultat
-    });
+    const classe = await pool.query(`SELECT libelle_classe, cycle FROM classes WHERE id_classe=$1`, [id_classe]);
+    res.json({ ok: true, classe: classe.rows[0]||null, effectif: r.rows.length,
+               classement: ajouterMentions(r.rows) });
   } catch (e) {
-    console.error("❌ ERREUR CLASSEMENT CLASSE :", e.message);
+    console.error("❌ ERREUR CLASSEMENT NOTES :", e.code, e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 
 // ==================================================
-// 📊 CLASSEMENT GÉNÉRAL PAR NOTES — TOUTES CLASSES
+// 📊 CLASSEMENT PAR NOTES — Toutes Classes
 // ==================================================
 router.get('/classement-notes/general', protegerTous, async (req, res) => {
   try {
     const r = await pool.query(`
-      SELECT 
-        u.id,
-        u.matricule,
-        u.nom,
-        u.prenom,
-        c.libelle_classe,
-        c.niveau,
-        ROUND(AVG(n.note), 2) AS moyenne,
-        COUNT(n.id_note) AS nb_matiere
+      SELECT u.id, u.matricule, u.nom, u.prenom, c.libelle_classe, c.cycle,
+             ROUND(AVG(n.note), 2) AS moyenne, COUNT(n.id_note)::int AS nb_matiere
       FROM utilisateurs u
-      JOIN classes c ON u.id_classe = c.id_classe
-      LEFT JOIN notes n ON u.id = n.id_utilisateur
-      WHERE u.role = 'eleve' 
-        AND u.statut_compte = 'valide'
-      GROUP BY u.id, u.matricule, u.nom, u.prenom, c.libelle_classe, c.niveau
-      ORDER BY moyenne DESC NULLS LAST, c.niveau ASC, u.nom ASC
+      LEFT JOIN classes c ON u.id_classe = c.id_classe
+      LEFT JOIN notes n ON u.id = n.id_eleve
+      WHERE u.role = 'eleve' AND u.statut_compte = 'valide'
+      GROUP BY u.id, u.matricule, u.nom, u.prenom, c.libelle_classe, c.cycle
+      ORDER BY moyenne DESC NULLS LAST
     `);
-
-    const resultat = ajouterMentions(r.rows);
-    res.json({
-      ok: true,
-      total_eleves: resultat.length,
-      classement: resultat
-    });
+    res.json({ ok: true, total_eleves: r.rows.length, classement: ajouterMentions(r.rows) });
   } catch (e) {
-    console.error("❌ ERREUR CLASSEMENT GENERAL :", e.message);
+    console.error("❌ ERREUR CLASSEMENT NOTES GÉNÉRAL :", e.code, e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 
-// ==================================================
-// 🧠 FONCTION INTERNE : Calculer Mention & Appréciation
-// ==================================================
+// 🧠 Fonction interne : Ajouter Mention & Appréciation
 function ajouterMentions(liste) {
   return liste.map(ligne => {
     const moy = parseFloat(ligne.moyenne);
-    let mention = "Sans note";
-    let appreciation = "Pas encore évalué";
-    let couleur = "secondary";
-
-    if (!ligne.moyenne || ligne.nb_matiere === 0) {
-      mention = "—";
-      appreciation = "Aucune note enregistrée";
-      couleur = "light";
-    } else if (moy >= 16) {
-      mention = "Très Bien 🎖️";
-      appreciation = "Excellent travail ! Félicitations !";
-      couleur = "success";
-    } else if (moy >= 14) {
-      mention = "Bien 🎉";
-      appreciation = "Très bon niveau. Continuez !";
-      couleur = "primary";
-    } else if (moy >= 12) {
-      mention = "Assez Bien ✅";
-      appreciation = "Bon travail. Efforts à poursuivre.";
-      couleur = "info";
-    } else if (moy >= 10) {
-      mention = "Passable";
-      appreciation = "Convenable. Des progrès sont possibles.";
-      couleur = "warning";
-    } else {
-      mention = "Insuffisant ⚠️";
-      appreciation = "Des efforts importants sont nécessaires.";
-      couleur = "danger";
+    let mention = "—", appreciation = "Aucune note", couleur = "light";
+    if (ligne.nb_matiere > 0) {
+      if (moy >= 16) { mention="Très Bien 🎖️"; appreciation="Excellent !"; couleur="success"; }
+      else if (moy >= 14) { mention="Bien 🎉"; appreciation="Très bon niveau."; couleur="primary"; }
+      else if (moy >= 12) { mention="Assez Bien ✅"; appreciation="Bon travail."; couleur="info"; }
+      else if (moy >= 10) { mention="Passable"; appreciation="Convenable."; couleur="warning"; }
+      else { mention="Insuffisant ⚠️"; appreciation="Efforts nécessaires."; couleur="danger"; }
     }
-
     return { ...ligne, mention, appreciation, couleur };
   });
 }
