@@ -9,12 +9,10 @@ const fs = require('fs');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-
 // ==================================================
 // ✅ CLÉ JWT UNIFIÉE — MÊME VALEUR PARTOUT
 // ==================================================
 const CLE_JWT = process.env.JWT_SECRET || 'ma_cle_secrete_pour_le_site_2026';
-
 
 // ==================================================
 // ✅ MIDDLEWARES IMPORTÉS ET HARMONISÉS
@@ -23,17 +21,15 @@ const veriftoken = require('../middleware/veriftoken');
 const verifadmin = require('../middleware/verifadmin');
 const protegerAdmin = [veriftoken, verifadmin];
 
-
 // ✅ Middleware vérification parent
 async function verifParent(req, res, next) {
   try {
-    const u = req.user;
-    if (!u || u.role !== 'parent') {
+    if (!req.user || req.user.role !== 'parent') {
       return res.json({ ok: false, erreur: "⛔ Espace réservé aux parents" });
     }
     req.filtreParent = {
-      email_parent: u.email_parent || null,
-      telephone_parent: u.telephone_parent || null
+      email_parent: req.user.email_parent || '',
+      telephone_parent: req.user.telephone_parent || ''
     };
     next();
   } catch {
@@ -42,20 +38,21 @@ async function verifParent(req, res, next) {
 }
 const protegerParent = [veriftoken, verifParent];
 
-
 // ==================================================
 // ✅ GÉNÉRATION DU MATRICULE — MZ + ANNÉE FIN + ÂGE + N°
 // ==================================================
 async function genererMatricule(dateNaissance, anneeScolaire) {
+  const anneeDebut = String(anneeScolaire || '2025-2026').slice(0, 4);
   const anneeFin = String(anneeScolaire || '2025-2026').slice(-4);
-  const dateDebut = new Date(`${String(anneeScolaire || '2025-2026').slice(0,4)}-10-01`);
+  const dateReference = new Date(`${anneeDebut}-10-01`);
   const naissance = new Date(dateNaissance);
-  let age = dateDebut.getFullYear() - naissance.getFullYear();
-  const mois = dateDebut.getMonth() - naissance.getMonth();
-  if (mois < 0 || (mois === 0 && dateDebut.getDate() < naissance.getDate())) age--;
+
+  let age = dateReference.getFullYear() - naissance.getFullYear();
+  const mois = dateReference.getMonth() - naissance.getMonth();
+  if (mois < 0 || (mois === 0 && dateReference.getDate() < naissance.getDate())) age--;
   age = Math.max(5, Math.min(99, age));
 
-  const prefixeRecherche = `MZ${anneeFin}${String(age).padStart(2,'0')}`;
+  const prefixeRecherche = `MZ${anneeFin}${String(age).padStart(2, '0')}`;
   const resultat = await pool.query(
     `SELECT matricule FROM utilisateurs WHERE matricule LIKE $1 ORDER BY matricule DESC LIMIT 1`,
     [`${prefixeRecherche}%`]
@@ -65,14 +62,14 @@ async function genererMatricule(dateNaissance, anneeScolaire) {
   if (resultat.rows.length > 0) {
     numero = parseInt(resultat.rows[0].matricule.slice(-3), 10) + 1;
   }
-  return `MZ${anneeFin}${String(age).padStart(2,'0')}${String(numero).padStart(3,'0')}`;
+  return `MZ${anneeFin}${String(age).padStart(2, '0')}${String(numero).padStart(3, '0')}`;
 }
-
 
 // ==================================================
 // ✅ VÉRIFIER APPARTENANCE D'UN ENFANT
 // ==================================================
 async function verifierAppartenanceEnfant(id_eleve, filtre, pool) {
+  const telNettoye = filtre.telephone_parent.replace(/\s/g, '');
   const r = await pool.query(`
     SELECT u.id, u.nom, u.prenom, u.matricule, u.id_classe, u.statut_compte,
            u.moyenne_annee_precedente, u.mention, u.classement, u.note_conduite,
@@ -82,13 +79,12 @@ async function verifierAppartenanceEnfant(id_eleve, filtre, pool) {
     WHERE u.role = 'eleve' AND u.id = $1
       AND (
         (LOWER(u.email_parent) = LOWER($2) AND $2 <> '')
-        OR (REPLACE(u.telephone_parent, ' ', '') = REPLACE($3, ' ', '') AND $3 <> '')
+        OR (REPLACE(u.telephone_parent, ' ', '') = $3 AND $3 <> '')
       )
     LIMIT 1
-  `, [id_eleve, filtre.email_parent || '', filtre.telephone_parent || '']);
+  `, [id_eleve, filtre.email_parent, telNettoye]);
   return r.rows.length ? r.rows[0] : null;
 }
-
 
 // ==================================================
 // 📁 CONFIGURATION MULTER — Upload sécurisé
@@ -105,7 +101,6 @@ const stockage = multer.diskStorage({
 });
 const upload = multer({ storage: stockage });
 
-
 // ==================================================
 // 📧 ENVOI D'EMAIL CENTRALISÉ
 // ==================================================
@@ -113,7 +108,10 @@ async function envoyerEmail(destinataire, sujet, messageHtml) {
   if (!destinataire) return false;
   try {
     const transporteur = nodemailer.createTransport({
-      service: process.env.MAIL_SERVICE || 'gmail',
+      host: process.env.MAIL_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.MAIL_PORT || '465'),
+      secure: process.env.MAIL_SECURE === 'true',
+      service: process.env.MAIL_SERVICE || undefined,
       auth: {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASS
@@ -132,7 +130,6 @@ async function envoyerEmail(destinataire, sujet, messageHtml) {
   }
 }
 
-
 // ==================================================
 // 🔧 DÉTERMINER LE PROFIL
 // ==================================================
@@ -143,7 +140,6 @@ function determinerProfil(d) {
   if (d.cv) return 'prof';
   return 'visiteur';
 }
-
 
 // ==================================================
 // ✅ ENREGISTRER UNE PRÉINSCRIPTION — Publique
@@ -168,11 +164,12 @@ router.post('/', upload.fields([
       annee_scolaire
     } = req.body;
 
+    // ✅ Validation classe
     const id_classe_nombre = (id_classe_souhaitee && id_classe_souhaitee !== '' && !isNaN(Number(id_classe_souhaitee)))
       ? Number(id_classe_souhaitee) : null;
 
-    let libelleClasse = null, placesRestantes = null, capaciteMax = null, placesOccupeesActuelles = null;
-    if ((profil === 'eleve' || id_classe_nombre) && id_classe_nombre) {
+    let libelleClasse = null, placesRestantes = null, capaciteMax = null, placesOccupeesActuelles = 0;
+    if (id_classe_nombre) {
       const verifClasse = await pool.query(
         'SELECT id_classe, libelle_classe, capacite_max, places_occupees FROM classes WHERE id_classe = $1',
         [id_classe_nombre]
@@ -189,11 +186,13 @@ router.post('/', upload.fields([
       }
     }
 
-    const photo_identite = req.files?.photo_identite ? `uploads/${req.files.photo_identite[0].filename}` : null;
-    const extrait_naissance = req.files?.extrait_naissance ? `uploads/${req.files.extrait_naissance[0].filename}` : null;
-    const bulletin = req.files?.bulletin ? `uploads/${req.files.bulletin[0].filename}` : null;
-    const cv = req.files?.cv ? `uploads/${req.files.cv[0].filename}` : null;
+    // ✅ Chemins fichiers uploadés
+    const photo_identite = req.files?.photo_identite?.[0] ? `uploads/${req.files.photo_identite[0].filename}` : null;
+    const extrait_naissance = req.files?.extrait_naissance?.[0] ? `uploads/${req.files.extrait_naissance[0].filename}` : null;
+    const bulletin = req.files?.bulletin?.[0] ? `uploads/${req.files.bulletin[0].filename}` : null;
+    const cv = req.files?.cv?.[0] ? `uploads/${req.files.cv[0].filename}` : null;
 
+    // ✅ Champs de base — EXACTEMENT ce qu'il y a dans la table
     const champs = [
       'profil', 'nom_famille', 'prenom', 'sexe', 'date_naissance', 'lieu_naissance',
       'nationalite', 'adresse', 'telephone', 'email',
@@ -205,43 +204,46 @@ router.post('/', upload.fields([
     ];
     const valeurs = [
       profil || null,
-      nom_famille, prenom, sexe, date_naissance || null, lieu_naissance || null,
+      nom_famille || null, prenom || null, sexe || null, date_naissance || null, lieu_naissance || null,
       nationalite || null, adresse || null, telephone || null, email || null,
-      nom_parent || null, telephone_parent || null, email_parent || null,
-      id_classe_nombre || null, observations || null, 'en_attente',
+      nom_parent || null, (telephone_parent || '').replace(/\s/g, '') || null, email_parent || null,
+      id_classe_nombre, observations || null, 'en_attente',
       photo_identite, extrait_naissance, bulletin, cv,
-      cantine === 'on', transport === 'on', circuit_transport || null,
+      cantine === 'on' || cantine === true, transport === 'on' || transport === true, circuit_transport || null,
       annee_scolaire || '2025-2026',
       specialite || null, experience || null, organisme || null, objet || null
     ];
 
-    if (profil === 'eleve') {
+    // ✅ Champs complémentaires SI élève
+    if (profil === 'eleve' || id_classe_nombre) {
       champs.push(
         'nom_pere', 'profession_pere', 'telephone_pere', 'email_pere',
         'nom_mere', 'profession_mere', 'telephone_mere', 'email_mere', 'adresse_famille',
         'moyenne_annee_precedente', 'classement', 'mention', 'note_conduite'
       );
       valeurs.push(
-        nom_pere || null, profession_pere || null, telephone_pere || null, email_pere || null,
-        nom_mere || null, profession_mere || null, telephone_mere || null, email_mere || null, adresse_famille || null,
+        nom_pere || null, profession_pere || null, (telephone_pere || '').replace(/\s/g, '') || null, email_pere || null,
+        nom_mere || null, profession_mere || null, (telephone_mere || '').replace(/\s/g, '') || null, email_mere || null, adresse_famille || null,
         moyenne || null, rang || null, mention || null, conduite || null
       );
     }
 
+    // ✅ INSERTION
     const requete = `INSERT INTO preinscriptions (${champs.join(', ')}) VALUES (${champs.map((_, i) => `$${i + 1}`).join(', ')}) RETURNING id`;
     const resultat = await pool.query(requete, valeurs);
     const idDemande = resultat.rows[0].id;
 
-    if (id_classe_nombre && placesRestantes !== null) {
+    // ✅ Incrémenter places occupées
+    if (id_classe_nombre) {
       await pool.query('UPDATE classes SET places_occupees = places_occupees + 1 WHERE id_classe = $1', [id_classe_nombre]);
-      placesRestantes = (capaciteMax || 0) - ((placesOccupeesActuelles || 0) + 1);
+      placesRestantes = capaciteMax - (placesOccupeesActuelles + 1);
     }
 
+    // ✅ Email accusé de réception
     const infoClasse = libelleClasse ? `🏫 Classe demandée : ${libelleClasse}<br>📊 Places restantes : <strong>${placesRestantes}</strong> place(s)` : '';
-    const infosParentsHtml = profil === 'eleve' && nom_pere ? `<br>👨‍👩 Informations famille enregistrées ✅` : '';
-    const infosAnneeHtml = profil === 'eleve' && moyenne ? `<br>📊 Résultats année précédente : ${moyenne}/20 — ${mention || ''}` : '';
+    const infosParentsHtml = (profil === 'eleve' || id_classe_nombre) && nom_pere ? `<br>👨‍👩 Informations famille enregistrées ✅` : '';
+    const infosAnneeHtml = (profil === 'eleve' || id_classe_nombre) && moyenne ? `<br>📊 Résultats année précédente : ${moyenne}/20 — ${mention || ''}` : '';
     const infosProfHtml = profil === 'prof' && specialite ? `<br>📚 Spécialité : ${specialite}${experience ? ` — ${experience} ans d'expérience` : ''}` : '';
-
     const destEmail = email || email_parent;
     if (destEmail) {
       await envoyerEmail(destEmail, '✅ Préinscription enregistrée — MAMA-ZOUMANA', `
@@ -273,9 +275,8 @@ router.post('/', upload.fields([
   }
 });
 
-
 // ==================================================
-// ✅ VALIDER UNE DEMANDE → CRÉE COMPTE + MATRICULE + INFOS ANNÉE PRÉCÉDENTE
+// ✅ VALIDER UNE DEMANDE → CRÉE COMPTE + MATRICULE
 // ==================================================
 router.put('/valider/:id', protegerAdmin, async (req, res) => {
   try {
@@ -285,7 +286,7 @@ router.put('/valider/:id', protegerAdmin, async (req, res) => {
     const d = demande.rows[0];
     const profil = determinerProfil(d);
 
-    // ✅ Récupère AUTOMATIQUEMENT les infos de l'année précédente si élève connu
+    // ✅ Reprise auto des notes année précédente
     let anneePrecedente = { moyenne: null, mention: null, rang: null, conduite: null };
     if (profil === 'eleve' && d.email_parent) {
       const ancienCompte = await pool.query(`
@@ -305,6 +306,7 @@ router.put('/valider/:id', protegerAdmin, async (req, res) => {
       }
     }
 
+    // ✅ Générer matricule
     let matricule;
     if (profil === 'eleve' && d.date_naissance) {
       matricule = await genererMatricule(d.date_naissance, d.annee_scolaire || '2025-2026');
@@ -313,11 +315,11 @@ router.put('/valider/:id', protegerAdmin, async (req, res) => {
       matricule = `${prefixes[profil] || 'VIS'}-${String(d.id).padStart(5, '0')}`;
     }
 
+    // ✅ Créer compte utilisateur
     const motDePasseProvisoire = Math.random().toString(36).substring(2, 10).toUpperCase() + '@1A';
     const hashMdp = await bcrypt.hash(motDePasseProvisoire, 10);
 
     await pool.query("UPDATE preinscriptions SET statut = 'valide' WHERE id = $1", [id]);
-
     await pool.query(`
       INSERT INTO utilisateurs(
         nom, prenom, email, telephone, mot_de_passe, role, matricule,
@@ -328,17 +330,17 @@ router.put('/valider/:id', protegerAdmin, async (req, res) => {
     `, [
       d.nom_famille, d.prenom, d.email || d.email_parent, d.telephone || d.telephone_parent,
       hashMdp, profil, matricule,
-      d.email_parent || null, d.telephone_parent || null,
+      d.email_parent || null, (d.telephone_parent || '').replace(/\s/g, '') || null,
       d.nom_pere || null, d.nom_mere || null, d.adresse_famille || null,
       anneePrecedente.moyenne, anneePrecedente.mention, anneePrecedente.rang, anneePrecedente.conduite,
       d.id_classe_souhaitee || null
     ]);
 
+    // ✅ Email identifiants
     const destEmail = d.email || d.email_parent;
     if (destEmail) {
       const infosParentsHtml = profil === 'eleve' && d.nom_pere ? `<div class="info">👨‍👩 Parents enregistrés ✅</div>` : '';
       const infosAnneeHtml = anneePrecedente.moyenne ? `<div class="info">📚 Résultat année précédente : ${anneePrecedente.moyenne}/20 — ${anneePrecedente.mention || ''}</div>` : '';
-
       await envoyerEmail(destEmail, '✅ INSCRIPTION VALIDÉE — MAMA-ZOUMANA', `
         <!DOCTYPE html><html><head><meta charset="UTF-8">
         <style>
@@ -378,7 +380,6 @@ router.put('/valider/:id', protegerAdmin, async (req, res) => {
   }
 });
 
-
 // ==================================================
 // 📋 PRÉINSCRIPTIONS EN ATTENTE — Admin seul
 // ==================================================
@@ -395,7 +396,6 @@ router.get('/en-attente', protegerAdmin, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
-
 
 // ==================================================
 // 📋 LISTE COMPLÈTE — Admin seul
@@ -422,22 +422,19 @@ router.get('/liste', protegerAdmin, async (req, res) => {
   }
 });
 
-
 // ==================================================
 // ❌ REFUSER UNE DEMANDE — Admin seul
 // ==================================================
 router.put('/refuser/:id', protegerAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const demande = await pool.query('SELECT id_classe_souhaitee FROM preinscriptions WHERE id = $1', [id]);
+    const demande = await pool.query('SELECT id_classe_souhaitee, statut FROM preinscriptions WHERE id = $1', [id]);
     if (demande.rows.length === 0) return res.json({ ok: false, erreur: "❌ Demande introuvable !" });
-    const idClasse = demande.rows[0].id_classe_souhaitee;
-
-    if (idClasse) {
+    const { id_classe_souhaitee: idClasse, statut } = demande.rows[0];
+    if (idClasse && statut === 'en_attente') {
       await pool.query('UPDATE classes SET places_occupees = GREATEST(0, places_occupees - 1) WHERE id_classe = $1', [idClasse]);
     }
     await pool.query("UPDATE preinscriptions SET statut = 'refusee' WHERE id = $1", [id]);
-
     console.log(`🗑️ REFUSÉE — ID:${id} | Classe:${idClasse || 'aucune'}`);
     res.json({ ok: true, message: "✅ Demande refusée. Place libérée." });
   } catch (e) {
@@ -445,7 +442,6 @@ router.put('/refuser/:id', protegerAdmin, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
-
 
 // ==================================================
 // 🔍 DÉTAILS D'UNE PRÉINSCRIPTION — Admin Seul
@@ -471,7 +467,6 @@ router.get('/detail/:id', protegerAdmin, async (req, res) => {
   }
 });
 
-
 // ==================================================
 // 🗑️ SUPPRIMER UNE DEMANDE — Admin Seul
 // ==================================================
@@ -481,12 +476,9 @@ router.delete('/supprimer/:id', protegerAdmin, async (req, res) => {
     const demande = await pool.query('SELECT id_classe_souhaitee, statut FROM preinscriptions WHERE id = $1', [id]);
     if (demande.rows.length === 0) return res.json({ ok: false, erreur: "❌ Demande introuvable !" });
     const { id_classe_souhaitee: idClasse, statut } = demande.rows[0];
-
-    // ✅ Libérer la place SEULEMENT si la demande était en attente
     if (idClasse && statut === 'en_attente') {
       await pool.query('UPDATE classes SET places_occupees = GREATEST(0, places_occupees - 1) WHERE id_classe = $1', [idClasse]);
     }
-
     await pool.query('DELETE FROM preinscriptions WHERE id = $1', [id]);
     console.log(`🗑️ SUPPRIMÉE — ID:${id} | Classe:${idClasse || 'aucune'}`);
     res.json({ ok: true, message: "✅ Demande supprimée définitivement." });
@@ -496,48 +488,44 @@ router.delete('/supprimer/:id', protegerAdmin, async (req, res) => {
   }
 });
 
-
 // ==================================================
 // 🔑 CONNEXION PARENT PAR MATRICULE — Publique
 // ==================================================
 router.post('/parent-matricule', async (req, res) => {
   try {
     const { matricule, email_parent, telephone_parent } = req.body;
-    if (!matricule) {
+    if (!matricule?.trim()) {
       return res.json({ ok: false, erreur: "⚠️ Veuillez fournir le matricule de l'enfant." });
     }
-
     const enfant = await pool.query(`
       SELECT id, nom, prenom, matricule, id_classe, telephone_parent, email_parent, statut_compte, est_actif
       FROM utilisateurs WHERE matricule = $1 AND role = 'eleve' LIMIT 1
-    `, [matricule]);
+    `, [matricule.trim()]);
     if (enfant.rows.length === 0) {
       return res.json({ ok: false, erreur: "❌ Aucun élève trouvé avec ce matricule." });
     }
     const e = enfant.rows[0];
-
-    const correspondEmail = email_parent && e.email_parent && e.email_parent.toLowerCase() === email_parent.toLowerCase();
-    const correspondTel = telephone_parent && e.telephone_parent && e.telephone_parent.replace(/\s/g, '') === telephone_parent.replace(/\s/g, '');
+    const telNettoye = (telephone_parent || '').replace(/\s/g, '');
+    const correspondEmail = email_parent && e.email_parent && e.email_parent.toLowerCase().trim() === email_parent.toLowerCase().trim();
+    const correspondTel = telNettoye && e.telephone_parent && e.telephone_parent.replace(/\s/g, '') === telNettoye;
     if (!correspondEmail && !correspondTel) {
       return res.json({ ok: false, erreur: "⚠️ Informations du parent non concordantes. Vérifiez l'email ou le téléphone." });
     }
-
     const tousEnfants = await pool.query(`
       SELECT id, nom, prenom, matricule, id_classe, statut_compte
       FROM utilisateurs WHERE role = 'eleve'
         AND (
-          (email_parent IS NOT NULL AND LOWER(email_parent) = LOWER($1))
-          OR (telephone_parent IS NOT NULL AND REPLACE(telephone_parent, ' ', '') = REPLACE($2, ' ', ''))
+          (email_parent IS NOT NULL AND LOWER(email_parent) = LOWER($1) AND $1 <> '')
+          OR (telephone_parent IS NOT NULL AND REPLACE(telephone_parent, ' ', '') = $2 AND $2 <> '')
         )
       ORDER BY nom, prenom
-    `, [e.email_parent || '', e.telephone_parent || '']);
+    `, [e.email_parent || '', (e.telephone_parent || '').replace(/\s/g, '')]);
 
     const token = jwt.sign({
       id: `parent-${Date.now()}`,
       role: 'parent',
-      email_parent: e.email_parent,
-      telephone_parent: e.telephone_parent,
-      nombre_enfants: tousEnfants.rows.length
+      email_parent: e.email_parent || '',
+      telephone_parent: (e.telephone_parent || '').replace(/\s/g, '')
     }, CLE_JWT, { expiresIn: '30d' });
 
     console.log(`👨‍👩‍👧 CONNEXION PARENT — ${tousEnfants.rows.length} enfant(s) trouvé(s)`);
@@ -548,13 +536,11 @@ router.post('/parent-matricule', async (req, res) => {
       parent: { email_parent: e.email_parent, telephone_parent: e.telephone_parent },
       enfants: tousEnfants.rows
     });
-
   } catch (err) {
     console.error("❌ ERREUR CONNEXION PARENT :", err.message);
     res.json({ ok: false, erreur: "❌ Erreur serveur : " + err.message });
   }
 });
-
 
 // ==================================================
 // 👶 LISTE DES ENFANTS — GET /mes-enfants
@@ -562,30 +548,27 @@ router.post('/parent-matricule', async (req, res) => {
 router.get('/mes-enfants', protegerParent, async (req, res) => {
   try {
     const { email_parent, telephone_parent } = req.filtreParent;
-
+    const telNettoye = telephone_parent.replace(/\s/g, '');
     const r = await pool.query(`
       SELECT u.id, u.nom, u.prenom, u.matricule, u.id_classe, u.statut_compte,
              u.moyenne_annee_precedente, u.mention,
              c.libelle_classe
       FROM utilisateurs u
-      LEFT JOIN classes c ON u.id_classe = c.id_classe
+      LEFT JOIN classes u ON u.id_classe = c.id_classe
       WHERE u.role = 'eleve'
         AND (
           (LOWER(u.email_parent) = LOWER($1) AND $1 <> '')
-          OR (REPLACE(u.telephone_parent, ' ', '') = REPLACE($2, ' ', '') AND $2 <> '')
+          OR (REPLACE(u.telephone_parent, ' ', '') = $2 AND $2 <> '')
         )
       ORDER BY u.prenom, u.nom
-    `, [email_parent || '', telephone_parent || '']);
-
+    `, [email_parent, telNettoye]);
     console.log(`✅ mes-enfants : ${r.rows.length} élève(s) trouvé(s)`);
     res.json({ ok: true, enfants: r.rows });
-
   } catch (e) {
     console.error("❌ ERREUR mes-enfants :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
-
 
 // ==================================================
 // 📝 NOTES PAR TRIMESTRE — GET /notes/:id_eleve
@@ -594,9 +577,7 @@ router.get('/notes/:id_eleve', protegerParent, async (req, res) => {
   try {
     const { id_eleve } = req.params;
     const trimestre = req.query.trimestre || '1';
-    const filtre = req.filtreParent;
-
-    const enfant = await verifierAppartenanceEnfant(id_eleve, filtre, pool);
+    const enfant = await verifierAppartenanceEnfant(id_eleve, req.filtreParent, pool);
     if (!enfant) return res.json({ ok: false, erreur: "⛔ Accès refusé — Cet enfant ne vous appartient pas." });
 
     const r = await pool.query(`
@@ -608,8 +589,9 @@ router.get('/notes/:id_eleve', protegerParent, async (req, res) => {
       ORDER BY m.libelle_matiere
     `, [id_eleve, trimestre]);
 
-    const notesValides = r.rows.filter(n => n.moyenne !== null && n.moyenne !== '');
-    const valeurs = notesValides.map(n => parseFloat(n.moyenne));
+    const valeurs = r.rows.filter(n => n.moyenne !== null && n.moyenne !== '')
+                          .map(n => parseFloat(n.moyenne))
+                          .filter(n => !isNaN(n));
     const moyenne_generale = valeurs.length ? (valeurs.reduce((a, b) => a + b, 0) / valeurs.length).toFixed(2) : null;
 
     let mention = '';
@@ -622,13 +604,11 @@ router.get('/notes/:id_eleve', protegerParent, async (req, res) => {
 
     console.log(`✅ notes/${id_eleve} Trimestre ${trimestre} — ${r.rows.length} notes`);
     res.json({ ok: true, notes: r.rows, moyenne_generale, mention });
-
   } catch (e) {
     console.error("❌ ERREUR notes :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
-
 
 // ==================================================
 // 📚 BULLETINS 3 ANS — GET /bulletins/:id_eleve
@@ -636,9 +616,7 @@ router.get('/notes/:id_eleve', protegerParent, async (req, res) => {
 router.get('/bulletins/:id_eleve', protegerParent, async (req, res) => {
   try {
     const { id_eleve } = req.params;
-    const filtre = req.filtreParent;
-
-    const enfant = await verifierAppartenanceEnfant(id_eleve, filtre, pool);
+    const enfant = await verifierAppartenanceEnfant(id_eleve, req.filtreParent, pool);
     if (!enfant) return res.json({ ok: false, erreur: "⛔ Accès refusé" });
 
     const r = await pool.query(`
@@ -648,16 +626,13 @@ router.get('/bulletins/:id_eleve', protegerParent, async (req, res) => {
       ORDER BY annee_scolaire DESC
       LIMIT 3
     `, [id_eleve]);
-
     console.log(`✅ bulletins/${id_eleve} — ${r.rows.length} année(s)`);
     res.json({ ok: true, bulletins: r.rows });
-
   } catch (e) {
     console.error("❌ ERREUR bulletins :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
-
 
 // ==================================================
 // 📅 EMPLOI DU TEMPS — GET /edt/:id_eleve
@@ -665,13 +640,10 @@ router.get('/bulletins/:id_eleve', protegerParent, async (req, res) => {
 router.get('/edt/:id_eleve', protegerParent, async (req, res) => {
   try {
     const { id_eleve } = req.params;
-    const filtre = req.filtreParent;
-
-    const enfant = await verifierAppartenanceEnfant(id_eleve, filtre, pool);
+    const enfant = await verifierAppartenanceEnfant(id_eleve, req.filtreParent, pool);
     if (!enfant || !enfant.id_classe) {
       return res.json({ ok: false, erreur: enfant ? "ℹ️ Classe non définie" : "⛔ Accès refusé" });
     }
-
     const r = await pool.query(`
       SELECT jour, heure_debut, heure_fin, libelle_matiere, salle
       FROM emploi
@@ -684,16 +656,13 @@ router.get('/edt/:id_eleve', protegerParent, async (req, res) => {
         END,
         heure_debut
     `, [enfant.id_classe]);
-
     console.log(`✅ edt/${id_eleve} — ${r.rows.length} séance(s)`);
     res.json({ ok: true, seances: r.rows });
-
   } catch (e) {
     console.error("❌ ERREUR edt :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
-
 
 // ==================================================
 // 💰 FRAIS & PAIEMENTS — GET /paiements/:id_eleve
@@ -701,9 +670,7 @@ router.get('/edt/:id_eleve', protegerParent, async (req, res) => {
 router.get('/paiements/:id_eleve', protegerParent, async (req, res) => {
   try {
     const { id_eleve } = req.params;
-    const filtre = req.filtreParent;
-
-    const enfant = await verifierAppartenanceEnfant(id_eleve, filtre, pool);
+    const enfant = await verifierAppartenanceEnfant(id_eleve, req.filtreParent, pool);
     if (!enfant) return res.json({ ok: false, erreur: "⛔ Accès refusé" });
 
     const synthese = await pool.query(`
@@ -714,7 +681,6 @@ router.get('/paiements/:id_eleve', protegerParent, async (req, res) => {
       FROM frais_scolaires
       WHERE id_eleve = $1
     `, [id_eleve]);
-
     const detail = await pool.query(`
       SELECT libelle, montant_total, montant_paye, (montant_total - montant_paye) AS reste_a_payer
       FROM frais_scolaires
@@ -730,13 +696,11 @@ router.get('/paiements/:id_eleve', protegerParent, async (req, res) => {
       restant: synthese.rows[0].restant,
       frais: detail.rows
     });
-
   } catch (e) {
     console.error("❌ ERREUR paiements :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
-
 
 // ==================================================
 // ℹ️ INFOS COMPLÈTES ÉLÈVE — GET /eleve/:id_eleve
@@ -744,7 +708,8 @@ router.get('/paiements/:id_eleve', protegerParent, async (req, res) => {
 router.get('/eleve/:id_eleve', protegerParent, async (req, res) => {
   try {
     const { id_eleve } = req.params;
-    const filtre = req.filtreParent;
+    const { email_parent, telephone_parent } = req.filtreParent;
+    const telNettoye = telephone_parent.replace(/\s/g, '');
 
     const r = await pool.query(`
       SELECT u.id, u.nom, u.prenom, u.matricule, u.date_naissance, u.adresse,
@@ -758,21 +723,18 @@ router.get('/eleve/:id_eleve', protegerParent, async (req, res) => {
       WHERE u.role = 'eleve' AND u.id = $1
         AND (
           (LOWER(u.email_parent) = LOWER($2) AND $2 <> '')
-          OR (REPLACE(u.telephone_parent, ' ', '') = REPLACE($3, ' ', '') AND $3 <> '')
+          OR (REPLACE(u.telephone_parent, ' ', '') = $3 AND $3 <> '')
         )
       LIMIT 1
-    `, [id_eleve, filtre.email_parent || '', filtre.telephone_parent || '']);
+    `, [id_eleve, email_parent, telNettoye]);
 
     if (!r.rows.length) return res.json({ ok: false, erreur: "⛔ Élève introuvable ou accès refusé" });
-
     console.log(`✅ eleve/${id_eleve} — Infos complètes renvoyées`);
     res.json({ ok: true, eleve: r.rows[0] });
-
   } catch (e) {
     console.error("❌ ERREUR eleve :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
-
 
 module.exports = router;
