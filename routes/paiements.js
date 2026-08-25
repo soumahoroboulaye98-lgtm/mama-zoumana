@@ -1,34 +1,63 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const veriftoken = require('../middleware/veriftoken');   // ✅ Ajouté
-const verifadmin = require('../middleware/verifadmin');    // ✅ Après le token
+const veriftoken = require('../middleware/veriftoken');   // ✅ Vérification JWT
+const verifadmin = require('../middleware/verifadmin');   // ✅ Vérification Admin
 
-// ✅ Protections groupées
+// ✅ Protections groupées uniformes
 const protegerAdmin = [veriftoken, verifadmin];
-const protegerAuth = [veriftoken]; // Seul le token suffit pour l'espace utilisateur
-
+const protegerAuth = [veriftoken]; // Token seul pour l'espace utilisateur
 
 // ==================================================
-// 📋 LISTE DES PAIEMENTS + RÉSUMÉ — Administrateur seul
+// 🛡️ FONCTIONS UTILITAIRES — Robustesse
+// ==================================================
+function validerMethode(methode) {
+  const valides = ['especes','cheque','virement','wave','carte','orange','mtn','moov','caisse'];
+  return valides.includes(methode?.toLowerCase());
+}
+
+function validerStatut(statut) {
+  const valides = ['en_attente','partiel','paye','annule','refuse'];
+  return valides.includes(statut?.toLowerCase());
+}
+
+function calculerStatut(montantTotal, montantPaye) {
+  const du = parseFloat(montantTotal) || 0;
+  const verse = parseFloat(montantPaye) || 0;
+  const reste = Math.max(0, du - verse);
+  let statut = 'en_attente';
+  let pourcentage = 0;
+
+  if (du > 0) {
+    pourcentage = Math.round((verse / du) * 100 * 10) / 10;
+    if (verse >= du) statut = 'paye';
+    else if (verse > 0) statut = 'partiel';
+  }
+  return { montantDu: du, montantVerse: verse, montantRestant: reste, statut, pourcentage };
+}
+
+// ==================================================
+// 📋 LISTE DES PAIEMENTS + RÉSUMÉ + FILTRES — Admin
 // ==================================================
 router.get('/liste', protegerAdmin, async (req, res) => {
   try {
-    const { statut, moyen, mois, annee } = req.query;
+    const { statut, moyen, mois, annee, categorie, search } = req.query;
     let conditions = [], params = [], idx = 1;
 
-    if (statut) { conditions.push(`p.statut = $${idx++}`); params.push(statut); }
-    if (moyen) { conditions.push(`p.moyen_paiement = $${idx++}`); params.push(moyen); }
+    if (statut && validerStatut(statut)) { conditions.push(`p.statut = $${idx++}`); params.push(statut); }
+    if (moyen && validerMethode(moyen)) { conditions.push(`p.moyen_paiement = $${idx++}`); params.push(moyen); }
     if (mois && annee) {
-      conditions.push(`EXTRACT(MONTH FROM p.date_paiement) = $${idx}`); params.push(mois); idx++;
-      conditions.push(`EXTRACT(YEAR FROM p.date_paiement) = $${idx}`); params.push(annee); idx++;
+      conditions.push(`EXTRACT(MONTH FROM p.date_paiement) = $${idx}`); params.push(parseInt(mois)); idx++;
+      conditions.push(`EXTRACT(YEAR FROM p.date_paiement) = $${idx}`); params.push(parseInt(annee)); idx++;
     }
+    if (categorie) { conditions.push(`p.categorie = $${idx++}`); params.push(categorie); }
+    if (search) { conditions.push(`(u.nom ILIKE $${idx} OR u.prenom ILIKE $${idx} OR p.reference_externe ILIKE $${idx})`); params.push(`%${search}%`); idx++; }
 
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    const r = await pool.query(`
+    const { rows: paiements } = await pool.query(`
       SELECT p.*,
-        CASE WHEN p.montant_total > 0 THEN ROUND((p.montant_paye / p.montant_total) * 100, 1) ELSE 0 END AS pourcentage_paiement_calcule,
+        CASE WHEN p.montant_total > 0 THEN ROUND((p.montant_paye / p.montant_total) * 100, 1) ELSE 0 END AS pourcentage_calcule,
         u.nom, u.prenom, u.email
       FROM paiements p
       LEFT JOIN utilisateurs u ON p.id_utilisateur = u.id
@@ -36,8 +65,7 @@ router.get('/liste', protegerAdmin, async (req, res) => {
       ORDER BY p.date_paiement DESC, p.date_creation DESC
     `, params);
 
-    // 📊 Résumé
-    const totaux = await pool.query(`
+    const { rows: [resume] } = await pool.query(`
       SELECT
         COUNT(*) AS total_enregistrements,
         COALESCE(SUM(p.montant_total),0)::NUMERIC AS somme_totale,
@@ -45,33 +73,25 @@ router.get('/liste', protegerAdmin, async (req, res) => {
         COALESCE(SUM(p.montant_restant),0)::NUMERIC AS somme_restante,
         COUNT(CASE WHEN p.statut = 'paye' THEN 1 END) AS nombre_paye,
         COUNT(CASE WHEN p.statut = 'partiel' THEN 1 END) AS nombre_partiel,
-        COUNT(CASE WHEN p.statut = 'en_attente' THEN 1 END) AS nombre_attente
+        COUNT(CASE WHEN p.statut = 'en_attente' THEN 1 END) AS nombre_attente,
+        COUNT(CASE WHEN p.statut = 'annule' THEN 1 END) AS nombre_annule
       FROM paiements p ${where}
     `, params);
 
-    console.log(`✅ Liste paiements chargée : ${r.rows.length} enregistrements`);
-    res.json({
-      ok: true,
-      paiements: r.rows,
-      resume: {
-        somme_totale: totaux.rows[0].somme_totale,
-        somme_recue: totaux.rows[0].somme_recue,
-        somme_restante: totaux.rows[0].somme_restante
-      }
-    });
+    console.log(`✅ Liste paiements — ${paiements.length} enregistrement(s)`);
+    res.json({ ok: true, paiements, resume });
   } catch (e) {
-    console.log("❌ ERREUR LISTE PAIEMENTS :", e.message);
+    console.error("❌ ERREUR LISTE PAIEMENTS :", e.code, e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
-
 // ==================================================
-// ➕ ENREGISTRER UN PAIEMENT — Administrateur seul
+// ➕ ENREGISTRER UN PAIEMENT — Admin
 // ==================================================
 router.post('/enregistrer', protegerAdmin, async (req, res) => {
   try {
-    const id_utilisateur = req.user.id;
+    const id_admin = req.user.id;
     const {
       reference_externe, libelle, montant_total, montant_paye = 0,
       moyen_paiement, date_paiement, date_echeance,
@@ -79,174 +99,207 @@ router.post('/enregistrer', protegerAdmin, async (req, res) => {
       commentaire, categorie, id_eleve
     } = req.body;
 
-    // ✅ Validation
-    if (!libelle || !montant_total || !moyen_paiement) {
-      return res.json({ ok: false, erreur: "Libellé, montant et moyen de paiement sont obligatoires" });
-    }
+    if (!libelle?.trim()) return res.json({ ok: false, erreur: "⚠️ Libellé obligatoire" });
+    if (!montant_total || parseFloat(montant_total) <= 0) return res.json({ ok: false, erreur: "⚠️ Montant total invalide" });
+    if (!moyen_paiement || !validerMethode(moyen_paiement)) return res.json({ ok: false, erreur: "⚠️ Moyen de paiement invalide" });
 
-    const montantDu = parseFloat(montant_total) || 0;
-    const montantVerse = parseFloat(montant_paye) || 0;
-    const montantRestant = Math.max(0, montantDu - montantVerse);
+    const { montantDu, montantVerse, montantRestant, statut, pourcentage } = calculerStatut(montant_total, montant_paye);
+    const idCible = id_eleve || id_admin;
+    const ref = reference_externe || `MZ-PMT-${Date.now().toString().slice(-10)}`;
 
-    // ✅ Statut et pourcentage calculés automatiquement
-    let statut = 'en_attente';
-    let pourcentage = 0;
-    if (montantDu > 0) {
-      pourcentage = Math.round((montantVerse / montantDu) * 100 * 10) / 10;
-      if (montantVerse >= montantDu) statut = 'paye';
-      else if (montantVerse > 0) statut = 'partiel';
-    }
-
-    const r = await pool.query(`
+    const { rows: [nouveau] } = await pool.query(`
       INSERT INTO paiements(
         id_utilisateur, reference_externe, libelle,
         montant_total, montant_paye, montant_restant,
         statut, pourcentage_paiement,
         moyen_paiement, date_paiement, date_echeance,
         numero_transaction, banque_emetteur, numero_cheque,
-        commentaire, categorie, date_creation
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,NOW())
+        commentaire, categorie, date_creation, date_mise_a_jour
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,NOW(),NOW())
       RETURNING *
     `, [
-      id_eleve || id_utilisateur, reference_externe || null, libelle,
+      idCible, ref, libelle.trim(),
       montantDu, montantVerse, montantRestant,
       statut, pourcentage,
-      moyen_paiement, date_paiement || new Date(), date_echeance || null,
+      moyen_paiement.toLowerCase(), date_paiement || new Date(), date_echeance || null,
       numero_transaction || null, banque_emetteur || null, numero_cheque || null,
       commentaire || null, categorie || 'frais_scolaires'
     ]);
 
-    console.log(`✅ Paiement enregistré — ID: ${r.rows[0].id_paiement}, Statut: ${statut}`);
-    res.json({ ok: true, paiement: r.rows[0] });
+    console.log(`✅ Paiement enregistré — Réf: ${ref} | ${statut} | ${montantVerse}/${montantDu} XOF`);
+    res.json({ ok: true, message: "✅ Paiement enregistré", paiement: nouveau });
   } catch (e) {
-    console.log("❌ ERREUR ENREGISTREMENT PAIEMENT :", e.message);
+    console.error("❌ ERREUR ENREGISTREMENT :", e.code, e.message);
+    if (e.code === '23505') return res.json({ ok: false, erreur: "⚠️ Référence déjà utilisée" });
     res.json({ ok: false, erreur: e.message });
   }
 });
 
-
 // ==================================================
-// ✏️ AJOUTER UN VERSEMENT — Administrateur seul
+// ✏️ AJOUTER UN VERSEMENT — Admin
 // ==================================================
 router.put('/ajouter-versement/:id', protegerAdmin, async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
+
     const { montant_paye, commentaire, numero_transaction } = req.body;
-    const montantAjoute = parseFloat(montant_paye) || 0;
+    const ajoute = parseFloat(montant_paye) || 0;
+    if (ajoute <= 0) return res.json({ ok: false, erreur: "⚠️ Montant du versement invalide" });
 
-    // Récupère le paiement existant
-    const ancien = await pool.query(
-      'SELECT montant_total, montant_paye FROM paiements WHERE id_paiement = $1',
-      [id]
+    const { rows: [ancien] } = await pool.query(
+      'SELECT montant_total, montant_paye, statut FROM paiements WHERE id_paiement = $1', [id]
     );
-    if (!ancien.rows.length) {
-      return res.json({ ok: false, erreur: "Paiement introuvable" });
-    }
+    if (!ancien) return res.json({ ok: false, erreur: "⚠️ Paiement introuvable" });
+    if (ancien.statut === 'paye') return res.json({ ok: false, erreur: "⚠️ Paiement déjà soldé" });
 
-    const montantDu = parseFloat(ancien.rows[0].montant_total);
-    const nouveauPaye = parseFloat(ancien.rows[0].montant_paye) + montantAjoute;
-    const nouveauRestant = Math.max(0, montantDu - nouveauPaye);
+    const { montantDu, montantVerse, montantRestant, statut, pourcentage } = calculerStatut(ancien.montant_total, ancien.montant_paye + ajoute);
+    const nouvelleNote = `\n— Versement du ${new Date().toLocaleDateString('fr-FR')} : ${ajoute} XOF${commentaire ? ` | ${commentaire}` : ''}`;
 
-    // ✅ Nouveau statut et pourcentage recalculés
-    let nouveauStatut = 'en_attente';
-    let nouveauPourcentage = 0;
-    if (montantDu > 0) {
-      nouveauPourcentage = Math.round((nouveauPaye / montantDu) * 100 * 10) / 10;
-      if (nouveauPaye >= montantDu) nouveauStatut = 'paye';
-      else if (nouveauPaye > 0) nouveauStatut = 'partiel';
-    }
-
-    const r = await pool.query(`
+    const { rows: [maj] } = await pool.query(`
       UPDATE paiements SET
-        montant_paye = $1,
-        montant_restant = $2,
-        statut = $3,
-        pourcentage_paiement = $4,
-        commentaire = CONCAT(COALESCE(commentaire, ''), E'\n— Versement ajouté le ' || NOW()::DATE || ' : ' || $5 || ' F CFA'),
-        numero_transaction = COALESCE($6, numero_transaction),
-        date_mise_a_jour = NOW()
-      WHERE id_paiement = $7
-      RETURNING *
-    `, [nouveauPaye, nouveauRestant, nouveauStatut, nouveauPourcentage, montantAjoute, numero_transaction || null, id]);
+        montant_paye = $1, montant_restant = $2, statut = $3, pourcentage_paiement = $4,
+        commentaire = CONCAT(COALESCE(commentaire, ''), $5),
+        numero_transaction = COALESCE($6, numero_transaction), date_mise_a_jour = NOW()
+      WHERE id_paiement = $7 RETURNING *
+    `, [montantVerse, montantRestant, statut, pourcentage, nouvelleNote, numero_transaction || null, id]);
 
-    console.log(`✅ Versement ajouté — Paiement ID: ${id}, Nouveau statut: ${nouveauStatut}`);
-    res.json({ ok: true, paiement: r.rows[0] });
+    console.log(`✅ Versement ajouté — ID: ${id} | ${ajoute} XOF | Nouveau statut: ${statut}`);
+    res.json({ ok: true, message: "✅ Versement enregistré", paiement: maj });
   } catch (e) {
-    console.log("❌ ERREUR AJOUT VERSEMENT :", e.message);
+    console.error("❌ ERREUR VERSEMENT :", e.code, e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+// ==================================================
+// ✏️ MODIFIER UN PAIEMENT — Admin
+// ==================================================
+router.put('/:id', protegerAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
+
+    const {
+      reference_externe, libelle, montant_total, montant_paye,
+      moyen_paiement, date_paiement, date_echeance,
+      numero_transaction, banque_emetteur, numero_cheque,
+      commentaire, categorie, statut
+    } = req.body;
+
+    const { rows: [ancien] } = await pool.query('SELECT * FROM paiements WHERE id_paiement = $1', [id]);
+    if (!ancien) return res.json({ ok: false, erreur: "⚠️ Paiement introuvable" });
+
+    const calcul = calculerStatut(montant_total || ancien.montant_total, montant_paye ?? ancien.montant_paye);
+    const nouveauStatut = validerStatut(statut) ? statut : calcul.statut;
+    const methode = moyen_paiement ? (validerMethode(moyen_paiement) ? moyen_paiement.toLowerCase() : ancien.moyen_paiement) : ancien.moyen_paiement;
+
+    const { rows: [maj] } = await pool.query(`
+      UPDATE paiements SET
+        reference_externe = COALESCE($1, reference_externe),
+        libelle = COALESCE($2, libelle),
+        montant_total = $3, montant_paye = $4, montant_restant = $5,
+        statut = $6, pourcentage_paiement = $7, moyen_paiement = $8,
+        date_paiement = COALESCE($9, date_paiement), date_echeance = COALESCE($10, date_echeance),
+        numero_transaction = COALESCE($11, numero_transaction),
+        banque_emetteur = COALESCE($12, banque_emetteur),
+        numero_cheque = COALESCE($13, numero_cheque),
+        commentaire = COALESCE($14, commentaire),
+        categorie = COALESCE($15, categorie), date_mise_a_jour = NOW()
+      WHERE id_paiement = $16 RETURNING *
+    `, [
+      reference_externe, libelle?.trim(),
+      calcul.montantDu, calcul.montantVerse, calcul.montantRestant,
+      nouveauStatut, calcul.pourcentage, methode,
+      date_paiement, date_echeance, numero_transaction,
+      banque_emetteur, numero_cheque, commentaire, categorie, id
+    ]);
+
+    console.log(`✅ Paiement modifié — ID: ${id}`);
+    res.json({ ok: true, message: "✅ Paiement mis à jour", paiement: maj });
+  } catch (e) {
+    console.error("❌ ERREUR MODIFICATION :", e.code, e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
+});
 
 // ==================================================
-// ❌ SUPPRIMER UN PAIEMENT — Administrateur seul
+// ❌ SUPPRIMER UN PAIEMENT — Admin
 // ==================================================
 router.delete('/:id', protegerAdmin, async (req, res) => {
   try {
-    const r = await pool.query(
-      'DELETE FROM paiements WHERE id_paiement = $1 RETURNING *',
-      [req.params.id]
-    );
-    if (!r.rows.length) {
-      return res.json({ ok: false, erreur: "Paiement introuvable" });
-    }
-    console.log(`🗑️ Paiement supprimé — ID: ${req.params.id}`);
-    res.json({ ok: true });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
+
+    const { rows: [suppr] } = await pool.query('DELETE FROM paiements WHERE id_paiement = $1 RETURNING *', [id]);
+    if (!suppr) return res.json({ ok: false, erreur: "⚠️ Paiement introuvable" });
+
+    console.log(`🗑️ Paiement supprimé — ID: ${id} | Réf: ${suppr.reference_externe}`);
+    res.json({ ok: true, message: "✅ Paiement supprimé" });
   } catch (e) {
-    console.log("❌ ERREUR SUPPRESSION PAIEMENT :", e.message);
+    console.error("❌ ERREUR SUPPRESSION :", e.code, e.message);
+    if (e.code === '23503') return res.json({ ok: false, erreur: "⚠️ Impossible : lié à d'autres enregistrements" });
     res.json({ ok: false, erreur: e.message });
   }
 });
-
 
 // ==================================================
 // 👤 MES PAIEMENTS — Utilisateur connecté
 // ==================================================
 router.get('/mes-paiements', protegerAuth, async (req, res) => {
   try {
-    const id_utilisateur = req.user?.id_utilisateur;
-    if (!id_utilisateur) {
-      return res.json({ ok: false, erreur: "Authentification requise" });
-    }
+    const id_utilisateur = req.user.id;
+    if (!id_utilisateur) return res.json({ ok: false, erreur: "⚠️ Authentification requise" });
 
-    const { statut, annee } = req.query;
-    let conditions = ['p.id_utilisateur = $1'];
-    let params = [id_utilisateur];
-    let idx = 2;
+    const { statut, annee, categorie } = req.query;
+    let conditions = ['p.id_utilisateur = $1'], params = [id_utilisateur], idx = 2;
 
-    if (statut) { conditions.push(`p.statut = $${idx++}`); params.push(statut); }
-    if (annee) { conditions.push(`EXTRACT(YEAR FROM p.date_paiement) = $${idx++}`); params.push(annee); }
+    if (statut && validerStatut(statut)) { conditions.push(`p.statut = $${idx++}`); params.push(statut); }
+    if (annee) { conditions.push(`EXTRACT(YEAR FROM p.date_paiement) = $${idx++}`); params.push(parseInt(annee)); }
+    if (categorie) { conditions.push(`p.categorie = $${idx++}`); params.push(categorie); }
 
     const where = `WHERE ${conditions.join(' AND ')}`;
 
-    const r = await pool.query(`
+    const { rows: paiements } = await pool.query(`
       SELECT p.*,
-        CASE WHEN p.montant_total > 0 THEN ROUND((p.montant_paye / p.montant_total) * 100, 1) ELSE 0 END AS pourcentage_paiement_calcule
-      FROM paiements p
-      ${where}
-      ORDER BY p.date_paiement DESC, p.date_creation DESC
+        CASE WHEN p.montant_total > 0 THEN ROUND((p.montant_paye / p.montant_total) * 100, 1) ELSE 0 END AS pourcentage_calcule
+      FROM paiements p ${where} ORDER BY p.date_paiement DESC, p.date_creation DESC
     `, params);
 
-    const totaux = await pool.query(`
+    const { rows: [resume] } = await pool.query(`
       SELECT
         COALESCE(SUM(p.montant_total),0)::NUMERIC AS somme_totale,
         COALESCE(SUM(p.montant_paye),0)::NUMERIC AS somme_recue,
         COALESCE(SUM(p.montant_restant),0)::NUMERIC AS somme_restante
-      FROM paiements p
-      ${where}
+      FROM paiements p ${where}
     `, params);
 
-    console.log(`✅ Mes paiements chargés — Utilisateur ID: ${id_utilisateur}`);
-    res.json({
-      ok: true,
-      paiements: r.rows,
-      resume: totaux.rows[0]
-    });
+    console.log(`✅ Mes paiements — Utilisateur ID: ${id_utilisateur}`);
+    res.json({ ok: true, paiements, resume });
   } catch (e) {
-    console.log("❌ ERREUR LISTE UTILISATEUR :", e.message);
+    console.error("❌ ERREUR MES PAIEMENTS :", e.code, e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
+// ==================================================
+// 🔓 CONSULTER UN PAIEMENT PAR RÉFÉRENCE — Publique
+// ==================================================
+router.get('/reference/:ref', async (req, res) => {
+  try {
+    const reference = req.params.ref;
+    const { rows: [paiement] } = await pool.query(`
+      SELECT libelle, montant_total, montant_paye, montant_restant,
+             statut, moyen_paiement, date_paiement, pourcentage_paiement
+      FROM paiements WHERE reference_externe = $1
+    `, [reference]);
+
+    if (!paiement) return res.json({ ok: false, erreur: "⚠️ Référence introuvable" });
+    res.json({ ok: true, paiement });
+  } catch (e) {
+    console.error("❌ ERREUR RÉFÉRENCE :", e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
+});
 
 module.exports = router;

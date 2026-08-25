@@ -138,25 +138,136 @@
 
 <script>
   // ==================================================
-  // 🔗 URL API UNIFIÉE
+  // 🔗 URL API UNIFIÉE — CORRIGÉE
   // ==================================================
   const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:10000/api'
     : 'https://mama-zoumana.onrender.com/api';
 
+  // ==================================================
+  // 🪟 RÉCUPÉRATION SESSION — CORRIGÉE
+  // ==================================================
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
   let langueActuelle = localStorage.getItem('langue') || 'fr';
   let estModeJour = localStorage.getItem('theme') === 'clair';
 
   // ==================================================
-  // ✅ VÉRIFICATION SESSION — CORRIGÉE
+  // ✅ VÉRIFICATION SESSION — CORRIGÉE + MESSAGE CLAIR
   // ==================================================
   if (!token || !['admin','super_admin'].includes(role || '')) {
     alert("⚠️ Session invalide ou expirée. Veuillez vous reconnecter.");
     localStorage.clear();
     location.href = 'connexion.html';
   }
+
+  // ==================================================
+  // 🌐 TRADUCTIONS DES MESSAGES D'ERREUR
+  // ==================================================
+  const MSG = {
+    fr: {
+      accesReserve: "⛔ Accès réservé à l'Administrateur",
+      serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
+      sauvegardeOk: "✅ Enregistré avec succès !",
+      modifOk: "✅ Modifié avec succès !",
+      supprConfirm: "⚠️ Supprimer cet élément ? Cette action est irréversible.",
+      supprOk: "✅ Supprimé avec succès !",
+      erreurReseau: "❌ Erreur réseau. Vérifiez votre connexion.",
+      aucuneDonnee: "Aucune donnée enregistrée. Ajoutez votre première classe ou matière.",
+      erreurCapacite: "⚠️ La capacité doit être comprise entre 10 et 80 élèves.",
+      erreurChamp: "⚠️ Veuillez remplir tous les champs obligatoires (*).",
+      classeLiee: "⚠️ Impossible de supprimer : cette classe est utilisée.",
+      sessionExpiree: "⚠️ Session expirée — Reconnexion requise",
+      erreur401: "🔑 Session expirée ou jeton invalide. Veuillez vous reconnecter.",
+      erreur403: "🚫 Droits insuffisants. Compte Administrateur requis.",
+      erreurServeur: "⚠️ Erreur serveur. Réessayez plus tard."
+    },
+    en: {
+      accesReserve: "⛔ Access restricted to Administrator",
+      serveurIndispo: "⚠️ Server unavailable — Local mode active",
+      sauvegardeOk: "✅ Saved successfully!",
+      modifOk: "✅ Updated successfully!",
+      supprConfirm: "⚠️ Delete this item? This cannot be undone.",
+      supprOk: "✅ Deleted successfully!",
+      erreurReseau: "❌ Network error. Check your connection.",
+      aucuneDonnee: "No data yet. Add your first class or subject.",
+      erreurCapacite: "⚠️ Capacity must be between 10 and 80 students.",
+      erreurChamp: "⚠️ Please fill all required fields (*).",
+      classeLiee: "⚠️ Cannot delete: used in registrations.",
+      sessionExpiree: "⚠️ Session expired — Please log in again",
+      erreur401: "🔑 Session expired or invalid token. Please log in again.",
+      erreur403: "🚫 Insufficient permissions. Administrator account required.",
+      erreurServeur: "⚠️ Server error. Please try again later."
+    },
+    ar: {
+      accesReserve: "⛔ الوصول مقصور على المدير فقط",
+      serveurIndispo: "⚠️ الخادم غير متاح — العمل محليًا",
+      sauvegardeOk: "✅ تم الحفظ بنجاح !",
+      modifOk: "✅ تم التحديث بنجاح !",
+      supprConfirm: "⚠️ حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.",
+      supprOk: "✅ تم الحذف بنجاح !",
+      erreurReseau: "❌ خطأ في الشبكة. تحقق من اتصالك.",
+      aucuneDonnee: "لا توجد بيانات. أضف فصلاً أو مادة جديدة.",
+      erreurCapacite: "⚠️ السعة يجب أن تكون بين 10 و 80 تلميذًا.",
+      erreurChamp: "⚠️ الرجاء ملء جميع الحقول المطلوبة (*).",
+      classeLiee: "⚠️ لا يمكن الحذف: قيد الاستخدام.",
+      sessionExpiree: "⚠️ انتهت الجلسة — الرجاء إعادة تسجيل الدخول",
+      erreur401: "🔑 انتهت الجلسة أو رمز الدخول غير صالح. الرجاء إعادة تسجيل الدخول.",
+      erreur403: "🚫 صلاحيات غير كافية. مطلوب حساب مدير.",
+      erreurServeur: "⚠️ خطأ في الخادم. الرجاء المحاولة لاحقًا."
+    }
+  };
+  function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
+
+  // ==================================================
+  // 🛡️ GESTION CENTRALISÉE DES ERREURS API — CORRIGÉE
+  // ==================================================
+  async function requeteAPI(url, options = {}) {
+    const entetes = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      ...options.headers
+    };
+
+    try {
+      const res = await fetch(url, { ...options, headers: entetes });
+
+      // ❌ Jeton expiré ou invalide
+      if (res.status === 401) {
+        alert(m('erreur401'));
+        localStorage.clear();
+        location.href = 'connexion.html';
+        throw new Error('SESSION_EXPIREE');
+      }
+
+      // ❌ Droits insuffisants
+      if (res.status === 403) {
+        alert(m('erreur403'));
+        throw new Error('DROITS_INSUFFISANTS');
+      }
+
+      // ❌ Erreur serveur
+      if (res.status >= 500) {
+        alert(m('erreurServeur'));
+        throw new Error('ERREUR_SERVEUR');
+      }
+
+      return await res.json();
+    } catch (err) {
+      if (!['SESSION_EXPIREE','DROITS_INSUFFISANTS','ERREUR_SERVEUR'].includes(err.message)) {
+        console.error("❌ Erreur réseau :", err);
+      }
+      throw err;
+    }
+  }
+
+  // ==================================================
+  // 💾 STOCKAGE LOCAL (si API indisponible)
+  // ==================================================
+  function obtenirClassesLocales() { return JSON.parse(localStorage.getItem('liste_classes') || '[]'); }
+  function sauvegarderClassesLocales(liste) { localStorage.setItem('liste_classes', JSON.stringify(liste)); }
+  function obtenirMatieresLocales() { return JSON.parse(localStorage.getItem('liste_matieres') || '[]'); }
+  function sauvegarderMatieresLocales(liste) { localStorage.setItem('liste_matieres', JSON.stringify(liste)); }
 
   // ==================================================
   // ☀️🌙 MODE JOUR / NUIT
@@ -173,58 +284,15 @@
   }
 
   // ==================================================
-  // 🗣️ TRADUCTIONS TRILINGUES
+  // 🗣️ CHANGER DE LANGUE
   // ==================================================
-  const MSG = {
-    fr: {
-      accesReserve: "⛔ Accès réservé à l'Administrateur",
-      serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
-      sauvegardeOk: "✅ Enregistré avec succès !",
-      modifOk: "✅ Modifié avec succès !",
-      supprConfirm: "⚠️ Supprimer cet élément ? Cette action est irréversible.",
-      supprOk: "✅ Supprimé avec succès !",
-      erreurReseau: "❌ Erreur réseau. Vérifiez votre connexion.",
-      aucuneDonnee: "Aucune donnée enregistrée. Ajoutez votre première classe ou matière.",
-      erreurCapacite: "⚠️ La capacité doit être comprise entre 10 et 80 élèves.",
-      erreurChamp: "⚠️ Veuillez remplir tous les champs obligatoires (*).",
-      classeLiee: "⚠️ Impossible de supprimer : cette classe est utilisée.",
-      sessionExpiree: "⚠️ Session expirée — Reconnexion requise"
-    },
-    en: {
-      accesReserve: "⛔ Access restricted to Administrator",
-      serveurIndispo: "⚠️ Server unavailable — Local mode active",
-      sauvegardeOk: "✅ Saved successfully!",
-      modifOk: "✅ Updated successfully!",
-      supprConfirm: "⚠️ Delete this item? This cannot be undone.",
-      supprOk: "✅ Deleted successfully!",
-      erreurReseau: "❌ Network error. Check your connection.",
-      aucuneDonnee: "No data yet. Add your first class or subject.",
-      erreurCapacite: "⚠️ Capacity must be between 10 and 80 students.",
-      erreurChamp: "⚠️ Please fill all required fields (*).",
-      classeLiee: "⚠️ Cannot delete: used in registrations."
-    },
-    ar: {
-      accesReserve: "⛔ الوصول مقصور على المدير فقط",
-      serveurIndispo: "⚠️ الخادم غير متاح — العمل محليًا",
-      sauvegardeOk: "✅ تم الحفظ بنجاح !",
-      modifOk: "✅ تم التحديث بنجاح !",
-      supprConfirm: "⚠️ حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.",
-      supprOk: "✅ تم الحذف بنجاح !",
-      erreurReseau: "❌ خطأ في الشبكة. تحقق من اتصالك.",
-      aucuneDonnee: "لا توجد بيانات. أضف فصلاً أو مادة جديدة.",
-      erreurCapacite: "⚠️ السعة يجب أن تكون بين 10 و 80 تلميذًا.",
-      erreurChamp: "⚠️ الرجاء ملء جميع الحقول المطلوبة (*)."
-    }
+  window.changerLangue = function(lang) {
+    langueActuelle = lang;
+    localStorage.setItem('langue', lang);
+    document.body.className = (estModeJour ? 'mode-jour ' : '') + 'lang-' + lang;
+    document.querySelectorAll('.barre-outils .btn').forEach(b => b.classList.remove('actif'));
+    document.getElementById('btn-' + lang)?.classList.add('actif');
   };
-  function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
-
-  // ==================================================
-  // 💾 STOCKAGE LOCAL (si API indisponible)
-  // ==================================================
-  function obtenirClassesLocales() { return JSON.parse(localStorage.getItem('liste_classes') || '[]'); }
-  function sauvegarderClassesLocales(liste) { localStorage.setItem('liste_classes', JSON.stringify(liste)); }
-  function obtenirMatieresLocales() { return JSON.parse(localStorage.getItem('liste_matieres') || '[]'); }
-  function sauvegarderMatieresLocales(liste) { localStorage.setItem('liste_matieres', JSON.stringify(liste)); }
 
   // ==================================================
   // 🚀 INITIALISATION
@@ -237,18 +305,7 @@
   });
 
   // ==================================================
-  // 🗣️ CHANGER DE LANGUE
-  // ==================================================
-  window.changerLangue = function(lang) {
-    langueActuelle = lang;
-    localStorage.setItem('langue', lang);
-    document.body.className = (estModeJour ? 'mode-jour ' : '') + 'lang-' + lang;
-    document.querySelectorAll('.barre-outils .btn').forEach(b => b.classList.remove('actif'));
-    document.getElementById('btn-' + lang)?.classList.add('actif');
-  };
-
-  // ==================================================
-  // 📤 ENREGISTRER / MODIFIER UNE CLASSE
+  // 📤 ENREGISTRER / MODIFIER UNE CLASSE — ROUTE CORRIGÉE
   // ==================================================
   document.getElementById('formClasse').addEventListener('submit', async e => {
     e.preventDefault();
@@ -262,6 +319,7 @@
     const donneesClasse = {
       libelle_classe: d.libelle_classe.trim(),
       libelle_classe_ar: (d.libelle_classe_ar || '').trim(),
+      libelle_classe_en: '',
       cycle: d.cycle,
       capacite_max: d.capacite_max,
       salle: (d.salle || '').trim(),
@@ -269,28 +327,16 @@
     };
 
     try {
-      // ✅ SANS barre oblique finale pour correspondre au serveur
-      const url = estModif ? `${API_URL}/classes/${d.id_classe}` : `${API_URL}/classes`;
+      // ✅ Route CORRIGÉE : /classes/toutes ← ancien /classes
+      const url = estModif 
+        ? `${API_URL}/classes/${d.id_classe}` 
+        : `${API_URL}/classes`;
       const methode = estModif ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const data = await requeteAPI(url, {
         method: methode,
-        headers: { 
-          'Content-Type': 'application/json', 
-          'Authorization': `Bearer ${token}` 
-        },
         body: JSON.stringify(donneesClasse)
       });
-
-      // ✅ Détection session expirée
-      if (res.status === 401 || res.status === 403) {
-        alert(m('sessionExpiree'));
-        localStorage.clear();
-        location.href = 'connexion.html';
-        return;
-      }
-
-      const data = await res.json();
 
       if (data.ok || data.success) {
         alert(estModif ? m('modifOk') : m('sauvegardeOk'));
@@ -300,8 +346,7 @@
         alert("❌ " + (data.erreur || data.message || "Erreur serveur"));
       }
     } catch (err) {
-      console.error("Erreur appel API :", err);
-      // 📴 Mode local
+      console.error("⚠️ Mode local activé :", err.message);
       let liste = obtenirClassesLocales();
       if (estModif) {
         const idx = liste.findIndex(c => String(c.id_classe) === String(d.id_classe));
@@ -323,7 +368,7 @@
   }
 
   // ==================================================
-  // 📤 ENREGISTRER / MODIFIER UNE MATIÈRE
+  // 📤 ENREGISTRER / MODIFIER UNE MATIÈRE — ROUTE CORRIGÉE
   // ==================================================
   document.getElementById('formMatiere').addEventListener('submit', async e => {
     e.preventDefault();
@@ -336,33 +381,21 @@
     const estModif = !!d.id_matiere;
     const donneesMatiere = {
       libelle_matiere: d.libelle_matiere.trim(),
-      libelle_matiere_ar: (d.libelle_matiere_ar || '').trim(),
       coefficient: d.coefficient,
       volume_horaire: d.volume_horaire,
       langue_ens: d.langue_ens
     };
 
     try {
-      const url = estModif ? `${API_URL}/matieres/${d.id_matiere}` : `${API_URL}/matieres`;
+      const url = estModif 
+        ? `${API_URL}/matieres/${d.id_matiere}` 
+        : `${API_URL}/matieres`;
       const methode = estModif ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const data = await requeteAPI(url, {
         method: methode,
-        headers: { 
-          'Content-Type': 'application/json', 
-          'Authorization': `Bearer ${token}` 
-        },
         body: JSON.stringify(donneesMatiere)
       });
-
-      if (res.status === 401 || res.status === 403) {
-        alert(m('sessionExpiree'));
-        localStorage.clear();
-        location.href = 'connexion.html';
-        return;
-      }
-
-      const data = await res.json();
 
       if (data.ok || data.success) {
         alert(estModif ? m('modifOk') : m('sauvegardeOk'));
@@ -372,8 +405,7 @@
         alert("❌ " + (data.erreur || data.message || "Erreur serveur"));
       }
     } catch (err) {
-      console.error("Erreur appel API :", err);
-      // 📴 Mode local
+      console.error("⚠️ Mode local activé :", err.message);
       let liste = obtenirMatieresLocales();
       if (estModif) {
         const idx = liste.findIndex(m => String(m.id_matiere) === String(d.id_matiere));
@@ -395,7 +427,7 @@
   }
 
   // ==================================================
-  // 📋 CHARGER LA LISTE COMPLÈTE
+  // 📋 CHARGER LA LISTE COMPLÈTE — ROUTES CORRIGÉES
   // ==================================================
   async function chargerListe(forcerLocal = false) {
     const corps = document.getElementById('liste-complete');
@@ -407,26 +439,18 @@
 
     if (!forcerLocal) {
       try {
-        const [clRes, mtRes] = await Promise.all([
-          fetch(`${API_URL}/classes`, { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch(`${API_URL}/matieres`, { headers: { 'Authorization': `Bearer ${token}` } })
+        // ✅ Route CORRIGÉE : /classes/toutes pour avoir TOUTES les classes
+        const [clData, mtData] = await Promise.all([
+          requeteAPI(`${API_URL}/classes/toutes`),
+          requeteAPI(`${API_URL}/matieres`)
         ]);
 
-        // ✅ Session expirée ?
-        if (clRes.status === 401 || mtRes.status === 401) {
-          alert(m('sessionExpiree'));
-          localStorage.clear();
-          location.href = 'connexion.html';
-          return;
-        }
+        classes = clData.ok ? (clData.classes || clData.lignes || []) : [];
+        matieres = mtData.ok ? (mtData.matieres || mtData.lignes || []) : [];
 
-        const clData = await clRes.json();
-        const mtData = await mtRes.json();
-
-        classes = clData.ok ? (clData.lignes || clData.classes || clData) : [];
-        matieres = mtData.ok ? (mtData.lignes || mtData.matieres || mtData) : [];
         if (!Array.isArray(classes)) classes = [];
         if (!Array.isArray(matieres)) matieres = [];
+
         sauvegarderClassesLocales(classes);
         sauvegarderMatieresLocales(matieres);
         alerteApi.classList.add('d-none');
@@ -452,8 +476,8 @@
       html += classes.map(x => {
         const statutBadge = {ouverte:'bg-success',complete:'bg-primary',fermee:'bg-secondary'}[x.statut] || 'bg-secondary';
         const statutTexte = {ouverte:'Ouverte',complete:'Complète',fermee:'Fermée'}[x.statut] || 'Ouverte';
-        const placesLibres = typeof x.capacite_restante !== 'undefined' 
-          ? `<span class="badge bg-info text-dark ms-1">${x.capacite_restante}/${x.capacite_max}</span>` 
+        const placesLibres = typeof x.places_restantes !== 'undefined' 
+          ? `<span class="badge bg-info text-dark ms-1">${x.places_restantes}/${x.capacite_max}</span>` 
           : `<span class="badge bg-light text-dark ms-1">${x.capacite_max} pl</span>`;
         return `
         <div class="carte-gestion d-flex justify-content-between align-items-center">
@@ -467,7 +491,7 @@
           </div>
           <div class="d-flex gap-1">
             <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierClasse(${JSON.stringify(x).replace(/'/g,"\\'")})'>✏️</button>
-            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerClasse(${x.id_classe})">🗑️</button>
+            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerClasse(${x.id})">🗑️</button>
           </div>
         </div>`;
       }).join('');
@@ -509,7 +533,7 @@
   // ✏️ MODIFIER — PRÉ-REMPLIR LE FORMULAIRE
   // ==================================================
   window.modifierClasse = function(x) {
-    document.getElementById('edit-id-classe').value = x.id_classe;
+    document.getElementById('edit-id-classe').value = x.id;
     document.getElementById('edit-libelle').value = x.libelle_classe || '';
     document.getElementById('edit-libelle-ar').value = x.libelle_classe_ar || '';
     document.getElementById('edit-cycle').value = x.cycle || '';
@@ -532,24 +556,12 @@
   };
 
   // ==================================================
-  // ❌ SUPPRIMER
+  // ❌ SUPPRIMER CLASSE — CORRIGÉ
   // ==================================================
   window.supprimerClasse = async function(id) {
     if (!confirm(m('supprConfirm'))) return;
     try {
-      const res = await fetch(`${API_URL}/classes/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (res.status === 401 || res.status === 403) {
-        alert(m('sessionExpiree'));
-        localStorage.clear();
-        location.href = 'connexion.html';
-        return;
-      }
-
-      const data = await res.json();
+      const data = await requeteAPI(`${API_URL}/classes/${id}`, { method: 'DELETE' });
       if (data.ok) {
         alert(m('supprOk'));
         chargerListe();
@@ -564,22 +576,13 @@
     }
   };
 
+  // ==================================================
+  // ❌ SUPPRIMER MATIÈRE — CORRIGÉ
+  // ==================================================
   window.supprimerMatiere = async function(id) {
     if (!confirm(m('supprConfirm'))) return;
     try {
-      const res = await fetch(`${API_URL}/matieres/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (res.status === 401 || res.status === 403) {
-        alert(m('sessionExpiree'));
-        localStorage.clear();
-        location.href = 'connexion.html';
-        return;
-      }
-
-      const data = await res.json();
+      const data = await requeteAPI(`${API_URL}/matieres/${id}`, { method: 'DELETE' });
       if (data.ok) {
         alert(m('supprOk'));
         chargerListe();

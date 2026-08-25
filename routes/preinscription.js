@@ -28,7 +28,7 @@ const protegerAdmin = [veriftoken, verifadmin];
 async function verifParent(req, res, next) {
   try {
     const u = req.user;
-    if (u.role !== 'parent') {
+    if (!u || u.role !== 'parent') {
       return res.json({ ok: false, erreur: "⛔ Espace réservé aux parents" });
     }
     req.filtreParent = {
@@ -47,8 +47,8 @@ const protegerParent = [veriftoken, verifParent];
 // ✅ GÉNÉRATION DU MATRICULE — MZ + ANNÉE FIN + ÂGE + N°
 // ==================================================
 async function genererMatricule(dateNaissance, anneeScolaire) {
-  const anneeFin = anneeScolaire.slice(-4);
-  const dateDebut = new Date(`${anneeScolaire.slice(0,4)}-10-01`);
+  const anneeFin = String(anneeScolaire || '2025-2026').slice(-4);
+  const dateDebut = new Date(`${String(anneeScolaire || '2025-2026').slice(0,4)}-10-01`);
   const naissance = new Date(dateNaissance);
   let age = dateDebut.getFullYear() - naissance.getFullYear();
   const mois = dateDebut.getMonth() - naissance.getMonth();
@@ -467,6 +467,31 @@ router.get('/detail/:id', protegerAdmin, async (req, res) => {
     res.json({ ok: true, demande: { ...d, classe: libelleClasse } });
   } catch (e) {
     console.error("❌ ERREUR DÉTAIL :", e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
+});
+
+
+// ==================================================
+// 🗑️ SUPPRIMER UNE DEMANDE — Admin Seul
+// ==================================================
+router.delete('/supprimer/:id', protegerAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const demande = await pool.query('SELECT id_classe_souhaitee, statut FROM preinscriptions WHERE id = $1', [id]);
+    if (demande.rows.length === 0) return res.json({ ok: false, erreur: "❌ Demande introuvable !" });
+    const { id_classe_souhaitee: idClasse, statut } = demande.rows[0];
+
+    // ✅ Libérer la place SEULEMENT si la demande était en attente
+    if (idClasse && statut === 'en_attente') {
+      await pool.query('UPDATE classes SET places_occupees = GREATEST(0, places_occupees - 1) WHERE id_classe = $1', [idClasse]);
+    }
+
+    await pool.query('DELETE FROM preinscriptions WHERE id = $1', [id]);
+    console.log(`🗑️ SUPPRIMÉE — ID:${id} | Classe:${idClasse || 'aucune'}`);
+    res.json({ ok: true, message: "✅ Demande supprimée définitivement." });
+  } catch (e) {
+    console.error("❌ ERREUR SUPPRESSION :", e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
