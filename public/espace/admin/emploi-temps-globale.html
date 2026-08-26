@@ -22,14 +22,11 @@
       --ombre: 0 10px 40px rgba(12, 74, 110, 0.12);
       --ombre-hover: 0 15px 50px rgba(12, 74, 110, 0.18);
     }
-
     body {
       background: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 50%, #f0fdf4 100%);
       min-height: 100vh;
       font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
     }
-
-    /* ========== ANIMATIONS ========== */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(30px); }
       to { opacity: 1; transform: translateY(0); }
@@ -52,8 +49,6 @@
     .delay-4 { animation-delay: 0.4s; }
     .pulse-slow { animation: pulse-slow 2.5s infinite; }
     .float { animation: float 3s ease-in-out infinite; }
-
-    /* ========== CARTES ========== */
     .card-glass {
       background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(12px);
@@ -74,8 +69,6 @@
       border-radius: 20px 20px 0 0 !important;
       padding: 1rem 1.5rem;
     }
-
-    /* ========== BANDEAU INFO ========== */
     .info-bar {
       background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
       border-left: 5px solid var(--secondaire);
@@ -90,12 +83,7 @@
       color: var(--primaire);
       letter-spacing: 1px;
     }
-
-    /* ========== TABLEAU ========== */
-    .table-responsive {
-      border-radius: 16px;
-      overflow: hidden;
-    }
+    .table-responsive { border-radius: 16px; overflow: hidden; }
     .table { margin-bottom: 0; }
     .table thead th {
       background: linear-gradient(90deg, var(--primaire) 0%, #0369a1 100%);
@@ -105,9 +93,7 @@
       padding: 1rem;
       font-size: 0.95rem;
     }
-    .table tbody tr {
-      transition: all 0.3s ease;
-    }
+    .table tbody tr { transition: all 0.3s ease; }
     .table tbody tr:hover {
       background-color: rgba(12, 74, 110, 0.06);
       transform: scale(1.008);
@@ -117,16 +103,12 @@
       padding: 0.9rem 1rem;
       border-color: #e2e8f0;
     }
-
-    /* ========== COULEURS PAR JOUR ========== */
     .jour-lundi { border-left: 4px solid var(--bleu-clair); }
     .jour-mardi { border-left: 4px solid var(--accent); }
     .jour-mercredi { border-left: 4px solid var(--violet); }
     .jour-jeudi { border-left: 4px solid var(--secondaire); }
     .jour-vendredi { border-left: 4px solid var(--primaire); }
     .jour-samedi { border-left: 4px solid var(--rouge); }
-
-    /* ========== BADGES ========== */
     .badge-classe {
       background: linear-gradient(135deg, var(--primaire), #0369a1);
       font-weight: 600;
@@ -156,8 +138,6 @@
       padding: 0.4rem 0.6rem;
       border-radius: 8px;
     }
-
-    /* ========== TRADUCTIONS ========== */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
@@ -165,8 +145,6 @@
     body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
     body.lang-ar .txt-ar { display: inline; direction: rtl; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
-
-    /* ========== RESPONSIVE MOBILE ========== */
     @media (max-width: 768px) {
       .card-header-grad { padding: 0.8rem 1rem; font-size: 1rem; }
       .table thead { display: none; }
@@ -177,22 +155,24 @@
   </style>
 </head>
 <body>
-
 <script>
-  // 🔗 URL adaptative
   const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:5000/api'
     : 'https://mama-zoumana-api.onrender.com/api';
-
   const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
   const langueActuelle = localStorage.getItem('langue') || 'fr';
   document.body.classList.add('lang-' + langueActuelle);
 
-  // 💾 Stockage local mode hors ligne
+  // 🔒 Vérification connexion
+  if (!token || !['admin','Admin','super_admin','prof','eleve'].includes(role || '')) {
+    alert("⛔ Connexion requise");
+    location.href = 'connexion.html';
+  }
+
   function obtenirEdtLocal() { return JSON.parse(localStorage.getItem('emploi_global') || '[]'); }
   function sauvegarderEdtLocal(liste) { localStorage.setItem('emploi_global', JSON.stringify(liste)); }
 
-  // 🗣️ Messages
   const MSG = {
     fr: { serveurIndispo: "⚠️ Serveur indisponible — Mode local actif", aucune: "Aucune séance programmée pour l'instant", erreur: "Erreur de chargement" },
     en: { serveurIndispo: "⚠️ Server offline — Local mode active", aucune: "No session scheduled yet", erreur: "Loading error" },
@@ -202,47 +182,44 @@
 </script>
 
 <div class="container py-4 py-md-5">
-
-  <!-- 📍 FIL D'ARIANE -->
   <div class="mb-4 fade-in-up delay-1">
     <a href="dashboard.html" class="text-decoration-none">
       <i class="bi bi-arrow-left-circle me-2"></i>
       <span class="txt-fr">Retour au Tableau de Bord</span>
-      <span class="txt-en d-none">Back to Dashboard</span>
-      <span class="txt-ar d-none">العودة إلى لوحة التحكم</span>
+      <span class="txt-en">Back to Dashboard</span>
+      <span class="txt-ar">العودة إلى لوحة التحكم</span>
     </a>
   </div>
 
-  <!-- 📅 EN-TÊTE : DATE & HEURE GREENWICH + ALERTE -->
+  <!-- 📅 EN-TÊTE : DATE & HEURE + ALERTE -->
   <div id="barreInfo" class="info-bar p-4 mb-4 fade-in-up delay-2">
     <div class="row align-items-center g-3">
       <div class="col-md-5">
         <h5 class="mb-2 text-dark">
           <i class="bi bi-calendar3 text-warning me-2"></i>
           <span class="txt-fr">Date du Jour</span>
-          <span class="txt-en d-none">Today's Date</span>
-          <span class="txt-ar d-none">تاريخ اليوم</span>
+          <span class="txt-en">Today's Date</span>
+          <span class="txt-ar">تاريخ اليوم</span>
         </h5>
         <div id="dateDuJour" class="fs-5 fw-bold text-dark pulse-slow"></div>
       </div>
       <div class="col-md-7 text-md-end">
         <h5 class="mb-2 text-dark">
-          <i class="bi bi-clock text-primary me-2"></i>
-          🕐 Heure Greenwich (UTC)
+          <i class="bi bi-clock text-primary me-2"></i> 🕐 Heure Greenwich (UTC)
         </h5>
         <div id="heureUTC" class="heure-utc float"></div>
       </div>
     </div>
   </div>
 
-  <!-- 📊 EMPLOI DU TEMPS GLOBAL -->
+  <!-- 📊 TABLEAU EDT -->
   <div class="card card-glass fade-in-up delay-3">
     <div class="card-header card-header-grad d-flex align-items-center justify-content-between">
       <span>
         <i class="bi bi-table me-2"></i>
         <span class="txt-fr">EMPLOI DU TEMPS GLOBAL — TOUTES CLASSES</span>
-        <span class="txt-en d-none">GLOBAL TIMETABLE — ALL CLASSES</span>
-        <span class="txt-ar d-none">الجدول الزمني العام — جميع الفصول</span>
+        <span class="txt-en">GLOBAL TIMETABLE — ALL CLASSES</span>
+        <span class="txt-ar">الجدول الزمني العام — جميع الفصول</span>
       </span>
       <button class="btn btn-sm btn-light" onclick="chargerEmploiTemps()">
         <i class="bi bi-arrow-clockwise"></i>
@@ -253,25 +230,20 @@
         <table class="table table-hover">
           <thead>
             <tr>
-              <th>📅 Jour</th>
-              <th>⏰ Heure</th>
-              <th>🏫 Classe</th>
-              <th>📖 Matière</th>
-              <th>
-                <span class="txt-fr">👨‍🏫 Professeur</span>
-                <span class="txt-en d-none">👨‍🏫 Teacher</span>
-                <span class="txt-ar d-none">👨‍🏫 الأستاذ</span>
-              </th>
+              <th>📅 <span class="txt-fr">Jour</span><span class="txt-en">Day</span><span class="txt-ar">اليوم</span></th>
+              <th>⏰ <span class="txt-fr">Heure</span><span class="txt-en">Time</span><span class="txt-ar">الوقت</span></th>
+              <th>🏫 <span class="txt-fr">Classe</span><span class="txt-en">Class</span><span class="txt-ar">القسم</span></th>
+              <th>📖 <span class="txt-fr">Matière</span><span class="txt-en">Subject</span><span class="txt-ar">المادة</span></th>
+              <th>👨‍🏫 <span class="txt-fr">Professeur</span><span class="txt-en">Teacher</span><span class="txt-ar">الأستاذ</span></th>
             </tr>
           </thead>
           <tbody id="corpsEmploi">
             <tr>
               <td colspan="5" class="text-center py-4 text-muted">
-                <div class="spinner-border text-primary mb-2"></div>
-                <br>
+                <div class="spinner-border text-primary mb-2"></div><br>
                 <span class="txt-fr">Chargement en cours...</span>
-                <span class="txt-en d-none">Loading...</span>
-                <span class="txt-ar d-none">جار التحميل...</span>
+                <span class="txt-en">Loading...</span>
+                <span class="txt-ar">جار التحميل...</span>
               </td>
             </tr>
           </tbody>
@@ -279,21 +251,16 @@
       </div>
     </div>
   </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // 🕐 METTRE À JOUR DATE & HEURE UTC EN TEMPS RÉEL
+  // 🕐 DATE & HEURE UTC
   function mettreAJourHeure() {
     const maintenant = new Date();
-
-    // 📅 Date du jour en français
     const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
     const dateFr = maintenant.toLocaleDateString('fr-FR', opts);
     document.getElementById('dateDuJour').textContent = dateFr.charAt(0).toUpperCase() + dateFr.slice(1);
-
-    // 🕐 Heure UTC / Greenwich
     const h = maintenant.getUTCHours().toString().padStart(2, '0');
     const m = maintenant.getUTCMinutes().toString().padStart(2, '0');
     const s = maintenant.getUTCSeconds().toString().padStart(2, '0');
@@ -302,14 +269,17 @@
   mettreAJourHeure();
   setInterval(mettreAJourHeure, 1000);
 
-  // 🎨 Rendu d'une ligne
+  // 🎨 Rendu ligne
   function rendreLigne(seance) {
-    const jourClasse = seance.jour === 'Lundi' ? 'jour-lundi' :
-                      seance.jour === 'Mardi' ? 'jour-mardi' :
-                      seance.jour === 'Mercredi' ? 'jour-mercredi' :
-                      seance.jour === 'Jeudi' ? 'jour-jeudi' :
-                      seance.jour === 'Vendredi' ? 'jour-vendredi' :
-                      seance.jour === 'Samedi' ? 'jour-samedi' : '';
+    const jourClasse = {
+      'Lundi': 'jour-lundi',
+      'Mardi': 'jour-mardi',
+      'Mercredi': 'jour-mercredi',
+      'Jeudi': 'jour-jeudi',
+      'Vendredi': 'jour-vendredi',
+      'Samedi': 'jour-samedi'
+    }[seance.jour || ''] || '';
+
     return `
       <tr class="${jourClasse}">
         <td data-label="Jour" class="fw-semibold">${seance.jour || '-'}</td>
@@ -320,27 +290,26 @@
       </tr>`;
   }
 
-  // 📅 CHARGER L'EMPLOI DU TEMPS GLOBAL
+  // 📅 CHARGEMENT
   async function chargerEmploiTemps() {
     const corps = document.getElementById('corpsEmploi');
     const barreInfo = document.getElementById('barreInfo');
+    barreInfo.classList.remove('alerte');
 
     corps.innerHTML = `<tr><td colspan="5" class="text-center py-4">
       <div class="spinner-border text-primary"></div><br>
-      <span class="txt-fr">Chargement...</span>
-      <span class="txt-en d-none">Loading...</span>
-      <span class="txt-ar d-none">جار التحميل...</span>
+      <span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جار التحميل...</span>
     </td></tr>`;
-    barreInfo.classList.remove('alerte');
 
     try {
       const reponse = await fetch(`${API_URL}/emploi/global`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+
+      if (!reponse.ok) throw new Error(`Erreur ${reponse.status}`);
       const data = await reponse.json();
 
-      if (!reponse.ok || !data.ok) throw new Error(data.erreur || m('erreur'));
-
+      if (!data.ok) throw new Error(data.erreur || m('erreur'));
       if (!data.seances || data.seances.length === 0) {
         corps.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">
           <i class="bi bi-calendar-x fs-1 mb-2"></i><br>${m('aucune')}
@@ -348,33 +317,20 @@
         sauvegarderEdtLocal([]);
         return;
       }
-
-      // ✅ Afficher les séances
       sauvegarderEdtLocal(data.seances);
       corps.innerHTML = data.seances.map(seance => rendreLigne(seance)).join('');
 
-    } catch {
-      // 📴 MODE LOCAL
-      console.warn("🔌 Mode local EDT actif");
+    } catch (erreur) {
+      console.warn("🔌 Passage en mode local :", erreur);
       barreInfo.classList.add('alerte');
-      barreInfo.innerHTML = `<div class="row align-items-center g-3">
-        <div class="col-md-5">
-          <h5 class="mb-2 text-dark"><i class="bi bi-calendar3 text-warning me-2"></i>
-            <span class="txt-fr">Date du Jour</span>
-            <span class="txt-en d-none">Today's Date</span>
-            <span class="txt-ar d-none">تاريخ اليوم</span>
-          </h5>
-          <div id="dateDuJour" class="fs-5 fw-bold text-dark pulse-slow"></div>
-        </div>
-        <div class="col-md-7 text-md-end">
-          <h5 class="mb-2 text-dark"><i class="bi bi-wifi-off text-danger me-2"></i>⚠️ Mode local</h5>
-          <div class="text-danger fw-semibold">${m('serveurIndispo')}</div>
-        </div>
-      </div>`;
-      mettreAJourHeure();
+      // ✅ Ne remplace que la partie droite sans perdre la date
+      barreInfo.querySelector('.col-md-7').innerHTML = `
+        <h5 class="mb-2 text-dark"><i class="bi bi-wifi-off text-danger me-2"></i>⚠️ Mode local</h5>
+        <div class="text-danger fw-semibold">${m('serveurIndispo')}</div>`;
 
+      mettreAJourHeure();
       const locale = obtenirEdtLocal();
-      if(locale.length === 0){
+      if (locale.length === 0) {
         corps.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">
           <i class="bi bi-calendar-x fs-1 mb-2"></i><br>${m('aucune')}
         </td></tr>`;
@@ -384,9 +340,7 @@
     }
   }
 
-  // 🔄 Charger au démarrage
   document.addEventListener('DOMContentLoaded', chargerEmploiTemps);
 </script>
-
 </body>
 </html>

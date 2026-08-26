@@ -19,9 +19,7 @@
       min-height: 100vh;
     }
     html:lang(ar),
-    .lang-ar {
-      direction: rtl;
-    }
+    .lang-ar { direction: rtl; }
     .card-glass {
       background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(10px);
@@ -66,16 +64,12 @@
       transform: translateX(5px);
       color: #0369a1;
     }
-    .lang-ar .document-link:hover {
-      transform: translateX(-5px);
-    }
+    .lang-ar .document-link:hover { transform: translateX(-5px); }
     .ligne-demande {
       cursor: pointer;
       transition: background-color 0.25s ease;
     }
-    .ligne-demande:hover {
-      background-color: #f0f9ff;
-    }
+    .ligne-demande:hover { background-color: #f0f9ff; }
     .btn-valider {
       background: linear-gradient(90deg, #10b981, #059669);
       border: none;
@@ -118,13 +112,7 @@
       background-color: var(--primaire);
       color: white;
     }
-    .lang-btn:focus {
-      box-shadow: 0 0 0 0.25rem rgba(12, 74, 110, 0.25);
-    }
-    .txt-en,
-    .txt-ar {
-      display: none;
-    }
+    .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
     body.lang-en .txt-en { display: inline; }
@@ -141,9 +129,6 @@
     .table-responsive {
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .btn-close-white {
-      filter: invert(1) brightness(200%);
     }
     .email-form-card {
       background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
@@ -172,8 +157,6 @@
       body { background: white; font-size: 12pt; }
       .card-glass { box-shadow: none; border: 1px solid #ddd; }
       .card-glass, .card-header-grad { background: white; color: black; }
-      .card-header-grad { border: none; border-bottom: 2px solid #ccc; }
-      a { text-decoration: none; color: black; }
       .photo-preview { max-width: 150px; max-height: 190px; }
     }
   </style>
@@ -214,16 +197,16 @@
     <div class="card-body">
       <div class="alert alert-info-box">
         <i class="bi bi-info-circle me-2 text-primary"></i>
-        <span class="txt-fr">Lorsque vous validez une demande, un compte est créé et un e-mail automatique est envoyé à l'élève avec ses identifiants de connexion.</span>
-        <span class="txt-en">When you validate a request, an account is created and an automatic e-mail with login credentials is sent to the student.</span>
-        <span class="txt-ar">عند الموافقة، يتم إنشاء حساب وإرسال بريد إلكتروني تلقائي ببيانات الدخول إلى التلميذ.</span>
+        <span class="txt-fr">Lorsque vous validez une demande, un compte est créé et un e-mail automatique est envoyé à l'élève avec ses identifiants.</span>
+        <span class="txt-en">When you validate a request, an account is created and credentials are emailed automatically.</span>
+        <span class="txt-ar">عند الموافقة، يُنشأ حساب ويُرسل بريد إلكتروني تلقائي ببيانات الدخول.</span>
       </div>
 
       <div class="filters-bar row g-3 mb-4">
         <div class="col-md-5">
           <div class="input-group">
             <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" id="recherche" class="form-control" placeholder="Rechercher par nom..." oninput="appliquerFiltres()">
+            <input type="text" id="recherche" class="form-control" placeholder="" oninput="appliquerFiltres()">
           </div>
         </div>
         <div class="col-md-3">
@@ -256,7 +239,7 @@
           <thead class="table-light">
             <tr>
               <th><span class="txt-fr">Nom & Prénoms</span><span class="txt-en">Full Name</span><span class="txt-ar">الاسم الكامل</span></th>
-              <th><span class="txt-fr">Email / Téléphone</span><span class="txt-en">Email / Phone</span><span class="txt-ar">البريد الإلكتروني / الهاتف</span></th>
+              <th><span class="txt-fr">Email / Téléphone</span><span class="txt-en">Email / Phone</span><span class="txt-ar">البريد / الهاتف</span></th>
               <th><span class="txt-fr">Profil / Classe</span><span class="txt-en">Role / Class</span><span class="txt-ar">الدور / الفصل</span></th>
               <th><span class="txt-fr">Date</span><span class="txt-en">Date</span><span class="txt-ar">التاريخ</span></th>
               <th class="no-print"><span class="txt-fr">Actions</span><span class="txt-en">Actions</span><span class="txt-ar">الإجراءات</span></th>
@@ -265,7 +248,7 @@
           <tbody id="corpsListe">
             <tr>
               <td colspan="5" class="text-center py-4">
-                <div class="spinner-border text-primary" role="status"></div>
+                <div class="spinner-border text-primary"></div>
                 <p class="mt-2 mb-0">
                   <span class="txt-fr">Chargement...</span>
                   <span class="txt-en">Loading...</span>
@@ -288,21 +271,22 @@
         <span class="txt-en">🔍 Review area — Click a request above</span>
         <span class="txt-ar">🔍 منطقة المراجعة — انقر فوق طلب أعلاه</span>
       </h5>
+
       <div id="zoneExamen" class="empty-box">
         <i class="bi bi-eye fs-1"></i>
         <p class="mt-2 mb-0">
-          <span class="txt-fr">Sélectionnez une demande dans la liste pour voir la photo et les documents</span>
-          <span class="txt-en">Select a request from the list to view photo and documents</span>
-          <span class="txt-ar">حدد طلباً من القائمة لعرض الصورة والمستندات</span>
+          <span class="txt-fr">Sélectionnez une demande dans la liste</span>
+          <span class="txt-en">Select a request from the list</span>
+          <span class="txt-ar">حدد طلباً من القائمة</span>
         </p>
       </div>
 
       <div id="zoneEmail" class="mt-5" style="display: none;">
         <h5 class="mb-3">
           <i class="bi bi-envelope-paper-heart me-2 text-primary"></i>
-          <span class="txt-fr">📧 Envoyer un message / E-mail</span>
-          <span class="txt-en">📧 Send a message / E-mail</span>
-          <span class="txt-ar">📧 إرسال رسالة / بريد إلكتروني</span>
+          <span class="txt-fr">📧 Envoyer un message</span>
+          <span class="txt-en">📧 Send a message</span>
+          <span class="txt-ar">📧 إرسال رسالة</span>
         </h5>
         <div class="email-form-card">
           <div class="row g-3">
@@ -316,19 +300,19 @@
             </div>
             <div class="col-md-6">
               <label class="form-label fw-semibold">
-                <span class="txt-fr">Téléphone (SMS/WhatsApp)</span>
-                <span class="txt-en">Phone (SMS/WhatsApp)</span>
-                <span class="txt-ar">الهاتف (رسالة واتساب)</span>
+                <span class="txt-fr">Téléphone</span>
+                <span class="txt-en">Phone</span>
+                <span class="txt-ar">الهاتف</span>
               </label>
               <input type="tel" id="telDestinataire" class="form-control" readonly>
             </div>
             <div class="col-12">
               <label class="form-label fw-semibold">
-                <span class="txt-fr">Sujet de l'e-mail</span>
-                <span class="txt-en">E-mail subject</span>
-                <span class="txt-ar">موضوع البريد الإلكتروني</span>
+                <span class="txt-fr">Sujet</span>
+                <span class="txt-en">Subject</span>
+                <span class="txt-ar">الموضوع</span>
               </label>
-              <input type="text" id="emailSujet" class="form-control" placeholder="">
+              <input type="text" id="emailSujet" class="form-control">
             </div>
             <div class="col-12">
               <label class="form-label fw-semibold">
@@ -342,45 +326,31 @@
             <div class="col-12">
               <div class="d-flex gap-2 flex-wrap">
                 <button class="btn btn-sm btn-outline-secondary" onclick="insererModele('accueil')">
-                  <span class="txt-fr">📩 Message de bienvenue</span>
-                  <span class="txt-en">📩 Welcome message</span>
-                  <span class="txt-ar">📩 رسالة ترحيب</span>
+                  <span class="txt-fr">📩 Bienvenue</span>
+                  <span class="txt-en">📩 Welcome</span>
+                  <span class="txt-ar">📩 ترحيب</span>
                 </button>
                 <button class="btn btn-sm btn-outline-secondary" onclick="insererModele('compte_info')">
-                  <span class="txt-fr">🔐 Identifiants du compte</span>
-                  <span class="txt-en">🔐 Account credentials</span>
+                  <span class="txt-fr">🔐 Identifiants</span>
+                  <span class="txt-en">🔐 Credentials</span>
                   <span class="txt-ar">🔐 بيانات الدخول</span>
                 </button>
-                <button class="btn btn-sm btn-outline-secondary" onclick="insererModele('demande_info')">
-                  <span class="txt-fr">ℹ️ Informations demande</span>
-                  <span class="txt-en">ℹ️ Request information</span>
-                  <span class="txt-ar">ℹ️ معلومات الطلب</span>
-                </button>
                 <button class="btn btn-sm btn-outline-secondary" onclick="insererModele('refus')">
-                  <span class="txt-fr">❌ Notification de refus</span>
-                  <span class="txt-en">❌ Rejection notice</span>
-                  <span class="txt-ar">❌ إشعار الرفض</span>
+                  <span class="txt-fr">❌ Refus</span>
+                  <span class="txt-en">❌ Rejection</span>
+                  <span class="txt-ar">❌ رفض</span>
                 </button>
               </div>
             </div>
             <div class="col-12 d-flex gap-3 mt-2">
               <button id="btnEnvoyerEmail" class="btn btn-email text-white px-4" onclick="envoyerEmail()">
                 <i class="bi bi-send me-2"></i>
-                <span class="txt-fr">Envoyer l'e-mail</span>
-                <span class="txt-en">Send e-mail</span>
-                <span class="txt-ar">إرسال البريد</span>
+                <span class="txt-fr">Envoyer</span>
+                <span class="txt-en">Send</span>
+                <span class="txt-ar">إرسال</span>
               </button>
               <button id="btnEnvoyerWhatsApp" class="btn btn-success px-4" onclick="envoyerWhatsApp()" style="display: none;">
-                <i class="bi bi-whatsapp me-2"></i>
-                <span class="txt-fr">Envoyer par WhatsApp</span>
-                <span class="txt-en">Send via WhatsApp</span>
-                <span class="txt-ar">إرسال عبر واتساب</span>
-              </button>
-              <button class="btn btn-outline-secondary px-4" onclick="viderFormulaireEmail()">
-                <i class="bi bi-x-circle me-2"></i>
-                <span class="txt-fr">Vider</span>
-                <span class="txt-en">Clear</span>
-                <span class="txt-ar">مسح</span>
+                <i class="bi bi-whatsapp me-2"></i> WhatsApp
               </button>
             </div>
             <div id="statutEnvoi" class="col-12 mt-2" style="display: none;"></div>
@@ -391,19 +361,19 @@
   </div>
 </div>
 
-<div class="modal fade" id="modalePhoto" tabindex="-1" aria-labelledby="modalePhotoLabel" aria-hidden="true">
+<div class="modal fade" id="modalePhoto" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header bg-dark text-white">
-        <h5 class="modal-title" id="modalePhotoLabel">
+        <h5 class="modal-title">
           <span class="txt-fr">📷 Photo d'identité</span>
           <span class="txt-en">📷 ID Photo</span>
           <span class="txt-ar">📷 صورة الهوية</span>
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body text-center p-4">
-        <img id="photoAffiche" src="" alt="Photo d'identité" class="img-fluid rounded">
+        <img id="photoAffiche" src="" alt="Photo" class="img-fluid rounded">
       </div>
     </div>
   </div>
@@ -413,12 +383,20 @@
 <script>
 const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 const token = localStorage.getItem('token');
+const role = localStorage.getItem('role');
 let demandeSelectionnee = null;
 let listeDemandes = [];
 let listeFiltree = [];
 const modalePhoto = new bootstrap.Modal('#modalePhoto');
 const PAR_PAGE = 10;
 let pageActuelle = 1;
+
+// 🔐 VÉRIFICATION CRITIQUE DE CONNEXION
+if (!token || !['admin','Admin','super_admin'].includes(role || '')) {
+  alert("⛔ Session expirée ou accès non autorisé. Veuillez vous reconnecter.");
+  localStorage.clear();
+  location.href = 'connexion.html';
+}
 
 function obtenirLangueNavigateur() {
   const navLang = navigator.language || navigator.userLanguage;
@@ -439,157 +417,87 @@ const traductions = {
   fr: {
     aucunDemande: "Aucune demande en attente ✅",
     errChargement: "❌ Erreur de chargement",
+    erreur401: "🔐 Session expirée — Veuillez vous reconnecter",
     cliqueAgrandir: "👆 Cliquer pour agrandir",
     aucunDoc: "Aucun document fourni",
     aucunPhoto: "Aucune photo fournie",
-    nom: "Nom",
-    prenoms: "Prénoms",
-    email: "E-mail",
-    tel: "Téléphone",
-    profil: "Profil",
-    classe: "Classe",
-    matriculeGenere: "Matricule généré",
-    docsFournis: "Documents fournis",
-    infosDemandeur: "Informations du demandeur",
-    validerConfirm: "✅ Confirmer la validation ?\nUn compte sera créé et un e-mail sera envoyé avec les identifiants.",
-    validerSucces: "✅ Inscription validée !\n📧 E-mail envoyé à l'élève avec ses identifiants.",
-    refuserConfirm: "❌ Confirmer le refus de cette demande ?",
+    nom: "Nom", prenoms: "Prénoms", email: "E-mail", tel: "Téléphone",
+    profil: "Profil", classe: "Classe", matriculeGenere: "Matricule",
+    validerConfirm: "✅ Confirmer la validation ?",
+    validerSucces: "✅ Inscription validée !",
+    refuserConfirm: "❌ Confirmer le refus ?",
     refuserSucces: "✅ Demande refusée.",
-    erreur: "❌ Erreur",
-    errReseau: "❌ Erreur réseau",
+    erreur: "❌ Erreur", errReseau: "❌ Erreur réseau",
     dateInscription: "Date d'inscription",
-    envoyerEmail: "📧 Envoyer l'e-mail",
-    renvoyerEmail: "📧 Renvoyer l'e-mail automatique",
-    sujetParDefaut: "Confirmation de votre demande d'inscription",
-    envoiSucces: "✅ E-mail envoyé avec succès !",
-    envoiEchec: "❌ Échec de l'envoi de l'e-mail.",
-    envoiEnCours: "⏳ Envoi en cours...",
-    confirmerEnvoi: "Confirmez-vous l'envoi de cet e-mail ?",
-    aucunEmail: "⚠️ Aucune adresse e-mail pour ce destinataire.",
-    aucunTel: "⚠️ Aucun numéro de téléphone disponible.",
+    envoiSucces: "✅ E-mail envoyé !", envoiEchec: "❌ Échec de l'envoi.",
+    confirmerEnvoi: "Confirmer l'envoi ?",
+    aucunEmail: "⚠️ Aucune adresse e-mail.",
     sujetVide: "Veuillez saisir un sujet.",
     messageVide: "Veuillez saisir un message.",
-    resultatsAffiches: "Résultats",
-    sur: "sur",
-    precedent: "Précédent",
-    suivant: "Suivant",
+    resultatsAffiches: "Résultats", sur: "sur", precedent: "Précédent", suivant: "Suivant",
     recherchePlaceholder: "Rechercher par nom...",
-    tousProfils: "Tous les profils",
-    toutesClasses: "Toutes les classes",
-    aucunResultat: "Aucune demande ne correspond à votre recherche",
-    modeleAccueil: "Bonjour {prenom} {nom},\n\nNous vous remercions pour votre demande d'inscription. Nous avons bien reçu votre dossier et nous vous tiendrons informé(e) très prochainement.\n\nCordialement,\nL'administration",
-    modeleCompte: "Bonjour {prenom} {nom},\n\nVotre compte a été créé avec succès !\n🔐 Identifiants de connexion :\n👉 E-mail : {email}\n👉 Matricule : {matricule}\n\nConnectez-vous sur notre portail pour accéder à votre espace.\n\nCordialement,\nL'administration",
-    modeleInfo: "Bonjour {prenom} {nom},\n\nNous faisons suite à votre demande d'inscription du {date}. Nous étudions actuellement votre dossier et ne manquerons pas de vous revenir dans les meilleurs délais.\n\nCordialement,\nL'administration",
-    modeleRefus: "Bonjour {prenom} {nom},\n\nNous regrettons de vous informer que votre demande d'inscription n'a pas pu être retenue cette fois-ci.\nNous vous encourageons à nous contacter pour tout complément d'information.\n\nCordialement,\nL'administration"
+    tousProfils: "Tous les profils", toutesClasses: "Toutes les classes",
+    aucunResultat: "Aucune demande ne correspond",
+    modeleAccueil: "Bonjour {prenom} {nom},\nNous avons bien reçu votre demande.\nCordialement,\nL'administration",
+    modeleCompte: "Bonjour {prenom} {nom},\nCompte créé ! Identifiants : {email} / {matricule}",
+    modeleRefus: "Bonjour {prenom} {nom},\nNous ne pouvons pas donner suite à votre demande.\nCordialement."
   },
   en: {
     aucunDemande: "No pending requests ✅",
     errChargement: "❌ Loading error",
+    erreur401: "🔐 Session expired — Please log in again",
     cliqueAgrandir: "👆 Click to enlarge",
-    aucunDoc: "No documents provided",
-    aucunPhoto: "No photo provided",
-    nom: "Last name",
-    prenoms: "First name",
-    email: "E-mail",
-    tel: "Phone",
-    profil: "Profile",
-    classe: "Class",
-    matriculeGenere: "Generated ID",
-    docsFournis: "Provided documents",
-    infosDemandeur: "Applicant information",
-    validerConfirm: "✅ Confirm validation?\nAn account will be created and an e-mail with credentials will be sent.",
-    validerSucces: "✅ Registration validated!\n📧 E-mail sent to the student with credentials.",
-    refuserConfirm: "❌ Confirm refusal of this request?",
-    refuserSucces: "✅ Request rejected.",
-    erreur: "❌ Error",
-    errReseau: "❌ Network error",
-    dateInscription: "Registration Date",
-    envoyerEmail: "📧 Send e-mail",
-    renvoyerEmail: "📧 Resend confirmation e-mail",
-    sujetParDefaut: "Confirmation of your registration request",
-    envoiSucces: "✅ E-mail sent successfully!",
-    envoiEchec: "❌ Failed to send e-mail.",
-    envoiEnCours: "⏳ Sending...",
-    confirmerEnvoi: "Are you sure you want to send this e-mail?",
-    aucunEmail: "⚠️ No e-mail address for this recipient.",
-    aucunTel: "⚠️ No phone number available.",
-    sujetVide: "Please enter a subject.",
-    messageVide: "Please enter a message.",
-    resultatsAffiches: "Showing",
-    sur: "of",
-    precedent: "Previous",
-    suivant: "Next",
-    recherchePlaceholder: "Search by name...",
-    tousProfils: "All roles",
-    toutesClasses: "All classes",
-    aucunResultat: "No requests match your search",
-    modeleAccueil: "Hello {prenom} {nom},\n\nThank you for your registration request. We have received your file and will get back to you shortly.\n\nBest regards,\nAdministration",
-    modeleCompte: "Hello {prenom} {nom},\n\nYour account has been successfully created!\n🔐 Login credentials:\n👉 E-mail: {email}\n👉 ID: {matricule}\n\nLog in to our portal to access your space.\n\nBest regards,\nAdministration",
-    modeleInfo: "Hello {prenom} {nom},\n\nFurther to your registration request dated {date}, we are currently reviewing your file and will reply shortly.\n\nBest regards,\nAdministration",
-    modeleRefus: "Hello {prenom} {nom},\n\nWe regret to inform you that your registration request could not be accepted at this time.\nPlease contact us for further information.\n\nBest regards,\nAdministration"
+    aucunDoc: "No documents provided", aucunPhoto: "No photo provided",
+    nom: "Last name", prenoms: "First name", email: "E-mail", tel: "Phone",
+    profil: "Role", classe: "Class", matriculeGenere: "ID",
+    validerConfirm: "✅ Confirm validation ?", validerSucces: "✅ Validated!",
+    refuserConfirm: "❌ Confirm rejection ?", refuserSucces: "✅ Request rejected.",
+    erreur: "❌ Error", errReseau: "❌ Network error",
+    dateInscription: "Registration Date", envoiSucces: "✅ E-mail sent!",
+    envoiEchec: "❌ Failed to send.", confirmerEnvoi: "Confirm send?",
+    aucunEmail: "⚠️ No e-mail address.", sujetVide: "Please enter a subject.",
+    messageVide: "Please enter a message.", resultatsAffiches: "Showing", sur: "of",
+    precedent: "Previous", suivant: "Next", recherchePlaceholder: "Search by name...",
+    tousProfils: "All roles", toutesClasses: "All classes",
+    aucunResultat: "No matches found",
+    modeleAccueil: "Hello {prenom} {nom},\nWe received your request.\nRegards.",
+    modeleCompte: "Hello {prenom} {nom},\nAccount created! {email} / {matricule}",
+    modeleRefus: "Hello {prenom} {nom},\nWe cannot accept your request.\nRegards."
   },
   ar: {
     aucunDemande: "لا توجد طلبات بانتظار الموافقة ✅",
     errChargement: "❌ خطأ في التحميل",
-    cliqueAgrandir: "👆 انقر للتكبير",
-    aucunDoc: "لم يتم توفير مستندات",
-    aucunPhoto: "لم يتم توفير صورة",
-    nom: "الاسم العائلي",
-    prenoms: "الاسم الشخصي",
-    email: "البريد الإلكتروني",
-    tel: "الهاتف",
-    profil: "الدور",
-    classe: "الفصل",
-    matriculeGenere: "الرقم التعريفي المولد",
-    docsFournis: "المستندات المرفقة",
-    infosDemandeur: "معلومات مقدم الطلب",
-    validerConfirm: "✅ هل تؤكد الموافقة؟\nسيتم إنشاء حساب وإرسال بريد إلكتروني ببيانات الدخول.",
-    validerSucces: "✅ تمت الموافقة!\n📧 تم إرسال بيانات الدخول بالبريد الإلكتروني.",
-    refuserConfirm: "❌ هل تؤكد رفض هذا الطلب؟",
-    refuserSucces: "✅ تم رفض الطلب.",
-    erreur: "❌ خطأ",
-    errReseau: "❌ خطأ في الشبكة",
-    dateInscription: "تاريخ التسجيل",
-    envoyerEmail: "📧 إرسال البريد الإلكتروني",
-    renvoyerEmail: "📧 إعادة إرسال البريد التلقائي",
-    sujetParDefaut: "تأكيد طلب التسجيل الخاص بك",
-    envoiSucces: "✅ تم إرسال البريد بنجاح!",
-    envoiEchec: "❌ فشل إرسال البريد.",
-    envoiEnCours: "⏳ جارٍ الإرسال...",
-    confirmerEnvoi: "هل تؤكد إرسال هذا البريد؟",
-    aucunEmail: "⚠️ لا يوجد بريد إلكتروني لهذا المستلم.",
-    aucunTel: "⚠️ لا يوجد رقم هاتف متاح.",
-    sujetVide: "يرجى إدخال الموضوع.",
-    messageVide: "يرجى كتابة الرسالة.",
-    resultatsAffiches: "عرض",
-    sur: "من أصل",
-    precedent: "السابق",
-    suivant: "التالي",
-    recherchePlaceholder: "البحث بالاسم...",
-    tousProfils: "جميع الأدوار",
-    toutesClasses: "جميع الفصول",
-    aucunResultat: "لا توجد نتائج تطابق بحثك",
-    modeleAccueil: "السلام عليكم {prenom} {nom}\n\nشكراً لتقديم طلب التسجيل الخاص بك. استلمنا ملفك وسنتواصل معك قريباً.\n\nوتفضلوا بقبول التحية،\nالإدارة",
-    modeleCompte: "السلام عليكم {prenom} {nom}\n\nتم إنشاء حسابك بنجاح !\n🔐 بيانات الدخول:\n👉 البريد: {email}\n👉 الرقم الوظيفي: {matricule}\n\nيرجى تسجيل الدخول من خلال موقعنا.\n\nوتفضلوا بقبول التحية،\nالإدارة",
-    modeleInfo: "السلام عليكم {prenom} {nom}\n\nبخصوص طلبك المقدم في {date}، نحن بصدد دراسته وسنرد عليك قريباً.\n\nوتفضلوا بقبول التحية،\nالإدارة",
-    modeleRefus: "السلام عليكم {prenom} {nom}\n\nنأسف لإبلاغكم بأنه تعذر قبول طلبكم في هذه الفترة.\nللمزيد من المعلومات يرجى التواصل معنا.\n\nوتفضلوا بقبول التحية،\nالإدارة"
+    erreur401: "🔐 انتهت الجلسة — يرجى إعادة تسجيل الدخول",
+    cliqueAgrandir: "👆 انقر للتكبير", aucunDoc: "لا توجد مستندات", aucunPhoto: "لا توجد صورة",
+    nom: "الاسم العائلي", prenoms: "الاسم الشخصي", email: "البريد", tel: "الهاتف",
+    profil: "الدور", classe: "الفصل", matriculeGenere: "المعرف",
+    validerConfirm: "✅ تأكيد الموافقة ؟", validerSucces: "✅ تمت الموافقة !",
+    refuserConfirm: "❌ تأكيد الرفض ؟", refuserSucces: "✅ تم الرفض.",
+    erreur: "❌ خطأ", errReseau: "❌ خطأ في الشبكة",
+    dateInscription: "تاريخ التسجيل", envoiSucces: "✅ تم الإرسال !",
+    envoiEchec: "❌ فشل الإرسال.", confirmerEnvoi: "تأكيد الإرسال ؟",
+    aucunEmail: "⚠️ لا يوجد بريد إلكتروني.", sujetVide: "يرجى إدخال الموضوع.",
+    messageVide: "يرجى كتابة الرسالة.", resultatsAffiches: "عرض", sur: "من أصل",
+    precedent: "السابق", suivant: "التالي", recherchePlaceholder: "البحث بالاسم...",
+    tousProfils: "جميع الأدوار", toutesClasses: "جميع الفصول",
+    aucunResultat: "لا توجد نتائج مطابقة",
+    modeleAccueil: "السلام عليكم {prenom} {nom}\nاستلمنا طلبك.",
+    modeleCompte: "تم إنشاء حسابك: {email} / {matricule}",
+    modeleRefus: "نأسف، تعذر قبول طلبك."
   }
 };
 
 let langueActuelle = localStorage.getItem('langue') || obtenirLangueNavigateur();
-function t(cle) { return traductions[langueActuelle]?.[cle] ?? cle; }
+function t(cle) { return traductions[langueActuelle]?.[cle] ?? traductions.fr[cle] ?? cle; }
 
 function appliquerLangue(lang) {
   langueActuelle = lang;
   localStorage.setItem('langue', lang);
   document.documentElement.lang = lang;
-  document.body.classList.remove('lang-fr', 'lang-en', 'lang-ar');
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
   document.body.classList.add(`lang-${lang}`);
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-  document.querySelector(`.lang-btn[data-lang="${lang}"]`)?.classList.add('active');
-  document.title = lang === 'fr' ? 'Examiner Documents & Photos — Administration' : lang === 'en' ? 'Review Documents & Photos — Administration' : 'مراجعة المستندات والصور — الإدارة';
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
   document.getElementById('recherche').placeholder = t('recherchePlaceholder');
-  document.getElementById('emailSujet').placeholder = t('sujetParDefaut');
   chargerListe();
 }
 
@@ -598,24 +506,15 @@ document.querySelectorAll('.lang-btn').forEach(btn => {
 });
 appliquerLangue(langueActuelle);
 
-if (!token) {
-  const msg = langueActuelle === 'en' ? 'Access reserved to the administrator!' : langueActuelle === 'ar' ? '!الوصول مخصص للمسؤول فقط' : "⛔ Accès réservé à l'administrateur !";
-  alert(msg);
-  localStorage.clear();
-  location.href = 'connexion.html';
-}
-
 function appliquerFiltres() {
   const recherche = (document.getElementById('recherche').value || '').toLowerCase().trim();
   const profil = document.getElementById('filtreProfil').value.toLowerCase().trim();
   const classe = document.getElementById('filtreClasse').value.trim();
   listeFiltree = listeDemandes.filter(dem => {
     const nomComplet = `${(dem.nom||'')} ${(dem.prenoms||'')}`.toLowerCase();
-    const correspondRecherche = !recherche || nomComplet.includes(recherche);
-    const correspondProfil = !profil || (dem.profil||'').toLowerCase() === profil;
-    const afficherClasse = dem.libelle_classe || dem.classe || '';
-    const correspondClasse = !classe || afficherClasse === classe;
-    return correspondRecherche && correspondProfil && correspondClasse;
+    return (!recherche || nomComplet.includes(recherche)) &&
+           (!profil || (dem.profil||'').toLowerCase() === profil) &&
+           (!classe || (dem.libelle_classe || dem.classe || '') === classe);
   });
   pageActuelle = 1;
   afficherPage();
@@ -626,10 +525,11 @@ function afficherPage() {
   const fin = debut + PAR_PAGE;
   const pageDemandes = listeFiltree.slice(debut, fin);
   const totalPages = Math.ceil(listeFiltree.length / PAR_PAGE) || 1;
-  document.getElementById('compteurResultats').textContent = listeFiltree.length > 0 ? `${t('resultatsAffiches')} ${debut + 1}–${Math.min(fin, listeFiltree.length)} ${t('sur')} ${listeFiltree.length}` : t('aucunResultat');
+  document.getElementById('compteurResultats').textContent =
+    listeFiltree.length ? `${t('resultatsAffiches')} ${debut+1}–${Math.min(fin, listeFiltree.length)} ${t('sur')} ${listeFiltree.length}` : '';
   const corps = document.getElementById('corpsListe');
-  if (pageDemandes.length === 0) {
-    corps.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted"><i class="bi bi-search fs-1"></i><p class="mt-2 mb-0">${t('aucunResultat')}</p></td></tr>`;
+  if (!pageDemandes.length) {
+    corps.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted"><i class="bi bi-search fs-1"></i><p class="mt-2">${t('aucunResultat')}</p></td></tr>`;
   } else {
     afficherListeSurTableau(pageDemandes);
   }
@@ -639,14 +539,17 @@ function afficherPage() {
 function afficherListeSurTableau(liste) {
   const corps = document.getElementById('corpsListe');
   corps.innerHTML = '';
-  liste.forEach((dem, indexDansPage) => {
-    const indexGlobal = (pageActuelle - 1) * PAR_PAGE + indexDansPage;
+  liste.forEach((dem, i) => {
     const tr = document.createElement('tr');
     tr.className = 'ligne-demande';
-    tr.onclick = () => afficherDetails(listeFiltree[indexGlobal]);
+    tr.onclick = () => afficherDetails(listeFiltree[(pageActuelle-1)*PAR_PAGE + i]);
     const afficherClasse = dem.libelle_classe || dem.classe || (dem.id_classe ? `Classe #${dem.id_classe}` : '-');
-    const dateAffichage = dem.date_preinscription ? new Date(dem.date_preinscription).toLocaleDateString(langueActuelle === 'ar' ? 'ar-MA' : 'fr-FR') : '-';
-    tr.innerHTML = `<td><strong>${echapperHTML(dem.nom)}</strong><br>${echapperHTML(dem.prenoms)}</td><td>${echapperHTML(dem.email || '-')}<br>${echapperHTML(dem.telephone || '-')}</td><td><span class="badge bg-info text-white">${echapperHTML(dem.profil || '-')}</span><br>${echapperHTML(afficherClasse)}</td><td>${dateAffichage}</td><td class="text-center no-print"><button class="btn btn-sm btn-outline-primary" title="${langueActuelle==='fr'?'Voir et contacter':langueActuelle==='en'?'View & contact':'عرض ومراسلة'}"><i class="bi bi-eye"></i></button></td>`;
+    const dateAff = dem.date_preinscription ? new Date(dem.date_preinscription).toLocaleDateString() : '-';
+    tr.innerHTML = `<td><strong>${echapperHTML(dem.nom)}</strong><br>${echapperHTML(dem.prenoms)}</td>
+      <td>${echapperHTML(dem.email||'-')}<br>${echapperHTML(dem.telephone||'-')}</td>
+      <td><span class="badge bg-info">${echapperHTML(dem.profil||'-')}</span><br>${echapperHTML(afficherClasse)}</td>
+      <td>${dateAff}</td>
+      <td class="text-center no-print"><button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button></td>`;
     corps.appendChild(tr);
   });
 }
@@ -654,42 +557,57 @@ function afficherListeSurTableau(liste) {
 function genererPagination(totalPages) {
   const ul = document.getElementById('pagination');
   ul.innerHTML = '';
-  const liPrec = document.createElement('li');
-  liPrec.className = `page-item ${pageActuelle === 1 ? 'disabled' : ''}`;
-  liPrec.innerHTML = `<a class="page-link" href="#">${t('precedent')}</a>`;
-  liPrec.onclick = (e) => { e.preventDefault(); if(pageActuelle>1) { pageActuelle--; afficherPage(); } };
-  ul.appendChild(liPrec);
-  for(let p = 1; p <= totalPages; p++) {
+  const prec = document.createElement('li');
+  prec.className = `page-item ${pageActuelle===1?'disabled':''}`;
+  prec.innerHTML = `<a class="page-link" href="#">${t('precedent')}</a>`;
+  prec.onclick = e => { e.preventDefault(); if(pageActuelle>1){ pageActuelle--; afficherPage(); } };
+  ul.appendChild(prec);
+  for(let p=1;p<=totalPages;p++){
     const li = document.createElement('li');
-    li.className = `page-item ${p === pageActuelle ? 'active' : ''}`;
+    li.className = `page-item ${p===pageActuelle?'active':''}`;
     li.innerHTML = `<a class="page-link" href="#">${p}</a>`;
-    li.onclick = (e) => { e.preventDefault(); pageActuelle = p; afficherPage(); };
+    li.onclick = e => { e.preventDefault(); pageActuelle=p; afficherPage(); };
     ul.appendChild(li);
   }
-  const liSuiv = document.createElement('li');
-  liSuiv.className = `page-item ${pageActuelle >= totalPages ? 'disabled' : ''}`;
-  liSuiv.innerHTML = `<a class="page-link" href="#">${t('suivant')}</a>`;
-  liSuiv.onclick = (e) => { e.preventDefault(); if(pageActuelle < totalPages) { pageActuelle++; afficherPage(); } };
-  ul.appendChild(liSuiv);
+  const suiv = document.createElement('li');
+  suiv.className = `page-item ${pageActuelle>=totalPages?'disabled':''}`;
+  suiv.innerHTML = `<a class="page-link" href="#">${t('suivant')}</a>`;
+  suiv.onclick = e => { e.preventDefault(); if(pageActuelle<totalPages){ pageActuelle++; afficherPage(); } };
+  ul.appendChild(suiv);
 }
 
+// 📅 CHARGEMENT AVEC GESTION SPÉCIFIQUE DE L'ERREUR 401
 async function chargerListe() {
   const corps = document.getElementById('corpsListe');
-  corps.innerHTML = `<tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 mb-0"><span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جار التحميل...</span></p></td></tr>`;
+  corps.innerHTML = `<tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2"><span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span></p></td></tr>`;
   try {
-    const res = await fetch(`${API_URL}/preinscription/en-attente`, { headers: { 'Authorization': `Bearer ${token}` } });
-    if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
+    const res = await fetch(`${API_URL}/preinscription/en-attente`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    // ⚠️ GESTION SPÉCIALE DE L'ERREUR 401
+    if (res.status === 401) {
+      alert(t('erreur401'));
+      localStorage.clear();
+      location.href = 'connexion.html';
+      return;
+    }
+
+    if (!res.ok) throw new Error(`Erreur ${res.status}`);
     const data = await res.json();
     listeDemandes = Array.isArray(data) ? data : (data.lignes || data.demandes || []);
+
+    // Remplir filtre classes
     const selectClasse = document.getElementById('filtreClasse');
-    const classesUniques = [...new Set(listeDemandes.map(d => d.libelle_classe || d.classe || '').filter(Boolean))].sort();
-    const valeurActuelle = selectClasse.value;
+    const classes = [...new Set(listeDemandes.map(d => d.libelle_classe||d.classe||'').filter(Boolean))].sort();
+    const val = selectClasse.value;
     selectClasse.innerHTML = `<option value="">${t('toutesClasses')}</option>`;
-    classesUniques.forEach(c => { const opt=document.createElement('option'); opt.value=c; opt.textContent=c; selectClasse.appendChild(opt); });
-    selectClasse.value = valeurActuelle;
+    classes.forEach(c => { const o=new Option(c,c); selectClasse.appendChild(o); });
+    selectClasse.value = val;
+
     appliquerFiltres();
   } catch (e) {
-    corps.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">${t('errChargement')} : ${echapperHTML(e.message)}</td></tr>`;
+    corps.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger"><i class="bi bi-exclamation-triangle fs-1"></i><p class="mt-2">${t('errChargement')} : ${echapperHTML(e.message)}</p></td></tr>`;
   }
 }
 
@@ -697,70 +615,57 @@ async function afficherDetails(dem) {
   demandeSelectionnee = dem;
   const zone = document.getElementById('zoneExamen');
   const zoneEmail = document.getElementById('zoneEmail');
-  document.getElementById('emailDestinataire').value = dem.email || '';
-  document.getElementById('telDestinataire').value = dem.telephone || '';
-  document.getElementById('emailSujet').value = t('sujetParDefaut');
+  document.getElementById('emailDestinataire').value = dem.email||'';
+  document.getElementById('telDestinataire').value = dem.telephone||'';
+  document.getElementById('emailSujet').value = '';
   document.getElementById('emailMessage').value = '';
   document.getElementById('compteurCar').textContent = '0';
   document.getElementById('statutEnvoi').style.display = 'none';
-  const btnWhatsApp = document.getElementById('btnEnvoyerWhatsApp');
-  btnWhatsApp.style.display = dem.telephone ? 'inline-block' : 'none';
+  document.getElementById('btnEnvoyerWhatsApp').style.display = dem.telephone ? 'inline-block' : 'none';
   zoneEmail.style.display = 'block';
 
   let docsHTML = '';
   if (dem.documents) {
-    const listeDocs = String(dem.documents).split('|').map(d => d.trim()).filter(Boolean);
-    if (listeDocs.length > 0) {
-      docsHTML = listeDocs.map(d => {
-        const urlComplet = d.startsWith('http') ? d : `${API_URL}/${d}`;
-        const nomFichier = d.split('/').pop();
-        return `<a href="${echapperHTML(urlComplet)}" target="_blank" rel="noopener" class="document-link"><i class="bi bi-file-earmark-text me-2"></i> ${echapperHTML(nomFichier)}</a>`;
-      }).join('');
-    } else { docsHTML = `<div class="empty-box py-2">${t('aucunDoc')}</div>`; }
-  } else { docsHTML = `<div class="empty-box py-2">${t('aucunDoc')}</div>`; }
+    const liste = String(dem.documents).split('|').map(d=>d.trim()).filter(Boolean);
+    docsHTML = liste.length ? liste.map(d => {
+      const url = d.startsWith('http') ? d : `${API_URL}/${d}`;
+      return `<a href="${echapperHTML(url)}" target="_blank" class="document-link"><i class="bi bi-file-earmark-text me-2"></i>${echapperHTML(d.split('/').pop())}</a>`;
+    }).join('') : `<div class="empty-box py-2">${t('aucunDoc')}</div>`;
+  } else docsHTML = `<div class="empty-box py-2">${t('aucunDoc')}</div>`;
 
   let photoUrl = dem.photo_identite;
   if (photoUrl && !photoUrl.startsWith('http')) photoUrl = `${API_URL}/${photoUrl}`;
   const afficherClasse = dem.libelle_classe || dem.classe || (dem.id_classe ? `Classe #${dem.id_classe}` : '-');
-  const dateInscription = new Date().toISOString().split('T')[0];
 
   zone.innerHTML = `
     <div class="row g-4">
       <div class="col-md-4 text-center">
-        <h6 class="mb-3">📷 <span class="txt-fr">Photo d'identité</span><span class="txt-en">ID Photo</span><span class="txt-ar">صورة الهوية</span></h6>
-        ${photoUrl ? `<img src="${echapperHTML(photoUrl)}" alt="Photo d'identité" class="photo-preview mb-2" onclick="document.getElementById('photoAffiche').src='${echapperHTML(photoUrl)}'; modalePhoto.show();"><br><small class="text-muted">${t('cliqueAgrandir')}</small>` : `<div class="empty-box">${t('aucunPhoto')}</div>`}
+        <h6 class="mb-3">📷 <span class="txt-fr">Photo d'identité</span><span class="txt-en">ID Photo</span></h6>
+        ${photoUrl ? `<img src="${echapperHTML(photoUrl)}" class="photo-preview" onclick="document.getElementById('photoAffiche').src='${echapperHTML(photoUrl)}'; modalePhoto.show();"><br><small class="text-muted">${t('cliqueAgrandir')}</small>` : `<div class="empty-box">${t('aucunPhoto')}</div>`}
       </div>
       <div class="col-md-8">
         <h6 class="mb-3">👤 ${t('infosDemandeur')}</h6>
-        <div class="mb-3 p-3 bg-light rounded-3">
+        <div class="p-3 bg-light rounded-3 mb-3">
           <div class="row g-2">
             <div class="col-sm-6"><strong>${t('nom')} :</strong> ${echapperHTML(dem.nom)}</div>
             <div class="col-sm-6"><strong>${t('prenoms')} :</strong> ${echapperHTML(dem.prenoms)}</div>
-            <div class="col-sm-6"><strong>${t('email')} :</strong> ${echapperHTML(dem.email || '-')}</div>
-            <div class="col-sm-6"><strong>${t('tel')} :</strong> ${echapperHTML(dem.telephone || '-')}</div>
-            <div class="col-sm-6"><strong>${t('profil')} :</strong> ${echapperHTML(dem.profil || '-')}</div>
+            <div class="col-sm-6"><strong>${t('email')} :</strong> ${echapperHTML(dem.email||'-')}</div>
+            <div class="col-sm-6"><strong>${t('tel')} :</strong> ${echapperHTML(dem.telephone||'-')}</div>
+            <div class="col-sm-6"><strong>${t('profil')} :</strong> ${echapperHTML(dem.profil||'-')}</div>
             <div class="col-sm-6"><strong>${t('classe')} :</strong> ${echapperHTML(afficherClasse)}</div>
-            <div class="col-sm-6"><strong>${t('dateInscription')} :</strong> <span class="text-primary fw-bold">${dateInscription}</span></div>
-            <div class="col-sm-6"><strong>${t('matriculeGenere')} :</strong> <code class="fs-6">${echapperHTML(dem.matricule || 'Généré à la validation')}</code></div>
+            <div class="col-sm-6"><strong>${t('dateInscription')} :</strong> ${dem.date_preinscription?new Date(dem.date_preinscription).toLocaleDateString():'-'}</div>
+            <div class="col-sm-6"><strong>${t('matriculeGenere')} :</strong> <code>${dem.matricule||'À générer'}</code></div>
           </div>
         </div>
-        <h6 class="mb-3">📄 ${t('docsFournis')}</h6>
-        ${docsHTML}
+        <h6 class="mb-3">📄 ${t('docsFournis')}</h6>${docsHTML}
       </div>
-    </div>
-    <hr class="my-4">
+    </div><hr class="my-4">
     <div class="d-flex gap-3 justify-content-center flex-wrap no-print">
-      <button class="btn btn-valider btn-lg text-white px-5" onclick="validerDemande(${dem.id_preinscription || dem.id})">
-        <i class="bi bi-check-circle me-2"></i>
-        <span class="txt-fr">✅ VALIDER L'INSCRIPTION</span>
-        <span class="txt-en">✅ VALIDATE REGISTRATION</span>
-        <span class="txt-ar">✅ الموافقة على التسجيل</span>
+      <button class="btn btn-valider btn-lg text-white px-5" onclick="validerDemande(${dem.id_preinscription||dem.id})">
+        <i class="bi bi-check-circle me-2"></i><span class="txt-fr">✅ VALIDER</span><span class="txt-en">✅ VALIDATE</span>
       </button>
-      <button class="btn btn-refuser btn-lg text-white px-5" onclick="refuserDemande(${dem.id_preinscription || dem.id})">
-        <i class="bi bi-x-circle me-2"></i>
-        <span class="txt-fr">❌ REFUSER LA DEMANDE</span>
-        <span class="txt-en">❌ REJECT REQUEST</span>
-        <span class="txt-ar">❌ رفض الطلب</span>
+      <button class="btn btn-refuser btn-lg text-white px-5" onclick="refuserDemande(${dem.id_preinscription||dem.id})">
+        <i class="bi bi-x-circle me-2"></i><span class="txt-fr">❌ REFUSER</span><span class="txt-en">❌ REJECT</span>
       </button>
     </div>`;
 }
@@ -769,150 +674,84 @@ function compterCaracteres() {
   document.getElementById('compteurCar').textContent = document.getElementById('emailMessage').value.length;
 }
 
-function insererModele(nomModele) {
+function insererModele(nom) {
   if (!demandeSelectionnee) return;
-  let texteModele = '';
-  switch(nomModele) {
-    case 'accueil': texteModele = t('modeleAccueil'); break;
-    case 'compte_info': texteModele = t('modeleCompte'); break;
-    case 'demande_info': texteModele = t('modeleInfo'); break;
-    case 'refus': texteModele = t('modeleRefus'); break;
+  let texte = '';
+  switch(nom){
+    case 'accueil': texte = t('modeleAccueil'); break;
+    case 'compte_info': texte = t('modeleCompte'); break;
+    case 'refus': texte = t('modeleRefus'); break;
   }
-  const dateAffichage = demandeSelectionnee.date_preinscription ? new Date(demandeSelectionnee.date_preinscription).toLocaleDateString(langueActuelle === 'ar' ? 'ar-MA' : 'fr-FR') : new Date().toLocaleDateString(langueActuelle === 'ar' ? 'ar-MA' : 'fr-FR');
-  texteModele = texteModele.replace(/{prenom}/g, demandeSelectionnee.prenoms || '').replace(/{nom}/g, demandeSelectionnee.nom || '').replace(/{email}/g, demandeSelectionnee.email || '').replace(/{matricule}/g, demandeSelectionnee.matricule || 'À générer').replace(/{date}/g, dateAffichage);
-  document.getElementById('emailMessage').value = texteModele;
+  texte = texte.replace(/{prenom}/g, demandeSelectionnee.prenoms||'')
+               .replace(/{nom}/g, demandeSelectionnee.nom||'')
+               .replace(/{email}/g, demandeSelectionnee.email||'')
+               .replace(/{matricule}/g, demandeSelectionnee.matricule||'À générer');
+  document.getElementById('emailMessage').value = texte;
   compterCaracteres();
 }
 
-function viderFormulaireEmail() {
-  document.getElementById('emailSujet').value = '';
-  document.getElementById('emailMessage').value = '';
-  document.getElementById('compteurCar').textContent = '0';
-  document.getElementById('statutEnvoi').style.display = 'none';
-}
-
 async function envoyerEmail() {
-  const destinataire = document.getElementById('emailDestinataire').value.trim();
-   const sujet = document.getElementById('emailSujet').value.trim();
-  const message = document.getElementById('emailMessage').value.trim();
+  const dest = document.getElementById('emailDestinataire').value.trim();
+  const sujet = document.getElementById('emailSujet').value.trim();
+  const msg = document.getElementById('emailMessage').value.trim();
   const statut = document.getElementById('statutEnvoi');
-
-  if (!destinataire) {
-    statut.innerHTML = `<div class="alert alert-warning py-2 mb-0">${t('aucunEmail')}</div>`;
-    statut.style.display = 'block';
-    return;
-  }
-  if (!sujet) {
-    statut.innerHTML = `<div class="alert alert-warning py-2 mb-0">${t('sujetVide')}</div>`;
-    statut.style.display = 'block';
-    return;
-  }
-  if (!message) {
-    statut.innerHTML = `<div class="alert alert-warning py-2 mb-0">${t('messageVide')}</div>`;
-    statut.style.display = 'block';
-    return;
-  }
+  if (!dest) return (statut.innerHTML=`<div class="alert alert-warning py-2">${t('aucunEmail')}</div>`, statut.style.display='block');
+  if (!sujet) return (statut.innerHTML=`<div class="alert alert-warning py-2">${t('sujetVide')}</div>`, statut.style.display='block');
+  if (!msg) return (statut.innerHTML=`<div class="alert alert-warning py-2">${t('messageVide')}</div>`, statut.style.display='block');
   if (!confirm(t('confirmerEnvoi'))) return;
-
-  statut.innerHTML = `<div class="alert alert-info py-2 mb-0">${t('envoiEnCours')}</div>`;
-  statut.style.display = 'block';
-
+  statut.innerHTML = `<div class="alert alert-info py-2">⏳ Envoi en cours...</div>`; statut.style.display='block';
   try {
     const res = await fetch(`${API_URL}/email/envoyer`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        destinataire: destinataire,
-        sujet: sujet,
-        message: message
-      })
+      headers: { 'Authorization':`Bearer ${token}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ destinataire:dest, sujet:sujet, message:msg })
     });
     const data = await res.json();
-    if (res.ok && data.ok) {
-      statut.innerHTML = `<div class="alert alert-success py-2 mb-0">${t('envoiSucces')}</div>`;
-    } else {
-      statut.innerHTML = `<div class="alert alert-danger py-2 mb-0">${t('envoiEchec')}<br>${data.erreur || ''}</div>`;
-    }
-  } catch (e) {
-    statut.innerHTML = `<div class="alert alert-danger py-2 mb-0">${t('errReseau')} : ${e.message}</div>`;
+    statut.innerHTML = (res.ok && data.ok)
+      ? `<div class="alert alert-success py-2">${t('envoiSucces')}</div>`
+      : `<div class="alert alert-danger py-2">${t('envoiEchec')} ${data.erreur||''}</div>`;
+  } catch(e) {
+    statut.innerHTML = `<div class="alert alert-danger py-2">${t('errReseau')} : ${e.message}</div>`;
   }
 }
 
 function envoyerWhatsApp() {
-  const numero = document.getElementById('telDestinataire').value.replace(/\D/g, '');
-  const message = document.getElementById('emailMessage').value.trim();
-  if (!numero) {
-    alert(t('aucunTel'));
-    return;
-  }
-  const url = `https://wa.me/${numero}?text=${encodeURIComponent(message)}`;
-  window.open(url, '_blank');
+  const tel = document.getElementById('telDestinataire').value.replace(/\D/g,'');
+  const msg = document.getElementById('emailMessage').value;
+  if (!tel) return alert(t('aucunTel'));
+  window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`,'_blank');
 }
 
 async function validerDemande(id) {
   if (!confirm(t('validerConfirm'))) return;
-  const dateInscription = new Date().toISOString().split('T')[0];
   try {
     const res = await fetch(`${API_URL}/preinscription/valider/${id}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ statut: 'valide', date_inscription: dateInscription })
+      method:'POST',
+      headers: { 'Authorization':`Bearer ${token}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ statut:'valide', date_inscription: new Date().toISOString().split('T')[0] })
     });
-    if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
+    if (res.status===401) { alert(t('erreur401')); localStorage.clear(); location.href='connexion.html'; return; }
+    if (!res.ok) throw new Error(`Erreur ${res.status}`);
     const data = await res.json();
-    if (data.ok) {
-      alert(t('validerSucces'));
-      chargerListe();
-      document.getElementById('zoneExamen').innerHTML = `
-        <div class="empty-box">
-          <span class="txt-fr">Demande validée ✅</span>
-          <span class="txt-en">Request validated ✅</span>
-          <span class="txt-ar">تمت الموافقة ✅</span>
-        </div>`;
-      document.getElementById('zoneEmail').style.display = 'none';
-    } else {
-      alert(`${t('erreur')} : ${data.erreur || 'Erreur inconnue'}`);
-    }
-  } catch (e) {
-    alert(`${t('errReseau')} : ${e.message}`);
-  }
+    if (data.ok) { alert(t('validerSucces')); chargerListe(); document.getElementById('zoneEmail').style.display='none'; }
+    else alert(`${t('erreur')} : ${data.erreur||'Erreur inconnue'}`);
+  } catch(e) { alert(`${t('errReseau')} : ${e.message}`); }
 }
 
 async function refuserDemande(id) {
   if (!confirm(t('refuserConfirm'))) return;
   try {
     const res = await fetch(`${API_URL}/preinscription/refuser/${id}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ statut: 'refusee' })
+      method:'POST',
+      headers: { 'Authorization':`Bearer ${token}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ statut:'refusee' })
     });
-    if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
+    if (res.status===401) { alert(t('erreur401')); localStorage.clear(); location.href='connexion.html'; return; }
+    if (!res.ok) throw new Error(`Erreur ${res.status}`);
     const data = await res.json();
-    if (data.ok) {
-      alert(t('refuserSucces'));
-      chargerListe();
-      document.getElementById('zoneExamen').innerHTML = `
-        <div class="empty-box">
-          <span class="txt-fr">Demande refusée ❌</span>
-          <span class="txt-en">Request rejected ❌</span>
-          <span class="txt-ar">تم الرفض ❌</span>
-        </div>`;
-      document.getElementById('zoneEmail').style.display = 'none';
-    } else {
-      alert(`${t('erreur')} : ${data.erreur || 'Erreur inconnue'}`);
-    }
-  } catch (e) {
-    alert(`${t('errReseau')} : ${e.message}`);
-  }
+    if (data.ok) { alert(t('refuserSucces')); chargerListe(); document.getElementById('zoneEmail').style.display='none'; }
+    else alert(`${t('erreur')} : ${data.erreur||'Erreur inconnue'}`);
+  } catch(e) { alert(`${t('errReseau')} : ${e.message}`); }
 }
 
 chargerListe();

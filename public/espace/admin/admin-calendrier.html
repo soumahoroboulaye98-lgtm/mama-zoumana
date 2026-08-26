@@ -33,9 +33,9 @@
     .btn-modif:hover{background:#d97706;}
     .btn-suppr{background:var(--rouge);color:white;padding:6px 12px;font-size:14px;border-radius:6px;border:none;}
     .btn-suppr:hover{background:#dc2626;}
-    .badge-cours{background:rgba(34,197,94,0.15);color:#86efac;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;}
-    .badge-vacances{background:rgba(245,158,11,0.15);color:#fcd34d;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;}
-    .badge-ferie{background:rgba(239,68,68,0.15);color:#fca5a5;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;}
+    .badge-cours{background:rgba(34,197,94,0.15);color:#86efac;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600}
+    .badge-vacances{background:rgba(245,158,11,0.15);color:#fcd34d;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600}
+    .badge-ferie{background:rgba(239,68,68,0.15);color:#fca5a5;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600}
     .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;z-index:1050}
     .modal.active{display:flex}
     .modal-contenu{background:var(--sombre-clair);padding:1.8rem;border-radius:12px;width:92%;max-width:600px;max-height:92vh;overflow-y:auto;border:1px solid #334155}
@@ -51,8 +51,6 @@
     .alerte-api{border-left:3px solid var(--rouge);background:rgba(239,68,68,0.1);border-radius:8px;padding:0.75rem 1rem;margin-bottom:1rem;}
     .btn-langue.active{background:var(--bord-orange);color:#000;border-color:var(--bord-orange);font-weight:bold;}
     .info-ligne{color:#cbd5e1;font-size:14px;margin:4px 0}
-
-    /* 🗣️ GESTION DES LANGUES */
     .lang-en, .lang-ar { display: none; }
     body.lang-fr .lang-fr { display: inline; }
     body.lang-en { direction: ltr; }
@@ -70,9 +68,8 @@
   const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:5000/api/calendrier'
     : 'https://mama-zoumana-api.onrender.com/api/calendrier';
-
   const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
+  const role = (localStorage.getItem('role') || '').trim();
   let langue = localStorage.getItem('langue') || 'fr';
   let modeLocal = false;
 
@@ -80,7 +77,7 @@
   function obtenirPeriodesLocales() { return JSON.parse(localStorage.getItem('calendrier_periodes') || '[]'); }
   function sauvegarderPeriodesLocales(liste) { localStorage.setItem('calendrier_periodes', JSON.stringify(liste)); }
 
-  // 🗣️ TRADUCTIONS
+  // 🗣️ TRADUCTIONS — TOUJOURS EN PREMIER
   const MSG = {
     fr: {
       accesReserve: "⛔ Accès réservé à l'Administrateur",
@@ -100,10 +97,7 @@
       descFR: "Description (FR)",
       descEN: "Description (EN)",
       descAR: "Description (AR)",
-      du: "Du",
-      au: "au",
-      annuler: "Annuler",
-      enregistrer: "Enregistrer",
+      du: "Du", au: "au", annuler: "Annuler", enregistrer: "Enregistrer",
       ajouterOk: "✅ Période ajoutée !",
       modifierOk: "✅ Période modifiée !",
       confirmerSuppr: "Confirmer la suppression ?",
@@ -112,7 +106,8 @@
       modifierBtn: "✏️ Modifier",
       supprimerBtn: "🗑️ Supprimer",
       retour: "Retour",
-      aucunePeriode: "Aucune période enregistrée"
+      aucunePeriode: "Aucune période enregistrée",
+      erreurToken: "⛔ Session expirée. Veuillez vous reconnecter."
     },
     en: {
       accesReserve: "⛔ Access restricted to Administrator",
@@ -125,69 +120,45 @@
       dateFin: "End date *",
       typePeriode: "Period type *",
       choisirType: "— Choose type —",
-      cours: "🟢 Classes",
-      vacances: "🟠 Holidays",
-      ferie: "🔴 Public holiday",
+      cours: "🟢 Classes", vacances: "🟠 Holidays", ferie: "🔴 Public holiday",
       anneeScolaire: "School year",
-      descFR: "Description (FR)",
-      descEN: "Description (EN)",
-      descAR: "Description (AR)",
-      du: "From",
-      au: "to",
-      annuler: "Cancel",
-      enregistrer: "Save",
-      ajouterOk: "✅ Period added!",
-      modifierOk: "✅ Period updated!",
-      confirmerSuppr: "Confirm deletion?",
-      supprOk: "✅ Period deleted!",
-      ajouterBtn: "➕ Add period",
-      modifierBtn: "✏️ Edit",
-      supprimerBtn: "🗑️ Delete",
-      retour: "Back",
-      aucunePeriode: "No period registered"
+      descFR: "Description (FR)", descEN: "Description (EN)", descAR: "Description (AR)",
+      du: "From", au: "to", annuler: "Cancel", enregistrer: "Save",
+      ajouterOk: "✅ Period added!", modifierOk: "✅ Period updated!",
+      confirmerSuppr: "Confirm deletion?", supprOk: "✅ Period deleted!",
+      ajouterBtn: "➕ Add period", modifierBtn: "✏️ Edit", supprimerBtn: "🗑️ Delete",
+      retour: "Back", aucunePeriode: "No period registered",
+      erreurToken: "⛔ Session expired. Please log in again."
     },
     ar: {
       accesReserve: "⛔ الوصول مقصور على المدير",
       serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
       compteur: "فترة",
-      ajouterTitre: "إضافة فترة",
-      modifierTitre: "تعديل الفترة",
-      nomPeriode: "اسم الفترة *",
-      dateDebut: "تاريخ البدء *",
-      dateFin: "تاريخ الانتهاء *",
-      typePeriode: "نوع الفترة *",
-      choisirType: "— اختر النوع —",
-      cours: "🟢 دراسة",
-      vacances: "🟠 عطلة",
-      ferie: "🔴 عطلة رسمية",
+      ajouterTitre: "إضافة فترة", modifierTitre: "تعديل الفترة",
+      nomPeriode: "اسم الفترة *", dateDebut: "تاريخ البدء *", dateFin: "تاريخ الانتهاء *",
+      typePeriode: "نوع الفترة *", choisirType: "— اختر النوع —",
+      cours: "🟢 دراسة", vacances: "🟠 عطلة", ferie: "🔴 عطلة رسمية",
       anneeScolaire: "السنة الدراسية",
-      descFR: "الوصف (فرنسي)",
-      descEN: "الوصف (إنجليزي)",
-      descAR: "الوصف (عربي)",
-      du: "من",
-      au: "إلى",
-      annuler: "إلغاء",
-      enregistrer: "حفظ",
-      ajouterOk: "✅ تمت إضافة الفترة!",
-      modifierOk: "✅ تم تعديل الفترة!",
-      confirmerSuppr: "تأكيد الحذف؟",
-      supprOk: "✅ تم حذف الفترة!",
-      ajouterBtn: "➕ إضافة فترة",
-      modifierBtn: "✏️ تعديل",
-      supprimerBtn: "🗑️ حذف",
-      retour: "عودة",
-      aucunePeriode: "لا توجد فترات مسجلة"
+      descFR: "الوصف (فرنسي)", descEN: "الوصف (إنجليزي)", descAR: "الوصف (عربي)",
+      du: "من", au: "إلى", annuler: "إلغاء", enregistrer: "حفظ",
+      ajouterOk: "✅ تمت إضافة الفترة!", modifierOk: "✅ تم تعديل الفترة!",
+      confirmerSuppr: "تأكيد الحذف؟", supprOk: "✅ تم حذف الفترة!",
+      ajouterBtn: "➕ إضافة فترة", modifierBtn: "✏️ تعديل", supprimerBtn: "🗑️ حذف",
+      retour: "عودة", aucunePeriode: "لا توجد فترات مسجلة",
+      erreurToken: "⛔ انتهت الجلسة. الرجاء تسجيل الدخول مرة أخرى."
     }
   };
   function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
 
-  // 🔒 SÉCURITÉ
-  if(!token || !['admin','super_admin'].includes(role)){
-    alert(m('accesReserve'));
+  // 🔒 SÉCURITÉ — Vérifie token ET rôle
+  if(!token || !['admin','Admin','super_admin'].includes(role)){
+    alert(!token ? m('erreurToken') : m('accesReserve'));
     localStorage.clear();
     location.href = 'connexion.html';
   }
 
+  // Appliquer la langue au plus tôt
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
   document.body.classList.add('lang-' + langue);
 </script>
 
@@ -222,7 +193,6 @@
 </div>
 
 <div class="container py-4">
-
   <!-- ⚠️ ALERTE MODE LOCAL -->
   <div id="alerteApi" class="alerte-api d-none">
     <i class="bi bi-wifi-off me-2"></i>
@@ -300,7 +270,7 @@ function changerLangue(nouvelleLangue) {
   document.body.classList.remove('lang-fr','lang-en','lang-ar');
   document.body.classList.add('lang-' + langue);
   document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-' + langue).classList.add('active');
+  document.getElementById('btn-' + langue)?.classList.add('active');
   afficherListe();
 }
 
@@ -327,12 +297,19 @@ async function chargerListe(forcerLocal = false) {
   if (!forcerLocal) {
     try {
       const res = await fetch(`${API_URL}/liste`, { headers:{'Authorization':`Bearer ${token}`} });
+      if (res.status === 401) throw new Error('401'); // Token expiré → déconnexion
       if (!res.ok) throw new Error();
       const data = await res.json();
-      liste = data.calendrier || [];
+      liste = data.calendrier || data || [];
       sauvegarderPeriodesLocales(liste);
       basculerModeLocal(false);
-    } catch {
+    } catch (err) {
+      if (err.message === '401') {
+        alert(m('erreurToken'));
+        localStorage.clear();
+        location.href = 'connexion.html';
+        return;
+      }
       forcerLocal = true;
     }
   }
@@ -411,7 +388,6 @@ document.getElementById('formPeriode').addEventListener('submit', async e => {
     description_en: document.getElementById('description_en').value,
     description_ar: document.getElementById('description_ar').value
   };
-
   const msg = document.getElementById('message');
   try {
     const url = id ? `${API_URL}/${id}` : `${API_URL}/ajouter`;
@@ -421,6 +397,7 @@ document.getElementById('formPeriode').addEventListener('submit', async e => {
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(donnees)
     });
+    if (res.status === 401) throw new Error('401');
     const rep = await res.json();
     if (rep.ok) {
       msg.className = 'message succes';
@@ -431,6 +408,13 @@ document.getElementById('formPeriode').addEventListener('submit', async e => {
       throw new Error(rep.erreur || 'Erreur serveur');
     }
   } catch (err) {
+    // 🚪 Token expiré
+    if (err.message === '401') {
+      alert(m('erreurToken'));
+      localStorage.clear();
+      location.href = 'connexion.html';
+      return;
+    }
     // 📴 Mode local
     let liste = obtenirPeriodesLocales();
     donnees.id = id ? Number(id) : Date.now();
@@ -443,7 +427,7 @@ document.getElementById('formPeriode').addEventListener('submit', async e => {
     listeCalendrier = liste;
     basculerModeLocal(true);
     msg.className = 'message succes';
-    msg.textContent = (id ? m('modifierOk') : m('ajouterOk')) + " (local)";
+    msg.textContent = (id ? m('modifierOk') : m('ajouterOk')) + " (mode local)";
     afficherListe();
     setTimeout(fermerFormulaire, 1200);
   }
@@ -454,6 +438,7 @@ async function supprimer(id) {
   if (!confirm(m('confirmerSuppr'))) return;
   try {
     const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers:{'Authorization':`Bearer ${token}`} });
+    if (res.status === 401) throw new Error('401');
     const rep = await res.json();
     if (rep.ok) {
       await chargerListe();
@@ -461,13 +446,20 @@ async function supprimer(id) {
     } else {
       throw new Error(rep.erreur);
     }
-  } catch {
+  } catch (err) {
+    if (err.message === '401') {
+      alert(m('erreurToken'));
+      localStorage.clear();
+      location.href = 'connexion.html';
+      return;
+    }
+    // 📴 Mode local
     let liste = obtenirPeriodesLocales().filter(p => Number(p.id) !== Number(id));
     sauvegarderPeriodesLocales(liste);
     listeCalendrier = liste;
     basculerModeLocal(true);
     afficherListe();
-    alert(m('supprOk') + " (local)");
+    alert(m('supprOk') + " (mode local)");
   }
 }
 
