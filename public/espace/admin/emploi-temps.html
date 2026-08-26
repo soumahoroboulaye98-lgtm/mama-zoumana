@@ -57,6 +57,10 @@
       color:var(--orange-clair);
       box-shadow:0 0 15px rgba(245,158,11,0.4);
     }
+    .btn-anim-orange.active{
+      color:var(--orange-clair);
+      border:2px solid var(--bord-orange);
+    }
     .btn-valide-lumineux{
       background:var(--valide);color:white;border-radius:8px;box-shadow:0 0 12px rgba(16,185,129,0.35);border:none;
     }
@@ -70,16 +74,12 @@
     .form-control:focus,.form-select:focus{background:#0f172a;border-color:var(--bord-orange);color:white}
     .barre-langue{display:flex;gap:0.75rem;justify-content:center;margin-bottom:2rem}
     .alerte-api { border-left: 4px solid var(--suppr); background: rgba(239,68,68,0.1); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
-
-    /* ✅ GESTION DES LANGUES */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
-
     body.lang-en { direction: ltr; }
     body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
     body.lang-en .txt-en { display: inline; }
-
     body.lang-ar { direction: rtl; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
     body.lang-ar .txt-ar { display: inline; }
@@ -91,31 +91,30 @@
 const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
 
-// 🔗 URL adaptative
+// 🔗 URL API
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:5000/api'
   : 'https://mama-zoumana-api.onrender.com/api';
 
-// 💾 Stockage local mode hors ligne
+// 💾 Mode local
 function obtenirEdtLocal() { return JSON.parse(localStorage.getItem('emploi_du_temps') || '[]'); }
 function sauvegarderEdtLocal(liste) { localStorage.setItem('emploi_du_temps', JSON.stringify(liste)); }
 
-// 🗣️ Traductions messages
+// 🗣️ Traductions
 const MSG = {
   fr: { serveurIndispo: "⚠️ Serveur indisponible — Mode local actif", erreurChargement: "❌ Erreur de chargement", confSuppr: "⚠️ Supprimer cette séance ?", supprOk: "✅ Séance supprimée !", enregOk: "✅ Séance enregistrée !", erreurReseau: "❌ Erreur de connexion", aucune: "Aucune séance programmée" },
   en: { serveurIndispo: "⚠️ Server offline — Local mode active", erreurChargement: "❌ Loading error", confSuppr: "⚠️ Delete this session?", supprOk: "✅ Session deleted!", enregOk: "✅ Session saved!", erreurReseau: "❌ Network error", aucune: "No session scheduled" },
   ar: { serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي", erreurChargement: "❌ خطأ في التحميل", confSuppr: "⚠️ حذف هذه الحصة ؟", supprOk: "✅ تم الحذف!", enregOk: "✅ تم الحفظ!", erreurReseau: "❌ خطأ في الاتصال", aucune: "لا توجد حصص مجدولة" }
 };
+let langueActuelle = localStorage.getItem('langue') || 'fr';
 function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
 
-// 🔒 SÉCURITÉ
-if(!token || role !== 'admin'){
+// 🔒 SÉCURITÉ — Accepte aussi 'admin' ET vérifie le token
+if(!token || (role !== 'admin' && role !== 'Admin')){
   alert("⛔ Accès réservé à l'Administrateur");
   localStorage.clear();
   location.href='dashboard.html';
 }
-
-let langueActuelle = localStorage.getItem('langue') || 'fr';
 </script>
 
 <div class="entete-page">
@@ -127,7 +126,7 @@ let langueActuelle = localStorage.getItem('langue') || 'fr';
         <span class="txt-en">📅 Timetable</span>
         <span class="txt-ar">📅 الجدول الزمني</span>
       </h3>
-      <p class="mb-0 opacity-80" id="sous-titre">
+      <p class="mb-0 opacity-80">
         <span class="txt-fr">Gestion complète — Modifiable par Admin seul</span>
         <span class="txt-en">Full Management — Admin only</span>
         <span class="txt-ar">إدارة كاملة — من قبل المدير فقط</span>
@@ -160,7 +159,7 @@ let langueActuelle = localStorage.getItem('langue') || 'fr';
     <!-- ➕ FORMULAIRE AJOUT SÉANCE -->
     <div class="col-md-4">
       <div class="carte-gestion">
-        <h5 class="mb-3" id="titre-form">
+        <h5 class="mb-3">
           <span class="txt-fr">➕ Ajouter une séance</span>
           <span class="txt-en">➕ Add Session</span>
           <span class="txt-ar">➕ إضافة حصة</span>
@@ -250,7 +249,7 @@ let langueActuelle = localStorage.getItem('langue') || 'fr';
     <!-- 📋 LISTE EMPLOI DU TEMPS -->
     <div class="col-md-8">
       <div class="carte-gestion">
-        <h5 class="mb-3" id="titre-liste">
+        <h5 class="mb-3">
           <span class="txt-fr">📋 Emploi du Temps Global</span>
           <span class="txt-en">📋 Global Timetable</span>
           <span class="txt-ar">📋 الجدول الزمني العام</span>
@@ -274,8 +273,11 @@ function changerLangue(lang){
   document.body.className = 'lang-' + lang;
   localStorage.setItem('langue', lang);
   document.querySelectorAll('.barre-langue button').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-'+lang).classList.add('active');
+  const btn = document.getElementById('btn-'+lang);
+  if(btn) btn.classList.add('active');
 }
+
+// ✅ Appliquer langue au chargement
 document.body.className = 'lang-' + langueActuelle;
 document.getElementById('btn-'+langueActuelle)?.classList.add('active');
 
@@ -317,17 +319,15 @@ async function chargerListes(){
         '<option value="">--- Sélectionner ---</option>' +
         clRes.lignes.map(x => `<option value="${x.id_classe}">${x.libelle_classe}</option>`).join('');
     }
-
     if(mtRes.ok && mtRes.lignes){
       document.getElementById('sel-mat').innerHTML =
         '<option value="">--- Sélectionner ---</option>' +
         mtRes.lignes.map(x => `<option value="${x.id_matiere}">${x.libelle_matiere}</option>`).join('');
     }
-
     if(prRes.ok && prRes.utilisateurs){
       document.getElementById('sel-pr').innerHTML =
         '<option value="">--- Sélectionner ---</option>' +
-        prRes.utilisateurs.map(x => `<option value="${x.id_utilisateur}">${x.nom} ${x.prenoms}</option>`).join('');
+        prRes.utilisateurs.map(x => `<option value="${x.id}">${x.nom} ${x.prenom}</option>`).join('');
     }
   } catch(e) {
     console.warn("🔌 Chargement listes impossible", e);
@@ -345,7 +345,7 @@ async function chargerEdt(){
     const res = await r.json();
     alerteApi.classList.add('d-none');
 
-    if(res.ok && res.lignes && res.lignes.length>0){
+    if(res.ok && res.lignes && res.lignes.length > 0){
       zone.innerHTML = res.lignes.map(x => rendreLigneSeance(x)).join('');
       sauvegarderEdtLocal(res.lignes);
     } else {
@@ -357,11 +357,9 @@ async function chargerEdt(){
       sauvegarderEdtLocal([]);
     }
   } catch {
-    // 📴 MODE LOCAL
     console.warn("🔌 Mode local EDT actif");
     texteAlerteApi.textContent = m('serveurIndispo');
     alerteApi.classList.remove('d-none');
-
     const locale = obtenirEdtLocal();
     if(locale.length === 0){
       zone.innerHTML = `<div class="text-center py-4 text-muted">
@@ -379,7 +377,6 @@ async function chargerEdt(){
 document.getElementById('formEdt').addEventListener('submit', async e => {
   e.preventDefault();
   const d = Object.fromEntries(new FormData(e.target));
-
   try {
     const r = await fetch(`${API_URL}/emploi/ajouter`, {
       method: 'POST',
@@ -387,7 +384,6 @@ document.getElementById('formEdt').addEventListener('submit', async e => {
       body: JSON.stringify(d)
     });
     const res = await r.json();
-
     if(res.ok){
       alert(m('enregOk'));
       e.target.reset();
@@ -396,7 +392,6 @@ document.getElementById('formEdt').addEventListener('submit', async e => {
       alert("❌ " + (res.erreur || "Erreur"));
     }
   } catch {
-    // 📴 SAUVEGARDE LOCALE
     const locale = obtenirEdtLocal();
     d.id = Date.now();
     d.id_emploi = d.id;
@@ -414,7 +409,6 @@ document.getElementById('formEdt').addEventListener('submit', async e => {
 // ❌ SUPPRIMER UNE SÉANCE
 async function supprimer(id){
   if(!confirm(m('confSuppr'))) return;
-
   try {
     await fetch(`${API_URL}/emploi/${id}`, {
       method: 'DELETE',
@@ -422,7 +416,6 @@ async function supprimer(id){
     });
     alert(m('supprOk'));
   } catch {
-    // 📴 Suppression locale
     const locale = obtenirEdtLocal().filter(x => (x.id_emploi||x.id) !== id);
     sauvegarderEdtLocal(locale);
     alert(m('supprOk'));
@@ -434,6 +427,5 @@ async function supprimer(id){
 chargerListes();
 chargerEdt();
 </script>
-
 </body>
 </html>

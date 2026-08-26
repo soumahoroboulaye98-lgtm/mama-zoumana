@@ -20,10 +20,12 @@
     .badge-vert { background: #d1fae5; color: #065f46; }
     .badge-jaune { background: #fef3c7; color: #92400e; }
     .badge-rouge { background: #fee2e2; color: #991b1b; }
+    .badge-info { background: #e0f2fe; color: #0369a1; }
     .progress { height: 10px; border-radius: 5px; }
     .nav-tabs .nav-link { color: #555; font-weight: 500; }
     .nav-tabs .nav-link.active { color: var(--primaire); border-bottom: 3px solid var(--primaire); }
     .somme-du { font-size: 1.1rem; font-weight: 600; }
+    .info-tarif { font-size: 0.85rem; color: #0369a1; }
   </style>
 </head>
 <body>
@@ -115,6 +117,26 @@
     </div>
   </div>
 
+  <!-- Tarifs de référence -->
+  <div class="card p-3 mb-4">
+    <h6 class="mb-3">📋 Tarifs de référence (définis par l'administrateur)</h6>
+    <div class="table-responsive">
+      <table class="table table-sm table-bordered mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Type de frais</th>
+            <th>Libellé</th>
+            <th>Montant</th>
+            <th>Année</th>
+          </tr>
+        </thead>
+        <tbody id="listeTarifs">
+          <!-- Chargé par JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- Liste des frais -->
   <div class="card">
     <div class="card-body p-0">
@@ -163,7 +185,7 @@
             </div>
             <div class="col-md-6 mb-3">
               <label class="form-label">Type de Frais <span class="text-danger">*</span></label>
-              <select id="fraisType" class="form-select" required>
+              <select id="fraisType" class="form-select" required onchange="chargerTarifPourType()">
                 <option value="">Choisir le type...</option>
                 <option value="scolaire">📚 Frais Scolaires</option>
                 <option value="cantine">🍽️ Cantine</option>
@@ -171,6 +193,7 @@
                 <option value="transport">🚌 Transport</option>
                 <option value="document">📄 Documents / Divers</option>
               </select>
+              <div id="infoTarifDispo" class="info-tarif mt-1"></div>
             </div>
             <div class="col-md-6 mb-3">
               <label class="form-label">Libellé / Désignation <span class="text-danger">*</span></label>
@@ -191,6 +214,7 @@
             <div class="col-md-4 mb-3">
               <label class="form-label">Montant Total (F CFA) <span class="text-danger">*</span></label>
               <input type="number" id="fraisMontant" class="form-control" min="0" required>
+              <div class="form-text">💡 Ce montant deviendra la référence pour la préinscription</div>
             </div>
             <div class="col-md-4 mb-3">
               <label class="form-label">Montant Déjà Payé</label>
@@ -245,7 +269,7 @@
             <select id="paiementMode" class="form-select">
               <option value="especes">Espèces</option>
               <option value="virement">Virement</option>
-              <option value="mobile">Mobile Money</option>
+              <option value="mobile">Virement Mobile Money</option>
               <option value="cheque">Chèque</option>
             </select>
           </div>
@@ -270,12 +294,13 @@ const API_URL = '/api';
 let token = localStorage.getItem('token') || '';
 let listeFrais = [];
 let listeEleves = [];
+let listeTarifs = [];
 
 // Traductions
 const t = {
-  fr: { devise: 'F CFA', impaye: 'Impayé', partiel: 'Partiel', paye: 'Payé', supprimerConfirm: 'Supprimer ce frais ?', enregistre: 'Enregistré !' },
-  en: { devise: 'XOF', impaye: 'Unpaid', partiel: 'Partial', paye: 'Paid', supprimerConfirm: 'Delete this fee?', enregistre: 'Saved!' },
-  ar: { devise: 'فرنك', impaye: 'غير مدفوع', partiel: 'جزئي', paye: 'مدفوع', supprimerConfirm: 'حذف هذا الرسم؟', enregistre: 'تم الحفظ!' }
+  fr: { devise: 'F CFA', impaye: 'Impayé', partiel: 'Partiel', paye: 'Payé', supprimerConfirm: 'Supprimer ce frais ?', enregistre: 'Enregistré !', tarifMisAJour: 'Tarif de référence mis à jour ✅', pasTarif: 'Aucun tarif défini' },
+  en: { devise: 'XOF', impaye: 'Unpaid', partiel: 'Partial', paye: 'Paid', supprimerConfirm: 'Delete this fee?', enregistre: 'Saved!', tarifMisAJour: 'Reference fee updated ✅', pasTarif: 'No fee set' },
+  ar: { devise: 'فرنك', impaye: 'غير مدفوع', partiel: 'جزئي', paye: 'مدفوع', supprimerConfirm: 'حذف هذا الرسم؟', enregistre: 'تم الحفظ!', tarifMisAJour: 'تم تحديث السعر المرجعي ✅', pasTarif: 'لا يوجد سعر محدد' }
 };
 let langueActuelle = localStorage.getItem('langue') || 'fr';
 
@@ -294,6 +319,51 @@ function getBadgeStatut(reste, total) {
 function getIconeType(type) {
   const icones = { scolaire: '📚', cantine: '🍽️', sport: '⚽', transport: '🚌', document: '📄' };
   return icones[type] || '📌';
+}
+
+// ========== CHARGER LES TARIFS DE RÉFÉRENCE ==========
+async function chargerTarifs() {
+  const annee = document.getElementById('filtreAnnee').value;
+  try {
+    const res = await fetch(`${API_URL}/tarifs?annee=${annee}`, { headers: { 'Authorization': `Bearer ${token}` } });
+    listeTarifs = await res.json();
+  } catch {
+    listeTarifs = [];
+  }
+  const tbody = document.getElementById('listeTarifs');
+  tbody.innerHTML = '';
+  if (listeTarifs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Aucun tarif de référence défini. Enregistrez un frais pour créer un tarif.</td></tr>';
+    return;
+  }
+  listeTarifs.forEach(tarif => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${getIconeType(tarif.type)} ${tarif.type}</td>
+        <td>${tarif.libelle}</td>
+        <td class="fw-semibold">${formatMontant(tarif.montant)}</td>
+        <td>${tarif.annee}</td>
+      </tr>`;
+  });
+}
+
+// Charger un tarif quand on sélectionne un type
+async function chargerTarifPourType() {
+  const type = document.getElementById('fraisType').value;
+  const annee = document.getElementById('fraisAnnee').value;
+  const zoneInfo = document.getElementById('infoTarifDispo');
+  if (!type) { zoneInfo.innerHTML = ''; return; }
+  try {
+    const res = await fetch(`${API_URL}/tarifs?type=${type}&annee=${annee}`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const tarif = await res.json();
+    if (tarif && tarif.montant) {
+      zoneInfo.innerHTML = `<span class="badge badge-info">💡 Tarif : ${formatMontant(tarif.montant)}</span>`;
+      document.getElementById('fraisLibelle').value = tarif.libelle || '';
+      document.getElementById('fraisMontant').value = tarif.montant;
+    } else {
+      zoneInfo.innerHTML = `<span class="text-muted">${t[langueActuelle].pasTarif}</span>`;
+    }
+  } catch { zoneInfo.innerHTML = ''; }
 }
 
 // ========== CHARGEMENT ==========
@@ -318,11 +388,12 @@ async function chargerListeFrais() {
   const statut = document.getElementById('filtreStatut').value;
   const annee = document.getElementById('filtreAnnee').value;
 
+  chargerTarifs(); // ← Recharger les tarifs en même temps
+
   try {
     const res = await fetch(`${API_URL}/frais?annee=${annee}`, { headers: { 'Authorization': `Bearer ${token}` } });
     listeFrais = await res.json();
   } catch {
-    // Mode démo si pas d'API
     listeFrais = [];
   }
 
@@ -371,7 +442,7 @@ async function chargerListeFrais() {
   });
 }
 
-// ========== FORMULAIRE FRAIS ==========
+// ========== ENREGISTREMENT FRAIS + SAUVEGARDE DU TARIF ==========
 document.getElementById('formFrais').addEventListener('submit', async e => {
   e.preventDefault();
   const id = document.getElementById('fraisId').value;
@@ -395,7 +466,20 @@ document.getElementById('formFrais').addEventListener('submit', async e => {
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
-    alert(t[langueActuelle].enregistre);
+
+    // ✅ ENREGISTRER EN PLUS COMME TARIF DE RÉFÉRENCE
+    await fetch(`${API_URL}/tarifs/definir`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: data.type,
+        annee: data.annee,
+        libelle: data.libelle,
+        montant: data.montant
+      })
+    });
+
+    alert(t[langueActuelle].enregistre + ' ' + t[langueActuelle].tarifMisAJour);
     document.getElementById('formFrais').reset();
     document.getElementById('fraisId').value = '';
     bootstrap.Modal.getInstance(document.getElementById('modalFrais')).hide();
@@ -461,6 +545,10 @@ document.getElementById('formPaiement').addEventListener('submit', async e => {
     chargerListeFrais();
   } catch { alert('Erreur lors de l\'enregistrement'); }
 });
+
+// Recharger tarifs quand on change d'année
+document.getElementById('fraisAnnee').addEventListener('change', chargerTarifPourType);
+document.getElementById('filtreAnnee').addEventListener('change', chargerListeFrais);
 
 // Init
 chargerEleves().then(() => chargerListeFrais());

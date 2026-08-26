@@ -30,7 +30,6 @@
     .lang-en .txt-fr, .lang-en .txt-ar,
     .lang-ar .txt-fr, .lang-ar .txt-en { display: none !important; }
     body.lang-ar { direction: rtl; text-align: right; }
-
     .entete-page{background:var(--sombre-clair);border-bottom:2px solid var(--bord-orange);padding:1.5rem 0;}
     .carte-filtre{background:var(--sombre-clair);border-radius:12px;border-left:3px solid var(--bord-orange);padding:1.25rem;margin-bottom:1rem;}
     .carte-info-generee{background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:1rem;margin-top:1rem;}
@@ -66,15 +65,14 @@
   </style>
 </head>
 <body>
-
 <!-- 🔒 PROTECTION ADMIN + GESTION LANGUE -->
 <script>
-const API_BASE = "https://mama-zoumana.onrender.com/api";
+const API_BASE = "https://mama-zoumana-api.onrender.com/api";
 const token = localStorage.getItem('token');
 const roleUser = localStorage.getItem('role');
 
-// ✅ Vérification session
-if (!token || !['admin','super_admin'].includes(roleUser)) {
+// ✅ Vérification session — Accepte admin ET Admin
+if (!token || !['admin','Admin','super_admin'].includes(roleUser)) {
   alert("⛔ Accès réservé à l'administrateur — Connexion requise");
   location.href='connexion.html';
 }
@@ -82,7 +80,6 @@ if (!token || !['admin','super_admin'].includes(roleUser)) {
 // ✅ Gestion langue
 const langueSauvegardee = localStorage.getItem('langue') || 'fr';
 document.body.classList.add('lang-' + langueSauvegardee);
-
 function appliquerLangue(lang){
   localStorage.setItem('langue', lang);
   document.body.classList.remove('lang-fr','lang-en','lang-ar');
@@ -132,7 +129,7 @@ function headersAuth(){
           <option value="admin">🔧 Administrateur</option>
           <option value="directeur">🏫 Directeur</option>
           <option value="comptable">💰 Comptable</option>
-          <option value="prof">👨‍🏫 Enseignant</option>
+          <option value="professeur">👨‍🏫 Enseignant</option>
           <option value="eleve">🎓 Élève</option>
           <option value="parent">👨‍👩‍👧 Parent</option>
           <option value="visiteur">🧑‍💼 Visiteur</option>
@@ -183,12 +180,9 @@ function headersAuth(){
       </div>
       <div class="modal-body">
         <input type="hidden" id="utilisateur-id">
-
         <div class="alert alert-info py-2 mb-3">
           <i class="bi bi-shield-lock"></i> Matricule et mot de passe générés automatiquement.
-          <br><i class="bi bi-calculator"></i> Moyenne / Rang / Mention calculés automatiquement depuis les notes.
         </div>
-
         <!-- 📋 CHAMPS COMMUNS -->
         <div class="row g-3 mb-3">
           <div class="col-md-6">
@@ -213,7 +207,7 @@ function headersAuth(){
               <option value="admin">🔧 Administrateur</option>
               <option value="directeur">🏫 Directeur</option>
               <option value="comptable">💰 Comptable</option>
-              <option value="prof">👨‍🏫 Enseignant</option>
+              <option value="professeur">👨‍🏫 Enseignant</option>
               <option value="eleve" selected>🎓 Élève</option>
               <option value="parent">👨‍👩‍👧 Parent</option>
               <option value="visiteur">🧑‍💼 Visiteur</option>
@@ -234,7 +228,6 @@ function headersAuth(){
             </select>
           </div>
         </div>
-
         <!-- 🎓 ÉLÈVE -->
         <div id="form-eleve" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10">
           <h6 class="text-warning fw-bold"><i class="bi bi-mortarboard"></i> Informations Élève</h6>
@@ -254,26 +247,6 @@ function headersAuth(){
             <span id="classe-erreur" class="avertissement d-block mt-1"></span>
           </div>
           <hr class="w-100 border-warning opacity-50">
-          
-          <!-- ✅ MOYENNE/RANG/MENTION : CALCUL AUTO → SAISIE DÉSACTIVÉE -->
-          <div class="col-md-3">
-            <label class="form-label fw-bold">Moyenne</label>
-            <div class="note-auto">🔄 Calculé automatiquement</div>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label fw-bold">Rang</label>
-            <div class="note-auto">🔄 Calculé automatiquement</div>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label fw-bold">Mention</label>
-            <div class="note-auto">🔄 Calculé automatiquement</div>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label fw-bold">Note Conduite</label>
-            <input type="number" step="0.01" min="0" max="20" id="eleve-conduite" class="form-control" placeholder="/20">
-          </div>
-          
-          <hr class="w-100 border-warning opacity-50">
           <div class="col-md-6">
             <label class="form-label fw-bold">Nom du Père</label>
             <input type="text" id="eleve-nom-pere" class="form-control">
@@ -291,9 +264,8 @@ function headersAuth(){
             <input type="tel" id="eleve-tel-mere" class="form-control">
           </div>
         </div>
-
         <!-- 👨‍🏫 ENSEIGNANT -->
-        <div id="form-prof" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
+        <div id="form-professeur" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
           <h6 class="text-primary fw-bold"><i class="bi bi-person-workspace"></i> Informations Enseignant</h6>
           <div class="col-md-6">
             <label class="form-label fw-bold">Spécialité / Matière</label>
@@ -304,7 +276,6 @@ function headersAuth(){
             <input type="text" id="prof-diplome" class="form-control">
           </div>
         </div>
-
         <!-- 💰 COMPTABLE -->
         <div id="form-comptable" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
           <h6 class="text-success fw-bold"><i class="bi bi-cash-coin"></i> Informations Comptable</h6>
@@ -317,7 +288,6 @@ function headersAuth(){
             <input type="text" id="comptable-horaires" class="form-control" value="Lundi-Vendredi 08h-16h">
           </div>
         </div>
-
         <!-- 🏫 DIRECTEUR -->
         <div id="form-directeur" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
           <h6 class="text-info fw-bold"><i class="bi bi-building"></i> Informations Directeur</h6>
@@ -330,7 +300,6 @@ function headersAuth(){
             <input type="date" id="directeur-date-fonction" class="form-control">
           </div>
         </div>
-
         <!-- 🔧 ADMIN -->
         <div id="form-admin" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
           <h6 class="text-danger fw-bold"><i class="bi bi-shield-check"></i> Informations Administrateur</h6>
@@ -342,7 +311,6 @@ function headersAuth(){
             </select>
           </div>
         </div>
-
         <!-- 👨‍👩‍👧 PARENT -->
         <div id="form-parent" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
           <h6 class="text-warning fw-bold"><i class="bi bi-people"></i> Informations Parent</h6>
@@ -351,7 +319,6 @@ function headersAuth(){
             <input type="text" id="parent-enfants" class="form-control" placeholder="MZ2026-6EME-0001, ...">
           </div>
         </div>
-
         <!-- 🧑‍💼 VISITEUR -->
         <div id="form-visiteur" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
           <h6 class="text-secondary fw-bold"><i class="bi bi-person-lines-fill"></i> Informations Visiteur</h6>
@@ -371,7 +338,6 @@ function headersAuth(){
             </select>
           </div>
         </div>
-
         <!-- ✅ INFOS GÉNÉRÉES -->
         <div id="bloc-resultat" class="carte-info-generee d-none">
           <h6 class="text-success fw-bold">✅ Identifiants générés</h6>
@@ -387,7 +353,6 @@ function headersAuth(){
           </div>
         </div>
       </div>
-
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
         <button type="button" class="btn btn-valide-lumineux" onclick="enregistrerUtilisateur()">💾 Enregistrer</button>
@@ -399,10 +364,9 @@ function headersAuth(){
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 let modal;
-
 const LabelsProfil = {
   admin: "🔧 Administrateur", directeur: "🏫 Directeur", comptable: "💰 Comptable",
-  prof: "👨‍🏫 Enseignant", eleve: "🎓 Élève", parent: "👨‍👩‍👧 Parent", visiteur: "🧑‍💼 Visiteur"
+  professeur: "👨‍🏫 Enseignant", eleve: "🎓 Élève", parent: "👨‍👩‍👧 Parent", visiteur: "🧑‍💼 Visiteur"
 };
 
 // 📚 Liste de secours si l'API /classes échoue
@@ -424,7 +388,7 @@ const CLASSES_DEFAUT = [
 
 document.addEventListener('DOMContentLoaded', async () => {
   modal = new bootstrap.Modal(document.getElementById('modalUtilisateur'));
-  await chargerClasses(); // Charger liste des classes
+  await chargerClasses();
   chargerUtilisateurs();
 });
 
@@ -433,25 +397,24 @@ async function chargerClasses(){
   const sel = document.getElementById('eleve-classe');
   const zoneErreur = document.getElementById('classe-erreur');
   sel.innerHTML = '<option value="">-- Chargement... --</option>';
-
   try {
     const res = await fetch(`${API_BASE}/classes`, { headers: headersAuth() });
+    if (!res.ok) throw new Error(`Erreur ${res.status}`);
     const data = await res.json();
-
-    if(data.ok && data.classes && Array.isArray(data.classes) && data.classes.length > 0) {
+    // ✅ Format corrigé : data.lignes
+    if(data.ok && data.lignes && Array.isArray(data.lignes) && data.lignes.length > 0) {
       sel.innerHTML = '<option value="">-- Choisir une classe --</option>';
-      data.classes.forEach(c => {
-        sel.innerHTML += `<option value="${c.id || c.id_classe}">${c.libelle_classe}</option>`;
+      data.lignes.forEach(c => {
+        sel.innerHTML += `<option value="${c.id_classe || c.id}">${c.libelle_classe}</option>`;
       });
-      zoneErreur.textContent = ''; // OK
+      zoneErreur.textContent = '';
     } else {
       throw new Error(data.erreur || "Format API invalide");
     }
   } catch(e) {
-    console.warn("⚠️ API /classes indisponible, utilisation de la liste par défaut :", e.message);
+    console.warn("🔌 Mode local classes :", e.message);
     zoneErreur.textContent = "⚠️ Mode hors ligne — liste de secours affichée";
     zoneErreur.classList.add('text-warning');
-    // Fallback : liste intégrée
     sel.innerHTML = '<option value="">-- Choisir une classe --</option>';
     CLASSES_DEFAUT.forEach(c => {
       sel.innerHTML += `<option value="${c.id}">${c.libelle_classe}</option>`;
@@ -468,15 +431,17 @@ function afficherFormulaireProfil(){
   document.getElementById('bloc-resultat').classList.add('d-none');
 }
 
-// 📥 Charger liste utilisateurs
+// 📥 Charger liste utilisateurs — ✅ URL CORRIGÉE (sans /auth/)
 async function chargerUtilisateurs(){
   const recherche = document.getElementById('recherche').value.toLowerCase();
   const profil = document.getElementById('filtre-profil').value;
   const statut = document.getElementById('filtre-statut').value;
   const liste = document.getElementById('liste-utilisateurs');
-
+  liste.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-warning"></div></td></tr>';
+  
   try {
-    const res = await fetch(`${API_BASE}/auth/utilisateurs`, { headers: headersAuth() });
+    // ✅ URL corrigée : /utilisateurs et non /auth/utilisateurs
+    const res = await fetch(`${API_BASE}/utilisateurs`, { headers: headersAuth() });
     
     // ✅ Gestion erreur Token / Session
     if(res.status === 401 || res.status === 403) {
@@ -486,21 +451,29 @@ async function chargerUtilisateurs(){
       </td></tr>`;
       return;
     }
-
+    if(res.status === 404) {
+      liste.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">
+        ❌ Route introuvable. Vérifiez que l'URL est correcte.
+      </td></tr>`;
+      return;
+    }
+    
     const data = await res.json();
     if(!data.ok || !data.lignes || !data.lignes.length){
       liste.innerHTML = `<tr><td colspan="6" class="text-center py-5 opacity-75">Aucun utilisateur trouvé</td></tr>`;
       return;
     }
-
     let utilisateurs = data.lignes;
+    
+    // Filtres
     if(recherche) utilisateurs = utilisateurs.filter(u =>
       (u.matricule||'').toLowerCase().includes(recherche) ||
       ((u.nom+' '+u.prenom).toLowerCase().includes(recherche))
     );
     if(profil) utilisateurs = utilisateurs.filter(u => u.role === profil);
     if(statut) utilisateurs = utilisateurs.filter(u => u.statut_compte === statut);
-
+    
+    // Affichage
     liste.innerHTML = utilisateurs.map(u => {
       const cls = u.statut_compte==='valide'?'statut-actif':'statut-attente';
       const libStatut = u.statut_compte==='valide'?'✅ Actif':'⏳ En attente';
@@ -516,8 +489,10 @@ async function chargerUtilisateurs(){
         </td>
       </tr>`;
     }).join('');
+    
   } catch(e){
-    liste.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Erreur de connexion : ${e.message}</td></tr>`;
+    liste.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Erreur : ${e.message}</td></tr>`;
+    console.error("Erreur complète :", e);
   }
 }
 
@@ -536,13 +511,13 @@ function ouvrirModalAjout(){
   modal.show();
 }
 
-// ✏️ Modifier utilisateur
+// ✏️ Modifier utilisateur — ✅ URL corrigée
 async function modifierUtilisateur(id){
   try {
-    const res = await fetch(`${API_BASE}/auth/utilisateurs/${id}`, { headers: headersAuth() });
+    const res = await fetch(`${API_BASE}/utilisateurs/${id}`, { headers: headersAuth() });
+    if(res.status === 404) throw new Error("Utilisateur introuvable");
     const data = await res.json();
     if(!data.ok) return alert("⚠️ Utilisateur introuvable");
-
     const u = data.utilisateur;
     document.getElementById('utilisateur-id').value = u.id;
     document.getElementById('utilisateur-nom').value = u.nom || '';
@@ -552,8 +527,6 @@ async function modifierUtilisateur(id){
     document.getElementById('utilisateur-profil').value = u.role || 'eleve';
     document.getElementById('utilisateur-statut').value = u.statut_compte || 'valide';
     document.getElementById('bloc-resultat').classList.add('d-none');
-
-    // Si élève → pré-remplir champs spécifiques
     if(u.role === 'eleve') {
       document.getElementById('eleve-date-naissance').value = u.date_naissance || '';
       document.getElementById('eleve-lieu-naissance').value = u.lieu_naissance || '';
@@ -563,7 +536,6 @@ async function modifierUtilisateur(id){
       document.getElementById('eleve-tel-pere').value = u.telephone_pere || '';
       document.getElementById('eleve-tel-mere').value = u.telephone_mere || '';
     }
-
     afficherFormulaireProfil();
     modal.show();
   } catch(e) {
@@ -571,7 +543,7 @@ async function modifierUtilisateur(id){
   }
 }
 
-// 💾 ENREGISTRER
+// 💾 ENREGISTRER — ✅ URL corrigée (/utilisateurs/creer-admin)
 async function enregistrerUtilisateur(){
   const id = document.getElementById('utilisateur-id').value;
   const estNouveau = !id;
@@ -579,13 +551,12 @@ async function enregistrerUtilisateur(){
   const nom = document.getElementById('utilisateur-nom').value.trim();
   const prenom = document.getElementById('utilisateur-prenom').value.trim();
   const email = document.getElementById('utilisateur-email').value.trim();
-
+  
   if(!nom || !prenom || !email) return alert("⚠️ Remplissez Nom, Prénom et Email !");
-
   if (profil === 'eleve' && !document.getElementById('eleve-date-naissance').value) {
     return alert("⚠️ Date de naissance obligatoire pour un élève !");
   }
-
+  
   // 📦 Données
   const utilisateur = {
     nom, prenom, email,
@@ -594,7 +565,7 @@ async function enregistrerUtilisateur(){
     statut_compte: document.getElementById('utilisateur-statut').value,
     annee_scolaire: document.getElementById('utilisateur-annee').value
   };
-
+  
   // 🎓 Élève
   if (profil === 'eleve') {
     utilisateur.date_naissance = document.getElementById('eleve-date-naissance').value;
@@ -605,67 +576,35 @@ async function enregistrerUtilisateur(){
     utilisateur.telephone_pere = document.getElementById('eleve-tel-pere').value.trim() || null;
     utilisateur.telephone_mere = document.getElementById('eleve-tel-mere').value.trim() || null;
   }
-
-  // 👨‍🏫 Enseignant
-  if (profil === 'prof') {
-    utilisateur.specialite = document.getElementById('prof-specialite').value.trim() || null;
-    utilisateur.diplome = document.getElementById('prof-diplome').value.trim() || null;
-  }
-
-  // 💰 Comptable
-  if (profil === 'comptable') {
-    utilisateur.service = document.getElementById('comptable-service').value.trim();
-    utilisateur.horaires = document.getElementById('comptable-horaires').value.trim();
-  }
-
-  // 🏫 Directeur
-  if (profil === 'directeur') {
-    utilisateur.fonction = document.getElementById('directeur-fonction').value.trim();
-    utilisateur.date_entree_fonction = document.getElementById('directeur-date-fonction').value || null;
-  }
-
-  // 🔧 Admin
-  if (profil === 'admin') {
-    utilisateur.niveau_droits = document.getElementById('admin-niveau').value;
-  }
-
-  // 👨‍👩‍👧 Parent
-  if (profil === 'parent') {
-    utilisateur.enfants_matricules = document.getElementById('parent-enfants').value.trim();
-  }
-
-  // 🧑‍💼 Visiteur
-  if (profil === 'visiteur') {
-    utilisateur.motif_visite = document.getElementById('visiteur-motif').value;
-    utilisateur.duree_acces = document.getElementById('visiteur-duree').value;
-  }
-
+  
   try {
     let res;
     if (estNouveau) {
-      res = await fetch(`${API_BASE}/auth/creer-admin`, {
+      // ✅ URL corrigée
+      res = await fetch(`${API_BASE}/utilisateurs/creer-admin`, {
         method: 'POST',
         headers: headersAuth(),
         body: JSON.stringify(utilisateur)
       });
     } else {
-      res = await fetch(`${API_BASE}/auth/utilisateurs/${id}`, {
+      res = await fetch(`${API_BASE}/utilisateurs/${id}`, {
         method: 'PUT',
         headers: headersAuth(),
         body: JSON.stringify(utilisateur)
       });
     }
-
+    
+    if(res.status === 404) throw new Error("Route introuvable");
     const resultat = await res.json();
-
+    
     if (resultat.ok) {
       if (estNouveau) {
         document.getElementById('bloc-resultat').classList.remove('d-none');
         document.getElementById('affichage-matricule').textContent = resultat.utilisateur?.matricule || '—';
         document.getElementById('affichage-mdp').textContent = resultat.mdp_provisoire || '—';
-        alert("✅ Utilisateur ajouté ! Note/Rang/Mention calculés automatiquement.");
+        alert("✅ Utilisateur ajouté !");
       } else {
-        alert("✅ Utilisateur modifié ! Moyenne/Rang/Mention recalculés.");
+        alert("✅ Utilisateur modifié !");
         modal.hide();
       }
       chargerUtilisateurs();
@@ -673,24 +612,26 @@ async function enregistrerUtilisateur(){
       alert("❌ " + (resultat.erreur || "Erreur serveur"));
     }
   } catch (err) {
-    alert("❌ Erreur réseau : " + err.message);
+    alert("❌ Erreur : " + err.message);
   }
 }
 
-// 🗑️ SUPPRIMER
+// 🗑️ SUPPRIMER — ✅ URL corrigée
 async function supprimerUtilisateur(id, nomComplet) {
   if (!confirm(`⚠️ Supprimer ${nomComplet} ?`)) return;
   try {
-    const res = await fetch(`${API_BASE}/auth/utilisateurs/${id}`, {
+    const res = await fetch(`${API_BASE}/utilisateurs/${id}`, {
       method: 'DELETE',
       headers: headersAuth()
     });
+    if(res.status === 404) throw new Error("Introuvable");
     const r = await res.json();
     alert(r.ok ? "✅ Supprimé !" : "❌ Échec : " + (r.erreur || ""));
     chargerUtilisateurs();
-  } catch { alert("❌ Erreur réseau") }
+  } catch(e) { 
+    alert("❌ Erreur : " + e.message);
+  }
 }
 </script>
-
 </body>
 </html>

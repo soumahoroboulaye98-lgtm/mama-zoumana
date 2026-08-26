@@ -9,26 +9,20 @@ const fs = require('fs');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-
-
 // ==================================================
-// ✅ CLÉ JWT UNIFIÉE — MÊME VALEUR PARTOUT
+// ✅ CLÉ JWT UNIFIÉE
 // ==================================================
 const CLE_JWT = process.env.JWT_SECRET || 'ma_cle_secrete_pour_le_site_2026';
 
-
-
 // ==================================================
-// ✅ MIDDLEWARES IMPORTÉS ET HARMONISÉS
+// ✅ MIDDLEWARES
 // ==================================================
 const veriftoken = require('../middleware/veriftoken');
 const verifadmin = require('../middleware/verifadmin');
 const protegerAdmin = [veriftoken, verifadmin];
 
-
-
 // ==================================================
-// 📁 CONFIGURATION UPLOAD FICHIERS
+// 📁 CONFIGURATION UPLOAD
 // ==================================================
 const dossierUpload = path.join(__dirname, '../public/uploads');
 if (!fs.existsSync(dossierUpload)) {
@@ -42,9 +36,8 @@ const stockage = multer.diskStorage({
     cb(null, Date.now() + '-' + nomNettoye);
   }
 });
+
 const upload = multer({ storage: stockage, limits: { fileSize: 10 * 1024 * 1024 } });
-
-
 
 // ==================================================
 // 📧 CONFIGURATION EMAIL
@@ -57,10 +50,8 @@ const transport = nodemailer.createTransport({
   }
 });
 
-
-
 // ==================================================
-// 🆕 GÉNÉRER MATRICULE — FORMAT : MZ-ANNÉE-CLASSE-NNNN
+// 🆕 GÉNÉRER MATRICULE
 // ==================================================
 async function genererMatricule(profil, id_classe = null) {
   const annee = new Date().getFullYear();
@@ -92,11 +83,8 @@ async function genererMatricule(profil, id_classe = null) {
   return `${codeEcole}-${annee}-${codeClasse}-${numero}`;
 }
 
-
-
 // ==================================================
-// 🔐 CONNEXION — Élève = Matricule / Autres = Email
-// ✅ CHAMPS : id / prenom (conforme à la base)
+// 🔐 CONNEXION
 // ==================================================
 router.post('/connexion', async (req, res) => {
   try {
@@ -116,10 +104,10 @@ router.post('/connexion', async (req, res) => {
     if (role === 'eleve') {
       r = await pool.query(
         `SELECT id, nom, prenom, email, matricule, role, mot_de_passe,
-            COALESCE(statut_compte, 'valide') AS statut_compte,
-            COALESCE(compte_verrouille, false) AS compte_verrouille,
-            COALESCE(tentatives_connexion, 0) AS tentatives_connexion,
-            date_deverrouillage, derniere_connexion
+          COALESCE(statut_compte, 'valide') AS statut_compte,
+          COALESCE(compte_verrouille, false) AS compte_verrouille,
+          COALESCE(tentatives_connexion, 0) AS tentatives_connexion,
+          date_deverrouillage, derniere_connexion
          FROM utilisateurs
          WHERE UPPER(matricule) = UPPER($1) AND role = $2`,
         [matricule ? matricule.trim() : '', role]
@@ -127,10 +115,10 @@ router.post('/connexion', async (req, res) => {
     } else {
       r = await pool.query(
         `SELECT id, nom, prenom, email, matricule, role, mot_de_passe,
-            COALESCE(statut_compte, 'valide') AS statut_compte,
-            COALESCE(compte_verrouille, false) AS compte_verrouille,
-            COALESCE(tentatives_connexion, 0) AS tentatives_connexion,
-            date_deverrouillage, derniere_connexion
+          COALESCE(statut_compte, 'valide') AS statut_compte,
+          COALESCE(compte_verrouille, false) AS compte_verrouille,
+          COALESCE(tentatives_connexion, 0) AS tentatives_connexion,
+          date_deverrouillage, derniere_connexion
          FROM utilisateurs
          WHERE LOWER(email) = LOWER($1) AND role = $2`,
         [email ? email.trim() : '', role]
@@ -148,12 +136,10 @@ router.post('/connexion', async (req, res) => {
 
     const u = r.rows[0];
 
-    // ✅ Vérification statut du compte
     if (u.statut_compte !== 'valide') {
       return res.json({ ok: false, erreur: "⚠️ Compte en attente de validation par l'administration" });
     }
 
-    // ✅ Gestion du verrouillage
     if (u.compte_verrouille) {
       const maintenant = new Date();
       if (maintenant < new Date(u.date_deverrouillage)) {
@@ -167,7 +153,6 @@ router.post('/connexion', async (req, res) => {
       }
     }
 
-    // ✅ Comparaison mot de passe (en clair ou haché)
     let mdpValide = false;
     if (u.mot_de_passe && !u.mot_de_passe.startsWith('$2b$')) {
       mdpValide = (mot_de_passe === u.mot_de_passe);
@@ -192,13 +177,11 @@ router.post('/connexion', async (req, res) => {
       return res.json({ ok: false, erreur: `⚠️ Mot de passe incorrect — ${5 - essais} essai(s) restant(s)` });
     }
 
-    // ✅ Réinitialisation compteur + dernière connexion
     await pool.query(
       'UPDATE utilisateurs SET tentatives_connexion = 0, derniere_connexion = NOW() WHERE id = $1',
       [u.id]
     );
 
-    // 🪪 Génération token JWT
     const token = jwt.sign(
       { id: u.id, nom: u.nom, prenom: u.prenom, role: u.role, email: u.email },
       CLE_JWT,
@@ -216,18 +199,14 @@ router.post('/connexion', async (req, res) => {
       matricule: u.matricule,
       role: u.role
     });
-
   } catch (e) {
     console.error("❌ ERREUR CONNEXION :", e.message);
     res.json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
 
-
-
 // ==================================================
 // 👨‍👩‍👧 CONNEXION PARENT PAR MATRICULE ENFANT
-// ✅ APPELÉE DEPUIS LA PAGE DE CONNEXION
 // ==================================================
 router.post('/preinscription/parent-matricule', async (req, res) => {
   try {
@@ -240,7 +219,6 @@ router.post('/preinscription/parent-matricule', async (req, res) => {
       return res.json({ ok: false, erreur: "⚠️ Saisissez au moins email OU téléphone du parent" });
     }
 
-    // Rechercher l'élève par son matricule
     const eleve = await pool.query(
       `SELECT id, nom, prenom, email, telephone, matricule, id_parent
        FROM utilisateurs
@@ -253,18 +231,6 @@ router.post('/preinscription/parent-matricule', async (req, res) => {
     }
 
     const enfant = eleve.rows[0];
-
-    // Vérifier si les coordonnées correspondent
-    let parentTrouve = false;
-    const conditions = [];
-    const valeurs = [enfant.id];
-
-    if (email_parent && email_parent.trim()) {
-      conditions.push(`LOWER(email) = LOWER($${valeurs.push(email_parent.trim())})`);
-    }
-    if (telephone_parent && telephone_parent.trim()) {
-      conditions.push(`telephone = $${valeurs.push(telephone_parent.trim())}`);
-    }
 
     if (enfant.id_parent) {
       const parent = await pool.query(
@@ -280,13 +246,11 @@ router.post('/preinscription/parent-matricule', async (req, res) => {
         const correspondTel = !telephone_parent || p.telephone?.trim() === telephone_parent?.trim();
 
         if (correspondEmail || correspondTel) {
-          parentTrouve = true;
           const token = jwt.sign(
             { id: p.id, nom: p.nom, prenom: p.prenom, role: 'parent', email: p.email },
             CLE_JWT,
             { expiresIn: '8h' }
           );
-
           console.log(`✅ Connexion Parent réussie — Accès à ${enfant.matricule}`);
           return res.json({
             ok: true,
@@ -300,7 +264,6 @@ router.post('/preinscription/parent-matricule', async (req, res) => {
       }
     }
 
-    // Si pas de lien id_parent, vérifier directement sur l'élève (email/tel = parent)
     const correspondEmail = !email_parent || enfant.email?.toLowerCase().trim() === email_parent?.toLowerCase().trim();
     const correspondTel = !telephone_parent || enfant.telephone?.trim() === telephone_parent?.trim();
 
@@ -310,7 +273,6 @@ router.post('/preinscription/parent-matricule', async (req, res) => {
         CLE_JWT,
         { expiresIn: '8h' }
       );
-
       console.log(`✅ Connexion Parent réussie (coordonnée élève) — ${enfant.matricule}`);
       return res.json({
         ok: true,
@@ -323,18 +285,14 @@ router.post('/preinscription/parent-matricule', async (req, res) => {
     }
 
     return res.json({ ok: false, erreur: "⚠️ Email ou téléphone ne correspond pas à cet enfant" });
-
   } catch (e) {
     console.error("❌ ERREUR CONNEXION PARENT :", e.message);
     res.json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
 
-
-
 // ==================================================
-// 📝 PRÉINSCRIPTION — Avec génération matricule
-// ✅ CORRIGÉ : champ prenom dans la table utilisateurs
+// 📝 PRÉINSCRIPTION
 // ==================================================
 router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }, { name: 'documents' }]), async (req, res) => {
   try {
@@ -355,7 +313,6 @@ router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }
 
     const matricule = await genererMatricule(profil || role, id_classe);
     const hashMdp = await bcrypt.hash(mot_de_passe, 10);
-
     const photo = req.files?.photo_identite ? `uploads/${req.files.photo_identite[0].filename}` : null;
     const docs = req.files?.documents ? req.files.documents.map(f => `uploads/${f.filename}`).join('|') : null;
 
@@ -379,11 +336,8 @@ router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }
   }
 });
 
-
-
 // ==================================================
 // 🔑 MOT DE PASSE OUBLIÉ
-// ✅ CORRIGÉ : SELECT utilise prenom (conforme à la base)
 // ==================================================
 router.post('/mot-de-passe-oublie', async (req, res) => {
   try {
@@ -402,8 +356,8 @@ router.post('/mot-de-passe-oublie', async (req, res) => {
     if (utilisateur.rows.length === 0) {
       return res.json({ ok: false, erreur: "⚠️ Aucun compte actif trouvé avec cet email" });
     }
-    const user = utilisateur.rows[0];
 
+    const user = utilisateur.rows[0];
     const motDePasseTemp = "MZ" + Math.floor(100000 + Math.random() * 900000);
     const motDePasseCrypte = await bcrypt.hash(motDePasseTemp, 10);
 
@@ -433,11 +387,8 @@ router.post('/mot-de-passe-oublie', async (req, res) => {
   }
 });
 
-
-
 // ==================================================
 // 🔐 CHANGEMENT DE MOT DE PASSE
-// ✅ CORRIGÉ : SELECT utilise prenom
 // ==================================================
 router.post('/changer-mot-de-passe', veriftoken, async (req, res) => {
   try {
@@ -480,11 +431,8 @@ router.post('/changer-mot-de-passe', veriftoken, async (req, res) => {
   }
 });
 
-
-
 // ==================================================
 // ✅ VALIDER UNE PRÉINSCRIPTION → CRÉER COMPTE
-// ✅ CORRIGÉ : INSERT utilise prenom (conforme à la table utilisateurs)
 // ==================================================
 router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
   try {
@@ -497,7 +445,6 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
       'SELECT * FROM preinscriptions WHERE id_preinscription = $1',
       [id]
     );
-
     if (demandeResult.rows.length === 0) {
       return res.json({ ok: false, erreur: "⚠️ Demande introuvable" });
     }
@@ -507,7 +454,6 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
       return res.json({ ok: false, erreur: "⚠️ Cette demande n'est pas en attente" });
     }
 
-    // ✅ Vérifie si l'email existe déjà avant création
     const existeDeja = await pool.query(
       'SELECT id FROM utilisateurs WHERE LOWER(email) = LOWER($1)',
       [demande.email]
@@ -516,11 +462,9 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
       return res.json({ ok: false, erreur: "⚠️ Un compte avec cet email existe déjà" });
     }
 
-    // ✅ Génère mot de passe temporaire + hash
     const motDePasseTemp = "MZ" + Math.floor(100000 + Math.random() * 900000);
     const hashMdp = await bcrypt.hash(motDePasseTemp, 10);
 
-    // ✅ Crée le compte utilisateur — CORRIGÉ : prenom au lieu de prenoms
     await pool.query(
       `INSERT INTO utilisateurs(
         nom, prenom, email, telephone, role, matricule,
@@ -529,13 +473,11 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
       [demande.nom, demande.prenoms, demande.email, demande.telephone, demande.profil, demande.matricule, hashMdp]
     );
 
-    // ✅ Marque la préinscription comme validée
     await pool.query(
       "UPDATE preinscriptions SET statut = 'validee' WHERE id_preinscription = $1",
       [id]
     );
 
-    // ✅ Envoie email identifiants
     await transport.sendMail({
       from: process.env.MAIL_USER,
       to: demande.email,
@@ -560,8 +502,6 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
     res.json({ ok: false, erreur: e.message });
   }
 });
-
-
 
 // ==================================================
 // ❌ REFUSER UNE PRÉINSCRIPTION
@@ -590,8 +530,6 @@ router.put('/preinscription/refuser/:id', protegerAdmin, async (req, res) => {
   }
 });
 
-
-
 // ==================================================
 // 📋 LISTER LES PRÉINSCRIPTIONS EN ATTENTE
 // ==================================================
@@ -614,11 +552,8 @@ router.get('/preinscription/liste', protegerAdmin, async (req, res) => {
   }
 });
 
-
-
 // ==================================================
 // 📋 LISTE TOUS LES UTILISATEURS
-// ✅ CORRIGÉ : SELECT utilise prenom (conforme à la base)
 // ==================================================
 router.get('/utilisateurs', protegerAdmin, async (req, res) => {
   try {
@@ -636,11 +571,8 @@ router.get('/utilisateurs', protegerAdmin, async (req, res) => {
   }
 });
 
-
-
 // ==================================================
 // 🔴 LIRE UN SEUL UTILISATEUR
-// ✅ CORRIGÉ : SELECT utilise prenom
 // ==================================================
 router.get('/utilisateur/:id', protegerAdmin, async (req, res) => {
   try {
@@ -668,11 +600,8 @@ router.get('/utilisateur/:id', protegerAdmin, async (req, res) => {
   }
 });
 
-
-
 // ==================================================
 // ✏️ MODIFIER UN UTILISATEUR
-// ✅ CORRIGÉ : UPDATE utilise prenom dans la table
 // ==================================================
 router.put('/utilisateur/:id', protegerAdmin, async (req, res) => {
   try {
@@ -724,11 +653,8 @@ router.put('/utilisateur/:id', protegerAdmin, async (req, res) => {
   }
 });
 
-
-
 // ==================================================
 // 🗑️ SUPPRIMER UN UTILISATEUR
-// ✅ CORRIGÉ : RETURNING utilise prenom
 // ==================================================
 router.delete('/utilisateur/:id', protegerAdmin, async (req, res) => {
   try {
@@ -758,9 +684,25 @@ router.delete('/utilisateur/:id', protegerAdmin, async (req, res) => {
   }
 });
 
-
-
 // ==================================================
-// ✅ EXPORT CORRIGÉ — SEUL router est exporté
+// ✅ ROUTE PRÉINSCRIPTION DU FORMULAIRE HTML
 // ==================================================
+router.post('/preinscription', upload.none(), async (req, res) => {
+  try {
+    const donnees = req.body;
+    console.log("📥 Données reçues préinscription :", donnees);
+
+    // Ici : insérer dans la table preinscriptions
+    // À adapter selon tes champs
+
+    res.json({
+      ok: true,
+      message: "✅ Demande enregistrée ! Nous vous contacterons rapidement."
+    });
+  } catch (err) {
+    console.error("❌ Erreur /api/preinscription :", err.message);
+    res.json({ ok: false, erreur: "Erreur serveur, réessayez plus tard." });
+  }
+});
+
 module.exports = router;

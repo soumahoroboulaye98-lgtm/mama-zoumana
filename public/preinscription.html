@@ -219,6 +219,7 @@
     .prix-echelonne { font-weight: 600; color: var(--succes); }
     .bloc-tarifs { display: none; }
     .bloc-tarifs.visible { display: block; }
+    .info-tarif-api { font-size: 0.85rem; margin-top: 0.25rem; }
     @media (max-width: 767px) {
       .entete-page { padding: 1rem 0; }
       .carte-formulaire { padding: 1.25rem; margin-top: 1rem; }
@@ -232,6 +233,7 @@
   const API_BASE = "https://mama-zoumana.onrender.com/api";
   const DEVISE = "FCFA";
   
+  // Valeurs par défaut (si l'API ne répond pas)
   const FRAIS_BASE = {
     CP1:75000, CP2:75000, CE1:80000, CE2:80000, CM1:85000, CM2:85000,
     '6e':90000, '5e':95000, '4e':100000, '3e':105000, '2nd':110000, '1ere':115000, terminale:120000
@@ -247,13 +249,15 @@
     carnet:2000, livret_scolaire:1500
   };
 
+  // Stockage des tarifs chargés depuis l'API
+  let tarifsCharges = { base:{}, services:{}, documents:{}, pret:false };
+
   function appliquerTheme(nuit) {
     document.body.classList.toggle('mode-nuit', nuit);
     const btn = document.getElementById('btnTheme');
     if (btn) btn.textContent = nuit ? '🌙' : '☀️';
     localStorage.setItem('themeNuit', nuit ? '1' : '0');
   }
-
   let langueActuelle = localStorage.getItem('langue') || 'fr';
   document.body.classList.add('lang-' + langueActuelle);
   
@@ -265,7 +269,6 @@
     document.querySelectorAll('.btn-langue').forEach(b=>b.classList.toggle('active', b.dataset.lang === lang));
     document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
   }
-
   async function requeteAPI(url, options={}) {
     const controleur = new AbortController();
     const delai = setTimeout(() => controleur.abort(), 15000);
@@ -276,22 +279,54 @@
       return await reponse.json();
     } catch (err) {
       clearTimeout(delai);
-      if (err.name === 'AbortError') throw new Error('Le serveur ne répond pas.');
+      if (err.name === 'AbError') throw new Error('Le serveur ne répond pas.');
       throw err;
     }
   }
 
+  // ========== CHARGER LES TARIFS DÉFINIS PAR L'ADMIN DEPUIS L'API ==========
+  async function chargerTarifsAdmin() {
+    const annee = document.querySelector('input[name="annee_scolaire"]')?.value || '2026-2027';
+    try {
+      const liste = await requeteAPI(`${API_BASE}/tarifs?annee=${annee}`);
+      
+      // Réinitialiser
+      tarifsCharges = { base:{}, services:{}, documents:{}, pret:true };
+
+      // Adapter selon ce que renvoie l'API
+      if (Array.isArray(liste)) {
+        liste.forEach(t => {
+          if (t.categorie === 'base' || !t.categorie && t.cle && FRAIS_BASE[t.cle]) {
+            tarifsCharges.base[t.cle] = Number(t.montant);
+          } else if (t.categorie === 'service' || TARIFS_SERVICES[t.cle]) {
+            tarifsCharges.services[t.cle] = Number(t.montant);
+          } else if (t.categorie === 'document' || TARIFS_DOCUMENTS[t.cle]) {
+            tarifsCharges.documents[t.cle] = Number(t.montant);
+          }
+        });
+      }
+      
+      console.log("✅ Tarifs de l'admin chargés :", tarifsCharges);
+    } catch (err) {
+      console.warn("⚠️ API tarifs indisponible — valeurs par défaut utilisées", err);
+      tarifsCharges.pret = false;
+    }
+  }
+
+  // Obtenir le bon montant : tarif admin OU valeur par défaut
+  function tarifBase(classe) { return tarifsCharges.base[classe] || FRAIS_BASE[classe] || 0; }
+  function tarifService(nom) { return tarifsCharges.services[nom] || TARIFS_SERVICES[nom] || 0; }
+  function tarifDocument(nom) { return tarifsCharges.documents[nom] || TARIFS_DOCUMENTS[nom] || 0; }
+
   let etapeCourante = 0;
   let profilChoisi = null;
   let cacheTotalBrut = 0;
-
   function actualiserChampsRequis() {
     document.querySelectorAll('[required]').forEach(champ => {
       const estVisible = !!champ.offsetParent;
       champ.toggleAttribute('required', estVisible);
     });
   }
-
   function chargerClasses(){
     const classes = Object.keys(FRAIS_BASE);
     const fr = document.getElementById('classe_fr');
@@ -304,7 +339,6 @@
       ar.innerHTML += `<option value="${c}">${c}</option>`;
     });
   }
-
   function chargerMatieres(){
     const matieres = ["Français","Arabe","Mathématiques","Histoire-Géographie","Anglais","Sciences Physiques","Sciences Naturelles","Éducation Civique","Éducation Physique","Arts Plastiques"];
     const sel = document.getElementById('matiereSelect');
@@ -312,7 +346,6 @@
     sel.innerHTML = '<option value="">—</option>';
     matieres.forEach(m=> sel.innerHTML += `<option value="${m}">${m}</option>`);
   }
-
   function changerEtape(cible){
     document.querySelectorAll('.bloc-etape').forEach(b=>b.classList.remove('active'));
     
@@ -353,25 +386,28 @@
     setTimeout(actualiserChampsRequis, 20);
   }
 
+  // ========== RECALCUL AVEC TARIFS DE L'ADMIN EN PRIORITÉ ==========
   function recalculerFrais(){
     const classe = document.getElementById('classe_fr')?.value;
-    const fraisBase = FRAIS_BASE[classe] || 0;
+    const fraisBase = tarifBase(classe);
+
     let fraisServices = 0;
-    if(document.getElementById('svc_cantine')?.checked) fraisServices += TARIFS_SERVICES.cantine;
-    if(document.getElementById('svc_transport')?.checked) fraisServices += TARIFS_SERVICES.transport;
-    if(document.getElementById('svc_sport')?.checked) fraisServices += TARIFS_SERVICES.sport;
-    if(document.getElementById('svc_info')?.checked) fraisServices += TARIFS_SERVICES.info;
-    if(document.getElementById('svc_langue')?.checked) fraisServices += TARIFS_SERVICES.langue;
-    if(document.getElementById('svc_divers')?.checked) fraisServices += TARIFS_SERVICES.divers;
+    if(document.getElementById('svc_cantine')?.checked) fraisServices += tarifService('cantine');
+    if(document.getElementById('svc_transport')?.checked) fraisServices += tarifService('transport');
+    if(document.getElementById('svc_sport')?.checked) fraisServices += tarifService('sport');
+    if(document.getElementById('svc_info')?.checked) fraisServices += tarifService('info');
+    if(document.getElementById('svc_langue')?.checked) fraisServices += tarifService('langue');
+    if(document.getElementById('svc_divers')?.checked) fraisServices += tarifService('divers');
+
     let fraisDocuments = 0;
-    if(document.getElementById('doc_bulletin')?.checked) fraisDocuments += TARIFS_DOCUMENTS.bulletin;
-    if(document.getElementById('doc_carte')?.checked) fraisDocuments += TARIFS_DOCUMENTS.carte_scolaire;
-    if(document.getElementById('doc_feuille')?.checked) fraisDocuments += TARIFS_DOCUMENTS.feuille_presence;
-    if(document.getElementById('doc_kaki')?.checked) fraisDocuments += TARIFS_DOCUMENTS.uniforme_kaki;
-    if(document.getElementById('doc_macaron')?.checked) fraisDocuments += TARIFS_DOCUMENTS.macaron;
-    if(document.getElementById('doc_examen')?.checked) fraisDocuments += TARIFS_DOCUMENTS.papier_examen;
-    if(document.getElementById('doc_carnet')?.checked) fraisDocuments += TARIFS_DOCUMENTS.carnet;
-    if(document.getElementById('doc_livret')?.checked) fraisDocuments += TARIFS_DOCUMENTS.livret_scolaire;
+    if(document.getElementById('doc_bulletin')?.checked) fraisDocuments += tarifDocument('bulletin');
+    if(document.getElementById('doc_carte')?.checked) fraisDocuments += tarifDocument('carte_scolaire');
+    if(document.getElementById('doc_feuille')?.checked) fraisDocuments += tarifDocument('feuille_presence');
+    if(document.getElementById('doc_kaki')?.checked) fraisDocuments += tarifDocument('uniforme_kaki');
+    if(document.getElementById('doc_macaron')?.checked) fraisDocuments += tarifDocument('macaron');
+    if(document.getElementById('doc_examen')?.checked) fraisDocuments += tarifDocument('papier_examen');
+    if(document.getElementById('doc_carnet')?.checked) fraisDocuments += tarifDocument('carnet');
+    if(document.getElementById('doc_livret')?.checked) fraisDocuments += tarifDocument('livret_scolaire');
     
     cacheTotalBrut = fraisBase + fraisServices + fraisDocuments;
     
@@ -400,7 +436,6 @@
       lecteur.readAsDataURL(input.files[0]);
     } else { img.classList.remove('visible'); }
   }
-
   async function recupererResultatsBase(){
     const mat = document.getElementById('matricule_frere')?.value.trim();
     if(!mat) return;
@@ -418,7 +453,6 @@
     } catch(e){ console.warn(e); }
     if(btn) btn.disabled = false;
   }
-
   async function rechercherEnfant(){
     const mat = document.getElementById('matricule_enfant')?.value.trim();
     if(!mat) return;
@@ -435,7 +469,6 @@
       }
     } catch(e){ console.warn(e); }
   }
-
   function genererResume(){
     const f = document.getElementById('formPreinsc');
     if(!f) return;
@@ -449,7 +482,6 @@
       <p class="h5 text-danger"><strong>💰 TOTAL À PAYER : ${cacheTotalBrut.toLocaleString()} ${DEVISE}</strong></p>
     `;
   }
-
   async function soumettreFormulaire(e) {
     e.preventDefault();
     const btn = document.getElementById('btnSoumettre');
@@ -502,7 +534,6 @@
       }
     }
   }
-
   function initialiserEcouteurs() {
     const selectProfil = document.getElementById('choixProfil');
     if (!selectProfil) return console.error("⚠️ Sélecteur #choixProfil introuvable !");
@@ -529,7 +560,6 @@
       }
       setTimeout(actualiserChampsRequis, 20);
     });
-
     document.getElementById('classe_fr')?.addEventListener('change', recalculerFrais);
     ['svc_cantine','svc_transport','svc_sport','svc_info','svc_langue','svc_divers',
      'doc_bulletin','doc_carte','doc_feuille','doc_kaki','doc_macaron','doc_examen','doc_carnet','doc_livret']
@@ -537,7 +567,6 @@
       const el = document.getElementById(id);
       if(el) el.addEventListener('change', recalculerFrais);
     });
-
     document.querySelectorAll('input[name="mode_paiement"]').forEach(rd => {
       rd.addEventListener('change', function(){
         const bloc = document.getElementById('choixEchelon');
@@ -545,13 +574,11 @@
         recalculerFrais();
       });
     });
-
     document.querySelectorAll('input[name="echelonnement"]').forEach(rd => {
       rd.addEventListener('change', recalculerFrais);
     });
   }
-
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     const theme = localStorage.getItem('themeNuit') === '1';
     appliquerTheme(theme);
     document.getElementById('btnTheme')?.addEventListener('click', () => appliquerTheme(!document.body.classList.contains('mode-nuit')));
@@ -560,6 +587,10 @@
     chargerClasses();
     chargerMatieres();
     initialiserEcouteurs();
+    
+    // ✅ CHARGER LES TARIFS DE L'ADMIN AU DÉMARRAGE
+    await chargerTarifsAdmin();
+    
     setTimeout(actualiserChampsRequis, 50);
   });
 </script>
@@ -590,14 +621,12 @@
       </div>
     </div>
   </div>
-
   <div class="container py-4">
     <div class="d-flex justify-content-center gap-2 mb-4">
       <button data-lang="fr" class="btn btn-langue" onclick="changerLangue('fr')">🇫🇷 Français</button>
       <button data-lang="en" class="btn btn-langue" onclick="changerLangue('en')">🇬🇧 English</button>
       <button data-lang="ar" class="btn btn-langue" onclick="changerLangue('ar')">🇸🇦 العربية</button>
     </div>
-
     <div class="etapes d-none" id="filEtapes">
       <div class="etape" id="etape-ind-1"><div class="etape-num">1</div><div class="etape-texte txt-fr">Identité</div></div>
       <div class="etape" id="etape-ind-2"><div class="etape-num">2</div><div class="etape-texte txt-fr">Parents & Résultats</div></div>
@@ -605,7 +634,6 @@
       <div class="etape" id="etape-ind-4"><div class="etape-num">4</div><div class="etape-texte txt-fr">Paiement & Pièces</div></div>
       <div class="etape" id="etape-ind-5"><div class="etape-num">5</div><div class="etape-texte txt-fr">Vérification</div></div>
     </div>
-
     <form id="formPreinsc" enctype="multipart/form-data" onsubmit="soumettreFormulaire(event)">
       <!-- Étape 0 : Choix du profil -->
       <div class="carte-formulaire bloc-etape active" id="bloc-etape-0">
@@ -627,10 +655,8 @@
           </div>
         </div>
       </div>
-
       <!-- PROFIL ÉLÈVE -->
       <div id="blocEleve" class="bloc-profil">
-
         <!-- Étape 1 : Identité élève -->
         <div class="carte-formulaire bloc-etape" id="bloc-etape-1-eleve">
           <h4 class="etape-titre">👤 Élève — Informations</h4>
@@ -673,7 +699,6 @@
             </button>
           </div>
         </div>
-
         <!-- Étape 2 : Parents & résultats -->
         <div class="carte-formulaire bloc-etape" id="bloc-etape-2-eleve">
           <h4 class="etape-titre">👨‍👩‍👧 Responsables légaux & Résultats</h4>
@@ -735,7 +760,6 @@
             </button>
           </div>
         </div>
-
         <!-- Étape 3 : Classe & Services (SANS affichage des tarifs) -->
         <div class="carte-formulaire bloc-etape" id="bloc-etape-3-eleve">
           <h4 class="etape-titre">🏫 Classe, Services & Fournitures</h4>
@@ -767,8 +791,7 @@
               <input type="checkbox" name="service_transport" id="svc_transport">
               <label for="svc_transport" class="mb-0">🚌 Transport</label>
             </div>
-            <div class="col-md-4 case-a-cocher">
-              <input type="checkbox" name="service_sport" id="svc_sport">
+            <div class="col-md-4 case-a-cocher>               <input type="checkbox" name="service_sport" id="svc_sport">
               <label for="svc_sport" class="mb-0">⚽ Sport</label>
             </div>
             <div class="col-md-4 case-a-cocher">
@@ -828,7 +851,6 @@
             </button>
           </div>
         </div>
-
         <!-- Étape 4 : Paiement & Pièces -->
         <div class="carte-formulaire bloc-etape" id="bloc-etape-4-eleve">
           <h4 class="etape-titre">💳 Paiement & Pièces à fournir</h4>
@@ -897,16 +919,15 @@
             </button>
           </div>
         </div>
-
-        <!-- Étape 5 : Vérification & Tarifs AFFICHÉS ICI SEULEMENT -->
+        <!-- Étape 5 : Vérification & Tarifs -->
         <div class="carte-formulaire bloc-etape" id="bloc-etape-5-eleve">
           <h4 class="etape-titre">✅ Vérification & Validation</h4>
           
-          <!-- Récapitulatif des tarifs : AFFICHÉ UNIQUEMENT À CETTE ÉTAPE -->
+          <!-- Récapitulatif des tarifs -->
           <div class="resume-verification ligne-total bloc-tarifs">
             <h5 class="mb-3 text-primary">💰 Récapitulatif des frais</h5>
             <div class="row g-2">
-              <div class="col-sm-6"><strong>Frais de base :</strong> <span id="fraisBase">0</span> FCFA</div>
+              <div class="col-sm-6"><strong>Frais de scolarité :</strong> <span id="fraisBase">0</span> FCFA</div>
               <div class="col-sm-6"><strong>Services :</strong> <span id="fraisServices">0</span> FCFA</div>
               <div class="col-sm-6"><strong>Documents/Fournitures :</strong> <span id="fraisDocuments">0</span> FCFA</div>
               <div class="col-sm-6 ligne-total h5 text-danger">
@@ -914,16 +935,18 @@
               </div>
             </div>
           </div>
-
+          
           <div id="blocResume" class="resume-verification">
-            <p class="text-center text-muted">Chargement du résumé…</p>
+            <p class="text-center text-muted">Chargement du récapitulatif…</p>
           </div>
+          
           <div class="mb-3">
             <label class="case-a-cocher">
               <input type="checkbox" required>
-              J'atteste sur l'honneur l'exactitude des informations fournies et accepte les conditions d'inscription *
+              J'atteste sur l'honneur l'exactitude des informations fournies et j'accepte les conditions d'inscription *
             </label>
           </div>
+          
           <div class="d-flex justify-content-between mt-4">
             <button type="button" class="btn-precedent" onclick="changerEtape(4)">
               <i class="bi bi-chevron-left"></i> Précédent
@@ -934,7 +957,6 @@
           </div>
         </div>
       </div>
-
       <!-- PROFIL PARENT -->
       <div id="blocParent" class="bloc-profil">
         <div class="carte-formulaire bloc-etape" id="bloc-etape-1-parent">
@@ -943,7 +965,7 @@
             <div class="col-md-6 offset-md-3">
               <label class="form-label">Matricule de l'enfant</label>
               <div class="d-flex gap-2">
-                <input type="text" id="matricule_enfant" class="form-control" placeholder="MZ2026XXX">
+                <input type="text" name="matricule_enfant" id="matricule_enfant" class="form-control" placeholder="MZ2026XXX">
                 <button type="button" class="btn-verifier" onclick="rechercherEnfant()">Rechercher</button>
               </div>
             </div>
@@ -954,19 +976,18 @@
               <div class="col-sm-6"><strong>Nom :</strong> <span id="enfant_nom">—</span></div>
               <div class="col-sm-6"><strong>Prénom :</strong> <span id="enfant_prenom">—</span></div>
               <div class="col-sm-6"><strong>Classe :</strong> <span id="enfant_classe">—</span></div>
-              <div class="col-sm-2"><strong>Moyenne :</strong> <span id="enfant_moy">—</span></div>
-              <div class="col-sm-2"><strong>Rang :</strong> <span id="enfant_rang">—</span></div>
-              <div class="col-sm-2"><strong>Mention :</strong> <span id="enfant_mention">—</span></div>
+              <div class="col-sm-4"><strong>Moyenne :</strong> <span id="enfant_moy">—</span></div>
+              <div class="col-sm-4"><strong>Rang :</strong> <span id="enfant_rang">—</span></div>
+              <div class="col-sm-4"><strong>Mention :</strong> <span id="enfant_mention">—</span></div>
             </div>
           </div>
-          <div class="mt-4">
+          <div class="mt-4 text-center">
             <button type="button" class="btn-precedent" onclick="changerEtape(0)">
               <i class="bi bi-chevron-left"></i> Retour
             </button>
           </div>
         </div>
       </div>
-
       <!-- PROFIL ENSEIGNANT -->
       <div id="blocProf" class="bloc-profil">
         <div class="carte-formulaire bloc-etape" id="bloc-etape-1-prof">
@@ -1005,8 +1026,7 @@
           </div>
         </div>
       </div>
-
-      <!-- PROFIL VISITEUR -->
+      <!-- PROFIL VISITEUR / AUTRE -->
       <div id="blocVisiteur" class="bloc-profil">
         <div class="carte-formulaire bloc-etape" id="bloc-etape-1-visiteur">
           <h4 class="etape-titre">🧑‍💻 Demande de renseignements</h4>
