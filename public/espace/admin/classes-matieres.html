@@ -132,6 +132,7 @@
   const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:10000/api'
     : 'https://mama-zoumana.onrender.com/api';
+
   // ==================================================
   // 🪟 RÉCUPÉRATION SESSION
   // ==================================================
@@ -139,6 +140,7 @@
   const role = localStorage.getItem('role');
   let langueActuelle = localStorage.getItem('langue') || 'fr';
   let estModeJour = localStorage.getItem('theme') === 'clair';
+
   // ==================================================
   // ✅ VÉRIFICATION SESSION
   // ==================================================
@@ -147,6 +149,7 @@
     localStorage.clear();
     location.href = 'connexion.html';
   }
+
   // ==================================================
   // 🌐 TRADUCTIONS DES MESSAGES
   // ==================================================
@@ -204,6 +207,7 @@
     }
   };
   function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
+
   // ==================================================
   // 🛡️ GESTION CENTRALISÉE DES ERREURS API
   // ==================================================
@@ -237,6 +241,7 @@
       throw err;
     }
   }
+
   // ==================================================
   // 💾 STOCKAGE LOCAL (si API indisponible)
   // ==================================================
@@ -244,6 +249,7 @@
   function sauvegarderClassesLocales(liste) { localStorage.setItem('liste_classes', JSON.stringify(liste)); }
   function obtenirMatieresLocales() { return JSON.parse(localStorage.getItem('liste_matieres') || '[]'); }
   function sauvegarderMatieresLocales(liste) { localStorage.setItem('liste_matieres', JSON.stringify(liste)); }
+
   // ==================================================
   // ☀️🌙 MODE JOUR / NUIT
   // ==================================================
@@ -258,6 +264,7 @@
     localStorage.setItem('theme', estModeJour ? 'clair' : 'sombre');
     appliquerTheme();
   };
+
   // ==================================================
   // 🗣️ CHANGER DE LANGUE
   // ==================================================
@@ -268,8 +275,9 @@
     document.querySelectorAll('.barre-outils .btn').forEach(b => b.classList.remove('actif'));
     document.getElementById('btn-' + lang)?.classList.add('actif');
   };
+
   // ==================================================
-  // 🚀 INITIALISATION
+  // 🚀 INITIALISATION — ATTEND CHARGEMENT PAGE
   // ==================================================
   document.addEventListener('DOMContentLoaded', () => {
     appliquerTheme();
@@ -277,6 +285,7 @@
     document.getElementById('btn-' + langueActuelle)?.classList.add('actif');
     chargerListe();
   });
+
   // ==================================================
   // 📤 ENREGISTRER / MODIFIER UNE CLASSE
   // ==================================================
@@ -319,7 +328,7 @@
           console.error("⚠️ Mode local activé :", err.message);
           let liste = obtenirClassesLocales();
           if (estModif) {
-            const idx = liste.findIndex(c => String(c.id_classe) === String(d.id_classe) || String(c.id) === String(d.id_classe));
+            const idx = liste.findIndex(c => String(c.id_classe) === String(d.id_classe));
             if (idx !== -1) liste[idx] = { ...liste[idx], ...donneesClasse };
           } else {
             liste.push({ id_classe: Date.now(), ...donneesClasse });
@@ -331,6 +340,7 @@
         }
       });
     }
+
     // ==================================================
     // 📤 ENREGISTRER / MODIFIER UNE MATIÈRE
     // ==================================================
@@ -370,7 +380,7 @@
           console.error("⚠️ Mode local activé :", err.message);
           let liste = obtenirMatieresLocales();
           if (estModif) {
-            const idx = liste.findIndex(m => String(m.id_matiere) === String(d.id_matiere) || String(m.id) === String(d.id_matiere));
+            const idx = liste.findIndex(m => String(m.id_matiere) === String(d.id_matiere));
             if (idx !== -1) liste[idx] = { ...liste[idx], ...donneesMatiere };
           } else {
             liste.push({ id_matiere: Date.now(), ...donneesMatiere });
@@ -400,11 +410,6 @@
   // ==================================================
   // 📋 CHARGER LA LISTE COMPLÈTE
   // ==================================================
-  function echapperHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  }
-
   async function chargerListe(forcerLocal = false) {
     const corps = document.getElementById('liste-complete');
     const alerteApi = document.getElementById('alerteApi');
@@ -446,20 +451,19 @@
         const placesLibres = typeof x.places_restantes !== 'undefined' 
           ? `<span class="badge bg-info text-dark ms-1">${x.places_restantes}/${x.capacite_max}</span>` 
           : `<span class="badge bg-light text-dark ms-1">${x.capacite_max || '—'} pl</span>`;
-        const idClasse = echapperHtml(x.id_classe || x.id);
         return `
         <div class="carte-gestion d-flex justify-content-between align-items-center">
           <div>
-            <strong>${echapperHtml(x.libelle_classe)}</strong>
-            ${x.libelle_classe_ar ? `<span class="text-muted ms-1">(${echapperHtml(x.libelle_classe_ar)})</span>` : ''}
-            <span class="opacity-75 ms-2 small">${echapperHtml(x.cycle) || '—'}</span>
+            <strong>${x.libelle_classe}</strong>
+            ${x.libelle_classe_ar ? `<span class="text-muted ms-1">(${x.libelle_classe_ar})</span>` : ''}
+            <span class="opacity-75 ms-2 small">${x.cycle || '—'}</span>
             ${placesLibres}
-            ${x.salle ? `<span class="badge bg-secondary ms-1">${echapperHtml(x.salle)}</span>` : ''}
+            ${x.salle ? `<span class="badge bg-secondary ms-1">${x.salle}</span>` : ''}
             <span class="badge ${statutBadge} ms-1">${statutTexte}</span>
           </div>
           <div class="d-flex gap-1">
-            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierClasse(${JSON.stringify(x).replace(/"/g, '&quot;')})'>✏️</button>
-            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerClasse('${idClasse}')">🗑️</button>
+            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierClasse(${JSON.stringify(x).replace(/'/g,"\\'")})'>✏️</button>
+            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerClasse(${JSON.stringify(x.id || x.id_classe)})">🗑️</button>
           </div>
         </div>`;
       }).join('');
@@ -472,19 +476,18 @@
       </h5>`;
       html += matieres.map(x => {
         const langueLabel = {fr:'🇫🇷',ar:'🇸🇦',en:'🇬🇧'}[x.langue_ens] || '🇫🇷';
-        const idMat = echapperHtml(x.id_matiere || x.id);
         return `
         <div class="carte-gestion d-flex justify-content-between align-items-center">
           <div>
-            <strong>${echapperHtml(x.libelle_matiere)}</strong>
-            ${x.libelle_matiere_ar ? `<span class="text-muted ms-1">(${echapperHtml(x.libelle_matiere_ar)})</span>` : ''}
-            <span class="badge bg-info text-dark ms-1">Coef ${echapperHtml(x.coefficient)}</span>
-            <span class="badge bg-secondary ms-1">${echapperHtml(x.volume_horaire) || 0}h/sem</span>
+            <strong>${x.libelle_matiere}</strong>
+            ${x.libelle_matiere_ar ? `<span class="text-muted ms-1">(${x.libelle_matiere_ar})</span>` : ''}
+            <span class="badge bg-info text-dark ms-1">Coef ${x.coefficient}</span>
+            <span class="badge bg-secondary ms-1">${x.volume_horaire || 0}h/sem</span>
             <span class="badge bg-light text-dark ms-1">${langueLabel}</span>
           </div>
           <div class="d-flex gap-1">
-            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierMatiere(${JSON.stringify(x).replace(/"/g, '&quot;')})'>✏️</button>
-            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerMatiere('${idMat}')">🗑️</button>
+            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierMatiere(${JSON.stringify(x).replace(/'/g,"\\'")})'>✏️</button>
+            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerMatiere(${JSON.stringify(x.id_matiere || x.id)})">🗑️</button>
           </div>
         </div>`;
       }).join('');
@@ -495,6 +498,7 @@
       <p>${m('aucuneDonnee')}</p>
     </div>`;
   }
+
   // ==================================================
   // ✏️ MODIFIER — PRÉ-REMPLIR LE FORMULAIRE
   // ==================================================
@@ -521,6 +525,7 @@
     if (btn) btn.innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
   // ==================================================
   // ❌ SUPPRIMER CLASSE
   // ==================================================
@@ -542,6 +547,7 @@
       chargerListe(true);
     }
   };
+
   // ==================================================
   // ❌ SUPPRIMER MATIÈRE
   // ==================================================
@@ -589,12 +595,14 @@
     </a>
   </div>
 </div>
+
 <div class="container py-4">
   <!-- ⚠️ ALERTE API -->
   <div id="alerteApi" class="alerte-api d-none">
     <i class="bi bi-wifi-off me-2"></i>
     <span id="texteAlerteApi"></span>
   </div>
+
   <!-- 🛠️ BARRE OUTILS -->
   <div class="barre-outils">
     <button class="btn btn-anim-orange px-3 py-2" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
@@ -602,6 +610,7 @@
     <button class="btn btn-anim-orange px-3 py-2" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
     <button class="btn btn-anim-orange px-3 py-2" id="btnJourNuit" title="Mode Jour/Nuit" onclick="basculerTheme()">☀️</button>
   </div>
+
   <div class="row g-4">
     <!-- 📚 FORMULAIRE CLASSE -->
     <div class="col-md-6">
@@ -672,7 +681,7 @@
             </select>
           </div>
           <button type="submit" class="btn btn-valide-lumineux w-100 py-2" id="btn-classe">
-            <i class="tw bi bi-floppy2-fill me-1"></i>
+            <i class="bi bi-floppy2-fill me-1"></i>
             <span class="txt-fr">Enregistrer</span>
             <span class="txt-en"> Save</span>
             <span class="txt-ar"> حفظ</span>
@@ -680,6 +689,7 @@
         </form>
       </div>
     </div>
+
     <!-- 📖 FORMULAIRE MATIÈRE -->
     <div class="col-md-6">
       <div class="carte-gestion">
@@ -746,7 +756,8 @@
       </div>
     </div>
   </div>
-  <!-- 📋 LISTE DES ENregistrements -->
+
+  <!-- 📋 LISTE DES ENREGISTREMENTS -->
   <div class="zone-liste">
     <h4 class="mb-3">
       <i class="bi bi-list-ul me-2" style="color:var(--accent)"></i>
@@ -766,7 +777,8 @@
     </div>
   </div>
 </div>
-<!-- 🔚 Déconnexion -->
+
+<!-- 🔚 DÉCONNEXION -->
 <div class="menu-fixed">
   <a href="deconnexion.html" class="btn btn-suppr-lumineux px-4 py-2">
     <i class="bi bi-box-arrow-right"></i>
@@ -775,5 +787,6 @@
     <span class="txt-ar"> خروج</span>
   </a>
 </div>
+
 </body>
 </html>
