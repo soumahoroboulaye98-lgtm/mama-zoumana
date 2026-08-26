@@ -1,329 +1,470 @@
 <!DOCTYPE html>
-<html lang="fr" class="lang-fr">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>
-    <span class="txt-fr">Gestion des Frais Scolaires — Administration</span>
-    <span class="txt-en">School Fees Management — Admin</span>
-    <span class="txt-ar">إدارة الرسوم المدرسية — الإدارة</span>
-  </title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <title>Gestion des Frais & Paiements</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <style>
     :root {
-      --primaire: #0c4a6e; --succes: #10b981; --alerte: #f59e0b; --info: #3b82f6;
-      --fond-page: #f8fafc; --carte: #ffffff; --bordure: #e2e8f0;
-      --texte-principal: #1e293b; --ombre: 0 2px 12px rgba(0,0,0,0.05);
+      --primaire: #2563eb;
+      --succes: #10b981;
+      --attention: #f59e0b;
+      --danger: #ef4444;
+      --gris-clair: #f3f4f6;
     }
-    body.mode-nuit {
-      --primaire: #38bdf8; --texte-principal: #f8fafc;
-      --fond-page: #0f172a; --carte: rgba(30, 41, 59, 0.7);
-      --bordure: rgba(245,158,11,0.15); --ombre: 0 2px 15px rgba(0,0,0,0.25);
-    }
-    body { background: var(--fond-page); color: var(--texte-principal); transition: all .35s ease; }
-    .entete { background: linear-gradient(90deg, #0f172a, #0c4a6e); color: white; padding: 1.5rem 0; box-shadow: var(--ombre); }
-    .carte { background: var(--carte); border-radius: 14px; border: 1px solid var(--bordure); box-shadow: var(--ombre); }
-    .table th { background: var(--primaire); color: white; }
-    .btn-sauvegarder { background: var(--succes); color: white; font-weight: 600; }
-    .btn-sauvegarder:hover { background: #059669; color: white; }
-    .btn-theme { width:42px; height:42px; border-radius:50%; border:none; background:rgba(255,255,255,.15); color:white; font-size:1.2rem; }
-    .input-montant { max-width: 130px; }
-    .badge-total { background: var(--primaire); font-size: 0.9rem; }
-    .message { display: none; }
-    .message.visible { display: block; animation: fadeIn 0.3s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-    .txt-en, .txt-ar { display: none; }
-    .lang-en .txt-fr, .lang-en .txt-ar { display: none; }
-    .lang-en .txt-en { display: inline; }
-    .lang-ar .txt-fr, .lang-ar .txt-en { display: none; }
-    .lang-ar .txt-ar { display: inline; direction: rtl; unicode-bidi: embed; }
-    .lang-ar body { direction: rtl; }
+    body { background: #eef2f7; font-family: 'Segoe UI', sans-serif; }
+    .card { border: none; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.08); margin-bottom: 20px; }
+    .card-header { background: white; border-bottom: 1px solid #eee; font-weight: 600; border-radius: 12px 12px 0 0 !important; }
+    .badge-vert { background: #d1fae5; color: #065f46; }
+    .badge-jaune { background: #fef3c7; color: #92400e; }
+    .badge-rouge { background: #fee2e2; color: #991b1b; }
+    .progress { height: 10px; border-radius: 5px; }
+    .nav-tabs .nav-link { color: #555; font-weight: 500; }
+    .nav-tabs .nav-link.active { color: var(--primaire); border-bottom: 3px solid var(--primaire); }
+    .somme-du { font-size: 1.1rem; font-weight: 600; }
   </style>
 </head>
 <body>
 
-<!-- EN-TÊTE -->
-<div class="entete mb-4">
+<nav class="navbar navbar-dark bg-primary mb-4">
   <div class="container">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-      <div>
-        <h3 class="mb-1"><i class="bi bi-cash-coin"></i>
-          <span class="txt-fr">Gestion des Frais Scolaires</span>
-          <span class="txt-en">School Fees Management</span>
-          <span class="txt-ar">إدارة الرسوم المدرسية</span>
-        </h3>
-        <p class="mb-0 opacity-75">
-          <span class="txt-fr">Modifiez les montants → mise à jour automatique dans la préinscription</span>
-          <span class="txt-en">Modify amounts → auto-update in pre-registration</span>
-          <span class="txt-ar">عدّل المبالغ → تحديث تلقائي في التسجيل المسبق</span>
-        </p>
-      </div>
-      <div class="d-flex gap-2 align-items-center">
-        <select id="langue" class="form-select form-select-sm bg-transparent text-white border-0 w-auto">
-          <option value="fr">🇫🇷 Français</option>
-          <option value="en">🇬🇧 English</option>
-          <option value="ar">🇸🇦 العربية</option>
-        </select>
-        <button id="btnTheme" class="btn-theme" title="Mode Jour/Nuit">☀️</button>
-        <a href="dashboard.html" class="btn btn-outline-light rounded-pill btn-sm">
-          <i class="bi bi-arrow-left"></i>
-          <span class="txt-fr">Retour</span>
-          <span class="txt-en">Back</span>
-          <span class="txt-ar">رجوع</span>
-        </a>
-      </div>
+    <a class="navbar-brand" href="#">💰 Gestion des Frais & Paiements</a>
+    <div>
+      <button class="btn btn-light btn-sm" onclick="changerLangue('fr')">FR</button>
+      <button class="btn btn-outline-light btn-sm" onclick="changerLangue('en')">EN</button>
+      <button class="btn btn-outline-light btn-sm" onclick="changerLangue('ar')">AR</button>
+      <a href="dashboard.html" class="btn btn-outline-light btn-sm ms-2">Retour</a>
     </div>
   </div>
-</div>
+</nav>
 
 <div class="container">
 
-  <!-- ✅ MESSAGE DE CONFIRMATION -->
-  <div id="messageSucces" class="alert alert-success alert-dismissible fade show message mb-4" role="alert">
-    <i class="bi bi-check-circle-fill"></i>
-    <span class="txt-fr">Frais mis à jour avec succès ! ✅</span>
-    <span class="txt-en">Fees updated successfully! ✅</span>
-    <span class="txt-ar">تم تحديث الرسوم بنجاح ! ✅</span>
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-  </div>
-
-  <!-- 🏫 FRAIS PAR CLASSE -->
-  <div class="carte p-4 mb-4">
-    <h4 class="mb-4 text-primary"><i class="bi bi-building"></i>
-      <span class="txt-fr">Frais par Classe (FCFA)</span>
-      <span class="txt-en">Fees by Class (XOF)</span>
-      <span class="txt-ar">الرسوم حسب المستوى (فرنك سي إف إيه)</span>
-    </h4>
-    <div class="table-responsive">
-      <table class="table table-bordered table-hover align-middle">
-        <thead>
-          <tr>
-            <th><span class="txt-fr">Classe</span><span class="txt-en">Class</span><span class="txt-ar">المستوى</span></th>
-            <th><span class="txt-fr">Scolarité</span><span class="txt-en">Tuition</span><span class="txt-ar">الرسوم الدراسية</span></th>
-            <th><span class="txt-fr">Cantine</span><span class="txt-en">Canteen</span><span class="txt-ar">المقصف</span></th>
-            <th><span class="txt-fr">Transport</span><span class="txt-en">Transport</span><span class="txt-ar">النقل</span></th>
-            <th><span class="txt-fr">Total</span><span class="txt-en">Total</span><span class="txt-ar">المجموع</span></th>
-            <th><span class="txt-fr">Action</span><span class="txt-en">Action</span><span class="txt-ar">إجراء</span></th>
-          </tr>
-        </thead>
-        <tbody id="tableauClasses">
-          <!-- Rempli automatiquement -->
-        </tbody>
-      </table>
+  <!-- Filtres -->
+  <div class="card p-3 mb-4">
+    <div class="row g-2">
+      <div class="col-md-3">
+        <label class="form-label">Élève</label>
+        <select id="filtreEleve" class="form-select" onchange="chargerListeFrais()">
+          <option value="">Tous les élèves</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Type de frais</label>
+        <select id="filtreType" class="form-select" onchange="chargerListeFrais()">
+          <option value="">Tous</option>
+          <option value="scolaire">Frais scolaires</option>
+          <option value="cantine">Cantine</option>
+          <option value="sport">Sport / Activités</option>
+          <option value="transport">Transport</option>
+          <option value="document">Documents / Divers</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Statut</label>
+        <select id="filtreStatut" class="form-select" onchange="chargerListeFrais()">
+          <option value="">Tous</option>
+          <option value="paye">Payé</option>
+          <option value="partiel">Partiel</option>
+          <option value="impaye">Impayé</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Période / Année</label>
+        <select id="filtreAnnee" class="form-select" onchange="chargerListeFrais()">
+          <option value="2026-2027" selected>2026-2027</option>
+          <option value="2025-2026">2025-2026</option>
+          <option value="2024-2025">2024-2025</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#modalFrais">
+          <i class="bi bi-plus-lg"></i> Ajouter
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- 🛎️ SERVICES COMPLÉMENTAIRES -->
-  <div class="carte p-4">
-    <h4 class="mb-4 text-primary"><i class="bi bi-bag-check"></i>
-      <span class="txt-fr">Services Complémentaires (FCFA)</span>
-      <span class="txt-en">Additional Services (XOF)</span>
-      <span class="txt-ar">الخدمات الإضافية (فرنك سي إف إيه)</span>
-    </h4>
-    <div class="table-responsive">
-      <table class="table table-bordered table-hover align-middle">
-        <thead>
-          <tr>
-            <th><span class="txt-fr">Service</span><span class="txt-en">Service</span><span class="txt-ar">الخدمة</span></th>
-            <th><span class="txt-fr">Icône</span><span class="txt-en">Icon</span><span class="txt-ar">أيقونة</span></th>
-            <th><span class="txt-fr">Prix</span><span class="txt-en">Price</span><span class="txt-ar">السعر</span></th>
-            <th><span class="txt-fr">Actif</span><span class="txt-en">Active</span><span class="txt-ar">نشط</span></th>
-            <th><span class="txt-fr">Action</span><span class="txt-en">Action</span><span class="txt-ar">إجراء</span></th>
-          </tr>
-        </thead>
-        <tbody id="tableauServices">
-          <!-- Rempli automatiquement -->
-        </tbody>
-      </table>
+  <!-- Résumé -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card p-3 text-center">
+        <h6 class="text-muted">Total dû</h6>
+        <h4 class="fw-bold text-danger" id="totalDu">0 F CFA</h4>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 text-center">
+        <h6 class="text-muted">Total payé</h6>
+        <h4 class="fw-bold text-success" id="totalPaye">0 F CFA</h4>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 text-center">
+        <h6 class="text-muted">Reste à payer</h6>
+        <h4 class="fw-bold text-primary" id="totalReste">0 F CFA</h4>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 text-center">
+        <h6 class="text-muted">Taux de recouvrement</h6>
+        <h4 class="fw-bold" id="tauxRecouvrement">0 %</h4>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste des frais -->
+  <div class="card">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Élève</th>
+              <th>Type</th>
+              <th>Libellé</th>
+              <th>Période</th>
+              <th>Montant total</th>
+              <th>Payé</th>
+              <th>Reste</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="listeFrais">
+            <!-- Chargé par JS -->
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Modal Ajout/Modification Frais -->
+<div class="modal fade" id="modalFrais" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="titreModalFrais">Ajouter des Frais</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formFrais">
+        <div class="modal-body">
+          <input type="hidden" id="fraisId">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Élève <span class="text-danger">*</span></label>
+              <select id="fraisEleve" class="form-select" required>
+                <option value="">Choisir l'élève...</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Type de Frais <span class="text-danger">*</span></label>
+              <select id="fraisType" class="form-select" required>
+                <option value="">Choisir le type...</option>
+                <option value="scolaire">📚 Frais Scolaires</option>
+                <option value="cantine">🍽️ Cantine</option>
+                <option value="sport">⚽ Sport / Activités</option>
+                <option value="transport">🚌 Transport</option>
+                <option value="document">📄 Documents / Divers</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Libellé / Désignation <span class="text-danger">*</span></label>
+              <input type="text" id="fraisLibelle" class="form-control" placeholder="Ex: Scolarité Octobre" required>
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Période / Mois</label>
+              <input type="month" id="fraisPeriode" class="form-control">
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Année Scolaire</label>
+              <select id="fraisAnnee" class="form-select">
+                <option value="2026-2027" selected>2026-2027</option>
+                <option value="2025-2026">2025-2026</option>
+                <option value="2024-2025">2024-2025</option>
+              </select>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Montant Total (F CFA) <span class="text-danger">*</span></label>
+              <input type="number" id="fraisMontant" class="form-control" min="0" required>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Montant Déjà Payé</label>
+              <input type="number" id="fraisPaye" class="form-control" min="0" value="0">
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Date du dernier paiement</label>
+              <input type="date" id="fraisDatePaiement" class="form-control">
+            </div>
+            <div class="col-12 mb-3">
+              <label class="form-label">Observations / Notes</label>
+              <textarea id="fraisNotes" class="form-control" rows="2" placeholder="Infos complémentaires..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Saisie de Paiement -->
+<div class="modal fade" id="modalPaiement" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Enregistrer un Paiement</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formPaiement">
+        <div class="modal-body">
+          <input type="hidden" id="paiementFraisId">
+          <div class="mb-3">
+            <label class="form-label">Élève / Frais</label>
+            <input type="text" id="paiementLibelle" class="form-control" readonly>
+          </div>
+          <div class="row mb-3">
+            <div class="col-6">
+              <label class="form-label">Montant Restant</label>
+              <input type="text" id="paiementReste" class="form-control" readonly>
+            </div>
+            <div class="col-6">
+              <label class="form-label">Montant Réglé <span class="text-danger">*</span></label>
+              <input type="number" id="paiementMontant" class="form-control" min="0" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Mode de Paiement</label>
+            <select id="paiementMode" class="form-select">
+              <option value="especes">Espèces</option>
+              <option value="virement">Virement</option>
+              <option value="mobile">Mobile Money</option>
+              <option value="cheque">Chèque</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Date</label>
+            <input type="date" id="paiementDate" class="form-control" value="">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-success">Valider le Paiement</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// ==================================================
-// ⚙️ CONFIGURATION SUPABASE — REMPLACEZ PAR VOS VALEURS
-// ==================================================
-const SUPABASE_URL = "https://djqcrnhjtqhqidebawmg.supabase.co";
-const CLE_API = "sb_publishable_EShiYrFqbFm6cHdyztuteg_pfXZySY-";
+// ========== CONFIG ==========
+const API_URL = '/api';
+let token = localStorage.getItem('token') || '';
+let listeFrais = [];
+let listeEleves = [];
 
-// ========== DONNÉES LOCALES PAR DÉFAUT ==========
-let listeClasses = [];
-let listeServices = [];
-
-// ========== TRADUCTION ==========
-const T = {
-  sauvegarde: { fr: "Sauvegarder", en: "Save", ar: "حفظ" },
-  succes: { fr: "Frais mis à jour !", en: "Fees updated!", ar: "تم التحديث !" }
+// Traductions
+const t = {
+  fr: { devise: 'F CFA', impaye: 'Impayé', partiel: 'Partiel', paye: 'Payé', supprimerConfirm: 'Supprimer ce frais ?', enregistre: 'Enregistré !' },
+  en: { devise: 'XOF', impaye: 'Unpaid', partiel: 'Partial', paye: 'Paid', supprimerConfirm: 'Delete this fee?', enregistre: 'Saved!' },
+  ar: { devise: 'فرنك', impaye: 'غير مدفوع', partiel: 'جزئي', paye: 'مدفوع', supprimerConfirm: 'حذف هذا الرسم؟', enregistre: 'تم الحفظ!' }
 };
+let langueActuelle = localStorage.getItem('langue') || 'fr';
 
-// ========== INITIALISATION ==========
-document.addEventListener('DOMContentLoaded', () => {
-  // 🌙 Mode Jour/Nuit
-  const themeSauve = localStorage.getItem('themeNuit') === '1';
-  document.body.classList.toggle('mode-nuit', themeSauve);
-  document.getElementById('btnTheme').textContent = themeSauve ? '🌙' : '☀️';
-  document.getElementById('btnTheme').onclick = () => {
-    const nuit = !document.body.classList.contains('mode-nuit');
-    document.body.classList.toggle('mode-nuit', nuit);
-    localStorage.setItem('themeNuit', nuit ? '1' : '0');
-    document.getElementById('btnTheme').textContent = nuit ? '🌙' : '☀️';
+function changerLangue(lg) {
+  langueActuelle = lg; localStorage.setItem('langue', lg);
+}
+
+function formatMontant(n) { return new Intl.NumberFormat('fr-FR').format(n)+' '+t[langueActuelle].devise; }
+
+function getBadgeStatut(reste, total) {
+  if (reste <= 0) return '<span class="badge badge-vert">'+t[langueActuelle].paye+'</span>';
+  if (reste < total) return '<span class="badge badge-jaune">'+t[langueActuelle].partiel+'</span>';
+  return '<span class="badge badge-rouge">'+t[langueActuelle].impaye+'</span>';
+}
+
+function getIconeType(type) {
+  const icones = { scolaire: '📚', cantine: '🍽️', sport: '⚽', transport: '🚌', document: '📄' };
+  return icones[type] || '📌';
+}
+
+// ========== CHARGEMENT ==========
+async function chargerEleves() {
+  try {
+    const res = await fetch(`${API_URL}/eleves/liste`, { headers: { 'Authorization': `Bearer ${token}` } });
+    listeEleves = await res.json();
+    let opt = '<option value="">Tous les élèves</option>';
+    let opt2 = '<option value="">Choisir...</option>';
+    listeEleves.forEach(e => {
+      opt += `<option value="${e.id}">${e.nom} ${e.prenom}</option>`;
+      opt2 += `<option value="${e.id}">${e.nom} ${e.prenom}</option>`;
+    });
+    document.getElementById('filtreEleve').innerHTML = opt;
+    document.getElementById('fraisEleve').innerHTML = opt2;
+  } catch(e) { console.error(e); }
+}
+
+async function chargerListeFrais() {
+  const eleve = document.getElementById('filtreEleve').value;
+  const type = document.getElementById('filtreType').value;
+  const statut = document.getElementById('filtreStatut').value;
+  const annee = document.getElementById('filtreAnnee').value;
+
+  try {
+    const res = await fetch(`${API_URL}/frais?annee=${annee}`, { headers: { 'Authorization': `Bearer ${token}` } });
+    listeFrais = await res.json();
+  } catch {
+    // Mode démo si pas d'API
+    listeFrais = [];
+  }
+
+  // Filtrage
+  let filtré = listeFrais;
+  if (eleve) filtré = filtré.filter(f => f.eleve_id == eleve);
+  if (type) filtré = filtré.filter(f => f.type == type);
+  if (statut === 'paye') filtré = filtré.filter(f => f.reste <= 0);
+  if (statut === 'impaye') filtré = filtré.filter(f => f.reste >= f.montant);
+  if (statut === 'partiel') filtré = filtré.filter(f => f.reste > 0 && f.reste < f.montant);
+
+  // Calcul totaux
+  const totalDu = filtré.reduce((s,f) => s + Number(f.montant), 0);
+  const totalPaye = filtré.reduce((s,f) => s + Number(f.paye), 0);
+  const totalReste = totalDu - totalPaye;
+  const taux = totalDu > 0 ? Math.round((totalPaye / totalDu) * 100) : 0;
+
+  document.getElementById('totalDu').textContent = formatMontant(totalDu);
+  document.getElementById('totalPaye').textContent = formatMontant(totalPaye);
+  document.getElementById('totalReste').textContent = formatMontant(totalReste);
+  document.getElementById('tauxRecouvrement').textContent = taux + ' %';
+
+  // Affichage tableau
+  const tbody = document.getElementById('listeFrais');
+  tbody.innerHTML = '';
+  filtré.forEach(f => {
+    const reste = Number(f.montant) - Number(f.paye);
+    const elNom = listeEleves.find(e => e.id == f.eleve_id);
+    const nomEleve = elNom ? `${elNom.nom} ${elNom.prenom}` : 'Élève #'+f.eleve_id;
+    tbody.innerHTML += `
+      <tr>
+        <td class="fw-medium">${nomEleve}</td>
+        <td>${getIconeType(f.type)}</td>
+        <td>${f.libelle}</td>
+        <td>${f.periode || '-'}</td>
+        <td class="fw-semibold">${formatMontant(f.montant)}</td>
+        <td class="text-success">${formatMontant(f.paye || 0)}</td>
+        <td class="fw-semibold ${reste > 0 ? 'text-danger' : 'text-success'}">${formatMontant(reste)}</td>
+        <td>${getBadgeStatut(reste, f.montant)}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-success py-0 px-1" onclick="ouvrirPaiement('${f.id}')" title="Paiement">💰</button>
+          <button class="btn btn-sm btn-outline-primary py-0 px-1" onclick="editerFrais('${f.id}')" title="Modifier">✏️</button>
+          <button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="supprimerFrais('${f.id}')" title="Supprimer">🗑️</button>
+        </td>
+      </tr>`;
+  });
+}
+
+// ========== FORMULAIRE FRAIS ==========
+document.getElementById('formFrais').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = document.getElementById('fraisId').value;
+  const data = {
+    eleve_id: document.getElementById('fraisEleve').value,
+    type: document.getElementById('fraisType').value,
+    libelle: document.getElementById('fraisLibelle').value,
+    periode: document.getElementById('fraisPeriode').value,
+    annee: document.getElementById('fraisAnnee').value,
+    montant: document.getElementById('fraisMontant').value,
+    paye: document.getElementById('fraisPaye').value || 0,
+    date_paiement: document.getElementById('fraisDatePaiement').value,
+    notes: document.getElementById('fraisNotes').value
   };
 
-  // 🌐 Trilingue
-  const langueSauve = localStorage.getItem('langue') || 'fr';
-  document.documentElement.className = `lang-${langueSauve}`;
-  document.getElementById('langue').value = langueSauve;
-  document.getElementById('langue').onchange = e => {
-    localStorage.setItem('langue', e.target.value);
-    document.documentElement.className = `lang-${e.target.value}`;
-  };
-
-  // 📥 Charger depuis Supabase
-  chargerDepuisBase();
+  try {
+    const url = id ? `${API_URL}/frais/${id}` : `${API_URL}/frais`;
+    const methode = id ? 'PUT' : 'POST';
+    await fetch(url, {
+      method: methode,
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    alert(t[langueActuelle].enregistre);
+    document.getElementById('formFrais').reset();
+    document.getElementById('fraisId').value = '';
+    bootstrap.Modal.getInstance(document.getElementById('modalFrais')).hide();
+    chargerListeFrais();
+  } catch(e) { alert('Erreur réseau'); }
 });
 
-// ========== CHARGER DEPUIS SUPABASE ==========
-async function chargerDepuisBase() {
+function editerFrais(id) {
+  const f = listeFrais.find(x => x.id == id);
+  if (!f) return;
+  document.getElementById('fraisId').value = f.id;
+  document.getElementById('fraisEleve').value = f.eleve_id;
+  document.getElementById('fraisType').value = f.type;
+  document.getElementById('fraisLibelle').value = f.libelle;
+  document.getElementById('fraisPeriode').value = f.periode;
+  document.getElementById('fraisAnnee').value = f.annee;
+  document.getElementById('fraisMontant').value = f.montant;
+  document.getElementById('fraisPaye').value = f.paye;
+  document.getElementById('fraisDatePaiement').value = f.date_paiement || '';
+  document.getElementById('fraisNotes').value = f.notes || '';
+  document.getElementById('titreModalFrais').textContent = 'Modifier les Frais';
+  new bootstrap.Modal(document.getElementById('modalFrais')).show();
+}
+
+async function supprimerFrais(id) {
+  if (!confirm(t[langueActuelle].supprimerConfirm)) return;
   try {
-    const [repClasses, repServices] = await Promise.all([
-      fetch(`${SUPABASE_URL}/rest/v1/classes?select=id,libelle_classe,frais_scolarite,frais_cantine,frais_transport&order=id`, {
-        headers: { 'apikey': CLE_API }
-      }),
-      fetch(`${SUPABASE_URL}/rest/v1/services?select=code,libelle,icone,prix,actif&order=ordre`, {
-        headers: { 'apikey': CLE_API }
-      })
-    ]);
-
-    if (repClasses.ok) {
-      const data = await repClasses.json();
-      listeClasses = data;
-      afficherClasses();
-    }
-
-    if (repServices.ok) {
-      const data = await repServices.json();
-      listeServices = data;
-      afficherServices();
-    }
-  } catch (e) {
-    console.warn("Erreur chargement Supabase :", e);
-  }
-}
-
-// ========== AFFICHER CLASSES ==========
-function afficherClasses() {
-  const tbody = document.getElementById('tableauClasses');
-  tbody.innerHTML = '';
-
-  listeClasses.forEach(classe => {
-    const total = Number(classe.frais_scolarite) + Number(classe.frais_cantine) + Number(classe.frais_transport);
-    tbody.innerHTML += `
-      <tr data-id="${classe.id}">
-        <td><strong>${classe.libelle_classe}</strong></td>
-        <td><input type="number" class="form-control input-montant scol" value="${classe.frais_scolarite}" min="0" step="500"></td>
-        <td><input type="number" class="form-control input-montant cant" value="${classe.frais_cantine}" min="0" step="500"></td>
-        <td><input type="number" class="form-control input-montant tran" value="${classe.frais_transport}" min="0" step="500"></td>
-        <td><span class="badge badge-total">${total.toLocaleString('fr-FR')} FCFA</span></td>
-        <td><button class="btn btn-sauvegarder btn-sm" onclick="sauvegarderClasse(${classe.id})"><i class="bi bi-check-lg"></i> ${T.sauvegarde[document.documentElement.lang || 'fr']}</button></td>
-      </tr>
-    `;
-  });
-}
-
-// ========== AFFICHER SERVICES ==========
-function afficherServices() {
-  const tbody = document.getElementById('tableauServices');
-  tbody.innerHTML = '';
-
-  listeServices.forEach(serv => {
-    tbody.innerHTML += `
-      <tr data-code="${serv.code}">
-        <td><strong>${serv.libelle}</strong></td>
-        <td class="text-center fs-4">${serv.icone || '🔧'}</td>
-        <td><input type="number" class="form-control input-montant prixServ" value="${serv.prix || 0}" min="0" step="500"></td>
-        <td><select class="form-select form-select-sm actifServ">
-          <option value="true" ${serv.actif ? 'selected' : ''}>✅ Oui</option>
-          <option value="false" ${!serv.actif ? 'selected' : ''}>❌ Non</option>
-        </select></td>
-        <td><button class="btn btn-sauvegarder btn-sm" onclick="sauvegarderService('${serv.code}')"><i class="bi bi-check-lg"></i> ${T.sauvegarde[document.documentElement.lang || 'fr']}</button></td>
-      </tr>
-    `;
-  });
-}
-
-// ========== SAUVEGARDER CLASSE ==========
-async function sauvegarderClasse(id) {
-  const ligne = document.querySelector(`tr[data-id="${id}"]`);
-  const frais_scolarite = parseInt(ligne.querySelector('.scol').value) || 0;
-  const frais_cantine = parseInt(ligne.querySelector('.cant').value) || 0;
-  const frais_transport = parseInt(ligne.querySelector('.tran').value) || 0;
-
-  try {
-    await fetch(`${SUPABASE_URL}/rest/v1/classes?id=eq.${id}`, {
-      method: 'PATCH',
-      headers: {
-        'apikey': CLE_API,
-        'Authorization': `Bearer ${CLE_API}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({ frais_scolarite, frais_cantine, frais_transport })
+    await fetch(`${API_URL}/frais/${id}`, {
+      method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
     });
-
-    // Mise à jour locale
-    const cls = listeClasses.find(c => c.id === id);
-    if (cls) {
-      cls.frais_scolarite = frais_scolarite;
-      cls.frais_cantine = frais_cantine;
-      cls.frais_transport = frais_transport;
-    }
-    afficherClasses();
-    afficherMessage();
-  } catch (e) {
-    alert("Erreur lors de la sauvegarde !");
-  }
+    chargerListeFrais();
+  } catch { alert('Erreur suppression'); }
 }
 
-// ========== SAUVEGARDER SERVICE ==========
-async function sauvegarderService(code) {
-  const ligne = document.querySelector(`tr[data-code="${code}"]`);
-  const prix = parseInt(ligne.querySelector('.prixServ').value) || 0;
-  const actif = ligne.querySelector('.actifServ').value === 'true';
+// ========== ENREGISTREMENT PAIEMENT ==========
+function ouvrirPaiement(id) {
+  const f = listeFrais.find(x => x.id == id);
+  if (!f) return;
+  const reste = Number(f.montant) - Number(f.paye);
+  document.getElementById('paiementFraisId').value = id;
+  document.getElementById('paiementLibelle').value = f.libelle;
+  document.getElementById('paiementReste').value = formatMontant(reste);
+  document.getElementById('paiementMontant').value = reste;
+  document.getElementById('paiementDate').value = new Date().toISOString().split('T')[0];
+  new bootstrap.Modal(document.getElementById('modalPaiement')).show();
+}
+
+document.getElementById('formPaiement').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = document.getElementById('paiementFraisId').value;
+  const montantRegle = Number(document.getElementById('paiementMontant').value);
+  const mode = document.getElementById('paiementMode').value;
+  const date = document.getElementById('paiementDate').value;
 
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/services?code=eq.${code}`, {
-      method: 'PATCH',
-      headers: {
-        'apikey': CLE_API,
-        'Authorization': `Bearer ${CLE_API}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({ prix, actif })
+    await fetch(`${API_URL}/frais/paiement/${id}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ montant: montantRegle, mode: mode, date: date })
     });
+    alert('Paiement enregistré ✅');
+    bootstrap.Modal.getInstance(document.getElementById('modalPaiement')).hide();
+    chargerListeFrais();
+  } catch { alert('Erreur lors de l\'enregistrement'); }
+});
 
-    // Mise à jour locale
-    const serv = listeServices.find(s => s.code === code);
-    if (serv) {
-      serv.prix = prix;
-      serv.actif = actif;
-    }
-    afficherServices();
-    afficherMessage();
-  } catch (e) {
-    alert("Erreur lors de la sauvegarde !");
-  }
-}
-
-// ========== MESSAGE DE SUCCÈS ==========
-function afficherMessage() {
-  const msg = document.getElementById('messageSucces');
-  msg.classList.add('visible');
-  setTimeout(() => msg.classList.remove('visible'), 3500);
-}
+// Init
+chargerEleves().then(() => chargerListeFrais());
+document.getElementById('fraisDatePaiement').valueAsDate = new Date();
 </script>
 </body>
 </html>
