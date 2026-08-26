@@ -3,84 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>
-    <span class="txt-fr">Examiner Documents & Photos — Administration</span>
-    <span class="txt-en d-none">Review Documents & Photos — Administration</span>
-    <span class="txt-ar d-none">مراجعة المستندات والصور — الإدارة</span>
-  </title>
+  <title>Examiner Documents & Photos — Administration</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    /* ===== 🎨 VARIABLES — MODE CLAIR ===== */
     :root {
       --primaire: #0c4a6e;
-      --secondaire: #0369a1;
       --succes: #10b981;
       --danger: #ef4444;
       --info: #3b82f6;
       --alerte: #f59e0b;
-      --fond-page: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 100%);
-      --fond-carte: rgba(255,255,255,0.92);
-      --texte-principal: #1e293b;
-      --texte-secondaire: #475569;
-      --bordure: #e2e8f0;
-      --fond-lien: #f0f9ff;
-      --survol-lien: #e0f2fe;
-      --table-fond: #ffffff;
-      --table-alterne: #f1f5f9;
-    }
-
-    /* ===== 🌙 MODE SOMBRE ===== */
-    [data-bs-theme="sombre"] {
-      --primaire: #3b82f6;
-      --secondaire: #0ea5e9;
-      --succes: #22c55e;
-      --danger: #f87171;
-      --info: #60a5fa;
-      --alerte: #fbbf24;
-      --fond-page: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      --fond-carte: rgba(30,41,59,0.92);
-      --texte-principal: #e2e8f0;
-      --texte-secondaire: #94a3b8;
-      --bordure: #334155;
-      --fond-lien: #1e293b;
-      --survol-lien: #334155;
-      --table-fond: #1e293b;
-      --table-alterne: #334155;
-    }
-
-    /* ===== 🌐 LANGUE ===== */
-    .txt-en, .txt-ar { display: none; }
-    body.lang-fr .txt-fr { display: inline; }
-    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
-    body.lang-en .txt-en { display: inline; }
-    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
-    body.lang-ar .txt-ar { display: inline; }
-    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
-    body.lang-ar { direction: rtl; }
-
-    * { 
-      margin: 0; 
-      padding: 0; 
-      box-sizing: border-box; 
-      transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease; 
     }
     body {
-      background: var(--fond-page);
-      color: var(--texte-principal);
+      background: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 100%);
       min-height: 100vh;
     }
-
+    html:lang(ar),
+    .lang-ar {
+      direction: rtl;
+    }
     .card-glass {
-      background: var(--fond-carte);
+      background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(10px);
       border-radius: 20px;
-      box-shadow: 0 10px 40px rgba(12,74,110,0.12);
+      box-shadow: 0 10px 40px rgba(12, 74, 110, 0.12);
       border: none;
       margin-bottom: 1.5rem;
     }
     .card-header-grad {
-      background: linear-gradient(90deg, var(--primaire) 0%, var(--secondaire) 100%);
+      background: linear-gradient(90deg, var(--primaire) 0%, #0369a1 100%);
       color: white;
       border-radius: 20px 20px 0 0;
       padding: 1rem 1.5rem;
@@ -91,10 +42,10 @@
       max-height: 280px;
       object-fit: cover;
       border-radius: 12px;
-      border: 4px solid var(--bordure);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border: 4px solid #e2e8f0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       cursor: pointer;
-      transition: transform 0.25s, border-color 0.35s;
+      transition: transform 0.25s ease, border-color 0.25s ease;
     }
     .photo-preview:hover {
       transform: scale(1.05);
@@ -103,115 +54,139 @@
     .document-link {
       display: block;
       padding: 0.75rem 1rem;
-      background: var(--fond-lien);
+      background: #f0f9ff;
       border-radius: 10px;
       margin-bottom: 0.5rem;
       text-decoration: none;
       color: var(--primaire);
-      transition: all 0.25s;
+      transition: all 0.25s ease;
     }
     .document-link:hover {
-      background: var(--survol-lien);
+      background: #e0f2fe;
       transform: translateX(5px);
-      color: var(--secondaire);
+      color: #0369a1;
     }
-    .lang-ar .document-link:hover { transform: translateX(-5px); }
+    .lang-ar .document-link:hover {
+      transform: translateX(-5px);
+    }
     .ligne-demande {
       cursor: pointer;
-      transition: background 0.25s;
-      background: var(--table-fond);
+      transition: background-color 0.25s ease;
     }
-    .ligne-demande:hover { background-color: var(--table-alterne); }
+    .ligne-demande:hover {
+      background-color: #f0f9ff;
+    }
     .btn-valider {
-      background: linear-gradient(90deg, var(--succes), #059669);
+      background: linear-gradient(90deg, #10b981, #059669);
       border: none;
-      border-radius: 10px;
     }
-    .btn-valider:hover { filter: brightness(1.08); color:white; }
+    .btn-valider:hover {
+      background: linear-gradient(90deg, #059669, #047857);
+    }
     .btn-refuser {
-      background: linear-gradient(90deg, var(--danger), #dc2626);
+      background: linear-gradient(90deg, #ef4444, #dc2626);
       border: none;
-      border-radius: 10px;
     }
-    .btn-refuser:hover { filter: brightness(1.08); color:white; }
+    .btn-refuser:hover {
+      background: linear-gradient(90deg, #dc2626, #b91c1c);
+    }
+    .btn-email {
+      background: linear-gradient(90deg, #3b82f6, #2563eb);
+      border: none;
+    }
+    .btn-email:hover {
+      background: linear-gradient(90deg, #2563eb, #1d4ed8);
+    }
     .empty-box {
       padding: 2rem;
-      background: var(--table-alterne);
+      background: #f8fafc;
       border-radius: 12px;
-      color: var(--texte-secondaire);
+      color: #64748b;
       text-align: center;
     }
     .lang-btn {
-      width: 38px; height: 38px;
-      padding: 0; border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      border-radius: 50%;
       font-weight: 600;
       border: 2px solid transparent;
-      background: var(--fond-carte);
-      color: var(--texte-principal);
+      transition: all 0.2s ease;
     }
     .lang-btn.active {
       border-color: var(--primaire);
-      background: var(--primaire);
+      background-color: var(--primaire);
       color: white;
     }
+    .lang-btn:focus {
+      box-shadow: 0 0 0 0.25rem rgba(12, 74, 110, 0.25);
+    }
+    .txt-en,
+    .txt-ar {
+      display: none;
+    }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
     .alert-info-box {
-      background: rgba(59,130,246,0.1);
-      border: 1px solid var(--info);
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid #3b82f6;
       border-radius: 10px;
-      padding: 0.75rem;
+      padding: 0.75rem 1rem;
       margin-top: 1rem;
-      color: var(--texte-principal);
     }
-    .table { background: var(--table-fond); color: var(--texte-principal); }
-    .table-light { --bs-table-bg: transparent; }
-    .table th { border-color: var(--bordure); }
-    .table td { border-color: var(--bordure); }
-    .btn-theme {
-      background: transparent;
-      border: 2px solid white;
-      color: white;
-      padding: 4px 10px;
-      border-radius: 50%;
+    .table-responsive {
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
-    .btn-theme:hover { background: rgba(255,255,255,0.2); color:white; }
-    .bg-light { background: var(--table-alterne) !important; color: var(--texte-principal) !important; border-radius: 10px; }
-    .modal-content { background: var(--fond-carte); color: var(--texte-principal); border-radius: 16px; }
-    .modal-header { border-bottom-color: var(--bordure); }
-    .form-control, .form-select { background: var(--table-fond); color: var(--texte-principal); border-color: var(--bordure); border-radius: 8px; }
+    .btn-close-white {
+      filter: invert(1) brightness(200%);
+    }
+    .email-form-card {
+      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+      border-radius: 14px;
+      padding: 1.25rem;
+      border-left: 4px solid #3b82f6;
+    }
+    .char-count {
+      font-size: 0.8rem;
+      color: #64748b;
+      text-align: right;
+    }
+    .page-link {
+      color: var(--primaire);
+      border-radius: 8px;
+      margin: 0 3px;
+    }
+    .page-item.active .page-link {
+      background-color: var(--primaire);
+      border-color: var(--primaire);
+    }
+    @media print {
+      .lang-btn, .btn, .card-header-grad button, nav, .no-print, .pagination, .filters-bar, .email-form-card {
+        display: none !important;
+      }
+      body { background: white; font-size: 12pt; }
+      .card-glass { box-shadow: none; border: 1px solid #ddd; }
+      .card-glass, .card-header-grad { background: white; color: black; }
+      .card-header-grad { border: none; border-bottom: 2px solid #ccc; }
+      a { text-decoration: none; color: black; }
+      .photo-preview { max-width: 150px; max-height: 190px; }
+    }
   </style>
 </head>
 <body>
-
-<script>
-  // 🌙 GESTION MODE JOUR/NUIT — SAUVEGARDÉ
-  let themeActuel = localStorage.getItem('theme') || 'clair';
-  document.documentElement.setAttribute('data-bs-theme', themeActuel);
-  function basculerTheme() {
-    themeActuel = themeActuel === 'clair' ? 'sombre' : 'clair';
-    document.documentElement.setAttribute('data-bs-theme', themeActuel);
-    localStorage.setItem('theme', themeActuel);
-    mettreAJourIconeTheme();
-  }
-  function mettreAJourIconeTheme() {
-    const icone = document.getElementById('iconeTheme');
-    if (icone) icone.className = themeActuel === 'sombre' ? 'bi bi-moon-stars-fill' : 'bi bi-sun-fill';
-  }
-</script>
-
 <div class="container py-4">
-
-  <!-- 🌐 SÉLECTEUR LANGUE + MODE JOUR/NUIT -->
-  <div class="d-flex justify-content-end mb-3 gap-2 align-items-center">
-    <button class="btn btn-theme" onclick="basculerTheme()" title="Mode Jour/Nuit">
-      <i id="iconeTheme" class="bi bi-sun-fill"></i>
-    </button>
-    <button class="btn lang-btn btn-light border-0 active" data-lang="fr">🇫🇷</button>
-    <button class="btn lang-btn btn-light border-0" data-lang="en">🇬🇧</button>
-    <button class="btn lang-btn btn-light border-0" data-lang="ar">🇸🇦</button>
+  <div class="d-flex justify-content-end mb-3 gap-2">
+    <button class="btn lang-btn btn-light border-0" data-lang="fr" title="Français">🇫🇷</button>
+    <button class="btn lang-btn btn-light border-0" data-lang="en" title="English">🇬🇧</button>
+    <button class="btn lang-btn btn-light border-0" data-lang="ar" title="العربية">🇸🇦</button>
   </div>
 
-  <!-- 📍 FIL D'ARIANE -->
-  <div class="mb-4">
+  <div class="mb-4 no-print">
     <a href="dashboard-admin.html" class="btn btn-light btn-sm shadow-sm">
       <i class="bi bi-arrow-left-circle me-2"></i>
       <span class="txt-fr">Retour au Tableau de bord</span>
@@ -220,9 +195,8 @@
     </a>
   </div>
 
-  <!-- 📅 EN-TÊTE -->
   <div class="card-glass">
-    <div class="card-header-grad d-flex justify-content-between align-items-center">
+    <div class="card-header-grad d-flex justify-content-between align-items-center flex-wrap gap-2">
       <span>
         <i class="bi bi-folder-check me-2"></i>
         <span class="txt-fr">EXAMINER LES DEMANDES D'INSCRIPTION — DOCUMENTS & PHOTOS</span>
@@ -236,47 +210,79 @@
         <span class="txt-ar"> تحديث</span>
       </button>
     </div>
-    <div class="card-body">
 
-      <!-- ⚙️ INFO -->
+    <div class="card-body">
       <div class="alert alert-info-box">
-        <i class="bi bi-envelope-paper me-2 text-primary"></i>
-        <span class="txt-fr">ℹ️ Lorsque tu valides une demande, un compte est créé et un email automatique est envoyé à l'élève avec ses identifiants de connexion.</span>
-        <span class="txt-en">ℹ️ When you validate a request, an account is created and an automatic email with login credentials is sent to the student.</span>
-        <span class="txt-ar">ℹ️ عند الموافقة، يتم إنشاء حساب وإرسال بريد إلكتروني تلقائي ببيانات الدخول إلى التلميذ.</span>
+        <i class="bi bi-info-circle me-2 text-primary"></i>
+        <span class="txt-fr">Lorsque vous validez une demande, un compte est créé et un e-mail automatique est envoyé à l'élève avec ses identifiants de connexion.</span>
+        <span class="txt-en">When you validate a request, an account is created and an automatic e-mail with login credentials is sent to the student.</span>
+        <span class="txt-ar">عند الموافقة، يتم إنشاء حساب وإرسال بريد إلكتروني تلقائي ببيانات الدخول إلى التلميذ.</span>
       </div>
 
-      <!-- 📋 LISTE DES DEMANDES EN ATTENTE -->
+      <div class="filters-bar row g-3 mb-4">
+        <div class="col-md-5">
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" id="recherche" class="form-control" placeholder="Rechercher par nom..." oninput="appliquerFiltres()">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select id="filtreProfil" class="form-select" onchange="appliquerFiltres()">
+            <option value=""><span class="txt-fr">Tous les profils</span><span class="txt-en">All roles</span><span class="txt-ar">جميع الأدوار</span></option>
+            <option value="eleve">Élève / Student / تلميذ</option>
+            <option value="parent">Parent / Parent / ولي أمر</option>
+            <option value="prof">Professeur / Teacher / أستاذ</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <select id="filtreClasse" class="form-select" onchange="appliquerFiltres()">
+            <option value=""><span class="txt-fr">Toutes les classes</span><span class="txt-en">All classes</span><span class="txt-ar">جميع الفصول</span></option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-3 text-muted">
+        <small id="compteurResultats"></small>
+      </div>
+
       <h5 class="mb-3 mt-3">
         <span class="txt-fr">📋 Demandes en attente de validation</span>
         <span class="txt-en">📋 Pending validation requests</span>
         <span class="txt-ar">📋 الطلبات بانتظار الموافقة</span>
       </h5>
+
       <div class="table-responsive mb-4">
-        <table class="table table-hover table-bordered">
+        <table class="table table-hover table-bordered mb-0">
           <thead class="table-light">
             <tr>
               <th><span class="txt-fr">Nom & Prénoms</span><span class="txt-en">Full Name</span><span class="txt-ar">الاسم الكامل</span></th>
               <th><span class="txt-fr">Email / Téléphone</span><span class="txt-en">Email / Phone</span><span class="txt-ar">البريد الإلكتروني / الهاتف</span></th>
               <th><span class="txt-fr">Profil / Classe</span><span class="txt-en">Role / Class</span><span class="txt-ar">الدور / الفصل</span></th>
               <th><span class="txt-fr">Date</span><span class="txt-en">Date</span><span class="txt-ar">التاريخ</span></th>
-              <th><span class="txt-fr">Actions</span><span class="txt-en">Actions</span><span class="txt-ar">الإجراءات</span></th>
+              <th class="no-print"><span class="txt-fr">Actions</span><span class="txt-en">Actions</span><span class="txt-ar">الإجراءات</span></th>
             </tr>
           </thead>
           <tbody id="corpsListe">
-            <tr><td colspan="5" class="text-center py-4">
-              <div class="spinner-border text-primary"></div><br>
-              <span class="txt-fr">Chargement...</span>
-              <span class="txt-en">Loading...</span>
-              <span class="txt-ar">جار التحميل...</span>
-            </td></tr>
+            <tr>
+              <td colspan="5" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 mb-0">
+                  <span class="txt-fr">Chargement...</span>
+                  <span class="txt-en">Loading...</span>
+                  <span class="txt-ar">جار التحميل...</span>
+                </p>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
 
+      <nav class="pagination d-flex justify-content-center no-print">
+        <ul class="pagination mb-0" id="pagination"></ul>
+      </nav>
+
       <hr class="my-4">
 
-      <!-- 🔍 ZONE D'EXAMEN -->
       <h5 class="mb-3">
         <span class="txt-fr">🔍 Zone d'examen — Cliquez sur une demande ci-dessus</span>
         <span class="txt-en">🔍 Review area — Click a request above</span>
@@ -284,21 +290,109 @@
       </h5>
       <div id="zoneExamen" class="empty-box">
         <i class="bi bi-eye fs-1"></i>
-        <p class="mt-2">
+        <p class="mt-2 mb-0">
           <span class="txt-fr">Sélectionnez une demande dans la liste pour voir la photo et les documents</span>
           <span class="txt-en">Select a request from the list to view photo and documents</span>
           <span class="txt-ar">حدد طلباً من القائمة لعرض الصورة والمستندات</span>
         </p>
       </div>
 
+      <div id="zoneEmail" class="mt-5" style="display: none;">
+        <h5 class="mb-3">
+          <i class="bi bi-envelope-paper-heart me-2 text-primary"></i>
+          <span class="txt-fr">📧 Envoyer un message / E-mail</span>
+          <span class="txt-en">📧 Send a message / E-mail</span>
+          <span class="txt-ar">📧 إرسال رسالة / بريد إلكتروني</span>
+        </h5>
+        <div class="email-form-card">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                <span class="txt-fr">Destinataire</span>
+                <span class="txt-en">Recipient</span>
+                <span class="txt-ar">المستلم</span>
+              </label>
+              <input type="email" id="emailDestinataire" class="form-control" readonly>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                <span class="txt-fr">Téléphone (SMS/WhatsApp)</span>
+                <span class="txt-en">Phone (SMS/WhatsApp)</span>
+                <span class="txt-ar">الهاتف (رسالة واتساب)</span>
+              </label>
+              <input type="tel" id="telDestinataire" class="form-control" readonly>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">
+                <span class="txt-fr">Sujet de l'e-mail</span>
+                <span class="txt-en">E-mail subject</span>
+                <span class="txt-ar">موضوع البريد الإلكتروني</span>
+              </label>
+              <input type="text" id="emailSujet" class="form-control" placeholder="">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">
+                <span class="txt-fr">Message</span>
+                <span class="txt-en">Message</span>
+                <span class="txt-ar">الرسالة</span>
+              </label>
+              <textarea id="emailMessage" class="form-control" rows="5" maxlength="2000" oninput="compterCaracteres()"></textarea>
+              <div class="char-count"><span id="compteurCar">0</span> / 2000</div>
+            </div>
+            <div class="col-12">
+              <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-sm btn-outline-secondary" onclick="insererModele('accueil')">
+                  <span class="txt-fr">📩 Message de bienvenue</span>
+                  <span class="txt-en">📩 Welcome message</span>
+                  <span class="txt-ar">📩 رسالة ترحيب</span>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="insererModele('compte_info')">
+                  <span class="txt-fr">🔐 Identifiants du compte</span>
+                  <span class="txt-en">🔐 Account credentials</span>
+                  <span class="txt-ar">🔐 بيانات الدخول</span>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="insererModele('demande_info')">
+                  <span class="txt-fr">ℹ️ Informations demande</span>
+                  <span class="txt-en">ℹ️ Request information</span>
+                  <span class="txt-ar">ℹ️ معلومات الطلب</span>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="insererModele('refus')">
+                  <span class="txt-fr">❌ Notification de refus</span>
+                  <span class="txt-en">❌ Rejection notice</span>
+                  <span class="txt-ar">❌ إشعار الرفض</span>
+                </button>
+              </div>
+            </div>
+            <div class="col-12 d-flex gap-3 mt-2">
+              <button id="btnEnvoyerEmail" class="btn btn-email text-white px-4" onclick="envoyerEmail()">
+                <i class="bi bi-send me-2"></i>
+                <span class="txt-fr">Envoyer l'e-mail</span>
+                <span class="txt-en">Send e-mail</span>
+                <span class="txt-ar">إرسال البريد</span>
+              </button>
+              <button id="btnEnvoyerWhatsApp" class="btn btn-success px-4" onclick="envoyerWhatsApp()" style="display: none;">
+                <i class="bi bi-whatsapp me-2"></i>
+                <span class="txt-fr">Envoyer par WhatsApp</span>
+                <span class="txt-en">Send via WhatsApp</span>
+                <span class="txt-ar">إرسال عبر واتساب</span>
+              </button>
+              <button class="btn btn-outline-secondary px-4" onclick="viderFormulaireEmail()">
+                <i class="bi bi-x-circle me-2"></i>
+                <span class="txt-fr">Vider</span>
+                <span class="txt-en">Clear</span>
+                <span class="txt-ar">مسح</span>
+              </button>
+            </div>
+            <div id="statutEnvoi" class="col-12 mt-2" style="display: none;"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-
 </div>
 
-<!-- 🪟 MODALE : Voir la photo en grand -->
 <div class="modal fade" id="modalePhoto" tabindex="-1" aria-labelledby="modalePhotoLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header bg-dark text-white">
         <h5 class="modal-title" id="modalePhotoLabel">
@@ -317,39 +411,76 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:10000/api' : 'https://mama-zoumana.onrender.com/api';
-
+const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 const token = localStorage.getItem('token');
 let demandeSelectionnee = null;
 let listeDemandes = [];
+let listeFiltree = [];
 const modalePhoto = new bootstrap.Modal('#modalePhoto');
+const PAR_PAGE = 10;
+let pageActuelle = 1;
 
-// ✅ Icône de thème mise à jour dès le début
-mettreAJourIconeTheme();
-
-if (!token) {
-  alert("⛔ Accès réservé à l'administrateur !");
-  localStorage.clear();
-  location.href = 'connexion.html';
+function obtenirLangueNavigateur() {
+  const navLang = navigator.language || navigator.userLanguage;
+  if (!navLang) return 'fr';
+  if (navLang.startsWith('ar')) return 'ar';
+  if (navLang.startsWith('en')) return 'en';
+  return 'fr';
 }
 
-// 🌐 TRADUCTIONS
+function echapperHTML(texte) {
+  if (!texte) return '';
+  const temp = document.createElement('div');
+  temp.textContent = texte;
+  return temp.textContent;
+}
+
 const traductions = {
   fr: {
     aucunDemande: "Aucune demande en attente ✅",
-    errChargement: "❌ Erreur chargement",
+    errChargement: "❌ Erreur de chargement",
     cliqueAgrandir: "👆 Cliquer pour agrandir",
     aucunDoc: "Aucun document fourni",
     aucunPhoto: "Aucune photo fournie",
-    nom: "Nom", prenoms: "Prénoms", email: "Email", tel: "Téléphone",
-    profil: "Profil", classe: "Classe", matriculeGenere: "Matricule généré",
-    docsFournis: "Documents fournis", infosDemandeur: "Informations du demandeur",
-    validerConfirm: "✅ Confirmer la validation ?\nUn compte sera créé et un email sera envoyé avec les identifiants.",
-    validerSucces: "✅ Inscription validée !\n📧 Email envoyé à l'élève avec ses identifiants.",
+    nom: "Nom",
+    prenoms: "Prénoms",
+    email: "E-mail",
+    tel: "Téléphone",
+    profil: "Profil",
+    classe: "Classe",
+    matriculeGenere: "Matricule généré",
+    docsFournis: "Documents fournis",
+    infosDemandeur: "Informations du demandeur",
+    validerConfirm: "✅ Confirmer la validation ?\nUn compte sera créé et un e-mail sera envoyé avec les identifiants.",
+    validerSucces: "✅ Inscription validée !\n📧 E-mail envoyé à l'élève avec ses identifiants.",
     refuserConfirm: "❌ Confirmer le refus de cette demande ?",
     refuserSucces: "✅ Demande refusée.",
-    erreur: "❌ Erreur", errReseau: "❌ Erreur réseau",
-    dateInscription: "Date d'inscription", envoyerEmail: "📧 Renvoyer l'email"
+    erreur: "❌ Erreur",
+    errReseau: "❌ Erreur réseau",
+    dateInscription: "Date d'inscription",
+    envoyerEmail: "📧 Envoyer l'e-mail",
+    renvoyerEmail: "📧 Renvoyer l'e-mail automatique",
+    sujetParDefaut: "Confirmation de votre demande d'inscription",
+    envoiSucces: "✅ E-mail envoyé avec succès !",
+    envoiEchec: "❌ Échec de l'envoi de l'e-mail.",
+    envoiEnCours: "⏳ Envoi en cours...",
+    confirmerEnvoi: "Confirmez-vous l'envoi de cet e-mail ?",
+    aucunEmail: "⚠️ Aucune adresse e-mail pour ce destinataire.",
+    aucunTel: "⚠️ Aucun numéro de téléphone disponible.",
+    sujetVide: "Veuillez saisir un sujet.",
+    messageVide: "Veuillez saisir un message.",
+    resultatsAffiches: "Résultats",
+    sur: "sur",
+    precedent: "Précédent",
+    suivant: "Suivant",
+    recherchePlaceholder: "Rechercher par nom...",
+    tousProfils: "Tous les profils",
+    toutesClasses: "Toutes les classes",
+    aucunResultat: "Aucune demande ne correspond à votre recherche",
+    modeleAccueil: "Bonjour {prenom} {nom},\n\nNous vous remercions pour votre demande d'inscription. Nous avons bien reçu votre dossier et nous vous tiendrons informé(e) très prochainement.\n\nCordialement,\nL'administration",
+    modeleCompte: "Bonjour {prenom} {nom},\n\nVotre compte a été créé avec succès !\n🔐 Identifiants de connexion :\n👉 E-mail : {email}\n👉 Matricule : {matricule}\n\nConnectez-vous sur notre portail pour accéder à votre espace.\n\nCordialement,\nL'administration",
+    modeleInfo: "Bonjour {prenom} {nom},\n\nNous faisons suite à votre demande d'inscription du {date}. Nous étudions actuellement votre dossier et ne manquerons pas de vous revenir dans les meilleurs délais.\n\nCordialement,\nL'administration",
+    modeleRefus: "Bonjour {prenom} {nom},\n\nNous regrettons de vous informer que votre demande d'inscription n'a pas pu être retenue cette fois-ci.\nNous vous encourageons à nous contacter pour tout complément d'information.\n\nCordialement,\nL'administration"
   },
   en: {
     aucunDemande: "No pending requests ✅",
@@ -357,15 +488,45 @@ const traductions = {
     cliqueAgrandir: "👆 Click to enlarge",
     aucunDoc: "No documents provided",
     aucunPhoto: "No photo provided",
-    nom: "Last name", prenoms: "First name", email: "Email", tel: "Phone",
-    profil: "Profile", classe: "Class", matriculeGenere: "Generated ID",
-    docsFournis: "Provided documents", infosDemandeur: "Applicant information",
-    validerConfirm: "✅ Confirm validation?\nAn account will be created and an email with credentials will be sent.",
-    validerSucces: "✅ Registration validated!\n📧 Email sent to the student with credentials.",
-    refuserConfirm: "❌ Confirm rejection of this request?",
+    nom: "Last name",
+    prenoms: "First name",
+    email: "E-mail",
+    tel: "Phone",
+    profil: "Profile",
+    classe: "Class",
+    matriculeGenere: "Generated ID",
+    docsFournis: "Provided documents",
+    infosDemandeur: "Applicant information",
+    validerConfirm: "✅ Confirm validation?\nAn account will be created and an e-mail with credentials will be sent.",
+    validerSucces: "✅ Registration validated!\n📧 E-mail sent to the student with credentials.",
+    refuserConfirm: "❌ Confirm refusal of this request?",
     refuserSucces: "✅ Request rejected.",
-    erreur: "❌ Error", errReseau: "❌ Network error",
-    dateInscription: "Registration Date", envoyerEmail: "📧 Resend Email"
+    erreur: "❌ Error",
+    errReseau: "❌ Network error",
+    dateInscription: "Registration Date",
+    envoyerEmail: "📧 Send e-mail",
+    renvoyerEmail: "📧 Resend confirmation e-mail",
+    sujetParDefaut: "Confirmation of your registration request",
+    envoiSucces: "✅ E-mail sent successfully!",
+    envoiEchec: "❌ Failed to send e-mail.",
+    envoiEnCours: "⏳ Sending...",
+    confirmerEnvoi: "Are you sure you want to send this e-mail?",
+    aucunEmail: "⚠️ No e-mail address for this recipient.",
+    aucunTel: "⚠️ No phone number available.",
+    sujetVide: "Please enter a subject.",
+    messageVide: "Please enter a message.",
+    resultatsAffiches: "Showing",
+    sur: "of",
+    precedent: "Previous",
+    suivant: "Next",
+    recherchePlaceholder: "Search by name...",
+    tousProfils: "All roles",
+    toutesClasses: "All classes",
+    aucunResultat: "No requests match your search",
+    modeleAccueil: "Hello {prenom} {nom},\n\nThank you for your registration request. We have received your file and will get back to you shortly.\n\nBest regards,\nAdministration",
+    modeleCompte: "Hello {prenom} {nom},\n\nYour account has been successfully created!\n🔐 Login credentials:\n👉 E-mail: {email}\n👉 ID: {matricule}\n\nLog in to our portal to access your space.\n\nBest regards,\nAdministration",
+    modeleInfo: "Hello {prenom} {nom},\n\nFurther to your registration request dated {date}, we are currently reviewing your file and will reply shortly.\n\nBest regards,\nAdministration",
+    modeleRefus: "Hello {prenom} {nom},\n\nWe regret to inform you that your registration request could not be accepted at this time.\nPlease contact us for further information.\n\nBest regards,\nAdministration"
   },
   ar: {
     aucunDemande: "لا توجد طلبات بانتظار الموافقة ✅",
@@ -373,216 +534,385 @@ const traductions = {
     cliqueAgrandir: "👆 انقر للتكبير",
     aucunDoc: "لم يتم توفير مستندات",
     aucunPhoto: "لم يتم توفير صورة",
-    nom: "الاسم العائلي", prenoms: "الاسم الشخصي", email: "البريد الإلكتروني", tel: "الهاتف",
-    profil: "الدور", classe: "الفصل", matriculeGenere: "الرقم التعريفي المولد",
-    docsFournis: "المستندات المرفقة", infosDemandeur: "معلومات مقدم الطلب",
+    nom: "الاسم العائلي",
+    prenoms: "الاسم الشخصي",
+    email: "البريد الإلكتروني",
+    tel: "الهاتف",
+    profil: "الدور",
+    classe: "الفصل",
+    matriculeGenere: "الرقم التعريفي المولد",
+    docsFournis: "المستندات المرفقة",
+    infosDemandeur: "معلومات مقدم الطلب",
     validerConfirm: "✅ هل تؤكد الموافقة؟\nسيتم إنشاء حساب وإرسال بريد إلكتروني ببيانات الدخول.",
     validerSucces: "✅ تمت الموافقة!\n📧 تم إرسال بيانات الدخول بالبريد الإلكتروني.",
     refuserConfirm: "❌ هل تؤكد رفض هذا الطلب؟",
     refuserSucces: "✅ تم رفض الطلب.",
-    erreur: "❌ خطأ", errReseau: "❌ خطأ في الشبكة",
-    dateInscription: "تاريخ التسجيل", envoyerEmail: "📧 إعادة إرسال البريد"
+    erreur: "❌ خطأ",
+    errReseau: "❌ خطأ في الشبكة",
+    dateInscription: "تاريخ التسجيل",
+    envoyerEmail: "📧 إرسال البريد الإلكتروني",
+    renvoyerEmail: "📧 إعادة إرسال البريد التلقائي",
+    sujetParDefaut: "تأكيد طلب التسجيل الخاص بك",
+    envoiSucces: "✅ تم إرسال البريد بنجاح!",
+    envoiEchec: "❌ فشل إرسال البريد.",
+    envoiEnCours: "⏳ جارٍ الإرسال...",
+    confirmerEnvoi: "هل تؤكد إرسال هذا البريد؟",
+    aucunEmail: "⚠️ لا يوجد بريد إلكتروني لهذا المستلم.",
+    aucunTel: "⚠️ لا يوجد رقم هاتف متاح.",
+    sujetVide: "يرجى إدخال الموضوع.",
+    messageVide: "يرجى كتابة الرسالة.",
+    resultatsAffiches: "عرض",
+    sur: "من أصل",
+    precedent: "السابق",
+    suivant: "التالي",
+    recherchePlaceholder: "البحث بالاسم...",
+    tousProfils: "جميع الأدوار",
+    toutesClasses: "جميع الفصول",
+    aucunResultat: "لا توجد نتائج تطابق بحثك",
+    modeleAccueil: "السلام عليكم {prenom} {nom}\n\nشكراً لتقديم طلب التسجيل الخاص بك. استلمنا ملفك وسنتواصل معك قريباً.\n\nوتفضلوا بقبول التحية،\nالإدارة",
+    modeleCompte: "السلام عليكم {prenom} {nom}\n\nتم إنشاء حسابك بنجاح !\n🔐 بيانات الدخول:\n👉 البريد: {email}\n👉 الرقم الوظيفي: {matricule}\n\nيرجى تسجيل الدخول من خلال موقعنا.\n\nوتفضلوا بقبول التحية،\nالإدارة",
+    modeleInfo: "السلام عليكم {prenom} {nom}\n\nبخصوص طلبك المقدم في {date}، نحن بصدد دراسته وسنرد عليك قريباً.\n\nوتفضلوا بقبول التحية،\nالإدارة",
+    modeleRefus: "السلام عليكم {prenom} {nom}\n\nنأسف لإبلاغكم بأنه تعذر قبول طلبكم في هذه الفترة.\nللمزيد من المعلومات يرجى التواصل معنا.\n\nوتفضلوا بقبول التحية،\nالإدارة"
   }
 };
 
-let langueActuelle = localStorage.getItem('langue') || 'fr';
-function t(cle) { return traductions[langueActuelle]?.[cle] || cle; }
+let langueActuelle = localStorage.getItem('langue') || obtenirLangueNavigateur();
+function t(cle) { return traductions[langueActuelle]?.[cle] ?? cle; }
 
-// 🌐 APPLIQUER LA LANGUE AU CHARGEMENT
-document.body.classList.add('lang-'+langueActuelle);
-document.querySelector(`.lang-btn[data-lang="${langueActuelle}"]`)?.classList.add('active');
-
-// 🌐 CHANGER DE LANGUE
-document.querySelectorAll('.lang-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    langueActuelle = btn.dataset.lang;
-    localStorage.setItem('langue', langueActuelle);
-    document.body.classList.remove('lang-fr','lang-en','lang-ar');
-    document.body.classList.add('lang-'+langueActuelle);
-    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    chargerListe();
-  });
-});
-
-// 📋 CHARGER LA LISTE DES DEMANDES EN ATTENTE
-async function chargerListe() {
-  const corps = document.getElementById('corpsListe');
-  corps.innerHTML = `<tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-primary"></div><br><span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جار التحميل...</span></td></tr>`;
-
-  try {
-    const res = await fetch(`${API_URL}/preinscription/liste`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await res.json();
-    listeDemandes = data.liste || data.lignes || data.demandes || [];
-
-    if (listeDemandes.length === 0) {
-      corps.innerHTML = `<tr><td colspan="5" class="text-center py-4">
-        <i class="bi bi-check-circle fs-1 text-success"></i><br>${t('aucunDemande')}
-      </td></tr>`;
-      return;
-    }
-
-    corps.innerHTML = '';
-    listeDemandes.forEach((dem, index) => {
-      const tr = document.createElement('tr');
-      tr.className = 'ligne-demande';
-      tr.dataset.index = index;
-      tr.onclick = () => afficherDetailsParIndex(index);
-
-      const afficherClasse = dem.libelle_classe_fr || dem.libelle_classe || dem.classe || (dem.id_classe ? `Classe #${dem.id_classe}` : '-');
-      const dateAffichage = dem.date_preinscription 
-        ? new Date(dem.date_preinscription).toLocaleDateString(langueActuelle === 'ar' ? 'ar-MA' : 'fr-FR') 
-        : '-';
-
-      tr.innerHTML = `
-        <td><strong>${dem.nom || ''}</strong><br>${dem.prenoms || ''}</td>
-        <td>${dem.email || '-'}<br>${dem.telephone || '-'}</td>
-        <td><span class="badge bg-info text-white">${dem.profil || '-'}</span><br>${afficherClasse}</td>
-        <td>${dateAffichage}</td>
-        <td class="text-center">
-          <button class="btn btn-sm btn-outline-primary" title="${langueActuelle==='fr'?'Voir détails':langueActuelle==='en'?'View details':'عرض التفاصيل'}">
-            <i class="bi bi-eye"></i>
-          </button>
-        </td>
-      `;
-      corps.appendChild(tr);
-    });
-
-  } catch (e) {
-    corps.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">${t('erreur')} : ${e.message}</td></tr>`;
-  }
+function appliquerLangue(lang) {
+  langueActuelle = lang;
+  localStorage.setItem('langue', lang);
+  document.documentElement.lang = lang;
+  document.body.classList.remove('lang-fr', 'lang-en', 'lang-ar');
+  document.body.classList.add(`lang-${lang}`);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-btn[data-lang="${lang}"]`)?.classList.add('active');
+  document.title = lang === 'fr' ? 'Examiner Documents & Photos — Administration' : lang === 'en' ? 'Review Documents & Photos — Administration' : 'مراجعة المستندات والصور — الإدارة';
+  document.getElementById('recherche').placeholder = t('recherchePlaceholder');
+  document.getElementById('emailSujet').placeholder = t('sujetParDefaut');
+  chargerListe();
 }
 
-// 🔍 AFFICHER LES DÉTAILS
-function afficherDetailsParIndex(index) {
-  if (listeDemandes[index]) afficherDetails(listeDemandes[index]);
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
+});
+appliquerLangue(langueActuelle);
+
+if (!token) {
+  const msg = langueActuelle === 'en' ? 'Access reserved to the administrator!' : langueActuelle === 'ar' ? '!الوصول مخصص للمسؤول فقط' : "⛔ Accès réservé à l'administrateur !";
+  alert(msg);
+  localStorage.clear();
+  location.href = 'connexion.html';
+}
+
+function appliquerFiltres() {
+  const recherche = (document.getElementById('recherche').value || '').toLowerCase().trim();
+  const profil = document.getElementById('filtreProfil').value.toLowerCase().trim();
+  const classe = document.getElementById('filtreClasse').value.trim();
+  listeFiltree = listeDemandes.filter(dem => {
+    const nomComplet = `${(dem.nom||'')} ${(dem.prenoms||'')}`.toLowerCase();
+    const correspondRecherche = !recherche || nomComplet.includes(recherche);
+    const correspondProfil = !profil || (dem.profil||'').toLowerCase() === profil;
+    const afficherClasse = dem.libelle_classe || dem.classe || '';
+    const correspondClasse = !classe || afficherClasse === classe;
+    return correspondRecherche && correspondProfil && correspondClasse;
+  });
+  pageActuelle = 1;
+  afficherPage();
+}
+
+function afficherPage() {
+  const debut = (pageActuelle - 1) * PAR_PAGE;
+  const fin = debut + PAR_PAGE;
+  const pageDemandes = listeFiltree.slice(debut, fin);
+  const totalPages = Math.ceil(listeFiltree.length / PAR_PAGE) || 1;
+  document.getElementById('compteurResultats').textContent = listeFiltree.length > 0 ? `${t('resultatsAffiches')} ${debut + 1}–${Math.min(fin, listeFiltree.length)} ${t('sur')} ${listeFiltree.length}` : t('aucunResultat');
+  const corps = document.getElementById('corpsListe');
+  if (pageDemandes.length === 0) {
+    corps.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted"><i class="bi bi-search fs-1"></i><p class="mt-2 mb-0">${t('aucunResultat')}</p></td></tr>`;
+  } else {
+    afficherListeSurTableau(pageDemandes);
+  }
+  genererPagination(totalPages);
+}
+
+function afficherListeSurTableau(liste) {
+  const corps = document.getElementById('corpsListe');
+  corps.innerHTML = '';
+  liste.forEach((dem, indexDansPage) => {
+    const indexGlobal = (pageActuelle - 1) * PAR_PAGE + indexDansPage;
+    const tr = document.createElement('tr');
+    tr.className = 'ligne-demande';
+    tr.onclick = () => afficherDetails(listeFiltree[indexGlobal]);
+    const afficherClasse = dem.libelle_classe || dem.classe || (dem.id_classe ? `Classe #${dem.id_classe}` : '-');
+    const dateAffichage = dem.date_preinscription ? new Date(dem.date_preinscription).toLocaleDateString(langueActuelle === 'ar' ? 'ar-MA' : 'fr-FR') : '-';
+    tr.innerHTML = `<td><strong>${echapperHTML(dem.nom)}</strong><br>${echapperHTML(dem.prenoms)}</td><td>${echapperHTML(dem.email || '-')}<br>${echapperHTML(dem.telephone || '-')}</td><td><span class="badge bg-info text-white">${echapperHTML(dem.profil || '-')}</span><br>${echapperHTML(afficherClasse)}</td><td>${dateAffichage}</td><td class="text-center no-print"><button class="btn btn-sm btn-outline-primary" title="${langueActuelle==='fr'?'Voir et contacter':langueActuelle==='en'?'View & contact':'عرض ومراسلة'}"><i class="bi bi-eye"></i></button></td>`;
+    corps.appendChild(tr);
+  });
+}
+
+function genererPagination(totalPages) {
+  const ul = document.getElementById('pagination');
+  ul.innerHTML = '';
+  const liPrec = document.createElement('li');
+  liPrec.className = `page-item ${pageActuelle === 1 ? 'disabled' : ''}`;
+  liPrec.innerHTML = `<a class="page-link" href="#">${t('precedent')}</a>`;
+  liPrec.onclick = (e) => { e.preventDefault(); if(pageActuelle>1) { pageActuelle--; afficherPage(); } };
+  ul.appendChild(liPrec);
+  for(let p = 1; p <= totalPages; p++) {
+    const li = document.createElement('li');
+    li.className = `page-item ${p === pageActuelle ? 'active' : ''}`;
+    li.innerHTML = `<a class="page-link" href="#">${p}</a>`;
+    li.onclick = (e) => { e.preventDefault(); pageActuelle = p; afficherPage(); };
+    ul.appendChild(li);
+  }
+  const liSuiv = document.createElement('li');
+  liSuiv.className = `page-item ${pageActuelle >= totalPages ? 'disabled' : ''}`;
+  liSuiv.innerHTML = `<a class="page-link" href="#">${t('suivant')}</a>`;
+  liSuiv.onclick = (e) => { e.preventDefault(); if(pageActuelle < totalPages) { pageActuelle++; afficherPage(); } };
+  ul.appendChild(liSuiv);
+}
+
+async function chargerListe() {
+  const corps = document.getElementById('corpsListe');
+  corps.innerHTML = `<tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 mb-0"><span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جار التحميل...</span></p></td></tr>`;
+  try {
+    const res = await fetch(`${API_URL}/preinscription/en-attente`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
+    const data = await res.json();
+    listeDemandes = Array.isArray(data) ? data : (data.lignes || data.demandes || []);
+    const selectClasse = document.getElementById('filtreClasse');
+    const classesUniques = [...new Set(listeDemandes.map(d => d.libelle_classe || d.classe || '').filter(Boolean))].sort();
+    const valeurActuelle = selectClasse.value;
+    selectClasse.innerHTML = `<option value="">${t('toutesClasses')}</option>`;
+    classesUniques.forEach(c => { const opt=document.createElement('option'); opt.value=c; opt.textContent=c; selectClasse.appendChild(opt); });
+    selectClasse.value = valeurActuelle;
+    appliquerFiltres();
+  } catch (e) {
+    corps.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">${t('errChargement')} : ${echapperHTML(e.message)}</td></tr>`;
+  }
 }
 
 async function afficherDetails(dem) {
   demandeSelectionnee = dem;
   const zone = document.getElementById('zoneExamen');
+  const zoneEmail = document.getElementById('zoneEmail');
+  document.getElementById('emailDestinataire').value = dem.email || '';
+  document.getElementById('telDestinataire').value = dem.telephone || '';
+  document.getElementById('emailSujet').value = t('sujetParDefaut');
+  document.getElementById('emailMessage').value = '';
+  document.getElementById('compteurCar').textContent = '0';
+  document.getElementById('statutEnvoi').style.display = 'none';
+  const btnWhatsApp = document.getElementById('btnEnvoyerWhatsApp');
+  btnWhatsApp.style.display = dem.telephone ? 'inline-block' : 'none';
+  zoneEmail.style.display = 'block';
 
-  // 📄 CONSTRUIRE LIENS DOCUMENTS
   let docsHTML = '';
   if (dem.documents) {
-    const listeDocs = String(dem.documents).split('|').filter(d => d.trim());
+    const listeDocs = String(dem.documents).split('|').map(d => d.trim()).filter(Boolean);
     if (listeDocs.length > 0) {
       docsHTML = listeDocs.map(d => {
         const urlComplet = d.startsWith('http') ? d : `${API_URL}/${d}`;
-        return `<a href="${urlComplet}" target="_blank" class="document-link">
-          <i class="bi bi-file-earmark-text me-2"></i> ${d.split('/').pop()}
-        </a>`;
+        const nomFichier = d.split('/').pop();
+        return `<a href="${echapperHTML(urlComplet)}" target="_blank" rel="noopener" class="document-link"><i class="bi bi-file-earmark-text me-2"></i> ${echapperHTML(nomFichier)}</a>`;
       }).join('');
-    } else docsHTML = `<div class="empty-box py-2">${t('aucunDoc')}</div>`;
-  } else docsHTML = `<div class="empty-box py-2">${t('aucunDoc')}</div>`;
+    } else { docsHTML = `<div class="empty-box py-2">${t('aucunDoc')}</div>`; }
+  } else { docsHTML = `<div class="empty-box py-2">${t('aucunDoc')}</div>`; }
 
-  // 📷 PHOTO
   let photoUrl = dem.photo_identite;
-  if (photoUrl && !photoUrl.startsWith('http')) {
-    photoUrl = `${API_URL}/${photoUrl}`;
-  }
-
-  const afficherClasse = dem.libelle_classe_fr || dem.libelle_classe || dem.classe || (dem.id_classe ? `Classe #${dem.id_classe}` : '-');
+  if (photoUrl && !photoUrl.startsWith('http')) photoUrl = `${API_URL}/${photoUrl}`;
+  const afficherClasse = dem.libelle_classe || dem.classe || (dem.id_classe ? `Classe #${dem.id_classe}` : '-');
   const dateInscription = new Date().toISOString().split('T')[0];
-  const idDemande = dem.id_preinscription || dem.id;
 
   zone.innerHTML = `
     <div class="row g-4">
-      <!-- 📷 PHOTO D'IDENTITÉ -->
       <div class="col-md-4 text-center">
         <h6 class="mb-3">📷 <span class="txt-fr">Photo d'identité</span><span class="txt-en">ID Photo</span><span class="txt-ar">صورة الهوية</span></h6>
-        ${photoUrl 
-          ? `<img src="${photoUrl}" alt="Photo identité" class="photo-preview mb-2" 
-              onclick="document.getElementById('photoAffiche').src='${photoUrl}'; modalePhoto.show();">
-            <br><small class="text-muted">${t('cliqueAgrandir')}</small>`
-          : `<div class="empty-box">${t('aucunPhoto')}</div>`
-        }
+        ${photoUrl ? `<img src="${echapperHTML(photoUrl)}" alt="Photo d'identité" class="photo-preview mb-2" onclick="document.getElementById('photoAffiche').src='${echapperHTML(photoUrl)}'; modalePhoto.show();"><br><small class="text-muted">${t('cliqueAgrandir')}</small>` : `<div class="empty-box">${t('aucunPhoto')}</div>`}
       </div>
-
-      <!-- 📄 INFOS & DOCUMENTS -->
       <div class="col-md-8">
         <h6 class="mb-3">👤 ${t('infosDemandeur')}</h6>
         <div class="mb-3 p-3 bg-light rounded-3">
-          <div class="row">
-            <div class="col-sm-6"><strong>${t('nom')} :</strong> ${dem.nom || ''}</div>
-            <div class="col-sm-6"><strong>${t('prenoms')} :</strong> ${dem.prenoms || ''}</div>
-            <div class="col-sm-6"><strong>${t('email')} :</strong> ${dem.email || ''}</div>
-            <div class="col-sm-6"><strong>${t('tel')} :</strong> ${dem.telephone || '-'}</div>
-            <div class="col-sm-6"><strong>${t('profil')} :</strong> ${dem.profil || '-'}</div>
-            <div class="col-sm-6"><strong>${t('classe')} :</strong> ${afficherClasse}</div>
+          <div class="row g-2">
+            <div class="col-sm-6"><strong>${t('nom')} :</strong> ${echapperHTML(dem.nom)}</div>
+            <div class="col-sm-6"><strong>${t('prenoms')} :</strong> ${echapperHTML(dem.prenoms)}</div>
+            <div class="col-sm-6"><strong>${t('email')} :</strong> ${echapperHTML(dem.email || '-')}</div>
+            <div class="col-sm-6"><strong>${t('tel')} :</strong> ${echapperHTML(dem.telephone || '-')}</div>
+            <div class="col-sm-6"><strong>${t('profil')} :</strong> ${echapperHTML(dem.profil || '-')}</div>
+            <div class="col-sm-6"><strong>${t('classe')} :</strong> ${echapperHTML(afficherClasse)}</div>
             <div class="col-sm-6"><strong>${t('dateInscription')} :</strong> <span class="text-primary fw-bold">${dateInscription}</span></div>
-            <div class="col-sm-6"><strong>${t('matriculeGenere')} :</strong> <code class="fs-6">${dem.matricule || 'Généré à la validation'}</code></div>
+            <div class="col-sm-6"><strong>${t('matriculeGenere')} :</strong> <code class="fs-6">${echapperHTML(dem.matricule || 'Généré à la validation')}</code></div>
           </div>
         </div>
-
         <h6 class="mb-3">📄 ${t('docsFournis')}</h6>
         ${docsHTML}
       </div>
     </div>
     <hr class="my-4">
-    <div class="d-flex gap-3 justify-content-center flex-wrap">
-      <button class="btn btn-valider btn-lg text-white px-5" onclick="validerDemande(${idDemande})">
+    <div class="d-flex gap-3 justify-content-center flex-wrap no-print">
+      <button class="btn btn-valider btn-lg text-white px-5" onclick="validerDemande(${dem.id_preinscription || dem.id})">
         <i class="bi bi-check-circle me-2"></i>
         <span class="txt-fr">✅ VALIDER L'INSCRIPTION</span>
         <span class="txt-en">✅ VALIDATE REGISTRATION</span>
         <span class="txt-ar">✅ الموافقة على التسجيل</span>
       </button>
-      <button class="btn btn-refuser btn-lg text-white px-5" onclick="refuserDemande(${idDemande})">
+      <button class="btn btn-refuser btn-lg text-white px-5" onclick="refuserDemande(${dem.id_preinscription || dem.id})">
         <i class="bi bi-x-circle me-2"></i>
         <span class="txt-fr">❌ REFUSER LA DEMANDE</span>
         <span class="txt-en">❌ REJECT REQUEST</span>
         <span class="txt-ar">❌ رفض الطلب</span>
       </button>
-    </div>
-  `;
+    </div>`;
 }
 
-// ✅ VALIDER LA DEMANDE
-async function validerDemande(id) {
-  if (!confirm(t('validerConfirm'))) return;
-  const dateInscription = new Date().toISOString().split('T')[0];
+function compterCaracteres() {
+  document.getElementById('compteurCar').textContent = document.getElementById('emailMessage').value.length;
+}
+
+function insererModele(nomModele) {
+  if (!demandeSelectionnee) return;
+  let texteModele = '';
+  switch(nomModele) {
+    case 'accueil': texteModele = t('modeleAccueil'); break;
+    case 'compte_info': texteModele = t('modeleCompte'); break;
+    case 'demande_info': texteModele = t('modeleInfo'); break;
+    case 'refus': texteModele = t('modeleRefus'); break;
+  }
+  const dateAffichage = demandeSelectionnee.date_preinscription ? new Date(demandeSelectionnee.date_preinscription).toLocaleDateString(langueActuelle === 'ar' ? 'ar-MA' : 'fr-FR') : new Date().toLocaleDateString(langueActuelle === 'ar' ? 'ar-MA' : 'fr-FR');
+  texteModele = texteModele.replace(/{prenom}/g, demandeSelectionnee.prenoms || '').replace(/{nom}/g, demandeSelectionnee.nom || '').replace(/{email}/g, demandeSelectionnee.email || '').replace(/{matricule}/g, demandeSelectionnee.matricule || 'À générer').replace(/{date}/g, dateAffichage);
+  document.getElementById('emailMessage').value = texteModele;
+  compterCaracteres();
+}
+
+function viderFormulaireEmail() {
+  document.getElementById('emailSujet').value = '';
+  document.getElementById('emailMessage').value = '';
+  document.getElementById('compteurCar').textContent = '0';
+  document.getElementById('statutEnvoi').style.display = 'none';
+}
+
+async function envoyerEmail() {
+  const destinataire = document.getElementById('emailDestinataire').value.trim();
+   const sujet = document.getElementById('emailSujet').value.trim();
+  const message = document.getElementById('emailMessage').value.trim();
+  const statut = document.getElementById('statutEnvoi');
+
+  if (!destinataire) {
+    statut.innerHTML = `<div class="alert alert-warning py-2 mb-0">${t('aucunEmail')}</div>`;
+    statut.style.display = 'block';
+    return;
+  }
+  if (!sujet) {
+    statut.innerHTML = `<div class="alert alert-warning py-2 mb-0">${t('sujetVide')}</div>`;
+    statut.style.display = 'block';
+    return;
+  }
+  if (!message) {
+    statut.innerHTML = `<div class="alert alert-warning py-2 mb-0">${t('messageVide')}</div>`;
+    statut.style.display = 'block';
+    return;
+  }
+  if (!confirm(t('confirmerEnvoi'))) return;
+
+  statut.innerHTML = `<div class="alert alert-info py-2 mb-0">${t('envoiEnCours')}</div>`;
+  statut.style.display = 'block';
 
   try {
-    const res = await fetch(`${API_URL}/preinscription/valider/${id}`, {
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ date_inscription: dateInscription })
+    const res = await fetch(`${API_URL}/email/envoyer`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        destinataire: destinataire,
+        sujet: sujet,
+        message: message
+      })
     });
     const data = await res.json();
-
-    if (data.ok) {
-      alert(t('validerSucces'));
-      chargerListe();
-      document.getElementById('zoneExamen').innerHTML = `<div class="empty-box"><span class="txt-fr">Demande validée ✅</span><span class="txt-en">Request validated ✅</span><span class="txt-ar">تمت الموافقة ✅</span></div>`;
+    if (res.ok && data.ok) {
+      statut.innerHTML = `<div class="alert alert-success py-2 mb-0">${t('envoiSucces')}</div>`;
     } else {
-      alert(`${t('erreur')} : ${data.erreur || 'Erreur inconnue'}`);
+      statut.innerHTML = `<div class="alert alert-danger py-2 mb-0">${t('envoiEchec')}<br>${data.erreur || ''}</div>`;
     }
-  } catch (e) { 
-    alert(t('errReseau') + ' : ' + e.message); 
+  } catch (e) {
+    statut.innerHTML = `<div class="alert alert-danger py-2 mb-0">${t('errReseau')} : ${e.message}</div>`;
   }
 }
 
-// ❌ REFUSER LA DEMANDE
+function envoyerWhatsApp() {
+  const numero = document.getElementById('telDestinataire').value.replace(/\D/g, '');
+  const message = document.getElementById('emailMessage').value.trim();
+  if (!numero) {
+    alert(t('aucunTel'));
+    return;
+  }
+  const url = `https://wa.me/${numero}?text=${encodeURIComponent(message)}`;
+  window.open(url, '_blank');
+}
+
+async function validerDemande(id) {
+  if (!confirm(t('validerConfirm'))) return;
+  const dateInscription = new Date().toISOString().split('T')[0];
+  try {
+    const res = await fetch(`${API_URL}/preinscription/valider/${id}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ statut: 'valide', date_inscription: dateInscription })
+    });
+    if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
+    const data = await res.json();
+    if (data.ok) {
+      alert(t('validerSucces'));
+      chargerListe();
+      document.getElementById('zoneExamen').innerHTML = `
+        <div class="empty-box">
+          <span class="txt-fr">Demande validée ✅</span>
+          <span class="txt-en">Request validated ✅</span>
+          <span class="txt-ar">تمت الموافقة ✅</span>
+        </div>`;
+      document.getElementById('zoneEmail').style.display = 'none';
+    } else {
+      alert(`${t('erreur')} : ${data.erreur || 'Erreur inconnue'}`);
+    }
+  } catch (e) {
+    alert(`${t('errReseau')} : ${e.message}`);
+  }
+}
+
 async function refuserDemande(id) {
-  if (!id) { alert(t('erreur')); return; }
   if (!confirm(t('refuserConfirm'))) return;
   try {
     const res = await fetch(`${API_URL}/preinscription/refuser/${id}`, {
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ statut: 'refusee' })
     });
+    if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
     const data = await res.json();
-
     if (data.ok) {
       alert(t('refuserSucces'));
       chargerListe();
-      document.getElementById('zoneExamen').innerHTML = `<div class="empty-box"><span class="txt-fr">Demande refusée ❌</span><span class="txt-en">Request rejected ❌</span><span class="txt-ar">تم الرفض ❌</span></div>`;
+      document.getElementById('zoneExamen').innerHTML = `
+        <div class="empty-box">
+          <span class="txt-fr">Demande refusée ❌</span>
+          <span class="txt-en">Request rejected ❌</span>
+          <span class="txt-ar">تم الرفض ❌</span>
+        </div>`;
+      document.getElementById('zoneEmail').style.display = 'none';
     } else {
-      alert(`${t('erreur')} : ${data.erreur || ''}`);
+      alert(`${t('erreur')} : ${data.erreur || 'Erreur inconnue'}`);
     }
-  } catch (e) { alert(t('errReseau')); }
+  } catch (e) {
+    alert(`${t('errReseau')} : ${e.message}`);
+  }
 }
 
 chargerListe();
