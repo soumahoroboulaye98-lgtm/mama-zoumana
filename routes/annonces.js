@@ -12,7 +12,7 @@ const protegerAdmin = [veriftoken, verifadmin];
 // ==================================================
 router.get('/liste', async (req, res) => {
   try {
-    const { tout, type_annonce, rentree, annee_scolaire } = req.query;
+    const { tout, type_annonce } = req.query;
     const conditions = [];
     const valeurs = [];
 
@@ -27,17 +27,6 @@ router.get('/liste', async (req, res) => {
     if (type_annonce) {
       valeurs.push(type_annonce);
       conditions.push(`type_annonce = $${valeurs.length}`);
-    }
-
-    // Filtre rentrée
-    if (rentree === '1' || rentree === 'true') {
-      conditions.push('rentree = true');
-    }
-
-    // Filtre année scolaire
-    if (annee_scolaire) {
-      valeurs.push(annee_scolaire);
-      conditions.push(`annee_scolaire = $${valeurs.length}`);
     }
 
     const clauseWhere = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -75,13 +64,12 @@ router.get('/', async (req, res) => {
 // ==================================================
 router.post('/ajouter', protegerAdmin, async (req, res) => {
   try {
-    const id_utilisateur = req.user?.id_utilisateur || req.user?.id; // ✅ Compatible deux formats
+    const id_utilisateur = req.user?.id_utilisateur || req.user?.id;
     const {
       titre_fr, titre_en, titre_ar,
       contenu_fr, contenu_en, contenu_ar,
       type_annonce, priorite, date_publication, date_expiration,
-      cible, url_image, est_actif, est_publie,
-      rentree, annee_scolaire
+      cible, url_image, est_actif, est_publie
     } = req.body;
 
     // ✅ Validation renforcée
@@ -98,8 +86,8 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
         contenu_fr, contenu_en, contenu_ar,
         type_annonce, priorite, date_publication, date_expiration,
         cible, url_image, est_actif, est_publie,
-        rentree, annee_scolaire, id_utilisateur, date_creation
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
+        id_utilisateur, date_creation
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
       RETURNING *
     `, [
       titre_fr.trim(), titre_en?.trim() || null, titre_ar?.trim() || null,
@@ -108,7 +96,7 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
       date_publication || new Date(), date_expiration || null,
       cible || 'Tous', url_image || null,
       est_actif !== false, est_publie !== false,
-      rentree === true, annee_scolaire || null, id_utilisateur
+      id_utilisateur
     ]);
 
     console.log(`✅ Annonce créée — "${titre_fr}"`);
@@ -133,8 +121,7 @@ router.put('/:id_annonce', protegerAdmin, async (req, res) => {
       titre_fr, titre_en, titre_ar,
       contenu_fr, contenu_en, contenu_ar,
       type_annonce, priorite, date_publication, date_expiration,
-      cible, url_image, est_actif, est_publie,
-      rentree, annee_scolaire
+      cible, url_image, est_actif, est_publie
     } = req.body;
 
     if (!titre_fr || !titre_fr.trim()) {
@@ -150,7 +137,7 @@ router.put('/:id_annonce', protegerAdmin, async (req, res) => {
         contenu_fr = $5, contenu_en = $6, contenu_ar = $7,
         type_annonce = $8, priorite = $9, date_publication = $10, date_expiration = $11,
         cible = $12, url_image = $13, est_actif = $14, est_publie = $15,
-        rentree = $16, annee_scolaire = $17, date_mise_a_jour = NOW()
+        date_mise_a_jour = NOW()
       WHERE id_annonce = $1
       RETURNING *
     `, [
@@ -160,14 +147,12 @@ router.put('/:id_annonce', protegerAdmin, async (req, res) => {
       type_annonce || 'general', priorite || 'moyenne',
       date_publication || new Date(), date_expiration || null,
       cible || 'Tous', url_image || null,
-      est_actif !== false, est_publie !== false,
-      rentree === true, annee_scolaire || null
+      est_actif !== false, est_publie !== false
     ]);
 
     if (r.rows.length === 0) {
       return res.json({ ok: false, erreur: "⚠️ Annonce introuvable" });
     }
-
     console.log(`✅ Annonce mise à jour — ID: ${id_annonce}, "${titre_fr}"`);
     res.json({ ok: true, annonce: r.rows[0], message: "✅ Annonce mise à jour !" });
   } catch (e) {
@@ -194,7 +179,6 @@ router.delete('/:id_annonce', protegerAdmin, async (req, res) => {
     if (r.rows.length === 0) {
       return res.json({ ok: false, erreur: "⚠️ Annonce introuvable" });
     }
-
     console.log(`✅ Annonce supprimée — ID: ${id_annonce}, "${r.rows[0].titre_fr}"`);
     res.json({ ok: true, message: "✅ Annonce supprimée avec succès !" });
   } catch (e) {

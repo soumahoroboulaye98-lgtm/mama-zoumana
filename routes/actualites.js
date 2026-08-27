@@ -26,12 +26,10 @@ function getAnneeScolaire() {
 
 // ==================================================
 // 🏠 ACCUEIL — ACTUALITÉS ÉPINGLÉES + DERNIÈRES PUBLICATIONS
-// ✅ Spécialement pour la page d'accueil / index
 // ==================================================
 router.get('/accueil', async (req, res) => {
   try {
     const annee_scolaire = getAnneeScolaire();
-
     // 📌 Actualités épinglées
     const { rows: epinglees } = await pool.query(`
       SELECT id, titre_fr, titre_en, titre_ar,
@@ -43,7 +41,6 @@ router.get('/accueil', async (req, res) => {
       ORDER BY date_publication DESC
       LIMIT 5
     `);
-
     // 📄 Dernières actualités (hors épinglées)
     const { rows: dernieres } = await pool.query(`
       SELECT id, titre_fr, titre_en, titre_ar,
@@ -55,14 +52,12 @@ router.get('/accueil', async (req, res) => {
       ORDER BY date_publication DESC
       LIMIT 8
     `);
-
     // 🏷️ Catégories disponibles
     const { rows: categories } = await pool.query(`
       SELECT DISTINCT categorie FROM actualites
       WHERE est_publie = true
       ORDER BY categorie
     `);
-
     console.log(`✅ Accueil actualités — ${epinglees.length} épinglées, ${dernieres.length} récentes`);
     return res.json({
       ok: true,
@@ -88,17 +83,14 @@ router.get('/liste', async (req, res) => {
 
     // Si tout=1 → renvoie toutes, sinon seulement celles publiées
     if (tout !== '1') conditions.push('est_publie = true');
-
     // Filtre par catégorie
     if (categorie?.trim()) {
       valeurs.push(categorie.trim());
       conditions.push(`categorie = $${valeurs.length}`);
     }
-
     // Filtre rentrée
     if (rentree === '1' || rentree === 'true') conditions.push('rentree = true');
-
-    // Filtre année scolaire (automatique si non fournie)
+    // Filtre année scolaire
     const annee = annee_scolaire?.trim() || getAnneeScolaire();
     if (annee_scolaire) {
       valeurs.push(annee);
@@ -132,14 +124,11 @@ router.get('/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id))
       return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
-
     const { rows: [actualite] } = await pool.query(`
       SELECT * FROM actualites WHERE id = $1 AND est_publie = true
     `, [id]);
-
     if (!actualite)
       return res.json({ ok: false, erreur: "⚠️ Actualité introuvable" });
-
     return res.json({ ok: true, actualite });
   } catch (e) {
     console.error("❌ ERREUR DÉTAIL ACTUALITÉ :", e.code, e.message);
@@ -155,7 +144,6 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
   try {
     const id_utilisateur = req.user?.id_utilisateur || req.user?.id;
     const annee_scolaire_auto = getAnneeScolaire();
-
     const {
       titre_fr, titre_en, titre_ar,
       resume_fr, resume_en, resume_ar,
@@ -171,7 +159,7 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
     if (!contenu_fr?.trim())
       return res.json({ ok: false, erreur: "⚠️ Le contenu en français est obligatoire" });
 
-    // ✅ Valeurs par défaut AUTOMATIQUES
+    // ✅ Valeurs par défaut
     const donnees = {
       titre_fr: titre_fr.trim(),
       titre_en: titre_en?.trim() || null,
@@ -191,23 +179,24 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
       annee_scolaire: annee_scolaire?.trim() || annee_scolaire_auto
     };
 
+    // ✅ ORDRE CORRIGÉ : correspond EXACTEMENT à la table
     const { rows: [nouvelle] } = await pool.query(`
       INSERT INTO actualites(
         titre_fr, titre_en, titre_ar,
         resume_fr, resume_en, resume_ar,
         contenu_fr, contenu_en, contenu_ar,
         image_principale, categorie, est_publie, epingle,
-        date_publication, id_utilisateur, date_creation,
-        rentree, annee_scolaire
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), $16, $17)
+        date_publication, rentree, annee_scolaire,
+        id_utilisateur, date_creation
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
       RETURNING *
     `, [
       donnees.titre_fr, donnees.titre_en, donnees.titre_ar,
       donnees.resume_fr, donnees.resume_en, donnees.resume_ar,
       donnees.contenu_fr, donnees.contenu_en, donnees.contenu_ar,
       donnees.image_principale, donnees.categorie, donnees.est_publie, donnees.epingle,
-      donnees.date_publication, id_utilisateur,
-      donnees.rentree, donnees.annee_scolaire
+      donnees.date_publication, donnees.rentree, donnees.annee_scolaire,
+      id_utilisateur
     ]);
 
     console.log(`✅ Actualité créée — "${donnees.titre_fr}" (${donnees.annee_scolaire})`);
@@ -220,7 +209,6 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
 
 // ==================================================
 // ✏️ MODIFIER UNE ACTUALITÉ — Admin seul
-// ✅ Valeurs par défaut harmonisées
 // ==================================================
 router.put('/:id', protegerAdmin, async (req, res) => {
   try {
@@ -269,8 +257,8 @@ router.put('/:id', protegerAdmin, async (req, res) => {
         contenu_fr = $8, contenu_en = $9, contenu_ar = $10,
         image_principale = $11, categorie = $12,
         est_publie = $13, epingle = $14,
-        date_publication = $15, date_modification = NOW(),
-        rentree = $16, annee_scolaire = $17
+        date_publication = $15, rentree = $16, annee_scolaire = $17,
+        date_modification = NOW()
       WHERE id = $1
       RETURNING *
     `, [
@@ -317,12 +305,12 @@ router.delete('/:id', protegerAdmin, async (req, res) => {
     return res.json({ ok: false, erreur: "⚠️ Impossible de supprimer l'actualité" });
   }
 });
+
 // ==================================================
 // 📅 RENTRÉE SCOLAIRE EN COURS — Pour le menu
 // ==================================================
 router.get('/rentree/actuelle', async (req, res) => {
   try {
-    // Calcul automatique de l'année scolaire
     const aujourdHui = new Date();
     const annee = aujourdHui.getFullYear();
     const mois = aujourdHui.getMonth() + 1;
@@ -344,4 +332,5 @@ router.get('/rentree/actuelle', async (req, res) => {
     return res.json({ ok: false, erreur: "⚠️ Erreur chargement rentrée" });
   }
 });
+
 module.exports = router;

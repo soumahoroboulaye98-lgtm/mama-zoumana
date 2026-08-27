@@ -8,19 +8,17 @@ const verifadmin = require('../middleware/verifadmin');
 const protegerAdmin = [veriftoken, verifadmin];
 
 // ==================================================
-// 📋 LISTE PUBLIQUE — AFFICHAGE SUR L'ACCUEIL / INDEX
-// → Tout le monde peut voir le calendrier SANS token
-// → Trié par date de début (plus proche en premier)
+// 📋 LISTE PUBLIQUE — AFFICHAGE SUR L'ACCUEIL
 // ==================================================
 router.get('/liste', async (req, res) => {
   try {
-    const { type_periode, annee_scolaire } = req.query;
+    const { type_evenement, annee_scolaire } = req.query;
     const conditions = [];
     const valeurs = [];
 
-    if (type_periode) {
-      valeurs.push(type_periode);
-      conditions.push(`type_periode = $${valeurs.length}`);
+    if (type_evenement) {
+      valeurs.push(type_evenement);
+      conditions.push(`type_evenement = $${valeurs.length}`);
     }
     if (annee_scolaire) {
       valeurs.push(annee_scolaire);
@@ -30,8 +28,12 @@ router.get('/liste', async (req, res) => {
     const clauseWhere = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const r = await pool.query(`
-      SELECT id, periode, date_debut, date_fin, type_periode,
-             annee_scolaire, description_fr, description_en, description_ar
+      SELECT id, 
+             titre_fr, titre_en, titre_ar,
+             date_debut, date_fin, 
+             type_evenement,
+             annee_scolaire, 
+             description_fr, description_en, description_ar
       FROM calendrier_scolaire
       ${clauseWhere}
       ORDER BY date_debut ASC
@@ -51,17 +53,17 @@ router.get('/liste', async (req, res) => {
 });
 
 // ==================================================
-// 📋 LISTE ADMIN (même données, protégée)
+// 📋 LISTE ADMIN
 // ==================================================
 router.get('/liste-admin', protegerAdmin, async (req, res) => {
   try {
-    const { type_periode, annee_scolaire } = req.query;
+    const { type_evenement, annee_scolaire } = req.query;
     const conditions = [];
     const valeurs = [];
 
-    if (type_periode) {
-      valeurs.push(type_periode);
-      conditions.push(`type_periode = $${valeurs.length}`);
+    if (type_evenement) {
+      valeurs.push(type_evenement);
+      conditions.push(`type_evenement = $${valeurs.length}`);
     }
     if (annee_scolaire) {
       valeurs.push(annee_scolaire);
@@ -71,8 +73,12 @@ router.get('/liste-admin', protegerAdmin, async (req, res) => {
     const clauseWhere = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const r = await pool.query(`
-      SELECT id, periode, date_debut, date_fin, type_periode,
-             annee_scolaire, description_fr, description_en, description_ar,
+      SELECT id, 
+             titre_fr, titre_en, titre_ar,
+             date_debut, date_fin, 
+             type_evenement,
+             annee_scolaire, 
+             description_fr, description_en, description_ar,
              date_creation
       FROM calendrier_scolaire
       ${clauseWhere}
@@ -93,20 +99,22 @@ router.get('/liste-admin', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// ➕ AJOUTER UNE PÉRIODE — SEUL L'ADMIN PEUT SAISIR
+// ➕ AJOUTER UN ÉVÉNEMENT CALENDRIER
 // ==================================================
 router.post('/ajouter', protegerAdmin, async (req, res) => {
   try {
     const { 
-      periode, date_debut, date_fin, type_periode,
-      description_fr, description_en, description_ar, annee_scolaire 
+      titre_fr, titre_en, titre_ar,
+      date_debut, date_fin, type_evenement,
+      description_fr, description_en, description_ar, 
+      annee_scolaire
     } = req.body;
 
-    // ✅ Validation complète
-    if (!periode || !date_debut || !date_fin || !type_periode) {
+    // ✅ Validation
+    if (!titre_fr || !date_debut || !date_fin || !type_evenement) {
       return res.status(400).json({ 
         ok: false, 
-        erreur: "⚠️ Période, dates et type sont obligatoires" 
+        erreur: "⚠️ Titre (FR), dates et type sont obligatoires" 
       });
     }
     if (new Date(date_debut) > new Date(date_fin)) {
@@ -118,16 +126,19 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
 
     const r = await pool.query(`
       INSERT INTO calendrier_scolaire(
-        periode, date_debut, date_fin, type_periode,
+        titre_fr, titre_en, titre_ar,
+        date_debut, date_fin, type_evenement,
         description_fr, description_en, description_ar, 
         annee_scolaire, date_creation
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
       RETURNING id
     `, [
-      periode.trim(), 
+      titre_fr.trim(),
+      titre_en?.trim() || null,
+      titre_ar?.trim() || null,
       date_debut, 
       date_fin, 
-      type_periode.trim(),
+      type_evenement.trim(),
       description_fr?.trim() || null, 
       description_en?.trim() || null, 
       description_ar?.trim() || null,
@@ -137,10 +148,10 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
     return res.status(201).json({ 
       ok: true, 
       id: r.rows[0].id, 
-      message: "✅ Période ajoutée avec succès !" 
+      message: "✅ Événement ajouté avec succès !" 
     });
   } catch (e) {
-    console.error("❌ ERREUR AJOUT PÉRIODE :", e.message);
+    console.error("❌ ERREUR AJOUT CALENDRIER :", e.message);
     return res.status(500).json({ 
       ok: false, 
       erreur: e.message || "⚠️ Erreur serveur" 
@@ -149,7 +160,7 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// ✏️ MODIFIER UNE PÉRIODE — Admin seulement
+// ✏️ MODIFIER UN ÉVÉNEMENT
 // ==================================================
 router.put('/:id', protegerAdmin, async (req, res) => {
   try {
@@ -159,11 +170,13 @@ router.put('/:id', protegerAdmin, async (req, res) => {
     }
 
     const { 
-      periode, date_debut, date_fin, type_periode,
-      description_fr, description_en, description_ar, annee_scolaire 
+      titre_fr, titre_en, titre_ar,
+      date_debut, date_fin, type_evenement,
+      description_fr, description_en, description_ar, 
+      annee_scolaire
     } = req.body;
 
-    if (!periode || !date_debut || !date_fin || !type_periode) {
+    if (!titre_fr || !date_debut || !date_fin || !type_evenement) {
       return res.status(400).json({ 
         ok: false, 
         erreur: "⚠️ Tous les champs obligatoires doivent être remplis" 
@@ -178,17 +191,20 @@ router.put('/:id', protegerAdmin, async (req, res) => {
 
     const r = await pool.query(`
       UPDATE calendrier_scolaire SET
-        periode = $2, date_debut = $3, date_fin = $4, type_periode = $5,
-        description_fr = $6, description_en = $7, description_ar = $8, 
-        annee_scolaire = $9
+        titre_fr = $2, titre_en = $3, titre_ar = $4,
+        date_debut = $5, date_fin = $6, type_evenement = $7,
+        description_fr = $8, description_en = $9, description_ar = $10, 
+        annee_scolaire = $11
       WHERE id = $1
       RETURNING id
     `, [
       id, 
-      periode.trim(), 
+      titre_fr.trim(),
+      titre_en?.trim() || null,
+      titre_ar?.trim() || null,
       date_debut, 
       date_fin, 
-      type_periode.trim(),
+      type_evenement.trim(),
       description_fr?.trim() || null, 
       description_en?.trim() || null, 
       description_ar?.trim() || null,
@@ -196,15 +212,14 @@ router.put('/:id', protegerAdmin, async (req, res) => {
     ]);
 
     if (r.rows.length === 0) {
-      return res.status(404).json({ ok: false, erreur: "⚠️ Période introuvable" });
+      return res.status(404).json({ ok: false, erreur: "⚠️ Événement introuvable" });
     }
-
     return res.status(200).json({ 
       ok: true, 
-      message: "✅ Période mise à jour avec succès !" 
+      message: "✅ Événement mis à jour avec succès !" 
     });
   } catch (e) {
-    console.error("❌ ERREUR MODIFICATION :", e.message);
+    console.error("❌ ERREUR MODIFICATION CALENDRIER :", e.message);
     return res.status(500).json({ 
       ok: false, 
       erreur: e.message || "⚠️ Erreur serveur" 
@@ -213,7 +228,7 @@ router.put('/:id', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// ❌ SUPPRIMER UNE PÉRIODE — Admin seulement
+// ❌ SUPPRIMER UN ÉVÉNEMENT
 // ==================================================
 router.delete('/:id', protegerAdmin, async (req, res) => {
   try {
@@ -223,24 +238,23 @@ router.delete('/:id', protegerAdmin, async (req, res) => {
     }
 
     const r = await pool.query(
-      'DELETE FROM calendrier_scolaire WHERE id = $1 RETURNING periode', 
+      'DELETE FROM calendrier_scolaire WHERE id = $1 RETURNING titre_fr', 
       [id]
     );
 
     if (r.rows.length === 0) {
-      return res.status(404).json({ ok: false, erreur: "⚠️ Période introuvable" });
+      return res.status(404).json({ ok: false, erreur: "⚠️ Événement introuvable" });
     }
-
     return res.status(200).json({ 
       ok: true, 
-      message: `✅ Période "${r.rows[0].periode}" supprimée !` 
+      message: `✅ Événement "${r.rows[0].titre_fr}" supprimé !` 
     });
   } catch (e) {
-    console.error("❌ ERREUR SUPPRESSION :", e.message);
+    console.error("❌ ERREUR SUPPRESSION CALENDRIER :", e.message);
     if (e.code === '23503') {
       return res.status(409).json({ 
         ok: false, 
-        erreur: "⚠️ Impossible de supprimer : cette période est utilisée ailleurs" 
+        erreur: "⚠️ Impossible de supprimer : utilisé ailleurs" 
       });
     }
     return res.status(500).json({ 
