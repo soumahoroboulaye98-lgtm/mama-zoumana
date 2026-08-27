@@ -530,6 +530,7 @@
       transition: all 0.2s; margin: 0 2px;
     }
     .btn-langue.active { background: var(--accent); color: var(--sombre); border-color: var(--accent); }
+
     .btn-connexion {
       background: var(--accent); color: var(--sombre); font-weight: 600;
       border-radius: 10px; padding: 7px 12px; border: none; font-size: 0.9rem;
@@ -644,6 +645,7 @@
   </style>
 </head>
 <body class="lang-fr">
+
 <!-- 🧭 EN-TÊTE -->
 <header class="entete-fixe">
   <div class="container d-flex justify-content-between align-items-center py-3 position-relative">
@@ -720,48 +722,49 @@
       </div>
     </nav>
 
-    <!--<!-- 📋 BOUTONS LANGUE & CONNEXION -->
-<div class="d-flex align-items-center gap-2 ms-auto">
-  <button class="btn-langue" data-lang="fr">FR</button>
-  <button class="btn-langue" data-lang="en">EN</button>
-  <button class="btn-langue" data-lang="ar">ع</button>
-  <a href="connexion.html" class="btn-connexion ms-3">
-    <span class="txt-fr">🔑 Connexion</span>
-    <span class="txt-en">🔑 Login</span>
-    <span class="txt-ar">🔑 تسجيل الدخول</span>
-  </a>
-</div>
+    <!-- 📋 BOUTONS LANGUE & CONNEXION -->
+    <div class="d-flex align-items-center gap-2 ms-auto">
+      <button class="btn-langue" data-lang="fr">FR</button>
+      <button class="btn-langue" data-lang="en">EN</button>
+      <button class="btn-langue" data-lang="ar">ع</button>
 
-<!-- 📱 BOUTON MENU MOBILE -->
-<button class="btn-menu-mobile ms-2" onclick="basculerMenuMobile()">
-  <i class="bi bi-list"></i>
-</button>
+      <!-- ✅ LIEN CORRIGÉ VERS LA PAGE DE CONNEXION -->
+      <a href="connexion.html" class="btn-connexion ms-3">
+        <span class="txt-fr">🔑 Connexion</span>
+        <span class="txt-en">🔑 Login</span>
+        <span class="txt-ar">🔑 تسجيل الدخول</span>
+      </a>
+    </div>
 
-<!-- 📱 MENU DÉROULANT MOBILE -->
-<div id="menu-mobile-deroulant" class="menu-mobile-deroulant">
-  <a href="#accueil"><span class="txt-fr">🏠 Accueil — Présentation</span><span class="txt-en">🏠 Home — Presentation</span><span class="txt-ar">🏠 الرئيسية — نبذة عنا</span></a>
-  <a href="boutique.html"><span class="txt-fr">🛍️ Boutique Scolaire</span><span class="txt-en">🛍️ School Store</span><span class="txt-ar">🛍️ المتجر المدرسي</span></a>
-  <a href="#apropos"><span class="txt-fr">À Propos</span><span class="txt-en">About Us</span><span class="txt-ar">من نحن</span></a>
-  <hr class="mx-3 my-2 border-light opacity-25">
-  <a href="#admission"><span class="txt-fr">📝 Conditions d'Admission</span><span class="txt-en">📝 Admission Requirements</span><span class="txt-ar">📝 شروط القبول</span></a>
-  <a href="preinscription.html"><span class="txt-fr">✍️ S'inscrire en ligne</span><span class="txt-en">✍️ Register Online</span><span class="txt-ar">✍️ التسجيل الإلكتروني</span></a>
-  <hr class="mx-3 my-2 border-light opacity-25">
-  <a href="classe-emploi.html"><span class="txt-fr">📚 Emploi du Temps & Classes</span><span class="txt-en">📚 Timetable & Classes</span><span class="txt-ar">📚 الجداول والفصول</span></a>
-  <a href="calendrier-scolaire.html"><span class="txt-fr">📅 Calendrier Scolaire</span><span class="txt-en">📅 School Calendar</span><span class="txt-ar">📅 التقويم المدرسي</span></a>
-  <a href="classement-general.html"><span class="txt-fr">📋 Classement Général</span><span class="txt-en">📋 General Ranking</span><span class="txt-ar">📋 الترتيب العام</span></a>
-  <a href="classement-notes.html"><span class="txt-fr">🏅 Classement par Notes</span><span class="txt-en">🏅 Grades Ranking</span><span class="txt-ar">🏅 ترتيب الدرجات</span></a>
-  <a href="liens-resources.html"><span class="txt-fr">🔗 Ressources & Recherche</span><span class="txt-en">🔗 Resources & Search</span><span class="txt-ar">🔗 مصادر وبحث</span></a>
-  <hr class="mx-3 my-2 border-light opacity-25">
-  <a href="#galerie"><span class="txt-fr">📸 Galerie Photos</span><span class="txt-en">📸 Photo Gallery</span><span class="txt-ar">📸 معرض الصور</span></a>
-  <a href="#videos"><span class="txt-fr">🎬 Vidéos</span><span class="txt-en">🎬 Videos</span><span class="txt-ar">🎬 فيديوهات</span></a>
-  <hr class="mx-3 my-2 border-light opacity-25">
-  <a href="#contact"><span class="txt-fr">✉️ Nous écrire</span><span class="txt-en">✉️ Write to Us</span><span class="txt-ar">✉️ راسلنا</span></a>
-  <a href="#contact"><span class="txt-fr">📍 Localisation</span><span class="txt-en">📍 Location</span><span class="txt-ar">📍 الموقع</span></a>
-  <hr class="mx-3 my-2 border-light opacity-25">
-  <a href="connexion.html"><span class="txt-fr">🔑 Espace Administration</span><span class="txt-en">🔑 Admin Dashboard</span><span class="txt-ar">🔑 لوحة التحكم</span></a>
-</div>
+    <!-- 📱 BOUTON MENU MOBILE -->
+    <button class="btn-menu-mobile ms-2" onclick="basculerMenuMobile()">
+      <i class="bi bi-list"></i>
+    </button>
 
-</div>
+    <!-- 📱 MENU DÉROULANT <!-- 📱 MENU DÉROULANT MOBILE -->
+    <div id="menu-mobile-deroulant" class="menu-mobile-deroulant">
+      <a href="#accueil"><span class="txt-fr">🏠 Accueil — Présentation</span><span class="txt-en">🏠 Home — Presentation</span><span class="txt-ar">🏠 الرئيسية — نبذة عنا</span></a>
+      <a href="boutique.html"><span class="txt-fr">🛍️ Boutique Scolaire</span><span class="txt-en">🛍️ School Store</span><span class="txt-ar">🛍️ المتجر المدرسي</span></a>
+      <a href="#apropos"><span class="txt-fr">À Propos</span><span class="txt-en">About Us</span><span class="txt-ar">من نحن</span></a>
+      <hr class="mx-3 my-2 border-light opacity-25">
+      <a href="#admission"><span class="txt-fr">📝 Conditions d'Admission</span><span class="txt-en">📝 Admission Requirements</span><span class="txt-ar">📝 شروط القبول</span></a>
+      <a href="preinscription.html"><span class="txt-fr">✍️ S'inscrire en ligne</span><span class="txt-en">✍️ Register Online</span><span class="txt-ar">✍️ التسجيل الإلكتروني</span></a>
+      <hr class="mx-3 my-2 border-light opacity-25">
+      <a href="classe-emploi.html"><span class="txt-fr">📚 Emploi du Temps & Classes</span><span class="txt-en">📚 Timetable & Classes</span><span class="txt-ar">📚 الجداول والفصول</span></a>
+      <a href="calendrier-scolaire.html"><span class="txt-fr">📅 Calendrier Scolaire</span><span class="txt-en">📅 School Calendar</span><span class="txt-ar">📅 التقويم المدرسي</span></a>
+      <a href="classement-general.html"><span class="txt-fr">📋 Classement Général</span><span class="txt-en">📋 General Ranking</span><span class="txt-ar">📋 الترتيب العام</span></a>
+      <a href="classement-notes.html"><span class="txt-fr">🏅 Classement par Notes</span><span class="txt-en">🏅 Grades Ranking</span><span class="txt-ar">🏅 ترتيب الدرجات</span></a>
+      <a href="liens-resources.html"><span class="txt-fr">🔗 Ressources & Recherche</span><span class="txt-en">🔗 Resources & Search</span><span class="txt-ar">🔗 مصادر وبحث</span></a>
+      <hr class="mx-3 my-2 border-light opacity-25">
+      <a href="#galerie"><span class="txt-fr">📸 Galerie Photos</span><span class="txt-en">📸 Photo Gallery</span><span class="txt-ar">📸 معرض الصور</span></a>
+      <a href="#videos"><span class="txt-fr">🎬 Vidéos</span><span class="txt-en">🎬 Videos</span><span class="txt-ar">🎬 فيديوهات</span></a>
+      <hr class="mx-3 my-2 border-light opacity-25">
+      <a href="#contact"><span class="txt-fr">✉️ Nous écrire</span><span class="txt-en">✉️ Write to Us</span><span class="txt-ar">✉️ راسلنا</span></a>
+      <a href="#contact"><span class="txt-fr">📍 Localisation</span><span class="txt-en">📍 Location</span><span class="txt-ar">📍 الموقع</span></a>
+      <hr class="mx-3 my-2 border-light opacity-25">
+      <a href="connexion.html"><span class="txt-fr">🔑 Espace Connexion</span><span class="txt-en">🔑 Login Area</span><span class="txt-ar">🔑 منطقة تسجيل الدخول</span></a>
+    </div>
+  </div>
 </header>
 
 <!-- 📢 BANDEAU DÉFILANT -->
@@ -1008,7 +1011,7 @@
         <a href="#accueil"><span class="txt-fr">Accueil</span><span class="txt-en">Home</span><span class="txt-ar">الرئيسية</span></a>
         <a href="preinscription.html"><span class="txt-fr">Préinscription</span><span class="txt-en">Pre-Registration</span><span class="txt-ar">التسجيل المسبق</span></a>
         <a href="calendrier-scolaire.html"><span class="txt-fr">Calendrier</span><span class="txt-en">Calendar</span><span class="txt-ar">التقويم</span></a>
-        <a href="admin.html"><span class="txt-fr">Administration</span><span class="txt-en">Administration</span><span class="txt-ar">لوحة التحكم</span></a>
+        <a href="connexion.html"><span class="txt-fr">Connexion</span><span class="txt-en">Login</span><span class="txt-ar">تسجيل الدخول</span></a>
       </div>
       <div class="col-md-4">
         <h6>
