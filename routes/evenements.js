@@ -66,16 +66,16 @@ async function notifierDestinataires(evt, avertissement) {
         to: u.email,
         subject: `${avertissement.texte[langueUser]} — ${titre}`,
         html: `
-          <div style="border-left:4px solid ${avertissement.couleur}; padding:15px; background:#fffbeb; border-radius:12px;">
-            <h3 style="color:${avertissement.couleur}; margin-top:0;">${avertissement.texte[langueUser]}</h3>
-            <h4 style="color:#0f172a; margin:10px 0;">${titre}</h4>
-            <p><strong>📅 Date :</strong> ${new Date(date_evenement).toLocaleDateString('fr-FR')}</p>
-            ${heure_evenement ? `<p><strong>⏰ Heure :</strong> ${heure_evenement}</p>` : ''}
-            ${lieu ? `<p><strong>📍 Lieu :</strong> ${lieu}</p>` : ''}
-            ${description ? `<p><strong>ℹ️ Détails :</strong><br>${description}</p>` : ''}
-            <hr style="border:none; border-top:1px solid #f59e0b33; margin:15px 0;">
-            <p style="color:#78716c; font-size:0.9em;">— 🏫 MAMA-ZOUMANA</p>
-          </div>`
+        <div style="border-left:4px solid ${avertissement.couleur}; padding:15px; background:#fffbeb; border-radius:12px;">
+          <h3 style="color:${avertissement.couleur}; margin-top:0;">${avertissement.texte[langueUser]}</h3>
+          <h4 style="color:#0f172a; margin:10px 0;">${titre}</h4>
+          <p><strong>📅 Date :</strong> ${new Date(date_evenement).toLocaleDateString('fr-FR')}</p>
+          ${heure_evenement ? `<p><strong>⏰ Heure :</strong> ${heure_evenement}</p>` : ''}
+          ${lieu ? `<p><strong>📍 Lieu :</strong> ${lieu}</p>` : ''}
+          ${description ? `<p><strong>ℹ️ Détails :</strong><br>${description}</p>` : ''}
+          <hr style="border:none; border-top:1px solid #f59e0b33; margin:15px 0;">
+          <p style="color:#78716c; font-size:0.9em;">— 🏫 MAMA-ZOUMANA</p>
+        </div>`
       });
       console.log(`✅ E-mail envoyé à : ${u.email} [${langueUser}]`);
     } catch (e) {
@@ -92,11 +92,13 @@ router.get('/verifier-notifications', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query('SELECT * FROM evenements ORDER BY date_evenement');
     const traites = [];
+
     for (const evt of r.rows) {
       const jours = calculJoursRestants(evt.date_evenement);
       const notif = evt.notification_envoyee || {};
       let envoyer = false;
       let etape = '';
+
       if (jours === 5 && !notif.j5) { notif.j5 = true; envoyer = true; etape = 'J-5'; }
       else if (jours === 4 && !notif.j4) { notif.j4 = true; envoyer = true; etape = 'J-4'; }
       else if (jours === 3 && !notif.j3) { notif.j3 = true; envoyer = true; etape = 'J-3'; }
@@ -108,12 +110,13 @@ router.get('/verifier-notifications', protegerAdmin, async (req, res) => {
         const avert = getAvertissement(jours);
         await notifierDestinataires(evt, avert);
         await pool.query(
-          'UPDATE evenements SET notification_envoyee = $1 WHERE id_evenement = $2',
+          'UPDATE evenements SET notification_envoyee = $1::jsonb WHERE id_evenement = $2',
           [JSON.stringify(notif), evt.id_evenement]
         );
         traites.push({ id_evenement: evt.id_evenement, etape, avertissement: avert.texte.fr });
       }
     }
+
     console.log(`✅ Vérification notifications terminée — ${traites.length} notification(s) envoyée(s)`);
     res.json({ ok: true, traites });
   } catch (e) {
@@ -128,8 +131,9 @@ router.get('/verifier-notifications', protegerAdmin, async (req, res) => {
 router.get('/liste', async (req, res) => {
   try {
     const { tout, type_fr, rentree, annee_scolaire } = req.query;
-    let conditions = [];
-    let valeurs = [];
+    const conditions = [];
+    const valeurs = [];
+
     if (tout !== '1') {
       conditions.push('est_publie = true');
       conditions.push('date_evenement >= CURRENT_DATE');
@@ -137,15 +141,18 @@ router.get('/liste', async (req, res) => {
     if (type_fr) { valeurs.push(type_fr); conditions.push(`type_fr = $${valeurs.length}`); }
     if (rentree === '1' || rentree === 'true') conditions.push('rentree = true');
     if (annee_scolaire) { valeurs.push(annee_scolaire); conditions.push(`annee_scolaire = $${valeurs.length}`); }
+
     const clauseWhere = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const r = await pool.query(`
       SELECT * FROM evenements ${clauseWhere} ORDER BY date_evenement ASC
     `, valeurs);
+
     const liste = r.rows.map(evt => {
       const jours = calculJoursRestants(evt.date_evenement);
       return { ...evt, jours_restants: jours, avertissement: getAvertissement(jours) };
     });
-    console.log(`✅ Événements index chargés — ${liste.length} à venir`);
+
+    console.log(`✅ Événements chargés — ${liste.length} à venir`);
     res.json({ ok: true, evenements: liste });
   } catch (e) {
     console.error("❌ ERREUR LISTE ÉVÉNEMENTS :", e.message);
@@ -158,24 +165,49 @@ router.get('/liste', async (req, res) => {
 // ==================================================
 router.post('/ajouter', protegerAdmin, async (req, res) => {
   try {
-    const id_utilisateur = req.user?.id;
-    const { titre_fr, titre_en, titre_ar, description_fr, description_en, description_ar, date_evenement, heure_evenement, lieu, type_fr, type_en, type_ar, url_image, url_video, cible, est_publie, rentree, annee_scolaire } = req.body;
-    if (!titre_fr || !date_evenement) {
-      return res.json({ ok: false, erreur: "Le titre en français et la date sont obligatoires" });
-    }
+    const id_utilisateur = req.user?.id_utilisateur || req.user?.id;
+    const {
+      titre_fr, titre_en, titre_ar,
+      description_fr, description_en, description_ar,
+      date_evenement, heure_evenement, lieu,
+      type_fr, type_en, type_ar,
+      url_image, url_video, cible,
+      est_publie, rentree, annee_scolaire
+    } = req.body;
+
+    // ✅ Validation
+    if (!titre_fr || !titre_fr.trim())
+      return res.json({ ok: false, erreur: "⚠️ Le titre en français est obligatoire" });
+    if (!date_evenement)
+      return res.json({ ok: false, erreur: "⚠️ La date de l'événement est obligatoire" });
+
+    // ✅ Valeurs par défaut corrigées
     const r = await pool.query(`
       INSERT INTO evenements(
-        titre_fr, titre_en, titre_ar, description_fr, description_en, description_ar,
-        date_evenement, heure_evenement, lieu, type_fr, type_en, type_ar,
-        url_image, url_video, cible, est_publie, rentree, annee_scolaire, id_utilisateur, date_creation, notification_envoyee
+        titre_fr, titre_en, titre_ar,
+        description_fr, description_en, description_ar,
+        date_evenement, heure_evenement, lieu,
+        type_fr, type_en, type_ar,
+        url_image, url_video, cible,
+        est_publie, rentree, annee_scolaire,
+        id_utilisateur, date_creation, notification_envoyee
       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,NOW(),'{}'::jsonb)
       RETURNING *
-    `, [titre_fr, titre_en || null, titre_ar || null, description_fr || null, description_en || null, description_ar || null, date_evenement, heure_evenement || null, lieu || null, type_fr || 'Général', type_en || 'General', type_ar || 'عام', url_image || null, url_video || null, cible || 'Tous', est_publie !== false, rentree === true, annee_scolaire || null, id_utilisateur]);
-    console.log(`✅ Événement créé — ${titre_fr}`);
-    res.json({ ok: true, evenement: r.rows[0] });
+    `, [
+      titre_fr.trim(), titre_en?.trim() || null, titre_ar?.trim() || null,
+      description_fr?.trim() || null, description_en?.trim() || null, description_ar?.trim() || null,
+      date_evenement, heure_evenement || null, lieu?.trim() || null,
+      type_fr?.trim() || 'Général', type_en?.trim() || 'General', type_ar?.trim() || 'عام',
+      url_image?.trim() || null, url_video?.trim() || null, cible?.trim() || 'Tous',
+      est_publie !== false, rentree === true, annee_scolaire?.trim() || null,
+      id_utilisateur
+    ]);
+
+    console.log(`✅ Événement créé — "${titre_fr}"`);
+    res.json({ ok: true, evenement: r.rows[0], message: "✅ Événement ajouté avec succès !" });
   } catch (e) {
     console.error("❌ ERREUR CRÉATION ÉVÉNEMENT :", e.message);
-    res.json({ ok: false, erreur: e.message });
+    res.json({ ok: false, erreur: e.message || "⚠️ Erreur serveur" });
   }
 });
 
@@ -185,25 +217,52 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
 router.put('/:id_evenement', protegerAdmin, async (req, res) => {
   try {
     const id_evenement = parseInt(req.params.id_evenement);
-    if (isNaN(id_evenement)) return res.json({ ok: false, erreur: "Identifiant invalide" });
-    const { titre_fr, titre_en, titre_ar, description_fr, description_en, description_ar, date_evenement, heure_evenement, lieu, type_fr, type_en, type_ar, url_image, url_video, cible, est_publie, rentree, annee_scolaire } = req.body;
-    if (!titre_fr || !date_evenement) return res.json({ ok: false, erreur: "Titre et date obligatoires" });
+    if (isNaN(id_evenement))
+      return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
+
+    const {
+      titre_fr, titre_en, titre_ar,
+      description_fr, description_en, description_ar,
+      date_evenement, heure_evenement, lieu,
+      type_fr, type_en, type_ar,
+      url_image, url_video, cible,
+      est_publie, rentree, annee_scolaire
+    } = req.body;
+
+    if (!titre_fr || !titre_fr.trim())
+      return res.json({ ok: false, erreur: "⚠️ Le titre en français est obligatoire" });
+    if (!date_evenement)
+      return res.json({ ok: false, erreur: "⚠️ La date de l'événement est obligatoire" });
+
     const r = await pool.query(`
       UPDATE evenements SET
-        titre_fr=$2, titre_en=$3, titre_ar=$4, description_fr=$5, description_en=$6, description_ar=$7,
-        date_evenement=$8, heure_evenement=$9, lieu=$10, type_fr=$11, type_en=$12, type_ar=$13,
-        url_image=$14, url_video=$15, cible=$16, est_publie=$17, rentree=$18, annee_scolaire=$19
-      WHERE id_evenement=$1 RETURNING *
-    `, [id_evenement, titre_fr, titre_en || null, titre_ar || null, description_fr || null, description_en || null, description_ar || null, date_evenement, heure_evenement || null, lieu || null, type_fr || 'Général', type_en || 'General', type_ar || 'عام', url_image || null, url_video || null, cible || 'Tous', est_publie, rentree === true, annee_scolaire || null]);
-    if (r.rows.length) {
-      console.log(`✅ Événement modifié — ID: ${id_evenement}`);
-      res.json({ ok: true, evenement: r.rows[0] });
-    } else {
-      res.json({ ok: false, erreur: "Événement introuvable" });
-    }
+        titre_fr=$2, titre_en=$3, titre_ar=$4,
+        description_fr=$5, description_en=$6, description_ar=$7,
+        date_evenement=$8, heure_evenement=$9, lieu=$10,
+        type_fr=$11, type_en=$12, type_ar=$13,
+        url_image=$14, url_video=$15, cible=$16,
+        est_publie=$17, rentree=$18, annee_scolaire=$19,
+        date_modification = NOW()
+      WHERE id_evenement=$1
+      RETURNING *
+    `, [
+      id_evenement,
+      titre_fr.trim(), titre_en?.trim() || null, titre_ar?.trim() || null,
+      description_fr?.trim() || null, description_en?.trim() || null, description_ar?.trim() || null,
+      date_evenement, heure_evenement || null, lieu?.trim() || null,
+      type_fr?.trim() || 'Général', type_en?.trim() || 'General', type_ar?.trim() || 'عام',
+      url_image?.trim() || null, url_video?.trim() || null, cible?.trim() || 'Tous',
+      est_publie !== false, rentree === true, annee_scolaire?.trim() || null
+    ]);
+
+    if (r.rows.length === 0)
+      return res.json({ ok: false, erreur: "⚠️ Événement introuvable" });
+
+    console.log(`✅ Événement modifié — ID: ${id_evenement}`);
+    res.json({ ok: true, evenement: r.rows[0], message: "✅ Événement mis à jour !" });
   } catch (e) {
     console.error("❌ ERREUR MODIFICATION ÉVÉNEMENT :", e.message);
-    res.json({ ok: false, erreur: e.message });
+    res.json({ ok: false, erreur: e.message || "⚠️ Erreur serveur" });
   }
 });
 
@@ -213,17 +272,22 @@ router.put('/:id_evenement', protegerAdmin, async (req, res) => {
 router.delete('/:id_evenement', protegerAdmin, async (req, res) => {
   try {
     const id_evenement = parseInt(req.params.id_evenement);
-    if (isNaN(id_evenement)) return res.json({ ok: false, erreur: "Identifiant invalide" });
-    const r = await pool.query('DELETE FROM evenements WHERE id_evenement=$1 RETURNING *', [id_evenement]);
-    if (r.rows.length) {
-      console.log(`🗑️ Événement supprimé — ID: ${id_evenement}`);
-      res.json({ ok: true });
-    } else {
-      res.json({ ok: false, erreur: "Événement introuvable" });
-    }
+    if (isNaN(id_evenement))
+      return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
+
+    const r = await pool.query(
+      'DELETE FROM evenements WHERE id_evenement=$1 RETURNING titre_fr',
+      [id_evenement]
+    );
+
+    if (r.rows.length === 0)
+      return res.json({ ok: false, erreur: "⚠️ Événement introuvable" });
+
+    console.log(`🗑️ Événement supprimé — ID: ${id_evenement}, "${r.rows[0].titre_fr}"`);
+    res.json({ ok: true, message: `✅ Événement "${r.rows[0].titre_fr}" supprimé !` });
   } catch (e) {
     console.error("❌ ERREUR SUPPRESSION ÉVÉNEMENT :", e.message);
-    res.json({ ok: false, erreur: e.message });
+    res.json({ ok: false, erreur: e.message || "⚠️ Erreur serveur" });
   }
 });
 

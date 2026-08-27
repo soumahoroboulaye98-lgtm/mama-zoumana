@@ -7,6 +7,13 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 // ==============================================
+// 🔐 MIDDLEWARES DE PROTECTION
+// ==============================================
+const veriftoken = require('../middleware/veriftoken');
+const verifadmin = require('../middleware/verifadmin');
+const protegerAdmin = [veriftoken, verifadmin];
+
+// ==============================================
 // ✅ CONFIGURATION E-MAIL SÉCURISÉE
 // ==============================================
 const transport = nodemailer.createTransport({
@@ -42,17 +49,19 @@ router.post('/nouvelle', upload.fields([
     } = req.body;
 
     // ✅ Validation complète
-    if (!nom_famille || !prenom || !email || !mot_de_passe || !role) {
+    if (!nom_famille?.trim() || !prenom?.trim() || !email?.trim() || !mot_de_passe || !role?.trim()) {
       return res.json({
         ok: false,
         erreur: "⚠️ Veuillez renseigner nom, prénom, email, mot de passe et profil"
       });
     }
 
+    const emailClean = email.toLowerCase().trim();
+
     // Vérification email unique
     const emailExiste = await pool.query(
-      "SELECT id FROM utilisateurs WHERE LOWER(email) = $1",
-      [email.toLowerCase().trim()]
+      "SELECT id_utilisateur FROM utilisateurs WHERE LOWER(email) = $1",
+      [emailClean]
     );
     if (emailExiste.rows.length > 0) {
       return res.json({ ok: false, erreur: "❌ Cet email est déjà utilisé" });
@@ -74,10 +83,13 @@ router.post('/nouvelle', upload.fields([
         nom, prenom, email, telephone, mot_de_passe,
         role, statut_compte, cle_validation, date_creation
       ) VALUES ($1, $2, $3, $4, $5, $6, 'en_attente', $7, CURRENT_TIMESTAMP)
-      RETURNING id, nom, prenom, email, role
-    `, [nom_famille, prenom, email.toLowerCase().trim(), telephone || null, hash, role, cleVerif]);
+      RETURNING id_utilisateur, nom, prenom, email, role
+    `, [
+      nom_famille.trim(), prenom.trim(), emailClean, telephone?.trim() || null,
+      hash, role.trim(), cleVerif
+    ]);
 
-    const idUser = nouvelUtil.rows[0].id;
+    const idUser = nouvelUtil.rows[0].id_utilisateur;
 
     // 2. Enregistrement préinscription
     await pool.query(`
@@ -88,22 +100,22 @@ router.post('/nouvelle', upload.fields([
         photo_identite, extrait_naissance, bulletin, cv,
         statut, date_creation
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, 'en_attente', CURRENT_TIMESTAMP)
-      RETURNING id
     `, [
-      idUser, nom_famille, prenom, email.toLowerCase().trim(), telephone || null, role,
-      id_classe_souhaitee || null, nom_parent || null,
-      (telephone_parent || '').replace(/\s/g, '') || null, email_parent || null,
-      nom_pere || null, nom_mere || null, annee_scolaire || '2025-2026',
+      idUser, nom_famille.trim(), prenom.trim(), emailClean,
+      telephone?.trim() || null, role.trim(),
+      id_classe_souhaitee || null, nom_parent?.trim() || null,
+      (telephone_parent || '').replace(/\s/g, '') || null, email_parent?.trim() || null,
+      nom_pere?.trim() || null, nom_mere?.trim() || null, annee_scolaire?.trim() || '2025-2026',
       photoIdentite, extraitNaissance, bulletin, cv
     ]);
 
     // 3. Table spécifique selon le rôle
-    if (role === 'eleve') {
+    if (role.trim() === 'eleve') {
       await pool.query(`
         INSERT INTO eleves(matricule, id_utilisateur, photo_identite)
         VALUES ($1, $2, $3)
       `, [genererMatricule(), idUser, photoIdentite]);
-    } else if (role === 'prof') {
+    } else if (role.trim() === 'prof') {
       await pool.query(`
         INSERT INTO professeurs(id_utilisateur, photo_identite, cv)
         VALUES ($1, $2, $3)
@@ -112,10 +124,10 @@ router.post('/nouvelle', upload.fields([
 
     // 4. Envoi e-mail
     await transport.sendMail({
-      to: email,
+      to: emailClean,
       subject: '🔐 Vérification préinscription — MAMA-ZOUMANA',
       html: `
-        <h3>Bienvenue ${nom_famille} ${prenom} !</h3>
+        <h3>Bienvenue ${nom_famille.trim()} ${prenom.trim()} !</h3>
         <p>Votre code de vérification : <strong style="font-size:20px;background:#f59e0b;color:#000;padding:8px 16px;border-radius:4px">${cleVerif}</strong></p>
         <p>Validez votre inscription avec ce code, puis l'administration validera votre compte après vérification.</p>
         <hr><p style="color:#666">Établissement MAMA-ZOUMANA</p>
@@ -127,7 +139,6 @@ router.post('/nouvelle', upload.fields([
       ok: true,
       message: "✅ Préinscription enregistrée. Un code de vérification vous a été envoyé par e-mail."
     });
-
   } catch (e) {
     console.error("❌ ERREUR PRÉINSCRIPTION :", e.message);
     res.status(500).json({ ok: false, erreur: e.message });
@@ -140,14 +151,17 @@ router.post('/nouvelle', upload.fields([
 router.post('/verifier', async (req, res) => {
   try {
     const { code } = req.body;
-    if (!code || code.length !== 6) {
+    const codeClean = code?.trim();
+
+    if (!codeClean || codeClean.length !== 6) {
       return res.json({ ok: false, erreur: "⚠️ Code invalide (6 chiffres requis)" });
     }
 
-    const utilisateur = await pool.query(
-      "SELECT * FROM utilisateurs WHERE cle_validation = $1",
-      [code.trim()]
-    );
+    const utilisateur = await pool.query(`
+      SELECT id_utilisateur, statut_compte, cle_validation
+      FROM utilisateurs
+      WHERE cle_validation = $1 AND statut_compte = 'en_attente'
+    `, [codeClean]);
 
     if (utilisateur.rows.length === 0) {
       return res.json({ ok: false, erreur: "⛔ Code invalide ou déjà utilisé" });
@@ -158,15 +172,14 @@ router.post('/verifier', async (req, res) => {
       SET verification_effectuee = true,
           statut_compte = 'en_attente',
           cle_validation = NULL
-      WHERE cle_validation = $1
-    `, [code.trim()]);
+      WHERE id_utilisateur = $1
+    `, [utilisateur.rows[0].id_utilisateur]);
 
-    console.log(`✅ Compte vérifié — Utilisateur ID: ${utilisateur.rows[0].id}`);
+    console.log(`✅ Compte vérifié — Utilisateur ID: ${utilisateur.rows[0].id_utilisateur}`);
     res.json({
       ok: true,
       message: "✅ Compte vérifié. En attente de validation administrative."
     });
-
   } catch (e) {
     console.error("❌ ERREUR VÉRIFICATION :", e.message);
     res.status(500).json({ ok: false, erreur: e.message });
@@ -174,14 +187,14 @@ router.post('/verifier', async (req, res) => {
 });
 
 // ==============================================
-// 📋 LISTE DES DEMANDES DE PRÉINSCRIPTION
+// 📋 LISTE DES DEMANDES DE PRÉINSCRIPTION — 🔐 Admin seul
 // ==============================================
-router.get('/liste', async (req, res) => {
+router.get('/liste', protegerAdmin, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
         p.id, p.nom_famille, p.prenom, p.email, p.telephone, p.role AS profil,
-        p.id_classe_souhaitee, p.nom_parent, p.telephone_parent,
+        p.id_classe_souhaitee, p.nom_parent, p.telephone_parent, p.email_parent,
         p.statut, p.date_creation, p.date_decision,
         c.libelle_classe
       FROM preinscriptions p
@@ -190,6 +203,7 @@ router.get('/liste', async (req, res) => {
         CASE p.statut WHEN 'en_attente' THEN 1 ELSE 2 END,
         p.date_creation DESC
     `);
+
     res.json({ ok: true, liste: result.rows });
   } catch (e) {
     console.error("❌ ERREUR LISTE :", e.message);
@@ -198,9 +212,9 @@ router.get('/liste', async (req, res) => {
 });
 
 // ==============================================
-// ✅ VALIDER UNE DEMANDE
+// ✅ VALIDER UNE DEMANDE — 🔐 Admin seul
 // ==============================================
-router.put('/valider/:id', async (req, res) => {
+router.put('/valider/:id', protegerAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -230,7 +244,7 @@ router.put('/valider/:id', async (req, res) => {
     await pool.query(`
       UPDATE utilisateurs
       SET statut_compte = 'actif', date_validation = CURRENT_TIMESTAMP
-      WHERE id = $1
+      WHERE id_utilisateur = $1
     `, [id_utilisateur]);
 
     // Envoi e-mail de confirmation
@@ -247,7 +261,6 @@ router.put('/valider/:id', async (req, res) => {
 
     console.log(`✅ Demande validée — ID: ${id}`);
     res.json({ ok: true, message: "✅ Demande validée et compte activé" });
-
   } catch (e) {
     console.error("❌ ERREUR VALIDATION :", e.message);
     res.status(500).json({ ok: false, erreur: e.message });
@@ -255,9 +268,9 @@ router.put('/valider/:id', async (req, res) => {
 });
 
 // ==============================================
-// ❌ REFUSER UNE DEMANDE
+// ❌ REFUSER UNE DEMANDE — 🔐 Admin seul
 // ==============================================
-router.put('/refuser/:id', async (req, res) => {
+router.put('/refuser/:id', protegerAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -287,7 +300,7 @@ router.put('/refuser/:id', async (req, res) => {
     await pool.query(`
       UPDATE utilisateurs
       SET statut_compte = 'refuse'
-      WHERE id = $1
+      WHERE id_utilisateur = $1
     `, [id_utilisateur]);
 
     // Envoi e-mail
@@ -304,7 +317,6 @@ router.put('/refuser/:id', async (req, res) => {
 
     console.log(`❌ Demande refusée — ID: ${id}`);
     res.json({ ok: true, message: "✅ Demande refusée" });
-
   } catch (e) {
     console.error("❌ ERREUR REFUS :", e.message);
     res.status(500).json({ ok: false, erreur: e.message });

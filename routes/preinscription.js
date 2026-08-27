@@ -107,12 +107,11 @@ async function envoyerEmail(destinataire, sujet, messageHtml) {
 // ==================================================
 // 🔧 UTILITAIRES
 // ==================================================
-
 // ✅ Déterminer profil
 function determinerProfil(d) {
   if (d.profil) return d.profil;
   if (d.id_classe) return 'eleve';
-  if (d.cv) return 'prof';
+  if (d.cv) return 'professeur';
   return 'visiteur';
 }
 
@@ -138,7 +137,6 @@ async function genererMatricule(dateNaissance, anneeScolaire) {
 // ==================================================
 // 📋 ROUTES PUBLIQUES
 // ==================================================
-
 // ➕ SOUMETTRE UNE PRÉINSCRIPTION
 router.post('/', upload.fields([
   { name: 'photo_identite', maxCount: 1 },
@@ -160,25 +158,66 @@ router.post('/', upload.fields([
       mode_paiement, annee_scolaire, observations
     } = req.body;
 
-    // ✅ Validation obligatoire
-    if (!nom?.trim() || !prenoms?.trim() || !profil)
-      return res.json({ ok: false, erreur: "⚠️ Nom, Prénoms et Profil sont obligatoires" });
+    // ==================================================
+    // ✅ VALIDATION DES CHAMPS OBLIGATOIRES
+    // ==================================================
+    const erreurs = [];
+
+    // 🔴 OBLIGATOIRES pour TOUS
+    if (!nom?.trim()) erreurs.push("• Nom est obligatoire");
+    if (!prenoms?.trim()) erreurs.push("• Prénoms sont obligatoires");
+    if (!profil?.trim()) erreurs.push("• Profil est obligatoire");
+
+    // ⚠️ Au moins un moyen de contact
+    const telNettoye = telephone?.replace(/\s/g, '') || '';
+    const emailNettoye = email?.trim() || '';
+    if (!telNettoye && !emailNettoye) {
+      erreurs.push("• Au moins un moyen de contact est requis : Téléphone OU Email");
+    }
+
+    // 🔴 OBLIGATOIRE si ÉLÈVE
+    const profilNettoye = profil?.trim();
+    if (profilNettoye === 'eleve') {
+      if (!id_classe && !libelle_classe_fr?.trim()) {
+        erreurs.push("• Classe demandée est obligatoire pour un élève");
+      }
+      if (!date_naissance) {
+        erreurs.push("• Date de naissance est obligatoire pour un élève");
+      }
+    }
+
+    // 🔴 OBLIGATOIRE si PROFESSEUR
+    if (profilNettoye === 'professeur') {
+      if (!specialite?.trim()) {
+        erreurs.push("• Spécialité est obligatoire pour un enseignant");
+      }
+    }
+
+    // ✅ Valeur par défaut pour l'année scolaire
+    const anneeScolaire = annee_scolaire?.trim() || '2025-2026';
+
+    // ❌ Afficher toutes les erreurs
+    if (erreurs.length > 0) {
+      return res.json({
+        ok: false,
+        erreur: `⚠️ Veuillez compléter les champs suivants :\n${erreurs.join('\n')}`
+      });
+    }
 
     // ✅ Vérification doublon
-    if (email?.trim()) {
+    if (emailNettoye) {
       const { rows: existe } = await pool.query(
-        `SELECT id_preinscription FROM preinscriptions WHERE LOWER(email) = LOWER($1) AND statut <> 'annulée'`,
-        [email.trim()]
+        `SELECT id_preinscription FROM preinscriptions WHERE LOWER(email) = LOWER($1) AND statut <> 'refusée' AND statut <> 'annulée'`,
+        [emailNettoye]
       );
-      if (existe.length) return res.json({ ok: false, erreur: "⚠️ Cet email est déjà utilisé" });
+      if (existe.length) return res.json({ ok: false, erreur: "⚠️ Cet email est déjà utilisé pour une préinscription en cours" });
     }
-    if (telephone?.trim()) {
-      const tel = telephone.replace(/\s/g, '');
+    if (telNettoye) {
       const { rows: existe } = await pool.query(
-        `SELECT id_preinscription FROM preinscriptions WHERE REPLACE(telephone, ' ', '') = $1 AND statut <> 'annulée'`,
-        [tel]
+        `SELECT id_preinscription FROM preinscriptions WHERE REPLACE(telephone, ' ', '') = $1 AND statut <> 'refusée' AND statut <> 'annulée'`,
+        [telNettoye]
       );
-      if (existe.length) return res.json({ ok: false, erreur: "⚠️ Ce téléphone est déjà utilisé" });
+      if (existe.length) return res.json({ ok: false, erreur: "⚠️ Ce téléphone est déjà utilisé pour une préinscription en cours" });
     }
 
     // ✅ Vérification classe et places
@@ -201,8 +240,8 @@ router.post('/', upload.fields([
     const bulletin = req.files?.bulletin?.[0] ? `uploads/${req.files.bulletin[0].filename}` : null;
     const cv = req.files?.cv?.[0] ? `uploads/${req.files.cv[0].filename}` : null;
 
-    // ✅ Insertion conforme à la table
-    const { rows: [res] } = await pool.query(`
+    // ✅ Insertion conforme à la table → VARIABLE RENOMMÉE
+    const { rows: [nouvellePreinscription] } = await pool.query(`
       INSERT INTO preinscriptions (
         profil, nom, prenoms, sexe, date_naissance, lieu_naissance, nationalite, adresse,
         telephone, email,
@@ -219,17 +258,17 @@ router.post('/', upload.fields([
       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42,$43,$44,$45,NOW(),NOW())
       RETURNING id_preinscription
     `, [
-      profil, nom.trim(), prenoms.trim(), sexe || null, date_naissance || null, lieu_naissance || null, nationalite || null, adresse || null,
-      telephone?.replace(/\s/g, '') || null, email?.trim() || null,
-      nom_pere || null, profession_pere || null, telephone_pere?.replace(/\s/g, '') || null, email_pere?.trim() || null, date_naissance_pere || null,
-      nom_mere || null, profession_mere || null, telephone_mere?.replace(/\s/g, '') || null, email_mere?.trim() || null, date_naissance_mere || null,
-      telephone_parent?.replace(/\s/g, '') || null, email_parent?.trim() || null, responsable || null, adresse_famille || null,
-      moyenne_annee_precedente || null, rang_annee_precedente || null, mention_annee_precedente || null, conduite || null,
-      libelle_classe_fr || null, libelle_classe_ar || null, id_classe && !isNaN(id_classe) ? Number(id_classe) : null,
-      cantine || null, transport || null, circuit_transport || null,
-      specialite || null, experience || null, organisme || null, objet || null,
-      mode_paiement || null, photo_identite, extrait_naissance, bulletin, cv,
-      annee_scolaire || '2025-2026', observations || null,
+      profilNettoye, nom.trim(), prenoms.trim(), sexe || null, date_naissance || null, lieu_naissance || null, nationalite || null, adresse || null,
+      telNettoye || null, emailNettoye || null,
+      nom_pere?.trim() || null, profession_pere?.trim() || null, telephone_pere?.replace(/\s/g, '') || null, email_pere?.trim() || null, date_naissance_pere || null,
+      nom_mere?.trim() || null, profession_mere?.trim() || null, telephone_mere?.replace(/\s/g, '') || null, email_mere?.trim() || null, date_naissance_mere || null,
+      telephone_parent?.replace(/\s/g, '') || null, email_parent?.trim() || null, responsable?.trim() || null, adresse_famille?.trim() || null,
+      moyenne_annee_precedente || null, rang_annee_precedente || null, mention_annee_precedente?.trim() || null, conduite?.trim() || null,
+      libelle_classe_fr?.trim() || null, libelle_classe_ar?.trim() || null, id_classe && !isNaN(id_classe) ? Number(id_classe) : null,
+      cantine || null, transport || null, circuit_transport?.trim() || null,
+      specialite?.trim() || null, experience?.trim() || null, organisme?.trim() || null, objet?.trim() || null,
+      mode_paiement?.trim() || null, photo_identite, extrait_naissance, bulletin, cv,
+      anneeScolaire, observations?.trim() || null,
       'en attente'
     ]);
 
@@ -243,7 +282,7 @@ router.post('/', upload.fields([
     }
 
     // ✅ Email accusé réception
-    const destEmail = email || email_parent;
+    const destEmail = emailNettoye || email_parent?.trim();
     if (destEmail) {
       await envoyerEmail(destEmail, '✅ Préinscription enregistrée — MAMA-ZOUMANA', `
         <h3>Demande enregistrée</h3>
@@ -251,18 +290,25 @@ router.post('/', upload.fields([
         <p>Nous accusons réception de votre demande de préinscription.</p>
         ${libelleClasse ? `<p>🏫 Classe demandée : ${libelleClasse}<br>📊 Places restantes : ${placesRestantes}</p>` : ''}
         <p>⏳ En attente de validation (~24h).</p>
+        <p>Vous recevrez une réponse par e-mail dès que l'administration aura examiné votre dossier.</p>
       `);
     }
 
-    console.log(`✅ Préinscription soumise — ID: ${res.id_preinscription}`);
+    console.log(`✅ Préinscription soumise — ID: ${nouvellePreinscription.id_preinscription}`);
     res.json({
       ok: true,
       message: `✅ Demande enregistrée !${libelleClasse ? `\n🏫 Classe: ${libelleClasse}\n📊 Places restantes: ${placesRestantes}` : ''}`,
-      id: res.id_preinscription
+      id: nouvellePreinscription.id_preinscription
     });
+
   } catch (e) {
     console.error("❌ ERREUR soumission :", e.code, e.message);
-    res.json({ ok: false, erreur: e.message.includes('unique constraint') ? '❌ Doublon détecté (email/téléphone déjà utilisé)' : e.message });
+    res.json({
+      ok: false,
+      erreur: e.message.includes('unique constraint')
+        ? '❌ Doublon détecté (email/téléphone déjà utilisé)'
+        : e.message
+    });
   }
 });
 
@@ -311,7 +357,6 @@ router.post('/parent-matricule', async (req, res) => {
 // 🔐 ROUTES ADMINISTRATION
 // ==================================================
 if (protegerAdmin.length) {
-
   // 📋 LISTE EN ATTENTE
   router.get('/en-attente', protegerAdmin, async (req, res) => {
     try {
@@ -368,14 +413,13 @@ if (protegerAdmin.length) {
       if (profil === 'eleve' && demande.date_naissance) {
         matricule = await genererMatricule(demande.date_naissance, demande.annee_scolaire);
       } else {
-        const prefixes = { prof: 'ENS', parent: 'PAR', visiteur: 'VIS' };
+        const prefixes = { professeur: 'ENS', parent: 'PAR', visiteur: 'VIS' };
         matricule = `${prefixes[profil] || 'VIS'}-${String(id_preinscription).padStart(5, '0')}`;
       }
 
       // ✅ Créer compte utilisateur
       const mdpProvisoire = Math.random().toString(36).substring(2, 10).toUpperCase() + '@1A';
       const hashMdp = await bcrypt.hash(mdpProvisoire, 10);
-
       const { rows: [nouvelUtilisateur] } = await client.query(`
         INSERT INTO utilisateurs (
           nom, prenoms, email, telephone, date_naissance, lieu_naissance, nationalite, sexe, adresse,
@@ -498,7 +542,6 @@ if (protegerAdmin.length) {
 // 👨‍👩‍👧 ESPACE PARENT
 // ==================================================
 if (protegerParent.length) {
-
   // 📋 MES ENFANTS
   router.get('/mes-enfants', protegerParent, async (req, res) => {
     try {
