@@ -11,7 +11,7 @@ const protegerAdmin = [veriftoken, verifadmin];
 // ==================================================
 // 🔧 GÉNÉRER UN MATRICULE — Format : MZ-AAAA-PREFIX-NNNN
 // ==================================================
-async function genererMatricule(role, id_classe = null) {
+async function genererMatricule(role) {
   const annee = new Date().getFullYear();
   const prefixes = {
     admin: 'ADM', directeur: 'DIR', comptable: 'CMP',
@@ -19,26 +19,6 @@ async function genererMatricule(role, id_classe = null) {
     visiteur: 'VIS', secretaire: 'SEC'
   };
   const pref = prefixes[role] || 'USR';
-
-  // Pour élève : inclure le code classe
-  if (role === 'eleve' && id_classe) {
-    try {
-      const rClasse = await pool.query(
-        'SELECT libelle_classe FROM classes WHERE id_classe = $1', [id_classe]
-      );
-      if (rClasse.rows.length > 0) {
-        const codeClasse = rClasse.rows[0].libelle_classe
-          .toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 4);
-        const compte = await pool.query(
-          "SELECT COUNT(*) FROM utilisateurs WHERE matricule LIKE $1",
-          [`MZ-${annee}-${codeClasse}-%`]
-        );
-        const num = String(parseInt(compte.rows[0].count) + 1).padStart(4, '0');
-        return `MZ-${annee}-${codeClasse}-${num}`;
-      }
-    } catch {}
-  }
-
   const compte = await pool.query(
     "SELECT COUNT(*) FROM utilisateurs WHERE matricule LIKE $1",
     [`MZ-${annee}-${pref}-%`]
@@ -48,9 +28,9 @@ async function genererMatricule(role, id_classe = null) {
 }
 
 // ==================================================
-// 📊 CALCUL MOYENNE / RANG / MENTION — AUTOMATIQUE
+// 📊 CALCUL MOYENNE / RANG / MENTION — SANS id_classe
 // ==================================================
-async function calculerResultatsEleve(id_eleve, id_classe, anneeScolaire) {
+async function calculerResultatsEleve(id_eleve, anneeScolaire) {
   try {
     const notes = await pool.query(`
       SELECT n.valeur, m.coefficient
@@ -71,20 +51,20 @@ async function calculerResultatsEleve(id_eleve, id_classe, anneeScolaire) {
     });
     const moyenne = totalCoef > 0 ? Math.round((totalPoints / totalCoef) * 100) / 100 : null;
 
-    // ✅ Rang dans la classe
+    // ✅ Rang calculé sur TOUTES les notes de l'année
     const tousEleves = await pool.query(`
       SELECT DISTINCT n.id_eleve
       FROM notes n
-      WHERE n.id_classe = $1 AND n.annee_scolaire = $2
-    `, [id_classe, anneeScolaire]);
+      WHERE n.annee_scolaire = $1
+    `, [anneeScolaire]);
 
     const moyennesClasse = [];
     for (const e of tousEleves.rows) {
       const eNotes = await pool.query(`
         SELECT n.valeur, m.coefficient
         FROM notes n JOIN matieres m ON n.id_matiere = m.id_matiere
-        WHERE n.id_eleve = $1 AND n.id_classe = $2 AND n.annee_scolaire = $3
-      `, [e.id_eleve, id_classe, anneeScolaire]);
+        WHERE n.id_eleve = $1 AND n.annee_scolaire = $2
+      `, [e.id_eleve, anneeScolaire]);
       let pts = 0, cf = 0;
       eNotes.rows.forEach(n => {
         pts += (parseFloat(n.valeur) || 0) * parseFloat(n.coefficient || 1);
@@ -137,9 +117,8 @@ router.get('/eleves', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
       SELECT u.id, u.nom, u.prenom, u.email, u.matricule,
-             c.libelle_classe, u.date_naissance
+             u.date_naissance
       FROM utilisateurs u
-      LEFT JOIN classes c ON u.id_classe = c.id_classe
       WHERE u.role = 'eleve' AND COALESCE(u.est_actif, true) = true
       ORDER BY u.nom, u.prenom
     `);
@@ -211,7 +190,6 @@ router.get('/', protegerAdmin, async (req, res) => {
   try {
     const { role, recherche } = req.query;
     let conditions = [], valeurs = [], idx = 1;
-
     if (role) {
       conditions.push(`role = $${idx++}`);
       valeurs.push(role);
@@ -222,7 +200,6 @@ router.get('/', protegerAdmin, async (req, res) => {
       valeurs.push(`%${recherche}%`);
       idx++;
     }
-
     const clause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
     const r = await pool.query(`
       SELECT id, nom, prenom, email, telephone, role, matricule,
@@ -230,7 +207,6 @@ router.get('/', protegerAdmin, async (req, res) => {
       FROM utilisateurs
       ${clause} ORDER BY nom, prenom
     `, valeurs);
-
     res.json({ ok: true, lignes: r.rows });
   } catch (e) {
     console.log("❌ ERREUR LISTE UTILISATEURS :", e.message);
@@ -252,13 +228,13 @@ router.get('/:id', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// ➕ CRÉER UN UTILISATEUR PAR L'ADMIN
+// ➕ CRÉER UN UTILISATEUR PAR L'ADMIN — SANS id_classe
 // ==================================================
 router.post('/creer-admin', protegerAdmin, async (req, res) => {
   try {
     const {
       nom, prenom, email, telephone, role,
-      date_naissance, lieu_naissance, id_classe,
+      date_naissance, lieu_naissance,
       nom_pere, nom_mere, telephone_pere, telephone_mere,
       annee_scolaire
     } = req.body;
@@ -267,7 +243,6 @@ router.post('/creer-admin', protegerAdmin, async (req, res) => {
     if (!nom || !prenom || !email || !role) {
       return res.json({ ok: false, erreur: "⚠️ Nom, Prénom, Email et Rôle sont obligatoires" });
     }
-
     const rolesAutorises = ['admin', 'professeur', 'eleve', 'parent', 'visiteur', 'comptable', 'secretaire', 'directeur'];
     if (!rolesAutorises.includes(role)) {
       return res.json({ ok: false, erreur: "⚠️ Rôle invalide" });
@@ -278,44 +253,43 @@ router.post('/creer-admin', protegerAdmin, async (req, res) => {
     const exist = await pool.query('SELECT id FROM utilisateurs WHERE LOWER(email) = $1', [emailNettoye]);
     if (exist.rows.length) return res.json({ ok: false, erreur: "⚠️ Cet email existe déjà" });
 
-    // Générer matricule + MDP provisoire
-    const matricule = await genererMatricule(role, id_classe || null);
+    // Générer matricule SANS id_classe
+    const matricule = await genererMatricule(role);
     const mdpProvisoire = "MZ" + Math.floor(100000 + Math.random() * 900000);
     const motDePasseHash = await bcrypt.hash(mdpProvisoire, 10);
 
-    // ✅ Insérer utilisateur
+    // ✅ Insérer utilisateur SANS id_classe
     const resultat = await pool.query(`
       INSERT INTO utilisateurs
         (nom, prenom, email, mot_de_passe, telephone, role, matricule,
-         est_actif, date_creation, id_classe, date_naissance, lieu_naissance, statut_compte)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW(), $8, $9, $10, 'valide')
+         est_actif, date_creation, date_naissance, lieu_naissance, statut_compte)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW(), $8, $9, 'valide')
       RETURNING id, matricule, nom, prenom, email, role, date_creation
     `, [
       nom.trim(), prenom.trim(), emailNettoye, motDePasseHash,
       telephone || null, role, matricule,
-      id_classe || null, date_naissance || null, lieu_naissance || null
+      date_naissance || null, lieu_naissance || null
     ]);
 
-    // ✅ Si ÉLÈVE → aussi dans préinscriptions (CORRIGÉ pour correspondre à TA table)
+    // ✅ Si ÉLÈVE → aussi dans préinscriptions SANS id_classe
     if (role === 'eleve') {
       const annee = annee_scolaire || '2026-2027';
       await pool.query(`
         INSERT INTO preinscriptions
-          (nom, prenoms, date_naissance, lieu_naissance, id_classe,
+          (nom, prenoms, date_naissance, lieu_naissance,
            nom_pere, nom_mere, telephone_pere, telephone_mere,
            email, telephone, matricule, statut, annee_scolaire)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'validee', $13)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'validee', $12)
       `, [
         nom.trim(), prenom.trim(), date_naissance || null, lieu_naissance || null,
-        id_classe || null, nom_pere || null, nom_mere || null,
+        nom_pere || null, nom_mere || null,
         telephone_pere || null, telephone_mere || null,
         emailNettoye, telephone || null, matricule, annee
       ]);
 
-      // 📊 Calcul AUTO moyenne/rang/mention → CORRIGÉ noms colonnes
+      // 📊 Calcul AUTO moyenne/rang/mention SANS id_classe
       const idNouvelEleve = resultat.rows[0].id;
-      const resultats = await calculerResultatsEleve(idNouvelEleve, id_classe, annee);
-
+      const resultats = await calculerResultatsEleve(idNouvelEleve, annee);
       await pool.query(`
         UPDATE preinscriptions
         SET moyenne_annee_precedente = $1, rang_annee_precedente = $2::VARCHAR, mention_annee_precedente = $3
@@ -336,7 +310,7 @@ router.post('/creer-admin', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// ✏️ MODIFIER UN UTILISATEUR
+// ✏️ MODIFIER UN UTILISATEUR — SANS id_classe
 // ==================================================
 router.put('/:id', protegerAdmin, async (req, res) => {
   try {
@@ -345,7 +319,7 @@ router.put('/:id', protegerAdmin, async (req, res) => {
 
     const {
       nom, prenom, email, telephone, role,
-      date_naissance, lieu_naissance, id_classe, annee_scolaire
+      date_naissance, lieu_naissance, annee_scolaire
     } = req.body;
 
     if (!nom || !prenom || !email) return res.json({ ok: false, erreur: "⚠️ Nom, Prénom et Email obligatoires" });
@@ -357,32 +331,39 @@ router.put('/:id', protegerAdmin, async (req, res) => {
     );
     if (exist.rows.length) return res.json({ ok: false, erreur: "⚠️ Email déjà utilisé" });
 
-    // Mettre à jour utilisateur
+    // Mettre à jour utilisateur SANS id_classe
     await pool.query(`
       UPDATE utilisateurs
       SET nom = $1, prenom = $2, email = $3, telephone = $4,
-          role = $5, id_classe = $6, date_naissance = $7, lieu_naissance = $8
-      WHERE id = $9
+          role = $5, date_naissance = $6, lieu_naissance = $7
+      WHERE id = $8
     `, [
       nom.trim(), prenom.trim(), emailNettoye, telephone || null,
-      role, id_classe || null, date_naissance || null, lieu_naissance || null, id
+      role, date_naissance || null, lieu_naissance || null, id
     ]);
 
-    // Si élève → MAJ préinscriptions + RECALCUL AUTO
+    // Si élève → MAJ préinscriptions + RECALCUL AUTO SANS id_classe
     if (role === 'eleve') {
       const annee = annee_scolaire || '2026-2027';
-      await pool.query(`
-        UPDATE preinscriptions
-        SET date_naissance = $1, lieu_naissance = $2, id_classe = $3
-        WHERE matricule = $4
-      `, [date_naissance || null, lieu_naissance || null, id_classe || null, matricule]);
+      const rPreins = await pool.query(
+        'SELECT matricule FROM preinscriptions WHERE id_utilisateur = $1 OR matricule IN (SELECT matricule FROM utilisateurs WHERE id = $1)',
+        [id]
+      );
+      if (rPreins.rows.length > 0) {
+        const matricule = rPreins.rows[0].matricule;
+        await pool.query(`
+          UPDATE preinscriptions
+          SET date_naissance = $1, lieu_naissance = $2
+          WHERE matricule = $3
+        `, [date_naissance || null, lieu_naissance || null, matricule]);
 
-      const resultats = await calculerResultatsEleve(id, id_classe, annee);
-      await pool.query(`
-        UPDATE preinscriptions
-        SET moyenne_annee_precedente = $1, rang_annee_precedente = $2::VARCHAR, mention_annee_precedente = $3
-        WHERE matricule = $4
-      `, [resultats.moyenne, resultats.rang, resultats.mention, matricule]);
+        const resultats = await calculerResultatsEleve(id, annee);
+        await pool.query(`
+          UPDATE preinscriptions
+          SET moyenne_annee_precedente = $1, rang_annee_precedente = $2::VARCHAR, mention_annee_precedente = $3
+          WHERE matricule = $4
+        `, [resultats.moyenne, resultats.rang, resultats.mention, matricule]);
+      }
     }
 
     res.json({ ok: true, message: "✅ Utilisateur modifié ! Moyenne/Rang/Mention recalculés." });
@@ -413,11 +394,11 @@ router.delete('/:id', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// 📝 INSCRIPTION PUBLIQUE — TOUS RÔLES
+// 📝 INSCRIPTION PUBLIQUE — TOUS RÔLES SANS id_classe
 // ==================================================
 router.post('/inscription', async (req, res) => {
   try {
-    const { nom, prenom, email, telephone, mot_de_passe, role, id_classe, date_naissance, lieu_naissance, adresse } = req.body;
+    const { nom, prenom, email, telephone, mot_de_passe, role, date_naissance, lieu_naissance, adresse } = req.body;
 
     // ✅ Validation des champs obligatoires
     if (!nom || !prenom || !email || !mot_de_passe || !role) {
@@ -438,31 +419,31 @@ router.post('/inscription', async (req, res) => {
     // ✅ Crypter le mot de passe
     const hash = await bcrypt.hash(mot_de_passe, 10);
 
-    // ✅ Générer matricule auto
-    const matricule = await genererMatricule(role, id_classe || null);
+    // ✅ Générer matricule SANS id_classe
+    const matricule = await genererMatricule(role);
 
-    // ✅ Enregistrer — statut "en_attente" en attente de validation admin
+    // ✅ Enregistrer — statut "en_attente" SANS id_classe
     const resultat = await pool.query(`
       INSERT INTO utilisateurs(
         nom, prenom, email, telephone, mot_de_passe, role, matricule,
-        id_classe, date_naissance, lieu_naissance, adresse, est_actif, statut_compte
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, false, 'en_attente')
+        date_naissance, lieu_naissance, adresse, est_actif, statut_compte
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, false, 'en_attente')
       RETURNING id, nom, prenom, email, role, matricule, date_creation
     `, [
       nom.trim(), prenom.trim(), emailNettoye, telephone || null, hash, role, matricule,
-      id_classe || null, date_naissance || null, lieu_naissance || null, adresse || null
+      date_naissance || null, lieu_naissance || null, adresse || null
     ]);
 
-    // ✅ Si élève → copier aussi dans préinscriptions (CORRIGÉ)
+    // ✅ Si élève → copier aussi dans préinscriptions SANS id_classe
     if (role === 'eleve') {
       await pool.query(`
         INSERT INTO preinscriptions(
           nom, prenoms, email, telephone, date_naissance,
-          lieu_naissance, id_classe, matricule, statut, annee_scolaire
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'en_attente', '2026-2027')
+          lieu_naissance, matricule, statut, annee_scolaire
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'en_attente', '2026-2027')
       `, [
         nom.trim(), prenom.trim(), emailNettoye, telephone || null,
-        date_naissance || null, lieu_naissance || null, id_classe || null, matricule
+        date_naissance || null, lieu_naissance || null, matricule
       ]);
     }
 
@@ -471,7 +452,6 @@ router.post('/inscription', async (req, res) => {
       message: "✅ Inscription enregistrée ! Votre compte est en attente de validation par l'administrateur.",
       utilisateur: resultat.rows[0]
     });
-
   } catch (e) {
     console.log("❌ ERREUR INSCRIPTION :", e.message);
     res.json({ ok: false, erreur: e.message });

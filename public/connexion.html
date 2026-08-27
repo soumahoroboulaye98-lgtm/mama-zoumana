@@ -29,7 +29,6 @@
       --champ-fond: #f8fafc;
       --ombre: rgba(12, 74, 110, 0.12);
     }
-
     body.mode-nuit {
       --fond-page: #0f172a;
       --fond-cadre: rgba(15, 23, 42, 0.9);
@@ -39,13 +38,11 @@
       --champ-fond: rgba(30, 41, 59, 0.7);
       --ombre: rgba(245, 158, 11, 0.15);
     }
-
     .txt-en, .txt-ar { display: none !important; }
     body.lang-fr .txt-fr { display: inline !important; }
     body.lang-en .txt-en { display: inline !important; }
     body.lang-ar .txt-ar { display: inline !important; }
     body.lang-ar { direction: rtl; }
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       min-height: 100vh;
@@ -58,7 +55,6 @@
       transition: background 0.4s ease, color 0.4s ease;
     }
     body.mode-nuit { background: linear-gradient(135deg, var(--sombre), var(--sombre-clair)); }
-
     .cadre-lumineux {
       position: relative;
       background: var(--fond-cadre);
@@ -72,7 +68,6 @@
       transition: all 0.4s ease;
     }
     body.mode-nuit .cadre-lumineux { border: 1px solid rgba(245, 158, 11, 0.2); }
-
     .cadre-lumineux::before {
       content: '';
       position: absolute;
@@ -84,7 +79,6 @@
     }
     body.mode-nuit .cadre-lumineux::before { opacity: 1; }
     @keyframes rotation-bord { 100% { transform: rotate(360deg); } }
-
     .cadre-lumineux::after {
       content: '';
       position: absolute;
@@ -93,7 +87,6 @@
       border-radius: 18px;
       z-index: 1;
     }
-
     .contenu-form { position: relative; z-index: 2; }
     .titre-form {
       color: var(--alerte); font-weight: 700; text-align: center;
@@ -103,7 +96,6 @@
       color: var(--texte-secondaire); text-align: center;
       margin-bottom: 25px; font-size: 0.9rem;
     }
-
     .btn-langue, .btn-theme {
       background: rgba(245,158,11,0.1); border: 1px solid var(--alerte);
       border-radius: 20px; padding: 5px 10px; font-size: 0.8rem;
@@ -113,7 +105,6 @@
       background: var(--alerte); color: var(--sombre);
       box-shadow: 0 0 8px rgba(245,158,11,0.4);
     }
-
     .form-label { color: var(--texte-principal); font-weight: 500; font-size: 0.95rem; }
     .form-control, .form-select {
       background: var(--champ-fond); border: 1px solid var(--bordure);
@@ -124,7 +115,6 @@
       border-color: var(--alerte); box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
       color: var(--texte-principal); outline: none;
     }
-
     .btn-envoi {
       width: 100%; background: linear-gradient(135deg, var(--alerte), #f97316);
       border: none; color: var(--sombre); font-weight: 700;
@@ -132,21 +122,18 @@
       position: relative; overflow: hidden;
     }
     .btn-envoi:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(245,158,11,0.35); }
-
     .liens-bas { margin-top: 20px; text-align: center; display: flex; flex-direction: column; gap: 6px; }
     .lien-utile { color: var(--texte-secondaire); text-decoration: none; font-size: 0.85rem; }
     .lien-utile:hover { color: var(--alerte); }
-
     .mdp-indice { color: var(--alerte); font-size: 0.8rem; margin-top: 5px; }
     .matricule-exemple { color: var(--texte-secondaire); font-size: 0.8rem; margin-top: 5px; }
-    .champ-cache { display: none; }
+    .champ-cache { display: none !important; }
     .info-parent {
       background: rgba(245,158,11,0.08); border-left: 3px solid var(--alerte);
       padding: 8px 12px; border-radius: 6px; margin-bottom: 12px;
       font-size: 0.9rem; color: #d97706;
     }
     body.mode-nuit .info-parent { color: #fde68a; }
-
     @media (max-width: 576px) {
       .cadre-lumineux { padding: 20px 15px; }
       .titre-form { font-size: 1.25rem; }
@@ -154,7 +141,6 @@
   </style>
 </head>
 <body class="lang-fr">
-
 <div class="cadre-lumineux">
   <div class="contenu-form">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -171,7 +157,6 @@
         <button class="btn-langue" data-lang="ar">AR</button>
       </div>
     </div>
-
     <h2 class="titre-form">
       <span class="txt-fr">🔐 Espace Connexion</span>
       <span class="txt-en">🔐 Login Area</span>
@@ -182,7 +167,6 @@
       <span class="txt-en">Access your personal space</span>
       <span class="txt-ar">الوصول إلى مساحتك الخاصة</span>
     </p>
-
     <form id="formConnexion">
       <div class="mb-3">
         <label class="form-label fw-bold">
@@ -228,16 +212,14 @@
           </option>
         </select>
       </div>
-
       <div id="infoParent" class="info-parent champ-cache">
         <i class="bi bi-info-circle"></i>
         <span class="txt-fr"> Saisissez le matricule d'un enfant + votre email OU téléphone</span>
         <span class="txt-en"> Enter a child's matricule + your email OR phone</span>
         <span class="txt-ar"> أدخل الرقم المسلسل للطفل + بريدك أو هاتفك</span>
       </div>
-
       <div class="mb-3" id="zoneIdentifiant">
-        <label class="form-label" id="labelIdentifiantifiant">
+        <label class="form-label" id="labelIdentifiant">
           <i class="bi bi-envelope me-1"></i>
           <span class="txt-fr">Adresse Email</span>
           <span class="txt-en">Email Address</span>
@@ -246,7 +228,6 @@
         <input type="email" id="identifiant" class="form-control" required placeholder="exemple@domaine.ci">
         <div id="indiceIdentifiant" class="matricule-exemple d-none"></div>
       </div>
-
       <div id="champsParent" class="champ-cache">
         <div class="mb-3">
           <label class="form-label">
@@ -265,7 +246,6 @@
           <input type="tel" id="telephone_parent" class="form-control" placeholder="07 XX XX XX XX">
         </div>
       </div>
-
       <div class="mb-3" id="zoneMdp">
         <label class="form-label">
           <span class="txt-fr">Mot de passe</span>
@@ -283,9 +263,7 @@
           <span id="voirMdp"></span>
         </div>
       </div>
-
       <div id="msgErreur" class="alert alert-danger py-2 d-none mb-3"></div>
-
       <button type="submit" class="btn-envoi">
         <span id="texteBtn">
           <span class="txt-fr">Se connecter</span>
@@ -295,7 +273,6 @@
         <span id="chargement" class="spinner-border spinner-border-sm d-none ms-2"></span>
       </button>
     </form>
-
     <div class="liens-bas">
       <a href="preinscription.html" class="lien-utile">
         <span class="txt-fr">📝 Pas encore inscrit ? S'inscrire</span>
@@ -315,7 +292,6 @@
     </div>
   </div>
 </div>
-
 <script>
 // ==================================================
 // ⚙️ CONFIGURATION API
@@ -349,18 +325,20 @@ document.querySelectorAll('.btn-langue').forEach(btn => {
 function changerChampIdentifiant() {
   const role = document.getElementById('role').value;
   const champ = document.getElementById('identifiant');
-  const label = document.getElementById('labelIdentifiantifiant');
+  const label = document.getElementById('labelIdentifiant');
   const indice = document.getElementById('indiceIdentifiant');
   const infoParent = document.getElementById('infoParent');
   const champsParent = document.getElementById('champsParent');
   const zoneMdp = document.getElementById('zoneMdp');
   const champMdp = document.getElementById('mdp');
 
+  // Réinitialisation
   infoParent.classList.add('champ-cache');
   champsParent.classList.add('champ-cache');
   zoneMdp.classList.remove('champ-cache');
   champ.required = true;
   champMdp.required = true;
+  champ.type = 'text';
 
   if (role === 'eleve') {
     champ.type = 'text';
@@ -372,7 +350,6 @@ function changerChampIdentifiant() {
     indice.classList.remove('d-none');
     indice.innerHTML = `<span class="txt-fr">Format : ELV-AAAA-XXXXX</span>
       <span class="txt-en">Format : ELV-YYYY-XXXXX</span>`;
-
   } else if (role === 'parent') {
     champ.type = 'text';
     champ.placeholder = 'ELV-2026-00001';
@@ -385,7 +362,6 @@ function changerChampIdentifiant() {
     champsParent.classList.remove('champ-cache');
     zoneMdp.classList.add('champ-cache');
     champMdp.required = false;
-
   } else {
     champ.type = 'email';
     champ.placeholder = 'exemple@domaine.ci';
@@ -407,7 +383,7 @@ function voirOuCacherMdp(){
   btn.textContent = mdpVisible ? '🙈' : '👁️';
 }
 
-// ✅ SOUMISSION — SANS LIMITE DE TENTATIVES
+// ✅ SOUMISSION FORMULAIRE
 document.getElementById('formConnexion').addEventListener('submit', async e => {
   e.preventDefault();
   const msgErreur = document.getElementById('msgErreur');
@@ -420,7 +396,9 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
   chargement.classList.remove('d-none');
 
   try {
-    let donnees, res, data;
+    if (!role) {
+      throw new Error("⚠️ Sélectionnez votre profil");
+    }
 
     // ═══════ CONNEXION PARENT ═══════
     if (role === 'parent') {
@@ -429,54 +407,60 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
       const telephone_parent = document.getElementById('telephone_parent').value.trim();
 
       if (!matricule) throw new Error("⚠️ Saisissez le matricule de l'enfant");
-      if (!email_parent && !telephone_parent) throw new Error("⚠️ Saisissez au moins email OU téléphone");
+      if (!email_parent && !telephone_parent) {
+        throw new Error("⚠️ Saisissez au moins email OU téléphone");
+      }
 
-      donnees = { matricule, email_parent, telephone_parent };
-      res = await fetch(`${API_URL}/preinscription/parent-matricule`, {
+      const donnees = { matricule, email_parent, telephone_parent };
+      const res = await fetch(`${API_URL}/auth/connexion-parent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(donnees)
       });
-      data = await res.json();
+
+      if (!res.ok) throw new Error("Erreur serveur");
+      const data = await res.json();
 
       if (data.ok) {
-        localStorage.setItem('token', data.token);
+        localStorage.setItem('token', data.token || '');
         localStorage.setItem('role', 'parent');
-        localStorage.setItem('enfants', JSON.stringify(data.enfants));
-        localStorage.setItem('nom', 'Parent');
+        localStorage.setItem('enfants', JSON.stringify(data.enfants || []));
+        localStorage.setItem('nom', data.nom || 'Parent');
         location.href = 'espace/parent/enfants.html';
         return;
       }
+      throw new Error(data.erreur || "Échec de la connexion parent");
 
     // ═══════ CONNEXION CLASSIQUE ═══════
     } else {
       const identifiant = document.getElementById('identifiant').value.trim();
       const mot_de_passe = document.getElementById('mdp').value;
 
-      if(!identifiant || !mot_de_passe || !role){
+      if (!identifiant || !mot_de_passe) {
         throw new Error("⚠️ Remplissez TOUS les champs !");
       }
 
-      donnees = { mot_de_passe, role };
+      const donnees = { mot_de_passe, role };
       if (role === 'eleve') {
         donnees.matricule = identifiant.toUpperCase().trim();
       } else {
         donnees.email = identifiant.toLowerCase().trim();
       }
 
-      res = await fetch(`${API_URL}/auth/connexion`, {
+      const res = await fetch(`${API_URL}/auth/connexion`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(donnees)
       });
 
-      const contentType = res.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
         throw new Error("Le serveur ne renvoie pas du JSON — vérifiez l'adresse API");
       }
-      data = await res.json();
 
-      if(data.ok){
+      const data = await res.json();
+
+      if (data.ok) {
         const estAdmin = (data.role === 'admin' || data.role === 'super_admin');
         localStorage.setItem('token', data.token || '');
         localStorage.setItem('id', data.id || '');
@@ -498,9 +482,8 @@ document.getElementById('formConnexion').addEventListener('submit', async e => {
         }
         return;
       }
+      throw new Error(data.erreur || "Échec de la connexion — Vérifiez vos identifiants");
     }
-
-    throw new Error(data.erreur || "Échec de la connexion — Vérifiez vos identifiants");
 
   } catch(err) {
     console.error("❌ Erreur :", err.message);

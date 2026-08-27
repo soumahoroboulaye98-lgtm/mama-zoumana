@@ -22,6 +22,7 @@ const stockage = multer.diskStorage({
     cb(null, nomUnique + path.extname(file.originalname));
   }
 });
+
 const upload = multer({
   storage: stockage,
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -42,13 +43,11 @@ router.get('/produits', protegerAdmin, async (req, res) => {
     const { categorie } = req.query;
     let requete = 'SELECT * FROM boutique_produits';
     let parametres = [];
-
     if (categorie) {
       requete += ' WHERE categorie = $1';
       parametres.push(categorie);
     }
-    requete += ' ORDER BY categorie, nom_produit';
-
+    requete += ' ORDER BY categorie, nom_produit_fr';
     const resultats = await pool.query(requete, parametres);
     console.log(`✅ Liste complète produits consultée — ${resultats.rows.length} produit(s)`);
     res.json({ ok: true, produits: resultats.rows });
@@ -64,11 +63,10 @@ router.get('/produits', protegerAdmin, async (req, res) => {
 router.get('/produits-public', async (req, res) => {
   try {
     const { categorie } = req.query;
-    let requete = 'SELECT * FROM boutique_produits WHERE actif = true';
+    let requete = 'SELECT * FROM boutique_produits WHERE est_actif = true';
     let parametres = [];
     if (categorie) { requete += ' AND categorie = $1'; parametres.push(categorie); }
-    requete += ' ORDER BY categorie, nom_produit';
-
+    requete += ' ORDER BY categorie, nom_produit_fr';
     const resultats = await pool.query(requete, parametres);
     console.log(`✅ Liste publique produits consultée — ${resultats.rows.length} produit(s)`);
     res.json({ ok: true, produits: resultats.rows });
@@ -81,37 +79,54 @@ router.get('/produits-public', async (req, res) => {
 // ==================================================
 // ➕ AJOUTER PRODUIT (Admin + upload image)
 // ==================================================
-router.post('/produits', protegerAdmin, upload.single('image'), async (req, res) => {
+router.post('/produits', protegerAdmin, upload.single('single'), async (req, res) => {
   try {
-    const { categorie, nom_produit, description, prix_unitaire, stock, actif } = req.body;
+    const { 
+      categorie, id_categorie,
+      nom_produit_fr, nom_produit_en, nom_produit_ar,
+      description_fr, description_en, description_ar,
+      prix_unitaire, devise, quantite_stock,
+      est_disponible, est_actif
+    } = req.body;
 
     // ✅ Validations
-    if (!nom_produit || nom_produit.trim() === '') {
-      return res.status(400).json({ ok: false, erreur: "⚠️ Indiquez le nom du produit" });
+    if (!nom_produit_fr || nom_produit_fr.trim() === '') {
+      return res.status(400).json({ ok: false, erreur: "⚠️ Indiquez le nom du produit (en français)" });
     }
-    if (!categorie || categorie.trim() === '') {
-      return res.status(400).json({ ok: false, erreur: "⚠️ Indiquez la catégorie" });
-    }
+
     const prix = parseFloat(prix_unitaire);
     if (isNaN(prix) || prix < 0) {
       return res.status(400).json({ ok: false, erreur: "⚠️ Prix unitaire invalide" });
     }
-    const qte = parseInt(stock) || 0;
+
+    const qte = parseInt(quantite_stock) || 0;
     if (qte < 0) {
       return res.status(400).json({ ok: false, erreur: "⚠️ Stock ne peut pas être négatif" });
     }
 
     const image_url = req.file ? `uploads/${req.file.filename}` : null;
-    const estActif = actif === 'true' || actif === true;
+    const idUtilisateur = req.user?.id || null;
+    const deviseValeur = devise || 'XOF';
+    const estDispo = est_disponible === 'true' || est_disponible === true;
+    const estActif = est_actif === 'true' || est_actif === true;
 
     const resultat = await pool.query(`
       INSERT INTO boutique_produits
-      (categorie, nom_produit, description, prix_unitaire, stock, actif, image_url)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      (categorie, id_categorie, nom_produit_fr, nom_produit_en, nom_produit_ar,
+       description_fr, description_en, description_ar,
+       prix_unitaire, devise, quantite_stock, image_url,
+       est_disponible, est_actif, date_creation, id_utilisateur)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), $15)
       RETURNING *
-    `, [categorie.trim(), nom_produit.trim(), description || null, prix, qte, estActif, image_url]);
+    `, [
+      categorie?.trim() || null, id_categorie || null,
+      nom_produit_fr.trim(), nom_produit_en?.trim() || null, nom_produit_ar?.trim() || null,
+      description_fr || null, description_en || null, description_ar || null,
+      prix, deviseValeur, qte, image_url,
+      estDispo, estActif, idUtilisateur
+    ]);
 
-    console.log(`✅ Produit créé — ${nom_produit.trim()} (${categorie.trim()})`);
+    console.log(`✅ Produit créé — ${nom_produit_fr.trim()}`);
     res.json({ ok: true, produit: resultat.rows[0], message: "✅ Produit ajouté avec succès !" });
   } catch (e) {
     console.error("❌ ERREUR AJOUT PRODUIT :", e.message);
@@ -129,30 +144,40 @@ router.put('/produits/:id', protegerAdmin, upload.single('image'), async (req, r
       return res.status(400).json({ ok: false, erreur: "⚠️ Identifiant invalide" });
     }
 
-    const { categorie, nom_produit, description, prix_unitaire, stock, actif } = req.body;
+    const { 
+      categorie, id_categorie,
+      nom_produit_fr, nom_produit_en, nom_produit_ar,
+      description_fr, description_en, description_ar,
+      prix_unitaire, devise, quantite_stock,
+      est_disponible, est_actif
+    } = req.body;
 
     // ✅ Validations
-    if (!nom_produit || nom_produit.trim() === '') {
-      return res.status(400).json({ ok: false, erreur: "⚠️ Indiquez le nom du produit" });
+    if (!nom_produit_fr || nom_produit_fr.trim() === '') {
+      return res.status(400).json({ ok: false, erreur: "⚠️ Indiquez le nom du produit (en français)" });
     }
+
     const prix = parseFloat(prix_unitaire);
     if (isNaN(prix) || prix < 0) {
       return res.status(400).json({ ok: false, erreur: "⚠️ Prix unitaire invalide" });
     }
-    const qte = parseInt(stock) || 0;
+
+    const qte = parseInt(quantite_stock) || 0;
     if (qte < 0) {
       return res.status(400).json({ ok: false, erreur: "⚠️ Stock ne peut pas être négatif" });
     }
 
-    // ✅ Récup ancien produit pour conserver ou remplacer l'image
-    const ancien = await pool.query('SELECT image_url, categorie FROM boutique_produits WHERE id_produit = $1', [id]);
+    // ✅ Récup ancien produit
+    const ancien = await pool.query(
+      'SELECT image_url FROM boutique_produits WHERE id_produit = $1',
+      [id]
+    );
     if (ancien.rows.length === 0) {
       return res.status(404).json({ ok: false, erreur: "⚠️ Produit introuvable" });
     }
 
-    let image_url = ancien.rows[0].image_url;
+    let image_url = ancien.rows[0].image_url; // ✅ CORRIGÉ : .rows[0]
     if (req.file) {
-      // ✅ Supprimer l'ancienne image si une nouvelle est fournie
       if (image_url) {
         const ancienChemin = path.join(__dirname, '../public/', image_url);
         if (fs.existsSync(ancienChemin)) fs.unlinkSync(ancienChemin);
@@ -160,19 +185,29 @@ router.put('/produits/:id', protegerAdmin, upload.single('image'), async (req, r
       image_url = `uploads/${req.file.filename}`;
     }
 
-    const estActif = actif === 'true' || actif === true;
-    const nouvelleCategorie = categorie?.trim() || ancien.rows[0].categorie;
-    const nouveauNom = nom_produit.trim();
+    const deviseValeur = devise || 'XOF';
+    const estDispo = est_disponible === 'true' || est_disponible === true;
+    const estActif = est_actif === 'true' || est_actif === true;
 
     const resultat = await pool.query(`
       UPDATE boutique_produits
-      SET categorie = $1, nom_produit = $2, description = $3, prix_unitaire = $4,
-          stock = $5, actif = $6, image_url = $7
-      WHERE id_produit = $8
+      SET 
+        categorie = $1, id_categorie = $2,
+        nom_produit_fr = $3, nom_produit_en = $4, nom_produit_ar = $5,
+        description_fr = $6, description_en = $7, description_ar = $8,
+        prix_unitaire = $9, devise = $10, quantite_stock = $11, image_url = $12,
+        est_disponible = $13, est_actif = $14, date_mise_a_jour = NOW()
+      WHERE id_produit = $15
       RETURNING *
-    `, [nouvelleCategorie, nouveauNom, description || null, prix, qte, estActif, image_url, id]);
+    `, [
+      categorie?.trim() || null, id_categorie || null,
+      nom_produit_fr.trim(), nom_produit_en?.trim() || null, nom_produit_ar?.trim() || null,
+      description_fr || null, description_en || null, description_ar || null,
+      prix, deviseValeur, qte, image_url,
+      estDispo, estActif, id
+    ]);
 
-    console.log(`✅ Produit mis à jour — ID: ${id}, ${nouveauNom}`);
+    console.log(`✅ Produit mis à jour — ID: ${id}, ${nom_produit_fr.trim()}`);
     res.json({ ok: true, produit: resultat.rows[0], message: "✅ Produit mis à jour !" });
   } catch (e) {
     console.error("❌ ERREUR MODIF PRODUIT :", e.message);
@@ -190,7 +225,7 @@ router.delete('/produits/:id', protegerAdmin, async (req, res) => {
       return res.status(400).json({ ok: false, erreur: "⚠️ Identifiant invalide" });
     }
 
-    const ancien = await pool.query('SELECT nom_produit, image_url FROM boutique_produits WHERE id_produit = $1', [id]);
+    const ancien = await pool.query('SELECT nom_produit_fr, image_url FROM boutique_produits WHERE id_produit = $1', [id]);
     if (ancien.rows.length === 0) {
       return res.status(404).json({ ok: false, erreur: "⚠️ Produit introuvable" });
     }
@@ -202,8 +237,7 @@ router.delete('/produits/:id', protegerAdmin, async (req, res) => {
     }
 
     await pool.query('DELETE FROM boutique_produits WHERE id_produit = $1', [id]);
-
-    console.log(`✅ Produit supprimé — ID: ${id}, ${ancien.rows[0].nom_produit}`);
+    console.log(`✅ Produit supprimé — ID: ${id}, ${ancien.rows[0].nom_produit_fr}`);
     res.json({ ok: true, message: "✅ Produit supprimé avec succès !" });
   } catch (e) {
     console.error("❌ ERREUR SUPPR PRODUIT :", e.message);
@@ -237,21 +271,17 @@ router.put('/produits/:id/stock', protegerAdmin, async (req, res) => {
     if (isNaN(id)) {
       return res.status(400).json({ ok: false, erreur: "⚠️ Identifiant invalide" });
     }
-
-    const { stock } = req.body;
-    const qte = parseInt(stock);
+    const { quantite_stock } = req.body;
+    const qte = parseInt(quantite_stock);
     if (isNaN(qte) || qte < 0) {
       return res.status(400).json({ ok: false, erreur: "⚠️ Valeur de stock invalide" });
     }
-
     const resultat = await pool.query(`
-      UPDATE boutique_produits SET stock = $1 WHERE id_produit = $2 RETURNING *
+      UPDATE boutique_produits SET quantite_stock = $1, date_mise_a_jour = NOW() WHERE id_produit = $2 RETURNING *
     `, [qte, id]);
-
     if (resultat.rows.length === 0) {
       return res.status(404).json({ ok: false, erreur: "⚠️ Produit introuvable" });
     }
-
     console.log(`✅ Stock mis à jour — Produit ${id}, nouveau stock: ${qte}`);
     res.json({ ok: true, produit: resultat.rows[0], message: "✅ Stock mis à jour !" });
   } catch (e) {
