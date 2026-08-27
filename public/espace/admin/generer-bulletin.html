@@ -15,7 +15,29 @@
       --sidebar-fond: #0f172a; 
       --bord-orange: #f59e0b; 
       --blanc: #fff; 
-      --fond-page: #f8fafc; 
+      --fond-page: #f8fafc;
+      --texte-principal: #1e293b;
+      --texte-secondaire: #64748b;
+      --bordure: #e2e8f0;
+      --carte-fond: #ffffff;
+      --ombre: rgba(0,0,0,0.05);
+    }
+
+    /* 🌙 MODE NUIT */
+    [data-theme="dark"] {
+      --sidebar-fond: #020617;
+      --bord-orange: #fbbf24;
+      --fond-page: #0f172a;
+      --texte-principal: #e2e8f0;
+      --texte-secondaire: #94a3b8;
+      --bordure: #334155;
+      --carte-fond: #1e293b;
+      --ombre: rgba(0,0,0,0.25);
+    }
+
+    * { 
+      border-radius: 12px !important; 
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
 
     /* 🗣️ GESTION DES LANGUES */
@@ -24,9 +46,9 @@
     body.lang-en .txt-en { display: inline !important; }
     body.lang-ar .txt-ar { display: inline !important; direction: rtl; text-align: right; }
 
-    * { border-radius: 12px !important; }
     body { 
       background: var(--fond-page); 
+      color: var(--texte-principal);
       font-family: system-ui, -apple-system, sans-serif; 
       margin: 0;
     }
@@ -43,6 +65,7 @@
       z-index: 10;
     }
     body.lang-ar .sidebar { left: auto; right: 0; }
+
     .contenu { 
       margin-left: 260px; 
       padding: 2rem; 
@@ -57,6 +80,7 @@
       padding: 0 1.5rem;
       margin-bottom: 2rem;
     }
+
     .menu-item {
       display: flex;
       align-items: center;
@@ -73,6 +97,7 @@
       transform: translateX(4px);
     }
     body.lang-ar .menu-item:hover { transform: translateX(-4px); }
+
     .menu-item.actif {
       background: rgba(245,158,11,0.1);
       color: var(--bord-orange);
@@ -82,12 +107,13 @@
 
     /* CARTES & BOUTONS */
     .carte {
-      background: white;
+      background: var(--carte-fond);
       padding: 1.5rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 12px var(--ombre);
       margin-bottom: 1.5rem;
+      border: 1px solid var(--bordure);
     }
+
     .btn-orange {
       background: var(--bord-orange);
       border: none;
@@ -98,7 +124,8 @@
       background: #d97706;
       color: #fff;
     }
-    .btn-langue {
+
+    .btn-langue, #btnTheme {
       width: 44px;
       height: 36px;
       border-radius: 50px !important;
@@ -106,11 +133,33 @@
       font-weight: 600;
       transition: all 0.25s;
     }
-    .btn-langue.active {
+    .btn-langue.active, #btnTheme.active {
       border-color: var(--bord-orange);
       background: var(--bord-orange);
       color: #000;
       box-shadow: 0 0 10px rgba(245,158,11,0.35);
+    }
+
+    /* Champs de formulaire adaptatifs */
+    .form-select, .form-control {
+      background-color: var(--carte-fond);
+      color: var(--texte-principal);
+      border-color: var(--bordure);
+    }
+    .form-select:focus, .form-control:focus {
+      border-color: var(--bord-orange);
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.20);
+    }
+
+    /* TABLEAU */
+    .table { --bs-table-bg: transparent; color: var(--texte-principal); }
+    .table th { border-top: none; border-color: var(--bordure); color: var(--texte-principal); }
+    .table td { vertical-align: middle; border-color: var(--bordure); }
+    .table-striped>tbody>tr:nth-of-type(odd)>* {
+      --bs-table-accent-bg: rgba(245,158,11,0.03);
+    }
+    [data-theme="dark"] .table-striped>tbody>tr:nth-of-type(odd)>* {
+      --bs-table-accent-bg: rgba(245,158,11,0.05);
     }
 
     /* MENTIONS */
@@ -127,44 +176,72 @@
     .mention-aszbien      { background: #f59e0b; color: #000; }
     .mention-passable     { background: #f97316; color: #fff; }
     .mention-insuffisant  { background: #ef4444; color: #fff; }
-
-    /* TABLEAU */
-    .table th { border-top: none; }
-    .table td { vertical-align: middle; }
   </style>
 </head>
 <body class="lang-fr">
 
-<!-- 🔐 SÉCURITÉ -->
+<!-- 🌙 GESTION DU MODE JOUR / NUIT -->
 <script>
+  const boutonTheme = document.createElement('template');
+  boutonTheme.innerHTML = `
+    <script>
+      const boutonTheme = document.getElementById('btnTheme');
+      const iconeTheme = boutonTheme?.querySelector('i');
+      function appliquerTheme(theme) {
+        if (theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          iconeTheme.className = 'bi bi-sun fs-6';
+          boutonTheme.title = 'Passer en mode Jour ☀️';
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+          iconeTheme.className = 'bi bi-moon-stars fs-6';
+          boutonTheme.title = 'Passer en mode Nuit 🌙';
+        }
+        localStorage.setItem('theme', theme);
+      }
+      const themeSauvegarde = localStorage.getItem('theme');
+      const themeInitial = themeSauvegarde || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      appliquerTheme(themeInitial);
+      document.addEventListener('click', e => {
+        if (e.target.closest('#btnTheme')) {
+          const actuel = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+          appliquerTheme(actuel === 'dark' ? 'light' : 'dark');
+        }
+      });
+    <\/script>
+  `;
+
+  // 🔐 SÉCURITÉ — AVANT TOUT RENDU
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
   if (!token || !['admin','directeur'].includes(role)) {
     alert("⛔ Accès réservé à l'administration !");
-    location.href = '../connexion.html';
+    location.href = 'connexion.html';
   }
+
+  // 🔗 API SANS LOCALHOST — URL UNIQUE & SÉCURISÉE
+  const API_URL = "https://mama-zoumana-api.onrender.com/api";
   const anneeScolaire = "2026-2027";
 
-  // 🔗 DÉTECTION AUTOMATIQUE DE L'API
-  const API_URL = "https://mama-zoumana-api.onrender.com/api";
-function getToken() { return localStorage.getItem('token'); }
-async function requeteAPI(chemin, options = {}) {
-  const reponse = await fetch(`${API_URL}${chemin}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
-      ...options.headers
+  // ✅ FONCTION API CENTRALISÉE — Token systématique + 401 géré
+  function getToken() { return localStorage.getItem('token'); }
+  async function requeteAPI(chemin, options = {}) {
+    const reponse = await fetch(`${API_URL}${chemin}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`,
+        ...options.headers
+      }
+    });
+    if (reponse.status === 401) {
+      alert("⛔ Session expirée — Veuillez vous reconnecter");
+      localStorage.clear();
+      window.location.href = 'connexion.html';
     }
-  });
-  const donnees = await reponse.json();
-  if (reponse.status === 401) {
-    alert("⛔ Session expirée — Reconnectez-vous");
-    localStorage.clear();
-    window.location.href = 'connexion.html';
+    return await reponse.json();
   }
-  return donnees;
-}
+
   // 💾 STOCKAGE LOCAL
   function obtenirClassesLocales() { return JSON.parse(localStorage.getItem('classes_bulletins') || '[]'); }
   function sauvegarderClassesLocales(liste) { localStorage.setItem('classes_bulletins', JSON.stringify(liste)); }
@@ -214,7 +291,11 @@ async function requeteAPI(chemin, options = {}) {
       <span class="txt-en">📊 Generate Report Cards</span>
       <span class="txt-ar">📊 إنشاء الشهادات المدرسية</span>
     </h3>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 align-items-center">
+      <!-- 🌙 BOUTON MODE JOUR/NUIT -->
+      <button id="btnTheme" class="btn btn-outline-secondary" title="Mode Jour/Nuit">
+        <i class="bi bi-moon-stars fs-6"></i>
+      </button>
       <button class="btn btn-langue btn-sm" data-lang="fr" onclick="changerLangue('fr')">FR</button>
       <button class="btn btn-langue btn-sm" data-lang="en" onclick="changerLangue('en')">EN</button>
       <button class="btn btn-langue btn-sm" data-lang="ar" onclick="changerLangue('ar')">AR</button>
@@ -307,6 +388,31 @@ async function requeteAPI(chemin, options = {}) {
 </div>
 
 <script>
+  // 🌙 LANCER LE MODE JOUR/NUIT
+  document.addEventListener('DOMContentLoaded', () => {
+    const boutonTheme = document.getElementById('btnTheme');
+    const iconeTheme = boutonTheme.querySelector('i');
+    function appliquerTheme(theme) {
+      if (theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        iconeTheme.className = 'bi bi-sun fs-6';
+        boutonTheme.title = 'Passer en mode Jour ☀️';
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        iconeTheme.className = 'bi bi-moon-stars fs-6';
+        boutonTheme.title = 'Passer en mode Nuit 🌙';
+      }
+      localStorage.setItem('theme', theme);
+    }
+    const themeSauvegarde = localStorage.getItem('theme');
+    const themeInitial = themeSauvegarde || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    appliquerTheme(themeInitial);
+    boutonTheme.addEventListener('click', () => {
+      const actuel = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      appliquerTheme(actuel === 'dark' ? 'light' : 'dark');
+    });
+  });
+
   // ✂️ ÉCHAPPEMENT SÉCURITAIRE
   function escaperHtml(texte) {
     if (!texte) return '';
@@ -333,12 +439,9 @@ async function requeteAPI(chemin, options = {}) {
   async function chargerClasses() {
     const select = document.getElementById('id_classe');
     let liste = [];
-
     try {
-      const reponse = await fetch(`${API_BASE}/classes`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const res = await reponse.json();
+      // ✅ API_URL au lieu de l'erreur API_BASE
+      const res = await requeteAPI('/classes');
       if (res.ok && Array.isArray(res.lignes) && res.lignes.length) {
         liste = res.lignes;
         sauvegarderClassesLocales(liste);
@@ -348,12 +451,10 @@ async function requeteAPI(chemin, options = {}) {
     } catch {
       liste = obtenirClassesLocales();
     }
-
     if (!liste.length) {
       select.innerHTML = '<option value="">-- Aucune classe --</option>';
       return;
     }
-
     // Restaurer la dernière sélection
     const sel = localStorage.getItem('classe_selectionnee') || '';
     select.innerHTML = '<option value="">-- Sélectionner --</option>' +
@@ -364,7 +465,6 @@ async function requeteAPI(chemin, options = {}) {
   async function genererBulletins() {
     const id_classe = document.getElementById('id_classe').value;
     const trimestre = document.getElementById('trimestre').value;
-
     const messages = {
       fr: { erreur: "⚠️ Sélectionne Classe et Trimestre d'abord !", erreurServ: "❌ Erreur : ", vide: "Aucune note trouvée pour cette classe et ce trimestre", ok: "✅ Bulletins générés !" },
       en: { erreur: "⚠️ Choose Class and Term first!", erreurServ: "❌ Error: ", vide: "No grades found for this class and term", ok: "✅ Reports generated!" },
@@ -382,15 +482,11 @@ async function requeteAPI(chemin, options = {}) {
 
     let resultats = null;
     try {
-      const reponse = await fetch(`${API_BASE}/bulletins/calculer`, {
+      // ✅ requeteAPI centralisée au lieu de fetch direct
+      const res = await requeteAPI('/bulletins/calculer', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify({ id_classe, trimestre, annee_scolaire: anneeScolaire })
       });
-      const res = await reponse.json();
       if (res.ok && res.classement) {
         resultats = res.classement;
         sauvegarderResultatsLocaux(resultats);
@@ -422,7 +518,6 @@ async function requeteAPI(chemin, options = {}) {
         else if (moy >= 12) classeMention = 'mention-aszbien';
         else if (moy >= 10) classeMention = 'mention-passable';
       }
-
       return `
       <tr>
         <td class="fw-bold text-center">${eleve.rang || '-'}</td>

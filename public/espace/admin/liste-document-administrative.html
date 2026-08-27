@@ -33,11 +33,11 @@
     body.lang-fr .txt-en,body.lang-fr .txt-ar{display:none}
     body.lang-ar .txt-fr,body.lang-ar .txt-en{display:none}
     body.lang-ar { direction: rtl; }
+    * { transition: background .3s ease, color .3s ease, border-color .3s ease; }
     body {
       background: linear-gradient(160deg, var(--dore), var(--dore-clair));
       color: var(--texte);
       min-height: 100vh;
-      transition: background .4s ease, color .3s ease;
     }
     .entete {
       background: rgba(15,23,42,.85);
@@ -71,7 +71,8 @@
     .lang-btn.active { background:var(--alerte); border-color:var(--alerte); color:#000; }
     .theme-btn { width:38px; height:38px; border-radius:50%; border:2px solid; padding:0; display:flex; align-items:center; justify-content:center; }
     .table { --bs-table-bg: transparent; }
-    .table th { border-top: none; border-bottom-width: 2px; border-color: var(--alerte); }
+    .table th { border-top: none; border-bottom-width: 2px; border-color: var(--alerte); color: var(--texte); }
+    .table td { color: var(--texte); border-color: var(--bordure); }
     .badge-type { font-size: .75rem; padding: .25rem .5rem; border-radius: 6px; white-space: nowrap; }
     .page-link {
       background: var(--carte);
@@ -90,6 +91,10 @@
     .doc-nom-etab { font-size:1.1rem; font-weight:600; }
     .doc-corps { line-height:1.7; font-size:1rem; }
     .doc-num { text-align:right; margin-top:2rem; font-family:'Courier New',monospace; font-weight:700; color:#666; }
+    .modal-content { background: var(--carte); color: var(--texte); }
+    .modal-header, .modal-footer { border-color: var(--bordure); }
+    .btn-close { filter: invert(0); }
+    [data-bs-theme="dark"] .btn-close { filter: invert(1); }
     @media print {
       body { background: white !important; color: black !important; }
       .entete, .barre-langue, .no-print, .theme-btn, .alerte-api, .modal-header, .modal-footer, .pagination { display: none !important; }
@@ -101,34 +106,37 @@
   </style>
 </head>
 <body>
-
 <script>
-  // ===== CONFIGURATION =====
+  // ===== ✅ CONFIGURATION CENTRALISÉE =====
   const API_URL = "https://mama-zoumana-api.onrender.com/api";
-function getToken() { return localStorage.getItem('token'); }
-async function requeteAPI(chemin, options = {}) {
-  const reponse = await fetch(`${API_URL}${chemin}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
-      ...options.headers
-    }
-  });
-  const donnees = await reponse.json();
-  if (reponse.status === 401) {
-    alert("⛔ Session expirée — Reconnectez-vous");
-    localStorage.clear();
-    window.location.href = 'connexion.html';
-  }
-  return donnees;
-}
-  const token = getItem('token');
+
+  // ✅ RÉCUPÉRATION TOKEN UNE SEULE FOIS — CORRIGÉ getItem → localStorage.getItem
+  function getToken() { return localStorage.getItem('token'); }
+  const token = getToken();
   const role = localStorage.getItem('role');
   const langueActuelle = localStorage.getItem('langue') || 'fr';
   const themeActuel = localStorage.getItem('theme') || 'light';
 
-  // ===== ✅ TRADUCTIONS EN TOUT PREMIER =====
+  // ✅ FONCTION API CENTRALISÉE — Token systématique + 401 géré
+  async function requeteAPI(chemin, options = {}) {
+    const reponse = await fetch(`${API_URL}${chemin}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`,
+        ...options.headers
+      }
+    });
+    const donnees = await reponse.json();
+    if (reponse.status === 401) {
+      alert("⛔ Session expirée — Veuillez vous reconnecter");
+      localStorage.clear();
+      window.location.href = 'connexion.html';
+    }
+    return donnees;
+  }
+
+  // ===== ✅ TRADUCTIONS =====
   const MSG = {
     fr: {
       accesReserve: "⛔ Accès réservé à l'Administrateur",
@@ -166,7 +174,6 @@ async function requeteAPI(chemin, options = {}) {
   // ===== FONCTIONS UTILITAIRES =====
   function obtenirDocumentsLocaux() { return JSON.parse(localStorage.getItem('documents_crees') || '[]'); }
   function sauvegarderDocumentsLocaux(liste) { localStorage.setItem('documents_crees', JSON.stringify(liste)); }
-
   function libelleDoc(code) {
     const L = {
       fr: { carte_scolaire:"Carte Scolaire", attestation_scolarite:"Attestation Scolaire", certificat_scolarite:"Certificat Scolaire", bulletin_notes:"Bulletin Notes", facture_frais:"Facture/Frais", attestation_travail:"Attestation Travail", certificat_travail:"Certificat Travail" },
@@ -180,14 +187,14 @@ async function requeteAPI(chemin, options = {}) {
     return c[code] || 'bg-dark';
   }
 
-  // ===== 🔒 SÉCURITÉ =====
+  // ===== 🔒 SÉCURITÉ IMMÉDIATE =====
   if(!token || !['admin','Admin','super_admin'].includes((role||'').trim())){
     alert(m('accesReserve'));
     localStorage.clear();
     location.href='connexion.html';
   }
 
-  // ===== THÈME & LANGUE =====
+  // ===== ✅ APPLIQUER THÈME & LANGUE AU DÉMARRAGE =====
   document.documentElement.setAttribute('data-bs-theme', themeActuel);
   document.body.classList.add('lang-' + langueActuelle);
 </script>
@@ -196,12 +203,12 @@ async function requeteAPI(chemin, options = {}) {
 <div class="entete no-print">
   <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
     <div>
-      <h3 class="mb-1">📋
+      <h3 class="mb-1 text-white">📋
         <span class="txt-fr">Liste des Documents Délivrés</span>
         <span class="txt-en">Issued Documents History</span>
         <span class="txt-ar">قائمة الوثائق الصادرة</span>
       </h3>
-      <p class="mb-0 opacity-75 small">
+      <p class="mb-0 opacity-75 small text-white-50">
         <span class="txt-fr">Gestion, recherche, réimpression & suppression</span>
         <span class="txt-en">Management, search, reprint & deletion</span>
         <span class="txt-ar">إدارة، بحث، إعادة طباعة وحذف</span>
@@ -361,9 +368,9 @@ async function requeteAPI(chemin, options = {}) {
   const modaleDocument = new bootstrap.Modal(document.getElementById('modaleDocument'));
   const modaleConfirmation = new bootstrap.Modal(document.getElementById('modaleConfirmation'));
 
-  // ===== THÈME =====
+  // ===== ✅ MODE JOUR / NUIT COMPLET =====
   document.getElementById('btnTheme').addEventListener('click', () => {
-    const actuel = document.documentElement.getAttribute('data-bs-theme');
+    const actuel = document.documentElement.getAttribute('data-bs-theme') || 'light';
     const nouveau = actuel === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-bs-theme', nouveau);
     localStorage.setItem('theme', nouveau);
@@ -372,9 +379,10 @@ async function requeteAPI(chemin, options = {}) {
   function majIcone(t) {
     document.getElementById('iconeTheme').className = t === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
   }
+  // ✅ Icône appliquée immédiatement au chargement
   majIcone(themeActuel);
 
-  // ===== LANGUE =====
+  // ===== ✅ GESTION LANGUE =====
   document.querySelectorAll('.lang-btn').forEach(b => {
     b.addEventListener('click', () => {
       const lang = b.dataset.lang;
@@ -385,6 +393,7 @@ async function requeteAPI(chemin, options = {}) {
       afficherTableau();
     });
   });
+  // ✅ Langue active mise en évidence au démarrage
   document.querySelector(`[data-lang="${langueActuelle}"]`)?.classList.add('active');
   document.getElementById('txtChargement').textContent = m('charger');
 
@@ -405,10 +414,13 @@ async function requeteAPI(chemin, options = {}) {
     return modeles[doc.type_document || doc.type_doc] || `<div class="document"><p>${doc.numero_unique}</p></div>`;
   }
 
-  // ===== CHARGER DOCUMENTS =====
+  // ===== ✅ CHARGER DOCUMENTS (avec token corrigé) =====
   async function chargerDocuments() {
     try {
-      const r = await fetch(`${API_URL}/documents/tous`, { headers:{ Authorization: `Bearer ${token}` } });
+      // ✅ requeteAPI centralisée OU fetch avec bon token
+      const r = await fetch(`${API_URL}/documents/tous`, { 
+        headers: { Authorization: `Bearer ${getToken()}` } 
+      });
       if (!r.ok) throw new Error(`Erreur ${r.status}`);
       const d = await r.json();
       tousDocuments = d.ok && d.lignes ? d.lignes : (d.documents || []);
@@ -510,9 +522,10 @@ async function requeteAPI(chemin, options = {}) {
   document.getElementById('btnSupprConfirme').addEventListener('click', async () => {
     if(!documentASupprimer) return;
     try {
+      // ✅ Suppression API avec bon token
       const r = await fetch(`${API_URL}/documents/supprimer`, {
         method:'POST',
-        headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}` },
+        headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${getToken()}` },
         body:JSON.stringify({ numero_unique: documentASupprimer.numero_unique })
       });
       const d = await r.json();

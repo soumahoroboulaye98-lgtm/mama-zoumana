@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestion des Frais & Paiements</title>
+  <title>Gestion des Frais & Services par Classe</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <style>
@@ -13,27 +13,113 @@
       --attention: #f59e0b;
       --danger: #ef4444;
       --gris-clair: #f3f4f6;
+      --bg-page: #eef2f7;
+      --bg-card: #ffffff;
+      --texte-principal: #1f2937;
+      --texte-secondaire: #6b7280;
+      --bordure: #e5e7eb;
+      --table-ligne: #ffffff;
+      --table-tete: #f9fafb;
     }
-    body { background: #eef2f7; font-family: 'Segoe UI', sans-serif; }
-    .card { border: none; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.08); margin-bottom: 20px; }
-    .card-header { background: white; border-bottom: 1px solid #eee; font-weight: 600; border-radius: 12px 12px 0 0 !important; }
+
+    /* 🌙 MODE NUIT */
+    [data-theme="dark"] {
+      --primaire: #3b82f6;
+      --succes: #34d399;
+      --attention: #fbbf24;
+      --danger: #f87171;
+      --gris-clair: #1f2937;
+      --bg-page: #111827;
+      --bg-card: #1f2937;
+      --texte-principal: #f3f4f6;
+      --texte-secondaire: #9ca3af;
+      --bordure: #374151;
+      --table-ligne: #1f2937;
+      --table-tete: #374151;
+    }
+
+    * { transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; }
+
+    body {
+      background: var(--bg-page);
+      color: var(--texte-principal);
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.08);
+      margin-bottom: 20px;
+      background: var(--bg-card);
+      color: var(--texte-principal);
+    }
+
+    .card-header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--bordure);
+      font-weight: 600;
+      border-radius: 12px 12px 0 0 !important;
+    }
+
     .badge-vert { background: #d1fae5; color: #065f46; }
+    [data-theme="dark"] .badge-vert { background: #064e3b; color: #a7f3d0; }
     .badge-jaune { background: #fef3c7; color: #92400e; }
+    [data-theme="dark"] .badge-jaune { background: #78350f; color: #fde68a; }
     .badge-rouge { background: #fee2e2; color: #991b1b; }
+    [data-theme="dark"] .badge-rouge { background: #7f1d1d; color: #fecaca; }
     .badge-info { background: #e0f2fe; color: #0369a1; }
-    .progress { height: 10px; border-radius: 5px; }
-    .nav-tabs .nav-link { color: #555; font-weight: 500; }
-    .nav-tabs .nav-link.active { color: var(--primaire); border-bottom: 3px solid var(--primaire); }
-    .somme-du { font-size: 1.1rem; font-weight: 600; }
-    .info-tarif { font-size: 0.85rem; color: #0369a1; }
+    [data-theme="dark"] .badge-info { background: #075985; color: #bae6fd; }
+
+    .service-item { transition: all 0.25s; }
+    .service-item:hover { background: rgba(37, 99, 235, 0.08); border-radius: 8px; }
+    .service-item.selected { background: rgba(37, 99, 235, 0.12); border-left: 4px solid var(--primaire); }
+
+    .form-control, .form-select {
+      background-color: var(--bg-card);
+      color: var(--texte-principal);
+      border-color: var(--bordure);
+    }
+    .form-control:focus, .form-select:focus {
+      background-color: var(--bg-card);
+      color: var(--texte-principal);
+    }
+
+    .table { --bs-table-bg: transparent; color: var(--texte-principal); }
+    .table th { border-color: var(--bordure); }
+    .table td { border-color: var(--bordure); }
+    .table-light { --bs-table-bg: var(--table-tete); --bs-table-color: var(--texte-principal); }
+
+    .alert-info {
+      background-color: rgba(14, 165, 233, 0.1);
+      color: var(--texte-principal);
+      border-color: rgba(14, 165, 233, 0.2);
+    }
+
+    .bg-light { background-color: var(--gris-clair) !important; color: var(--texte-principal); }
+    .border, .border-2 { border-color: var(--bordure) !important; }
+
+    .btn-outline-primary {
+      border-color: var(--primaire);
+      color: var(--primaire);
+    }
+    .btn-outline-primary:hover {
+      background-color: var(--primaire);
+      border-color: var(--primaire);
+    }
+
+    /* Bouton toggle thème */
+    #btnTheme { width: 42px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
   </style>
 </head>
 <body>
-
 <nav class="navbar navbar-dark bg-primary mb-4">
   <div class="container">
-    <a class="navbar-brand" href="#">💰 Gestion des Frais & Paiements</a>
-    <div>
+    <a class="navbar-brand" href="#">💰 Frais & Services — Par Classe</a>
+    <div class="d-flex align-items-center gap-2">
+      <button id="btnTheme" class="btn btn-outline-light" title="Mode Jour/Nuit">
+        <i id="iconeTheme" class="bi bi-moon-stars fs-5"></i>
+      </button>
       <button class="btn btn-light btn-sm" onclick="changerLangue('fr')">FR</button>
       <button class="btn btn-outline-light btn-sm" onclick="changerLangue('en')">EN</button>
       <button class="btn btn-outline-light btn-sm" onclick="changerLangue('ar')">AR</button>
@@ -41,518 +127,305 @@
     </div>
   </div>
 </nav>
-
 <div class="container">
 
-  <!-- Filtres -->
-  <div class="card p-3 mb-4">
-    <div class="row g-2">
-      <div class="col-md-3">
-        <label class="form-label">Élève</label>
-        <select id="filtreEleve" class="form-select" onchange="chargerListeFrais()">
-          <option value="">Tous les élèves</option>
+  <!-- 🔽 CHOIX DE LA CLASSE -->
+  <div class="card p-3 mb-4 border-2 border-primary">
+    <div class="row align-items-center">
+      <div class="col-md-4">
+        <label class="form-label fw-bold">🏫 Classe <span class="text-danger">*</span></label>
+        <select id="choixClasse" class="form-select form-select-lg" onchange="chargerTarifsParClasse()">
+          <option value="">-- Choisir une classe --</option>
         </select>
       </div>
-      <div class="col-md-2">
-        <label class="form-label">Type de frais</label>
-        <select id="filtreType" class="form-select" onchange="chargerListeFrais()">
-          <option value="">Tous</option>
-          <option value="scolaire">Frais scolaires</option>
-          <option value="cantine">Cantine</option>
-          <option value="sport">Sport / Activités</option>
-          <option value="transport">Transport</option>
-          <option value="document">Documents / Divers</option>
-        </select>
-      </div>
-      <div class="col-md-2">
-        <label class="form-label">Statut</label>
-        <select id="filtreStatut" class="form-select" onchange="chargerListeFrais()">
-          <option value="">Tous</option>
-          <option value="paye">Payé</option>
-          <option value="partiel">Partiel</option>
-          <option value="impaye">Impayé</option>
-        </select>
-      </div>
-      <div class="col-md-3">
-        <label class="form-label">Période / Année</label>
-        <select id="filtreAnnee" class="form-select" onchange="chargerListeFrais()">
+      <div class="col-md-4">
+        <label class="form-label">📅 Année Scolaire</label>
+        <select id="choixAnnee" class="form-select" onchange="chargerTarifsParClasse()">
           <option value="2026-2027" selected>2026-2027</option>
           <option value="2025-2026">2025-2026</option>
-          <option value="2024-2025">2024-2025</option>
         </select>
       </div>
-      <div class="col-md-2 d-flex align-items-end">
-        <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#modalFrais">
-          <i class="bi bi-plus-lg"></i> Ajouter
-        </button>
+      <div class="col-md-4">
+        <div class="alert alert-info mb-0 py-2">
+          💡 Les tarifs se mettent à jour selon la classe sélectionnée
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Résumé -->
-  <div class="row mb-4">
-    <div class="col-md-3">
-      <div class="card p-3 text-center">
-        <h6 class="text-muted">Total dû</h6>
-        <h4 class="fw-bold text-danger" id="totalDu">0 F CFA</h4>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card p-3 text-center">
-        <h6 class="text-muted">Total payé</h6>
-        <h4 class="fw-bold text-success" id="totalPaye">0 F CFA</h4>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card p-3 text-center">
-        <h6 class="text-muted">Reste à payer</h6>
-        <h4 class="fw-bold text-primary" id="totalReste">0 F CFA</h4>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card p-3 text-center">
-        <h6 class="text-muted">Taux de recouvrement</h6>
-        <h4 class="fw-bold" id="tauxRecouvrement">0 %</h4>
-      </div>
-    </div>
-  </div>
-
-  <!-- Tarifs de référence -->
+  <!-- 📋 TARIFS DE LA CLASSE -->
   <div class="card p-3 mb-4">
-    <h6 class="mb-3">📋 Tarifs de référence (définis par l'administrateur)</h6>
+    <h6 class="mb-3">📋 Tarifs applicables à cette Classe</h6>
     <div class="table-responsive">
       <table class="table table-sm table-bordered mb-0">
         <thead class="table-light">
           <tr>
-            <th>Type de frais</th>
+            <th>Type de Frais</th>
             <th>Libellé</th>
             <th>Montant</th>
-            <th>Année</th>
+            <th>Classe</th>
+            <th>À inclure</th>
           </tr>
         </thead>
-        <tbody id="listeTarifs">
-          <!-- Chargé par JS -->
-        </tbody>
+        <tbody id="listeTarifsClasse"></tbody>
+        <tfoot class="table-light fw-bold">
+          <tr>
+            <td colspan="2">💰 TOTAL DES FRAIS SÉLECTIONNÉS</td>
+            <td id="totalSelection" class="text-primary">0 F CFA</td>
+            <td colspan="2"><button class="btn btn-sm btn-outline-primary" onclick="toutSelectionner()">Tout cocher</button></td>
+          </tr>
+        </tfoot>
       </table>
     </div>
   </div>
 
-  <!-- Liste des frais -->
-  <div class="card">
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Élève</th>
-              <th>Type</th>
-              <th>Libellé</th>
-              <th>Période</th>
-              <th>Montant total</th>
-              <th>Payé</th>
-              <th>Reste</th>
-              <th>Statut</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="listeFrais">
-            <!-- Chargé par JS -->
-          </tbody>
-        </table>
+  <!-- ⚙️ DÉFINIR / MODIFIER UN TARIF -->
+  <div class="card p-3 mb-4">
+    <h6 class="mb-3">⚙️ Définir / Modifier un tarif pour une Classe</h6>
+    <form id="formTarif" class="row g-3 align-items-end">
+      <input type="hidden" id="tarifId">
+      <div class="col-md-2">
+        <label class="form-label">Classe</label>
+        <select id="tarifClasse" class="form-select" required></select>
       </div>
+      <div class="col-md-2">
+        <label class="form-label">Type</label>
+        <select id="tarifType" class="form-select" required>
+          <option value="">-- Type --</option>
+          <option value="scolaire">📚 Scolarité</option>
+          <option value="inscription">📝 Frais Inscription</option>
+          <option value="cantine">🍽️ Cantine</option>
+          <option value="uniforme">👕 Uniforme</option>
+          <option value="transport">🚌 Transport</option>
+          <option value="examen">📄 Examen</option>
+          <option value="divers">📎 Autre service</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Libellé</label>
+        <input type="text" id="tarifLibelle" class="form-control" placeholder="Ex: Frais de scolarité" required>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Montant (F CFA)</label>
+        <input type="number" id="tarifMontant" class="form-control" min="0" step="50" required>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Année</label>
+        <select id="tarifAnnee" class="form-select">
+          <option value="2026-2027" selected>2026-2027</option>
+          <option value="2025-2026">2025-2026</option>
+        </select>
+      </div>
+      <div class="col-md-1">
+        <button type="submit" class="btn btn-primary w-100">💾</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 📄 RÉSUMÉ PRÉINSCRIPTION -->
+  <div class="card p-3 bg-light">
+    <h6 class="mb-3">📄 Aperçu — Ce que verra le parent à la préinscription</h6>
+    <div id="resumePreinscription" class="border rounded p-3">
+      <p class="text-muted">Sélectionnez une classe pour voir le détail des frais et le total...</p>
     </div>
   </div>
 
-</div>
-
-<!-- Modal Ajout/Modification Frais -->
-<div class="modal fade" id="modalFrais" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="titreModalFrais">Ajouter des Frais</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <form id="formFrais">
-        <div class="modal-body">
-          <input type="hidden" id="fraisId">
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Élève <span class="text-danger">*</span></label>
-              <select id="fraisEleve" class="form-select" required>
-                <option value="">Choisir l'élève...</option>
-              </select>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Type de Frais <span class="text-danger">*</span></label>
-              <select id="fraisType" class="form-select" required onchange="chargerTarifPourType()">
-                <option value="">Choisir le type...</option>
-                <option value="scolaire">📚 Frais Scolaires</option>
-                <option value="cantine">🍽️ Cantine</option>
-                <option value="sport">⚽ Sport / Activités</option>
-                <option value="transport">🚌 Transport</option>
-                <option value="document">📄 Documents / Divers</option>
-              </select>
-              <div id="infoTarifDispo" class="info-tarif mt-1"></div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Libellé / Désignation <span class="text-danger">*</span></label>
-              <input type="text" id="fraisLibelle" class="form-control" placeholder="Ex: Scolarité Octobre" required>
-            </div>
-            <div class="col-md-3 mb-3">
-              <label class="form-label">Période / Mois</label>
-              <input type="month" id="fraisPeriode" class="form-control">
-            </div>
-            <div class="col-md-3 mb-3">
-              <label class="form-label">Année Scolaire</label>
-              <select id="fraisAnnee" class="form-select">
-                <option value="2026-2027" selected>2026-2027</option>
-                <option value="2025-2026">2025-2026</option>
-                <option value="2024-2025">2024-2025</option>
-              </select>
-            </div>
-            <div class="col-md-4 mb-3">
-              <label class="form-label">Montant Total (F CFA) <span class="text-danger">*</span></label>
-              <input type="number" id="fraisMontant" class="form-control" min="0" required>
-              <div class="form-text">💡 Ce montant deviendra la référence pour la préinscription</div>
-            </div>
-            <div class="col-md-4 mb-3">
-              <label class="form-label">Montant Déjà Payé</label>
-              <input type="number" id="fraisPaye" class="form-control" min="0" value="0">
-            </div>
-            <div class="col-md-4 mb-3">
-              <label class="form-label">Date du dernier paiement</label>
-              <input type="date" id="fraisDatePaiement" class="form-control">
-            </div>
-            <div class="col-12 mb-3">
-              <label class="form-label">Observations / Notes</label>
-              <textarea id="fraisNotes" class="form-control" rows="2" placeholder="Infos complémentaires..."></textarea>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
-          <button type="submit" class="btn btn-primary">Enregistrer</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Saisie de Paiement -->
-<div class="modal fade" id="modalPaiement" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Enregistrer un Paiement</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <form id="formPaiement">
-        <div class="modal-body">
-          <input type="hidden" id="paiementFraisId">
-          <div class="mb-3">
-            <label class="form-label">Élève / Frais</label>
-            <input type="text" id="paiementLibelle" class="form-control" readonly>
-          </div>
-          <div class="row mb-3">
-            <div class="col-6">
-              <label class="form-label">Montant Restant</label>
-              <input type="text" id="paiementReste" class="form-control" readonly>
-            </div>
-            <div class="col-6">
-              <label class="form-label">Montant Réglé <span class="text-danger">*</span></label>
-              <input type="number" id="paiementMontant" class="form-control" min="0" required>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Mode de Paiement</label>
-            <select id="paiementMode" class="form-select">
-              <option value="especes">Espèces</option>
-              <option value="virement">Virement</option>
-              <option value="mobile">Virement Mobile Money</option>
-              <option value="cheque">Chèque</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Date</label>
-            <input type="date" id="paiementDate" class="form-control" value="">
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
-          <button type="submit" class="btn btn-success">Valider le Paiement</button>
-        </div>
-      </form>
-    </div>
-  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// ========== CONFIG ==========
-const API_URL = '/api';
-let token = localStorage.getItem('token') || '';
-let listeFrais = [];
-let listeEleves = [];
+// ==================================================
+// 🌙 GESTION DU MODE JOUR / NUIT
+// ==================================================
+const boutonTheme = document.getElementById('btnTheme');
+const iconeTheme = document.getElementById('iconeTheme');
+
+function appliquerTheme(theme) {
+  if (theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    iconeTheme.className = 'bi bi-sun fs-5';
+    boutonTheme.title = 'Passer en mode Jour ☀️';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    iconeTheme.className = 'bi bi-moon-stars fs-5';
+    boutonTheme.title = 'Passer en mode Nuit 🌙';
+  }
+  localStorage.setItem('theme', theme);
+}
+
+// Détecter thème sauvegardé ou préférence système
+const themeSauvegarde = localStorage.getItem('theme');
+const themeInitial = themeSauvegarde || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+appliquerTheme(themeInitial);
+
+// Basculer au clic
+boutonTheme.addEventListener('click', () => {
+  const actuel = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  appliquerTheme(actuel === 'dark' ? 'light' : 'dark');
+});
+
+// ==================================================
+// ✅ CONFIGURATION API
+// ==================================================
+const API_URL = "https://mama-zoumana-api.onrender.com/api";
+
+function getToken() { return localStorage.getItem('token'); }
+const token = getToken();
+const langueActuelle = localStorage.getItem('langue') || 'fr';
+
+if (!token) {
+  alert("⛔ Accès refusé — Veuillez vous connecter");
+  window.location.href = 'connexion.html';
+}
+
+async function requeteAPI(chemin, options = {}) {
+  const reponse = await fetch(`${API_URL}${chemin}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+      ...options.headers
+    }
+  });
+  if (reponse.status === 401) {
+    alert("⛔ Session expirée — Reconnectez-vous");
+    localStorage.clear();
+    window.location.href = 'connexion.html';
+  }
+  return await reponse.json();
+}
+
+let listeClasses = [];
 let listeTarifs = [];
 
-// Traductions
-const t = {
-  fr: { devise: 'F CFA', impaye: 'Impayé', partiel: 'Partiel', paye: 'Payé', supprimerConfirm: 'Supprimer ce frais ?', enregistre: 'Enregistré !', tarifMisAJour: 'Tarif de référence mis à jour ✅', pasTarif: 'Aucun tarif défini' },
-  en: { devise: 'XOF', impaye: 'Unpaid', partiel: 'Partial', paye: 'Paid', supprimerConfirm: 'Delete this fee?', enregistre: 'Saved!', tarifMisAJour: 'Reference fee updated ✅', pasTarif: 'No fee set' },
-  ar: { devise: 'فرنك', impaye: 'غير مدفوع', partiel: 'جزئي', paye: 'مدفوع', supprimerConfirm: 'حذف هذا الرسم؟', enregistre: 'تم الحفظ!', tarifMisAJour: 'تم تحديث السعر المرجعي ✅', pasTarif: 'لا يوجد سعر محدد' }
-};
-let langueActuelle = localStorage.getItem('langue') || 'fr';
-
-function changerLangue(lg) {
-  langueActuelle = lg; localStorage.setItem('langue', lg);
-}
-
-function formatMontant(n) { return new Intl.NumberFormat('fr-FR').format(n)+' '+t[langueActuelle].devise; }
-
-function getBadgeStatut(reste, total) {
-  if (reste <= 0) return '<span class="badge badge-vert">'+t[langueActuelle].paye+'</span>';
-  if (reste < total) return '<span class="badge badge-jaune">'+t[langueActuelle].partiel+'</span>';
-  return '<span class="badge badge-rouge">'+t[langueActuelle].impaye+'</span>';
-}
-
+function formatMontant(n) { return new Intl.NumberFormat('fr-FR').format(n) + ' F CFA'; }
 function getIconeType(type) {
-  const icones = { scolaire: '📚', cantine: '🍽️', sport: '⚽', transport: '🚌', document: '📄' };
-  return icones[type] || '📌';
+  const icones = {
+    scolaire: '📚', inscription: '📝', cantine: '🍽️',
+    uniforme: '👕', transport: '🚌', examen: '📄', divers: '📎'
+  };
+  return icones[type] || '💰';
 }
 
-// ========== CHARGER LES TARIFS DE RÉFÉRENCE ==========
-async function chargerTarifs() {
-  const annee = document.getElementById('filtreAnnee').value;
+// 📥 CHARGER LES CLASSES
+async function chargerClasses() {
   try {
-    const res = await fetch(`${API_URL}/tarifs?annee=${annee}`, { headers: { 'Authorization': `Bearer ${token}` } });
-    listeTarifs = await res.json();
+    listeClasses = await requeteAPI('/classes');
+    const html = listeClasses.map(c => `<option value="${c.id}">${c.libelle_classe || c.libelle}</option>`).join('');
+    document.getElementById('choixClasse').innerHTML = '<option value="">-- Choisir une classe --</option>' + html;
+    document.getElementById('tarifClasse').innerHTML = '<option value="">-- Classe --</option>' + html;
+  } catch {
+    console.warn("Impossible de charger les classes");
+  }
+}
+
+// 🔄 CHARGER LES TARIFS PAR CLASSE
+async function chargerTarifsParClasse() {
+  const classeId = document.getElementById('choixClasse').value;
+  const annee = document.getElementById('choixAnnee').value;
+  const tbody = document.getElementById('listeTarifsClasse');
+
+  if (!classeId) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Choisissez une classe pour voir les tarifs</td></tr>';
+    document.getElementById('totalSelection').textContent = '0 F CFA';
+    document.getElementById('resumePreinscription').innerHTML = '<p class="text-muted">Sélectionnez une classe...</p>';
+    return;
+  }
+
+  try {
+    listeTarifs = await requeteAPI(`/tarifs?classe_id=${classeId}&annee=${annee}`);
   } catch {
     listeTarifs = [];
   }
-  const tbody = document.getElementById('listeTarifs');
-  tbody.innerHTML = '';
-  if (listeTarifs.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Aucun tarif de référence défini. Enregistrez un frais pour créer un tarif.</td></tr>';
+
+  if (!listeTarifs.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-warning">⚠️ Aucun tarif défini pour cette classe</td></tr>';
+    document.getElementById('totalSelection').textContent = '0 F CFA';
+    document.getElementById('resumePreinscription').innerHTML = '<p class="text-warning">⚠️ Définissez des tarifs ci-dessous</p>';
     return;
   }
-  listeTarifs.forEach(tarif => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${getIconeType(tarif.type)} ${tarif.type}</td>
-        <td>${tarif.libelle}</td>
-        <td class="fw-semibold">${formatMontant(tarif.montant)}</td>
-        <td>${tarif.annee}</td>
-      </tr>`;
+
+  tbody.innerHTML = listeTarifs.map(tarif => `
+    <tr class="service-item selected">
+      <td>${getIconeType(tarif.type)} ${tarif.type}</td>
+      <td>${tarif.libelle}</td>
+      <td class="fw-semibold">${formatMontant(tarif.montant)}</td>
+      <td>${tarif.classe_libelle || '-'}</td>
+      <td><input type="checkbox" class="form-check-input tarif-checkbox" data-montant="${tarif.montant}" checked onchange="mettreAJourTotal()"></td>
+    </tr>`).join('');
+
+  mettreAJourTotal();
+}
+
+// 💰 CALCULER LE TOTAL
+function mettreAJourTotal() {
+  let total = 0;
+  document.querySelectorAll('.tarif-checkbox:checked').forEach(cb => total += Number(cb.dataset.montant));
+  document.getElementById('totalSelection').textContent = formatMontant(total);
+  mettreAJourResume();
+}
+
+// 📄 RÉSUMÉ PRÉINSCRIPTION
+function mettreAJourResume() {
+  const classeNom = document.getElementById('choixClasse').selectedOptions[0]?.text || '';
+  const lignes = [];
+  let total = 0;
+
+  document.querySelectorAll('.tarif-checkbox:checked').forEach(cb => {
+    const tr = cb.closest('tr');
+    const libelle = tr.querySelector('td:nth-child(2)').textContent;
+    const montant = Number(cb.dataset.montant);
+    lignes.push(`<div class="d-flex justify-content-between py-1 border-bottom">
+      <span>${libelle}</span><span class="fw-semibold">${formatMontant(montant)}</span>
+    </div>`);
+    total += montant;
   });
+
+  document.getElementById('resumePreinscription').innerHTML = `
+    <h6 class="border-bottom pb-2">🏫 ${classeNom}</h6>
+    ${lignes.length ? lignes.join('') : '<p class="text-muted">Aucun service sélectionné</p>'}
+    <div class="d-flex justify-content-between fw-bold text-primary mt-2 pt-2 border-top">
+      <span>💰 TOTAL À PAYER</span><span>${formatMontant(total)}</span>
+    </div>
+    <p class="small text-success mt-2">✅ Tarifs visibles immédiatement à la préinscription</p>
+  `;
 }
 
-// Charger un tarif quand on sélectionne un type
-async function chargerTarifPourType() {
-  const type = document.getElementById('fraisType').value;
-  const annee = document.getElementById('fraisAnnee').value;
-  const zoneInfo = document.getElementById('infoTarifDispo');
-  if (!type) { zoneInfo.innerHTML = ''; return; }
-  try {
-    const res = await fetch(`${API_URL}/tarifs?type=${type}&annee=${annee}`, { headers: { 'Authorization': `Bearer ${token}` } });
-    const tarif = await res.json();
-    if (tarif && tarif.montant) {
-      zoneInfo.innerHTML = `<span class="badge badge-info">💡 Tarif : ${formatMontant(tarif.montant)}</span>`;
-      document.getElementById('fraisLibelle').value = tarif.libelle || '';
-      document.getElementById('fraisMontant').value = tarif.montant;
-    } else {
-      zoneInfo.innerHTML = `<span class="text-muted">${t[langueActuelle].pasTarif}</span>`;
-    }
-  } catch { zoneInfo.innerHTML = ''; }
+// ✅ TOUT SÉLECTIONNER
+function toutSelectionner() {
+  const etat = ![...document.querySelectorAll('.tarif-checkbox')].every(c => c.checked);
+  document.querySelectorAll('.tarif-checkbox').forEach(cb => cb.checked = etat);
+  mettreAJourTotal();
 }
 
-// ========== CHARGEMENT ==========
-async function chargerEleves() {
-  try {
-    const res = await fetch(`${API_URL}/eleves/liste`, { headers: { 'Authorization': `Bearer ${token}` } });
-    listeEleves = await res.json();
-    let opt = '<option value="">Tous les élèves</option>';
-    let opt2 = '<option value="">Choisir...</option>';
-    listeEleves.forEach(e => {
-      opt += `<option value="${e.id}">${e.nom} ${e.prenom}</option>`;
-      opt2 += `<option value="${e.id}">${e.nom} ${e.prenom}</option>`;
-    });
-    document.getElementById('filtreEleve').innerHTML = opt;
-    document.getElementById('fraisEleve').innerHTML = opt2;
-  } catch(e) { console.error(e); }
-}
-
-async function chargerListeFrais() {
-  const eleve = document.getElementById('filtreEleve').value;
-  const type = document.getElementById('filtreType').value;
-  const statut = document.getElementById('filtreStatut').value;
-  const annee = document.getElementById('filtreAnnee').value;
-
-  chargerTarifs(); // ← Recharger les tarifs en même temps
-
-  try {
-    const res = await fetch(`${API_URL}/frais?annee=${annee}`, { headers: { 'Authorization': `Bearer ${token}` } });
-    listeFrais = await res.json();
-  } catch {
-    listeFrais = [];
-  }
-
-  // Filtrage
-  let filtré = listeFrais;
-  if (eleve) filtré = filtré.filter(f => f.eleve_id == eleve);
-  if (type) filtré = filtré.filter(f => f.type == type);
-  if (statut === 'paye') filtré = filtré.filter(f => f.reste <= 0);
-  if (statut === 'impaye') filtré = filtré.filter(f => f.reste >= f.montant);
-  if (statut === 'partiel') filtré = filtré.filter(f => f.reste > 0 && f.reste < f.montant);
-
-  // Calcul totaux
-  const totalDu = filtré.reduce((s,f) => s + Number(f.montant), 0);
-  const totalPaye = filtré.reduce((s,f) => s + Number(f.paye), 0);
-  const totalReste = totalDu - totalPaye;
-  const taux = totalDu > 0 ? Math.round((totalPaye / totalDu) * 100) : 0;
-
-  document.getElementById('totalDu').textContent = formatMontant(totalDu);
-  document.getElementById('totalPaye').textContent = formatMontant(totalPaye);
-  document.getElementById('totalReste').textContent = formatMontant(totalReste);
-  document.getElementById('tauxRecouvrement').textContent = taux + ' %';
-
-  // Affichage tableau
-  const tbody = document.getElementById('listeFrais');
-  tbody.innerHTML = '';
-  filtré.forEach(f => {
-    const reste = Number(f.montant) - Number(f.paye);
-    const elNom = listeEleves.find(e => e.id == f.eleve_id);
-    const nomEleve = elNom ? `${elNom.nom} ${elNom.prenom}` : 'Élève #'+f.eleve_id;
-    tbody.innerHTML += `
-      <tr>
-        <td class="fw-medium">${nomEleve}</td>
-        <td>${getIconeType(f.type)}</td>
-        <td>${f.libelle}</td>
-        <td>${f.periode || '-'}</td>
-        <td class="fw-semibold">${formatMontant(f.montant)}</td>
-        <td class="text-success">${formatMontant(f.paye || 0)}</td>
-        <td class="fw-semibold ${reste > 0 ? 'text-danger' : 'text-success'}">${formatMontant(reste)}</td>
-        <td>${getBadgeStatut(reste, f.montant)}</td>
-        <td>
-          <button class="btn btn-sm btn-outline-success py-0 px-1" onclick="ouvrirPaiement('${f.id}')" title="Paiement">💰</button>
-          <button class="btn btn-sm btn-outline-primary py-0 px-1" onclick="editerFrais('${f.id}')" title="Modifier">✏️</button>
-          <button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="supprimerFrais('${f.id}')" title="Supprimer">🗑️</button>
-        </td>
-      </tr>`;
-  });
-}
-
-// ========== ENREGISTREMENT FRAIS + SAUVEGARDE DU TARIF ==========
-document.getElementById('formFrais').addEventListener('submit', async e => {
+// 💾 ENREGISTRER UN TARIF
+document.getElementById('formTarif').addEventListener('submit', async e => {
   e.preventDefault();
-  const id = document.getElementById('fraisId').value;
   const data = {
-    eleve_id: document.getElementById('fraisEleve').value,
-    type: document.getElementById('fraisType').value,
-    libelle: document.getElementById('fraisLibelle').value,
-    periode: document.getElementById('fraisPeriode').value,
-    annee: document.getElementById('fraisAnnee').value,
-    montant: document.getElementById('fraisMontant').value,
-    paye: document.getElementById('fraisPaye').value || 0,
-    date_paiement: document.getElementById('fraisDatePaiement').value,
-    notes: document.getElementById('fraisNotes').value
+    classe_id: document.getElementById('tarifClasse').value,
+    type: document.getElementById('tarifType').value,
+    libelle: document.getElementById('tarifLibelle').value,
+    montant: document.getElementById('tarifMontant').value,
+    annee: document.getElementById('tarifAnnee').value
   };
 
-  try {
-    const url = id ? `${API_URL}/frais/${id}` : `${API_URL}/frais`;
-    const methode = id ? 'PUT' : 'POST';
-    await fetch(url, {
-      method: methode,
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
+  await requeteAPI('/tarifs/definir', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
 
-    // ✅ ENREGISTRER EN PLUS COMME TARIF DE RÉFÉRENCE
-    await fetch(`${API_URL}/tarifs/definir`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: data.type,
-        annee: data.annee,
-        libelle: data.libelle,
-        montant: data.montant
-      })
-    });
-
-    alert(t[langueActuelle].enregistre + ' ' + t[langueActuelle].tarifMisAJour);
-    document.getElementById('formFrais').reset();
-    document.getElementById('fraisId').value = '';
-    bootstrap.Modal.getInstance(document.getElementById('modalFrais')).hide();
-    chargerListeFrais();
-  } catch(e) { alert('Erreur réseau'); }
+  alert("✅ Tarif enregistré — visible immédiatement à la préinscription");
+  document.getElementById('formTarif').reset();
+  chargerTarifsParClasse();
 });
 
-function editerFrais(id) {
-  const f = listeFrais.find(x => x.id == id);
-  if (!f) return;
-  document.getElementById('fraisId').value = f.id;
-  document.getElementById('fraisEleve').value = f.eleve_id;
-  document.getElementById('fraisType').value = f.type;
-  document.getElementById('fraisLibelle').value = f.libelle;
-  document.getElementById('fraisPeriode').value = f.periode;
-  document.getElementById('fraisAnnee').value = f.annee;
-  document.getElementById('fraisMontant').value = f.montant;
-  document.getElementById('fraisPaye').value = f.paye;
-  document.getElementById('fraisDatePaiement').value = f.date_paiement || '';
-  document.getElementById('fraisNotes').value = f.notes || '';
-  document.getElementById('titreModalFrais').textContent = 'Modifier les Frais';
-  new bootstrap.Modal(document.getElementById('modalFrais')).show();
+function changerLangue(lg) {
+  localStorage.setItem('langue', lg);
+  location.reload();
 }
 
-async function supprimerFrais(id) {
-  if (!confirm(t[langueActuelle].supprimerConfirm)) return;
-  try {
-    await fetch(`${API_URL}/frais/${id}`, {
-      method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
-    });
-    chargerListeFrais();
-  } catch { alert('Erreur suppression'); }
-}
-
-// ========== ENREGISTREMENT PAIEMENT ==========
-function ouvrirPaiement(id) {
-  const f = listeFrais.find(x => x.id == id);
-  if (!f) return;
-  const reste = Number(f.montant) - Number(f.paye);
-  document.getElementById('paiementFraisId').value = id;
-  document.getElementById('paiementLibelle').value = f.libelle;
-  document.getElementById('paiementReste').value = formatMontant(reste);
-  document.getElementById('paiementMontant').value = reste;
-  document.getElementById('paiementDate').value = new Date().toISOString().split('T')[0];
-  new bootstrap.Modal(document.getElementById('modalPaiement')).show();
-}
-
-document.getElementById('formPaiement').addEventListener('submit', async e => {
-  e.preventDefault();
-  const id = document.getElementById('paiementFraisId').value;
-  const montantRegle = Number(document.getElementById('paiementMontant').value);
-  const mode = document.getElementById('paiementMode').value;
-  const date = document.getElementById('paiementDate').value;
-
-  try {
-    await fetch(`${API_URL}/frais/paiement/${id}`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ montant: montantRegle, mode: mode, date: date })
-    });
-    alert('Paiement enregistré ✅');
-    bootstrap.Modal.getInstance(document.getElementById('modalPaiement')).hide();
-    chargerListeFrais();
-  } catch { alert('Erreur lors de l\'enregistrement'); }
-});
-
-// Recharger tarifs quand on change d'année
-document.getElementById('fraisAnnee').addEventListener('change', chargerTarifPourType);
-document.getElementById('filtreAnnee').addEventListener('change', chargerListeFrais);
-
-// Init
-chargerEleves().then(() => chargerListeFrais());
-document.getElementById('fraisDatePaiement').valueAsDate = new Date();
+// 🚀 INIT
+chargerClasses();
 </script>
 </body>
 </html>

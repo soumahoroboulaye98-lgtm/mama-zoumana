@@ -28,7 +28,6 @@
       --entete-debut: #0c4a6e;
       --entete-fin: #0369a1;
     }
-
     /* ===== 🌙 MODE SOMBRE ===== */
     [data-theme="sombre"] {
       --primaire: #3b82f6;
@@ -46,7 +45,6 @@
       --entete-debut: #1e40af;
       --entete-fin: #0369a1;
     }
-
     /* ===== 🌐 LANGUE ===== */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
@@ -55,7 +53,6 @@
     body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
     body.lang-ar .txt-ar { display: inline; direction: rtl; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
-
     * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 10px !important; transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease; }
     body { 
       background: var(--sombre-clair); 
@@ -63,7 +60,6 @@
       font-family: 'Segoe UI', sans-serif; 
       min-height: 100vh; 
     }
-
     .entete {
       background: linear-gradient(135deg, var(--entete-debut), var(--entete-fin));
       padding: 20px 30px;
@@ -74,13 +70,11 @@
       flex-wrap: wrap;
       gap: 1rem;
     }
-
     .btn-retour { color: white; text-decoration: none; font-weight: 500; }
     .statut { padding: 4px 12px; border-radius: 20px !important; font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
     .attente { background: rgba(245,158,11,0.2); color: var(--accent); border: 1px solid var(--accent); }
     .validee { background: rgba(16,185,129,0.2); color: var(--succes); border: 1px solid var(--succes); }
     .refusee { background: rgba(239,68,68,0.2); color: var(--alerte); border: 1px solid var(--alerte); }
-
     .btn-valider { background: var(--succes); color: white; border: none; padding: 6px 12px; font-weight: 500; }
     .btn-valider:hover { background: #059669; color: white; }
     .btn-refuser { background: var(--alerte); color: white; border: none; padding: 6px 12px; font-weight: 500; }
@@ -89,7 +83,6 @@
     .btn-doc:hover { background: var(--secondaire); color: white; }
     .btn-theme { background: transparent; border: 1px solid white; color: white; padding: 6px 12px; border-radius: 50% !important; }
     .btn-theme:hover { background: rgba(255,255,255,0.2); color: white; }
-
     .matricule { font-weight: 700; color: var(--accent); font-size: 0.9rem; }
     .table-responsive { padding: 0 15px; }
     table { background: var(--fond-tableau); border-radius: 12px; overflow: hidden; width: 100%; }
@@ -103,60 +96,66 @@
     .docs-col { min-width: 160px; }
     .nom-col { min-width: 160px; }
     .modal-img { max-width: 100%; max-height: 80vh; border-radius: 8px; }
-
     /* ===== 📋 MODALE VÉRIFICATION ===== */
     .card-verif { border: 2px dashed var(--accent); background: rgba(245,158,11,0.08); padding: 15px; margin-bottom: 10px; }
     .card-verif h6 { color: var(--accent); margin-bottom: 8px; }
     .badge-info { background: var(--primaire); color: white; }
-
-    /* ===== CORRECTION MODALE MODE SOMBRE ===== */
+    /* ===== CORRECTION MODALE & FORMULAIRES EN MODE SOMBRE ===== */
     .modal-content { background: var(--fond-tableau); color: var(--texte); }
     .modal-header, .modal-footer { border-color: var(--bordure); }
     .bg-dark.text-white { background: var(--sombre) !important; color: var(--texte) !important; }
     .btn-close { filter: invert(1); }
+    .form-select, .form-control {
+      background-color: var(--fond-tableau);
+      color: var(--texte);
+      border-color: var(--bordure);
+    }
   </style>
 </head>
 <body>
-
-<!-- 🔒 PROTECTION + CONFIG GLOBALE -->
+<!-- 🔒 PROTECTION + CONFIG GLOBALE — TOUT CORRIGÉ -->
 <script>
-  const token = localStorage.getItem('token');
+  // ✅ URL API UNIQUE ET SANS LOCALHOST
+  const API_URL = "https://mama-zoumana-api.onrender.com/api";
+
+  // ✅ RÉCUPÉRATION TOKEN CENTRALISÉE
+  function getToken() { return localStorage.getItem('token'); }
+  const token = getToken();
   const role = localStorage.getItem('role');
 
-  // ✅ FONCTION EN-TÊTE RÉUTILISABLE — CORRIGÉ
+  // ✅ FONCTION API CENTRALISÉE — Token + Erreur 401 gérée
+  async function requeteAPI(chemin, options = {}) {
+    const reponse = await fetch(`${API_URL}${chemin}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`,
+        ...options.headers
+      }
+    });
+    const donnees = await reponse.json();
+    if (reponse.status === 401) {
+      alert("⛔ Session expirée — Veuillez vous reconnecter");
+      localStorage.clear();
+      window.location.href = 'connexion.html';
+    }
+    return donnees;
+  }
+
+  // ✅ En-tête réutilisable pour fetch direct
   function enteteRequete() {
     return {
-      "Authorization": "Bearer " + token,
+      "Authorization": "Bearer " + getToken(),
       "Content-Type": "application/json"
     };
   }
 
-  // ✅ Vérification immédiate
+  // ✅ VÉRIFICATION IMMÉDIATE AVANT TOUT AFFICHAGE
   if (!token || !['admin','super_admin','comptable','directeur'].includes(role)) {
     alert("⛔ Accès réservé à l'administrateur — Veuillez vous reconnecter");
     location.href = 'connexion.html';
   }
 
-  // 🔗 DÉTECTION AUTOMATIQUE DE L'API
-  const API_URL = "https://mama-zoumana-api.onrender.com/api";
-function getToken() { return localStorage.getItem('token'); }
-async function requeteAPI(chemin, options = {}) {
-  const reponse = await fetch(`${API_URL}${chemin}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
-      ...options.headers
-    }
-  });
-  const donnees = await reponse.json();
-  if (reponse.status === 401) {
-    alert("⛔ Session expirée — Reconnectez-vous");
-    localStorage.clear();
-    window.location.href = 'connexion.html';
-  }
-  return donnees;
-}
   // 💾 STOCKAGE LOCAL
   function obtenirPreinscriptionsLocales() {
     return JSON.parse(localStorage.getItem('preinscriptions') || '[]');
@@ -169,7 +168,7 @@ async function requeteAPI(chemin, options = {}) {
   let langueActuelle = localStorage.getItem('langue') || 'fr';
   document.body.classList.add('lang-' + langueActuelle);
 
-  // 🌙 GESTION MODE JOUR/NUIT
+  // 🌙 GESTION COMPLÈTE DU MODE JOUR/NUIT
   let themeActuel = localStorage.getItem('theme') || 'clair';
   document.documentElement.setAttribute('data-theme', themeActuel);
   
@@ -182,10 +181,9 @@ async function requeteAPI(chemin, options = {}) {
   
   function mettreAJourIconeTheme() {
     const icone = document.getElementById('iconeTheme');
-    if (icone) icone.className = themeActuel === 'sombre' ? 'bi bi-moon-stars-fill' : 'bi bi-sun-fill';
+    if (icone) icone.className = themeActuel === 'sombre' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
   }
-
-  // ✅ Icône mise à jour APRÈS la fonction
+  // Icône mise à jour immédiatement
   mettreAJourIconeTheme();
 </script>
 
@@ -205,7 +203,7 @@ async function requeteAPI(chemin, options = {}) {
   </h3>
   <div class="d-flex gap-2">
     <button class="btn-theme" onclick="basculerTheme()" title="Mode Jour/Nuit">
-      <i class="bi bi-sun-fill" id="iconeTheme"></i>
+      <i class="bi bi-moon-stars-fill" id="iconeTheme"></i>
     </button>
     <button class="btn btn-outline-light btn-sm" onclick="chargerListe()">
       <i class="bi bi-arrow-clockwise"></i> 
@@ -301,9 +299,7 @@ async function requeteAPI(chemin, options = {}) {
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
       </div>
-      <div class="modal-body p-4" id="contenuVerif">
-        <!-- Chargé dynamiquement -->
-      </div>
+      <div class="modal-body p-4" id="contenuVerif"></div>
       <div class="modal-footer d-flex justify-content-between">
         <div>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -347,10 +343,11 @@ async function requeteAPI(chemin, options = {}) {
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   let demandeEnCours = null;
 
-  // ✂️ ÉCHAPPEMENT SÉCURITAIRE
+  // ✂️ ÉCHAPPEMENT SÉCURITAIRE CONTRE LES ATTAQUES XSS
   function escaperHtml(texte) {
     if (!texte) return '—';
     const div = document.createElement('div');
@@ -358,14 +355,14 @@ async function requeteAPI(chemin, options = {}) {
     return div.innerHTML;
   }
 
-  // 📋 CHARGER LA LISTE
+  // 📋 CHARGER LA LISTE DES PRÉINSCRIPTIONS
   async function chargerListe() {
     const conteneur = document.getElementById('corpsTableau');
     let liste = [];
-
     try {
-      const res = await fetch(`${API_BASE}/preinscription/liste`, {
-        headers: enteteRequete() // ✅ Utilisation de la fonction centralisée
+      // ✅ PLUS DE API_BASE → API_URL CORRECT
+      const res = await fetch(`${API_URL}/preinscription/liste`, {
+        headers: enteteRequete()
       });
       const d = await res.json();
       if (d.ok && Array.isArray(d.liste)) {
@@ -391,17 +388,21 @@ async function requeteAPI(chemin, options = {}) {
       return;
     }
 
+    // 🎨 GÉNÉRATION DU TABLEAU
     conteneur.innerHTML = liste.map((x, i) => {
+      // ✅ STATUT
       let classeStatut = '';
       if (x.statut === 'en_attente') classeStatut = 'attente';
       else if (x.statut === 'validee') classeStatut = 'validee';
       else if (x.statut === 'annulee' || x.statut === 'refusee') classeStatut = 'refusee';
 
-      const photoUrl = x.photo_identite ? (x.photo_identite.startsWith('http') ? x.photo_identite : `${API_BASE}/${x.photo_identite}`) : null;
-      const extraitUrl = x.documents?.includes('extrait') ? `${API_BASE}/${x.documents.split('|').find(f=>f.includes('extrait'))}` : null;
-      const bulletinUrl = x.documents?.includes('bulletin') ? `${API_BASE}/${x.documents.split('|').find(f=>f.includes('bulletin'))}` : null;
-      const cvUrl = x.documents?.includes('cv') ? `${API_BASE}/${x.documents.split('|').find(f=>f.includes('cv'))}` : null;
+      // ✅ GÉNÉRATION DES URLS (plus de API_BASE → API_URL)
+      const photoUrl = x.photo_identite ? (x.photo_identite.startsWith('http') ? x.photo_identite : `${API_URL}/${x.photo_identite}`) : null;
+      const extraitUrl = x.documents?.includes('extrait') ? `${API_URL}/${x.documents.split('|').find(f=>f.includes('extrait'))}` : null;
+      const bulletinUrl = x.documents?.includes('bulletin') ? `${API_URL}/${x.documents.split('|').find(f=>f.includes('bulletin'))}` : null;
+      const cvUrl = x.documents?.includes('cv') ? `${API_URL}/${x.documents.split('|').find(f=>f.includes('cv'))}` : null;
 
+      // ✅ BLOC DOCUMENTS
       let blocDocs = '';
       if (photoUrl) {
         blocDocs += `<img src="${photoUrl}" class="mini-img me-1 mb-1" alt="Photo" onclick="voirPhoto('${photoUrl}')" title="${
@@ -412,6 +413,7 @@ async function requeteAPI(chemin, options = {}) {
       if (bulletinUrl) blocDocs += `<a href="${bulletinUrl}" target="_blank" class="btn-doc"><i class="bi bi-file-earmark-bar-graph"></i> <span class="txt-fr">Bulletin</span><span class="txt-en">Transcript</span></a><br>`;
       if (cvUrl) blocDocs += `<a href="${cvUrl}" target="_blank" class="btn-doc"><i class="bi bi-file-earmark-pdf"></i> CV</a>`;
 
+      // ✅ INFOS PARENTS
       let parentsTxt = '';
       if (x.nom_pere || x.nom_mere) {
         parentsTxt = `<small>`;
@@ -420,6 +422,7 @@ async function requeteAPI(chemin, options = {}) {
         parentsTxt += `</small>`;
       } else parentsTxt = `<span class="text-muted small">—</span>`;
 
+      // ✅ SERVICES SÉLECTIONNÉS
       let servicesTxt = [];
       if (x.cantine === 'oui') servicesTxt.push('🍽️ Cantine');
       if (x.transport === 'oui') servicesTxt.push('🚌 Transport');
@@ -429,10 +432,12 @@ async function requeteAPI(chemin, options = {}) {
       const paiementTxt = {orange_money:'🟠 Orange',moov_money:'🟦 Moov',mtn_money:'🟡 MTN',banque:'🏦 Banque'}[x.mode_paiement] || '';
       if (paiementTxt) servicesTxt.push(paiementTxt);
 
+      // ✅ DATE FORMATÉE
       let dateFormatee = '';
       try { dateFormatee = x.date_preinscription ? new Date(x.date_preinscription).toLocaleString(langueActuelle === 'ar' ? 'ar-MA' : 'fr-FR') : '—'; }
       catch { dateFormatee = x.date_preinscription || '—'; }
 
+      // ✅ STATUT AFFICHAGE
       const statutAffichage = {en_attente:'En attente',validee:'Validée',refusee:'Refusée',annulee:'Refusée'}[x.statut] || x.statut;
       const idDemande = x.id_preinscription || x.id;
 
@@ -463,7 +468,8 @@ async function requeteAPI(chemin, options = {}) {
   function ouvrirVerification(demande) {
     demandeEnCours = demande;
     const d = demande;
-    const photoUrl = d.photo_identite ? (d.photo_identite.startsWith('http') ? d.photo_identite : `${API_BASE}/${d.photo_identite}`) : null;
+    // ✅ API_URL au lieu de API_BASE
+    const photoUrl = d.photo_identite ? (d.photo_identite.startsWith('http') ? d.photo_identite : `${API_URL}/${d.photo_identite}`) : null;
 
     document.getElementById('contenuVerif').innerHTML = `
       <div class="row">
@@ -508,15 +514,14 @@ async function requeteAPI(chemin, options = {}) {
           </div>
           <div class="card-verif">
             <h6>📄 <span class="txt-fr">Documents fournis</span><span class="txt-en">Provided Documents</span></h6>
-            <p>${d.documents?d.documents.split('|').map(f=>`<a href="${API_BASE}/${f}" target="_blank" class="btn-doc">📄 ${f.split('-').pop()}</a>`).join('<br>'):'Aucun document'}</p>
+            <p>${d.documents?d.documents.split('|').map(f=>`<a href="${API_URL}/${f}" target="_blank" class="btn-doc">📄 ${f.split('-').pop()}</a>`).join('<br>'):'Aucun document'}</p>
           </div>
           <div class="card-verif bg-success bg-opacity-10">
             <h6>🔢 <span class="txt-fr">Matricule généré</span><span class="txt-en">Generated ID</span></h6>
             <p class="h4 text-warning">${escaperHtml(d.matricule||'À la validation')}</p>
           </div>
         </div>
-      </div>
-    `;
+      </div>`;
     new bootstrap.Modal(document.getElementById('modalVerif')).show();
   }
 
@@ -530,11 +535,11 @@ async function requeteAPI(chemin, options = {}) {
       ar: '✅ تأكيد الموافقة؟ سيتم إنشاء حساب وإرسال بريد إلكتروني بجميع المعلومات.'
     };
     if (!confirm(msgConf[langueActuelle])) return;
-
     try {
-      const res = await fetch(`${API_BASE}/preinscription/valider/${id}`, {
+      // ✅ API_URL au lieu de API_BASE
+      const res = await fetch(`${API_URL}/preinscription/valider/${id}`, {
         method: 'PUT',
-        headers: enteteRequete() // ✅ Utilisation centralisée
+        headers: enteteRequete()
       });
       const d = await res.json();
       if (d.ok) {
@@ -564,9 +569,10 @@ async function requeteAPI(chemin, options = {}) {
     if (!confirm(msgConf[langueActuelle])) return;
     const id = demandeEnCours.id_preinscription || demandeEnCours.id;
     try {
-      const res = await fetch(`${API_BASE}/preinscription/supprimer/${id}`, {
+      // ✅ API_URL au lieu de API_BASE
+      const res = await fetch(`${API_URL}/preinscription/supprimer/${id}`, {
         method: 'DELETE',
-        headers: enteteRequete() // ✅ Utilisation centralisée
+        headers: enteteRequete()
       });
       const d = await res.json();
       if (d.ok) {
@@ -592,8 +598,5 @@ async function requeteAPI(chemin, options = {}) {
   // 🚀 AU CHARGEMENT
   document.addEventListener('DOMContentLoaded', chargerListe);
 </script>
-
-<!-- ✅ Bootstrap JS pour les modales -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

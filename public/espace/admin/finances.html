@@ -20,7 +20,6 @@
       --bordure: #e2e8f0; --carte: #ffffff; --ombre: rgba(15,23,42,.08);
       --input-fond: #f8fafc; --texte-lien: #0d6efd;
     }
-
     :root[data-bs-theme="dark"] {
       --primaire: #0369a1; --succes: #34d399; --alerte: #fbbf24;
       --danger: #f87171; --info: #60a5fa; --sombre: #0f172a;
@@ -28,18 +27,16 @@
       --bordure: rgba(245,158,11,.25); --carte: rgba(30,41,59,.85); --ombre: rgba(0,0,0,.3);
       --input-fond: rgba(15,23,42,.6); --texte-lien: #93c5fd;
     }
-
     /* ===== 🗣️ TRILINGUE ===== */
-    .txt-en,.txt-ar{display:none}
-    body.lang-fr .txt-fr{display:inline}
-    body.lang-en .txt-en{display:inline}
-    body.lang-ar .txt-ar{display:inline}
-    body.lang-en .txt-fr,body.lang-en .txt-ar{display:none}
-    body.lang-fr .txt-en,body.lang-fr .txt-ar{display:none}
-    body.lang-ar .txt-fr,body.lang-ar .txt-en{display:none}
+    .txt-en,.txt-ar{display:none !important;}
+    body.lang-fr .txt-fr{display:inline !important;}
+    body.lang-en .txt-en{display:inline !important;}
+    body.lang-ar .txt-ar{display:inline !important;}
+    body.lang-en .txt-fr,body.lang-en .txt-ar{display:none !important;}
+    body.lang-fr .txt-en,body.lang-fr .txt-ar{display:none !important;}
+    body.lang-ar .txt-fr,body.lang-ar .txt-en{display:none !important;}
     body.lang-ar { direction: rtl; }
     body.lang-ar .titre-section,body.lang-ar .text-end-ar { text-align: right; }
-
     /* ===== GÉNÉRAL ===== */
     body { 
       background: linear-gradient(135deg, var(--sombre), var(--sombre-clair)); 
@@ -48,7 +45,6 @@
       padding-bottom: 80px;
       transition: background .4s ease, color .3s ease;
     }
-
     /* ===== CARTES AVEC ANIMATION ===== */
     .carte { 
       background: var(--carte); 
@@ -67,7 +63,6 @@
       border-color: #6366f1; 
       box-shadow: 0 0 20px rgba(99,102,241,.15); 
     }
-
     /* ===== BOUTONS ===== */
     .btn-primaire { background:linear-gradient(135deg,var(--primaire),#0369a1); border:none; color:white; font-weight:500; transition:transform .2s; }
     .btn-succes { background:linear-gradient(135deg,var(--succes),#059669); border:none; color:white; font-weight:500; }
@@ -77,7 +72,6 @@
     .btn-verrouille { background:linear-gradient(135deg,#6366f1,#4f46e5); border:none; color:white; font-weight:500; }
     .btn-admin { background:linear-gradient(135deg,#7e22ce,#6b21a8); border:none; color:white; font-weight:500; }
     .btn:active { transform:scale(.97); }
-
     /* ===== FORMULAIRES ===== */
     .form-control,.form-select { 
       background: var(--input-fond); 
@@ -92,7 +86,6 @@
       color: var(--texte-clair); 
       box-shadow: 0 0 0 .25rem rgba(245,158,11,.15); 
     }
-
     /* ===== MODALES ===== */
     .modal-content { 
       background: var(--sombre-clair); 
@@ -101,7 +94,6 @@
       color: var(--texte-clair); 
     }
     .btn-close-white { filter:invert(1); }
-
     /* ===== ÉLÉMENTS SPÉCIFIQUES ===== */
     .titre-section { color:var(--texte-dore); font-weight:600; }
     .montant { font-family:'Segoe UI Mono',monospace; font-weight:600; }
@@ -120,7 +112,6 @@
     .alerte { border-left:4px solid var(--alerte); background:rgba(245,158,11,.1); padding:.75rem 1rem; border-radius:0 10px 10px 0; }
     .alerte-verrouille { border-left-color:#6366f1; background:rgba(99,102,241,.1); }
     .no-print { display: initial; }
-
     /* ===== BARRE DE STATUT ===== */
     .barre-statut {
       position: fixed; bottom: 0; left: 0; right: 0;
@@ -129,18 +120,13 @@
     }
     .en-cours { color: #f59e0b; }
     .ferme { color: #10b981; }
-
     .btn-group-header { gap: 8px; flex-wrap: wrap; }
     .btn-group-header .btn { white-space: nowrap; }
     .btn-admin-action { display: none; }
     .is-admin .btn-admin-action { display: inline-flex; }
-
     /* ===== TOGGLE THEME ===== */
     .theme-btn { position:relative; overflow:hidden; }
     .theme-btn i { transition:transform .3s ease; }
-    :root[data-bs-theme="dark"] .theme-btn i.bi-moon-stars { transform:translateY(0); }
-    :root[data-bs-theme="light"] .theme-btn i.bi-sun { transform:translateY(0); }
-
     /* ===== IMPRESSION ===== */
     @media print { 
       .no-print { display:none!important; } 
@@ -148,7 +134,6 @@
       .barre-statut { display:none!important; }
       .carte { box-shadow:none!important; border:1px solid #ccc; }
     }
-
     /* ===== ANIMATIONS D'ENTRÉE ===== */
     .carte { animation: entreCarte .5s ease backwards; }
     @keyframes entreCarte { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:none; } }
@@ -159,70 +144,73 @@
   </style>
 </head>
 <body>
-
-
-<!-- ✅ 🔐 VÉRIFICATION SESSION -->
+<!-- ✅ 🔐 VÉRIFICATION SESSION — CORRIGÉE -->
 <script>
-
+  // ==================================================
+  // ✅ CONFIGURATION API — UNIFORME SANS LOCALHOST
+  // ==================================================
   const API_URL = "https://mama-zoumana-api.onrender.com/api";
-function getToken() { return localStorage.getItem('token'); }
-async function requeteAPI(chemin, options = {}) {
-  const reponse = await fetch(`${API_URL}${chemin}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
-      ...options.headers
+
+  // ✅ Récupération sécurisée du token
+  function getToken() { return localStorage.getItem('token'); }
+
+  // ✅ Fonction CENTRALISÉE — Token injecté + 401 géré
+  async function requeteAPI(chemin, options = {}) {
+    const reponse = await fetch(`${API_URL}${chemin}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`,
+        ...options.headers
+      }
+    });
+    const donnees = await reponse.json();
+    if (reponse.status === 401) {
+      alert("⛔ Session expirée — Reconnectez-vous");
+      localStorage.clear();
+      window.location.href = 'connexion.html';
     }
-  });
-  const donnees = await reponse.json();
-  if (reponse.status === 401) {
-    alert("⛔ Session expirée — Reconnectez-vous");
-    localStorage.clear();
-    window.location.href = 'connexion.html';
+    return donnees;
   }
-  return donnees;
-}
-const token = getItem('token');
-const roleUtilisateur = localStorage.getItem('role') || '';
-const estAdmin = (roleUtilisateur === 'admin' || roleUtilisateur === 'super_admin');
-const estComptable = (roleUtilisateur === 'comptable');
-const langueSauvegardee = localStorage.getItem('langue') || 'fr';
-const themeSauvegarde = localStorage.getItem('theme') || 'light';
 
-if (!token) {
-  alert("⛔ Accès refusé — Veuillez vous connecter");
-  window.location.href = '../connexion.html';
-}
+  // ✅ SÉCURITÉ — CORRIGÉ : utilisation de getToken()
+  const token = getToken();
+  const roleUtilisateur = localStorage.getItem('role') || '';
+  const estAdmin = (roleUtilisateur === 'admin' || roleUtilisateur === 'super_admin');
+  const estComptable = (roleUtilisateur === 'comptable');
+  const langueSauvegardee = localStorage.getItem('langue') || 'fr';
+  const themeSauvegarde = localStorage.getItem('theme') || 'light';
 
-// Appliquer le thème
-document.documentElement.setAttribute('data-bs-theme', themeSauvegarde);
+  // ✅ Redirection si non connecté
+  if (!token) {
+    alert("⛔ Accès refusé — Veuillez vous connecter");
+    window.location.href = '../connexion.html';
+  }
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (estAdmin) document.body.classList.add('is-admin');
-  document.body.classList.add('lang-' + langueSauvegardee);
-  document.documentElement.lang = langueSauvegardee;
-  document.querySelectorAll('.lang-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.lang === langueSauvegardee);
+  // ✅ Appliquer le thème SAUVEGARDÉ
+  document.documentElement.setAttribute('data-bs-theme', themeSauvegarde);
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (estAdmin) document.body.classList.add('is-admin');
+    document.body.classList.add('lang-' + langueSauvegardee);
+    document.documentElement.lang = langueSauvegardee;
+    document.querySelectorAll('.lang-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.lang === langueSauvegardee);
+    });
+    // ✅ Icône thème initiale
+    document.getElementById('iconeTheme').className = themeSauvegarde === 'dark' 
+      ? 'bi bi-sun' 
+      : 'bi bi-moon-stars';
   });
-  // Mettre à jour icône thème
-  document.getElementById('iconeTheme').className = themeSauvegarde === 'dark' 
-    ? 'bi bi-sun' 
-    : 'bi bi-moon-stars';
-});
 
-
-
-// 💾 Stockage local
-function obtenirOperationsLocales() { return JSON.parse(localStorage.getItem('operations_financieres') || '[]'); }
-function sauvegarderOperationsLocales(liste) { localStorage.setItem('operations_financieres', JSON.stringify(liste)); }
-function obtenirBudgetLocal() { return JSON.parse(localStorage.getItem('budget_previsionnel') || '{}'); }
-function sauvegarderBudgetLocal(data) { localStorage.setItem('budget_previsionnel', JSON.stringify(data)); }
+  // 💾 Stockage local de secours
+  function obtenirOperationsLocales() { return JSON.parse(localStorage.getItem('operations_financieres') || '[]'); }
+  function sauvegarderOperationsLocales(liste) { localStorage.setItem('operations_financieres', JSON.stringify(liste)); }
+  function obtenirBudgetLocal() { return JSON.parse(localStorage.getItem('budget_previsionnel') || '{}'); }
+  function sauvegarderBudgetLocal(data) { localStorage.setItem('budget_previsionnel', JSON.stringify(data)); }
 </script>
 
-
 <div class="container py-4">
-
   <!-- 🌐 LANGUE + THÈME -->
   <div class="d-flex justify-content-end gap-2 mb-3 no-print">
     <button id="btnTheme" class="btn theme-btn btn-outline-secondary" title="Changer le mode clair/sombre">
@@ -255,7 +243,6 @@ function sauvegarderBudgetLocal(data) { localStorage.setItem('budget_previsionne
         </p>
       </div>
     </div>
-
     <div class="d-flex btn-group-header mt-2">
       <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#modalBudget">
         <i class="bi bi-calculator me-1"></i>
@@ -452,14 +439,12 @@ function sauvegarderBudgetLocal(data) { localStorage.setItem('budget_previsionne
     <h5 class="titre-section small mb-0">📋 <span class="txt-fr">Journal des Opérations</span><span class="txt-en">Operations Log</span></h5>
     <small class="text-muted" id="infoJournal">—</small>
   </div>
-
   <div id="listeOperations" class="row g-3">
     <div class="col-12 text-center py-5 text-muted">
       <div class="spinner-border text-warning mb-3"></div>
       <p><span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span></p>
     </div>
   </div>
-
 </div>
 
 <!-- BARRE DE STATUT -->
@@ -604,7 +589,6 @@ function sauvegarderBudgetLocal(data) { localStorage.setItem('budget_previsionne
           <button type="submit" class="btn btn-danger">
             💾 <span class="txt-fr">Enregistrer</span><span class="txt-en">Save</span>
           </button>
-        </button>
         </div>
       </form>
     </div>
@@ -673,18 +657,19 @@ function sauvegarderBudgetLocal(data) { localStorage.setItem('budget_previsionne
 let graphCamembert = null, graphCourbe = null;
 let donneesGlobales = null;
 let periodeClose = false;
+let operationEnCours = null; // Pour édition
 
 // ✅ Messages multilingues
 const MSG = {
-  fr: { serveurHorsLigne: "⚠️ Serveur indisponible — Mode local actif", sessionExpiree: "⛔ Session expirée — Reconnectez-vous", accesRefuse: "⛔ Accès refusé — Droits insuffisants", erreurReseau: "❌ Erreur réseau — Vérifiez le serveur" },
-  en: { serveurHorsLigne: "⚠️ Server offline — Local mode active", sessionExpiree: "⛔ Session expired — Please log in again", accesRefuse: "⛔ Access denied — Insufficient rights", erreurReseau: "❌ Network error — Check server status" },
-  ar: { serveurHorsLigne: "⚠️ الخادم غير متاح — العمل محلي", sessionExpiree: "⛔ انتهت الجلسة — أعد تسجيل الدخول", accesRefuse: "⛔ ممنوع الوصول — صلاحيات غير كافية", erreurReseau: "❌ خطأ في الشبكة — تحقق من الخادم" }
+  fr: { serveurHorsLigne: "⚠️ Serveur indisponible — Mode local actif", sessionExpiree: "⛔ Session expirée — Reconnectez-vous", accesRefuse: "⛔ Accès refusé — Droits insuffisants", erreurReseau: "❌ Erreur réseau — Vérifiez le serveur", confSuppr: "⚠️ Supprimer définitivement cette opération ?", enregOk: "✅ Enregistré !", modifOk: "✅ Modifié !", supprOk: "✅ Supprimé !", champObligatoire: "⚠️ Remplissez le libellé et le montant" },
+  en: { serveurHorsLigne: "⚠️ Server offline — Local mode active", sessionExpiree: "⛔ Session expired — Please log in again", accesRefuse: "⛔ Access denied — Insufficient rights", erreurReseau: "❌ Network error — Check server status", confSuppr: "⚠️ Delete this operation permanently?", enregOk: "✅ Saved!", modifOk: "✅ Updated!", supprOk: "✅ Deleted!", champObligatoire: "⚠️ Fill in label and amount" },
+  ar: { serveurHorsLigne: "⚠️ الخادم غير متاح — العمل محلي", sessionExpiree: "⛔ انتهت الجلسة — أعد تسجيل الدخول", accesRefuse: "⛔ ممنوع الوصول — صلاحيات غير كافية", erreurReseau: "❌ خطأ في الشبكة — تحقق من الخادم", confSuppr: "⚠️ حذف هذه العملية نهائيًا؟", enregOk: "✅ تم الحفظ!", modifOk: "✅ تم التعديل!", supprOk: "✅ تم الحذف!", champObligatoire: "⚠️ املأ الحقل المطلوب والقيمة" }
 };
 const m = MSG[langueSauvegardee] || MSG.fr;
 
 // ✅ Heure en bas
 function mettreAJourHeure(){
-  document.getElementById('dateHeure').textContent = new Date().toLocaleString('fr-FR');
+  document.getElementById('dateHeure').textContent = new Date().toLocaleString(langueSauvegardee === 'ar' ? 'ar-TN' : 'fr-FR');
 }
 setInterval(mettreAJourHeure, 60000);
 mettreAJourHeure();
@@ -701,7 +686,7 @@ document.querySelectorAll('.lang-btn').forEach(btn => {
   });
 });
 
-// 🌙 BASCULEMENT THÈME CLAIR / SOMBRE
+// 🌙 BASCULEMENT THÈME CLAIR / SOMBRE — COMPLÈTEMENT CORRIGÉ
 document.getElementById('btnTheme').addEventListener('click', () => {
   const actuel = document.documentElement.getAttribute('data-bs-theme') || 'light';
   const nouveau = actuel === 'dark' ? 'light' : 'dark';
@@ -746,7 +731,7 @@ function mettreAJourInfosTotaux(recettes, depenses, solde){
   document.getElementById('infoTotaux').innerHTML = `💰 ${formatMontant(recettes)} | 📉 ${formatMontant(depenses)} | ⚖️ ${formatMontant(solde)}`;
 }
 
-// 🔒 Clôturer / Rouvrir
+// 🔒 Clôturer / Rouvrir — CORRIGÉ avec requeteAPI
 window.gererPeriode = async function(){
   if(!estAdmin) return alert("⛔ Seul l'Administrateur peut gérer la clôture");
   const mois = document.getElementById('filtreMois').value;
@@ -755,317 +740,315 @@ window.gererPeriode = async function(){
   const action = periodeClose ? 'rouvrir' : 'cloturer';
   const conf = periodeClose ? `Réouvrir ${nomMois(mois)} ${annee} ?` : `Confirmer la CLÔTURE de ${nomMois(mois)} ${annee} ?`;
   if(!confirm(conf)) return;
-
   try{
-    const r = await fetch(`${API_URL}/${action}`, {
-      method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-      body:JSON.stringify({mois:parseInt(mois),annee:parseInt(annee)})
+    const res = await requeteAPI(`/${action}`, {
+      method:'POST',
+      body: JSON.stringify({mois:parseInt(mois),annee:parseInt(annee)})
     });
-    const txt = await r.text();
-    let res; try{ res = JSON.parse(txt); }catch{ return alert("❌ Réponse invalide — Vérifiez l'API"); }
     res.ok ? (alert("✅ " + (res.message || "Opération réussie")), charger()) : alert("❌ " + (res.erreur || "Erreur"));
   }catch{ alert(m.erreurReseau); }
 };
 
-// 📦 CHARGER LES DONNÉES
+// 📦 CHARGER LES DONNÉES — CORRIGÉ avec requeteAPI
 async function charger(){
   const cont = document.getElementById('listeOperations');
   cont.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-warning"></div><p class="mt-2">Chargement...</p></div>';
-
   const t = document.getElementById('filtreType').value;
   const c = document.getElementById('filtreCategorie').value;
   const m = document.getElementById('filtreMois').value;
   const a = document.getElementById('filtreAnnee').value;
-  const r = document.getElementById('recherche').value.trim();
-  const u = document.getElementById('filtreUtilisateur').value;
+  const r = document.getElementById('recherche').value;
+   const p = document.getElementById('filtrePaiement').value;
+   const u = document.getElementById('filtreUtilisateur').value;
 
-  let url = `${API_URL}/liste?`;
-  if(t) url += `type=${encodeURIComponent(t)}&`;
-  if(c) url += `categorie=${encodeURIComponent(c)}&`;
-  if(m) url += `mois=${encodeURIComponent(m)}&`;
-  if(a) url += `annee=${encodeURIComponent(a)}&`;
-  if(r) url += `recherche=${encodeURIComponent(r)}&`;
-  if(u) url += `id_utilisateur=${encodeURIComponent(u)}&`;
+   try {
+     const donnees = await requeteAPI('/finances/operations', {
+       method: 'POST',
+       body: JSON.stringify({ type: t, categorie: c, mois: m, annee: a, recherche: r, mode_paiement: p, utilisateur: u })
+     });
 
-  try{
-    const resp = await fetch(url, { headers:{'Authorization':`Bearer ${token}`} });
-    if(resp.status === 401){ alert(m.sessionExpiree); localStorage.clear(); location.href='../connexion.html'; return; }
-    if(resp.status === 403){ alert(m.accesRefuse); return; }
-    if(!resp.ok) throw new Error(`Erreur HTTP ${resp.status}`);
+     if (!donnees.ok) throw donnees.erreur;
+     traiterDonnees(donnees.liste || []);
 
-    const txt = await resp.text();
-    let res; try{ res = JSON.parse(txt); }catch{ throw new Error("Réponse non-JSON"); }
-    if(!res.ok) throw new Error(res.erreur || "Erreur serveur");
-
-    donneesGlobales = res;
-    periodeClose = !!res.periodeClose;
-    mettreAJourStatut();
-    sauvegarderOperationsLocales(res.operations || []);
-
-    // 📊 Bilan
-    const recettes = parseFloat(res.bilan?.recettes) || 0;
-    const depenses = parseFloat(res.bilan?.depenses) || 0;
-    const solde = recettes - depenses;    document.getElementById('totalRecettes').textContent = formatMontant(recettes);
-    document.getElementById('totalDepenses').textContent = formatMontant(depenses);
-    document.getElementById('solde').textContent = formatMontant(solde);
-    mettreAJourInfosTotaux(recettes, depenses, solde);
-
-    // 📊 Barre de répartition
-    const totalGlobal = recettes + depenses;
-    const tauxRecette = totalGlobal > 0 ? Math.round((recettes / totalGlobal) * 100) : 50;
-    const tauxDepense = 100 - tauxRecette;
-    document.getElementById('barRecette').style.width = tauxRecette + '%';
-    document.getElementById('barDepense').style.width = tauxDepense + '%';
-    document.getElementById('tauxRecette').textContent = `${tauxRecette}% Recettes / ${tauxDepense}% Dépenses`;
-
-    // ⚠️ Alerte dépassement budget
-    const budget = obtenirBudgetLocal();
-    const alerteBudget = document.getElementById('alerteBudget');
-    const texteAlerte = document.getElementById('texteAlerte');
-    if (budget.montant_prevu && depenses > parseFloat(budget.montant_prevu)) {
-      alerteBudget.classList.remove('d-none');
-      texteAlerte.innerHTML = `<span class="txt-fr">⚠️ Dépassement budget prévu : ${formatMontant(parseFloat(budget.montant_prevu))} — écart : ${formatMontant(depenses - parseFloat(budget.montant_prevu))}</span>
-        <span class="txt-en">⚠️ Budget exceeded: ${formatMontant(parseFloat(budget.montant_prevu))} — overspent: ${formatMontant(depenses - parseFloat(budget.montant_prevu))}</span>`;
-    } else {
-      alerteBudget.classList.add('d-none');
-    }
-
-    // 📈 Graphique en camembert — par catégorie
-    const ctxCamembert = document.getElementById('camembert').getContext('2d');
-    if (graphCamembert) graphCamembert.destroy();
-    const couleursCamembert = ['#10b981','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899'];
-    graphCamembert = new Chart(ctxCamembert, {
-      type: 'doughnut',
-      data: {
-        labels: res.categories?.map(c => c.libelle || c.categorie) || [],
-        datasets: [{
-          data: res.categories?.map(c => parseFloat(c.montant) || 0) || [],
-          backgroundColor: couleursCamembert,
-          borderWidth: 0
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', labels: { color: 'var(--texte-clair)' } } }
-      }
-    });
-
-    // 📊 Graphique courbe — évolution mensuelle
-    const ctxCourbe = document.getElementById('courbe').getContext('2d');
-    if (graphCourbe) graphCourbe.destroy();
-    graphCourbe = new Chart(ctxCourbe, {
-      type: 'line',
-      data: {
-        labels: res.evolution?.map(e => nomMois(e.mois)) || [],
-        datasets: [
-          { label: 'Recettes', data: res.evolution?.map(e => parseFloat(e.recettes) || 0) || [], borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.1)', fill: true, tension: .3 },
-          { label: 'Dépenses', data: res.evolution?.map(e => parseFloat(e.depenses) || 0) || [], borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,.1)', fill: true, tension: .3 }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: 'var(--texte-clair)' } } },
-        scales: {
-          x: { ticks: { color: 'var(--texte-clair)' }, grid: { color: 'rgba(255,255,255,.08)' } },
-          y: { ticks: { color: 'var(--texte-clair)' }, grid: { color: 'rgba(255,255,255,.08)' } }
-        }
-      }
-    });
-
-    // 📋 Rendu du journal
-    document.getElementById('nbOperations').textContent = `${res.operations?.length || 0} opérations`;
-    document.getElementById('infoJournal').textContent = `${res.operations?.length || 0} élément(s)`;
-
-    if (!res.operations || res.operations.length === 0) {
-      cont.innerHTML = `<div class="col-12 text-center py-5 text-muted">
-        <i class="bi bi-inbox fs-1 mb-2 d-block"></i>
-        <span class="txt-fr">Aucune opération enregistrée</span>
-        <span class="txt-en">No operations recorded</span>
-      </div>`;
-      return;
-    }
-
-    cont.innerHTML = res.operations.map(op => {
-      const estRecette = op.type === 'recette';
-      const icone = estRecette ? '💰' : '📉';
-      const badge = estRecette ? 'badge-recette' : 'badge-depense';
-      const montantClasse = estRecette ? 'recette' : 'depense';
-      const dateOp = op.date_operation ? new Date(op.date_operation).toLocaleDateString('fr-FR') : '—';
-      const peutModifier = !periodeClose && (estAdmin || estComptable);
-
-      return `
-<div class="col-12 carte p-3 ${peutModifier ? '' : 'carte-verrouille'}">
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-    <div class="flex-grow-1">
-      <div class="d-flex align-items-center gap-2 mb-1">
-        <span class="fs-5">${icone}</span>
-        <div>
-          <h6 class="mb-0">${ech(op.libelle)}</h6>
-          <div class="small text-muted">
-            📅 ${dateOp}
-            ${op.reference ? ' | Réf: ' + ech(op.reference) : ''}
-            ${op.categorie ? ' | ' + ech(op.categorie.replace('_',' ')) : ''}
-            ${op.mode_paiement ? ' | ' + iconePaiement(op.mode_paiement) + ' ' + ech(op.mode_paiement.replace('_',' ')) : ''}
-          </div>
-        </div>
-      </div>
-      ${op.commentaire ? `<p class="small text-muted fst-italic mb-0 mt-1">${ech(op.commentaire)}</p>` : ''}
-    </div>
-    <div class="text-end">
-      <div class="montant ${montantClasse} fw-bold">${formatMontant(op.montant)}</div>
-      <span class="badge ${badge} small">${estRecette ? 'Recette' : 'Dépense'}</span>
-      ${peutModifier ? `
-        <div class="mt-1">
-          <button class="btn btn-sm btn-outline-secondary py-0 px-1" onclick="modifierOperation(${op.id_operation})" title="Modifier">
-            <i class="bi bi-pencil"></i>
-          </button>
-          <button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="supprimerOperation(${op.id_operation})" title="Supprimer">
-            <i class="bi bi-tr3"></i>
-          </button>
-        </div>` : `<div class="small text-muted mt-1"><i class="bi bi-lock"></i> Verrouillé</div>`
-      }
-    </div>
-  </div>
-</div>`;
-    }).join('');
-
-  } catch (err) {
-    console.error('Erreur chargement :', err);
-    const locales = obtenirOperationsLocales();
-    if (locales.length > 0) {
-      alert(m.serveurHorsLigne);
-      cont.innerHTML = locales.map(op => `<div class="col-12 carte p-3"><pre>${JSON.stringify(op,null,2)}</pre></div>`).join('');
-    } else {
-      cont.innerHTML = `<div class="col-12 text-center py-5 text-danger">
-        <i class="bi bi-exclamation-triangle fs-1 mb-2 d-block"></i>
-        <span class="txt-fr">Impossible de charger les données</span><br>
-        <small>${err.message}</small>
-      </div>`;
-    }
-  }
+   } catch (erreur) {
+     console.error('Erreur chargement :', erreur);
+     alert(m.erreurReseau);
+     cont.innerHTML = `<div class="col-12 text-center py-5 text-danger">
+       <i class="bi bi-wifi-off fs-1"></i>
+       <p>${m.erreurReseau}</p>
+     </div>`;
+   }
 }
 
-// ✅ Soumission formulaire RECETTE
+// ✅ TRAITER ET AFFICHER LES DONNÉES
+function traiterDonnees(liste) {
+  donneesGlobales = liste;
+  const cont = document.getElementById('listeOperations');
+
+  if (!liste.length) {
+    cont.innerHTML = `<div class="col-12 text-center py-5 text-muted">
+      <i class="bi bi-inbox fs-1"></i>
+      <p>Aucune opération enregistrée</p>
+    </div>`;
+    document.getElementById('nbOperations').textContent = '0 opérations';
+    document.getElementById('totalRecettes').textContent = formatMontant(0);
+    document.getElementById('totalDepenses').textContent = formatMontant(0);
+    document.getElementById('solde').textContent = formatMontant(0);
+    mettreAJourBarres(0, 0);
+    dessinerGraphiques([], []);
+    return;
+  }
+
+  // Calcul des totaux
+  let totalRecettes = 0, totalDepenses = 0;
+  liste.forEach(op => {
+    if (op.type === 'recette') totalRecettes += Number(op.montant);
+    else totalDepenses += Number(op.montant);
+  });
+  const solde = totalRecettes - totalDepenses;
+
+  // Affichage des totaux
+  document.getElementById('totalRecettes').textContent = formatMontant(totalRecettes);
+  document.getElementById('totalDepenses').textContent = formatMontant(totalDepenses);
+  document.getElementById('solde').textContent = formatMontant(solde);
+  document.getElementById('nbOperations').textContent = `${liste.length} opération${liste.length > 1 ? 's' : ''}`;
+  mettreAJourInfosTotaux(totalRecettes, totalDepenses, solde);
+  mettreAJourBarres(totalRecettes, totalDepenses);
+
+  // Liste des opérations
+  cont.innerHTML = liste.map(op => `
+    <div class="col-md-6 col-lg-4">
+      <div class="carte p-3 ${op.type === 'recette' ? 'border-start border-4 border-success' : 'border-start border-4 border-danger'}">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <h6 class="mb-1">${ech(op.libelle)}</h6>
+            <small class="text-muted">${new Date(op.date_operation).toLocaleDateString('fr-FR')} — ${iconePaiement(op.mode_paiement)} ${op.mode_paiement || ''}</small>
+          </div>
+          <div>
+            <span class="montant ${op.type === 'recette' ? 'recette' : 'depense'}">
+              ${op.type === 'recette' ? '+' : '-'}${formatMontant(op.montant)}
+            </span>
+          </div>
+        </div>
+        ${op.reference ? `<small class="badge bg-secondary me-1">Réf: ${ech(op.reference)}</small>` : ''}
+        ${op.categorie ? `<small class="badge bg-info text-dark">${ech(op.categorie)}</small>` : ''}
+        <div class="mt-2 pt-2 border-top d-flex justify-content-end gap-1">
+          ${!periodeClose ? `
+            <button class="btn btn-sm btn-outline-secondary py-0" onclick="editerOperation(${op.id_operation})" title="Modifier">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger py-0" onclick="supprimerOperation(${op.id_operation})" title="Supprimer">
+              <i class="bi bi-trash"></i>
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  dessinerGraphiques(liste, { recettes: totalRecettes, depenses: totalDepenses });
+}
+
+// ✅ MISE À JOUR BARRES DE RÉPARTITION
+function mettreAJourBarres(recettes, depenses) {
+  const total = recettes + depenses;
+  const pr = total > 0 ? Math.round((recettes / total) * 100) : 50;
+  const pd = total > 0 ? 100 - pr : 50;
+  document.getElementById('barRecette').style.width = `${pr}%`;
+  document.getElementById('barDepense').style.width = `${pd}%`;
+  document.getElementById('tauxRecette').textContent = `${pr}% Recettes / ${pd}% Dépenses`;
+}
+
+// ✅ GRAPHIQUES AVEC Chart.js
+function dessinerGraphiques(liste, totaux) {
+  // Camembert par catégorie
+  const ctxCamembert = document.getElementById('camembert').getContext('2d');
+  if (graphCamembert) graphCamembert.destroy();
+  const categories = {};
+  liste.forEach(op => {
+    const cat = op.categorie || 'Autre';
+    categories[cat] = (categories[cat] || 0) + Number(op.montant);
+  });
+  graphCamembert = new Chart(ctxCamembert, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(categories),
+      datasets: [{
+        data: Object.values(categories),
+        backgroundColor: ['#10b981','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#ec4899','#6366f1']
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  // Courbe évolution mensuelle
+  const ctxCourbe = document.getElementById('courbe').getContext('2d');
+  if (graphCourbe) graphCourbe.destroy();
+  const parMoisRecette = Array(12).fill(0);
+  const parMoisDepense = Array(12).fill(0);
+  liste.forEach(op => {
+    const m = new Date(op.date_operation).getMonth();
+    if (op.type === 'recette') parMoisRecette[m] += Number(op.montant);
+    else parMoisDepense[m] += Number(op.montant);
+  });
+  graphCourbe = new Chart(ctxCourbe, {
+    type: 'line',
+    data: {
+      labels: ['Jan','Fév','Mars','Avr','Mai','Juin','Juil','Août','Sept','Oct','Nov','Déc'],
+      datasets: [
+        { label: 'Recettes', data: parMoisRecette, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.1)', fill: true, tension: .4 },
+        { label: 'Dépenses', data: parMoisDepense, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,.1)', fill: true, tension: .4 }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
+
+// ✅ ENREGISTRER RECETTE
 document.getElementById('formRecette').addEventListener('submit', async e => {
   e.preventDefault();
-  if (periodeClose) return alert("⛔ Période clôturée — Ajout interdit");
-  const form = new FormData(e.target);
-  const data = Object.fromEntries(form);
-  data.montant = parseFloat(data.montant);
-  if (!data.date_operation) data.date_operation = new Date().toISOString().slice(0,10);
+  const form = Object.fromEntries(new FormData(e.target));
+  if (!form.libelle || !form.montant) return alert(m.champObligatoire);
 
   try {
-    const r = await fetch(`${API_URL}/enregistrer`, {
+    const res = await requeteAPI('/finances/ajouter', {
       method: 'POST',
-      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
-      body: JSON.stringify(data)
+      body: JSON.stringify(form)
     });
-    const res = await r.json();
-    if (res.ok) { alert("✅ Recette enregistrée"); bootstrap.Modal.getOrCreateInstance('#modalOperation').hide(); e.target.reset(); charger(); }
-    else alert("❌ " + (res.erreur || "Erreur"));
+    if (res.ok) {
+      alert(m.enregOk);
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('modalOperation')).hide();
+      e.target.reset();
+      charger();
+    } else alert("❌ " + (res.erreur || "Erreur"));
   } catch { alert(m.erreurReseau); }
 });
 
-// ✅ Soumission formulaire DÉPENSE
+// ✅ ENREGISTRER DÉPENSE
 document.getElementById('formDepense').addEventListener('submit', async e => {
   e.preventDefault();
-  if (periodeClose) return alert("⛔ Période clôturée — Ajout interdit");
-  const form = new FormData(e.target);
-  const data = Object.fromEntries(form);
-  data.montant = parseFloat(data.montant);
-  if (!data.date_operation) data.date_operation = new Date().toISOString().slice(0,10);
+  const form = Object.fromEntries(new FormData(e.target));
+  if (!form.libelle || !form.montant) return alert(m.champObligatoire);
 
   try {
-    const r = await fetch(`${API_URL}/enregistrer`, {
+    const res = await requeteAPI('/finances/ajouter', {
       method: 'POST',
-      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
-      body: JSON.stringify(data)
+      body: JSON.stringify(form)
     });
-    const res = await r.json();
-    if (res.ok) { alert("✅ Dépense enregistrée"); bootstrap.Modal.getOrCreateInstance('#modalDepense').hide(); e.target.reset(); charger(); }
-    else alert("❌ " + (res.erreur || "Erreur"));
+    if (res.ok) {
+      alert(m.enregOk);
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('modalDepense')).hide();
+      e.target.reset();
+      charger();
+    } else alert("❌ " + (res.erreur || "Erreur"));
   } catch { alert(m.erreurReseau); }
 });
 
-// ✅ Soumission BUDGET
-document.getElementById('formBudget').addEventListener('submit', e => {
+// ✅ ENREGISTRER BUDGET
+document.getElementById('formBudget').addEventListener('submit', async e => {
   e.preventDefault();
-  const form = new FormData(e.target);
-  const data = Object.fromEntries(form);
-  sauvegarderBudgetLocal(data);
-  alert("✅ Budget prévisionnel enregistré");
-  bootstrap.Modal.getOrCreateInstance('#modalBudget').hide();
-  charger();
+  const form = Object.fromEntries(new FormData(e.target));
+  try {
+    const res = await requeteAPI('/finances/budget', {
+      method: 'POST',
+      body: JSON.stringify(form)
+    });
+    if (res.ok) {
+      alert(m.enregOk);
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('modalBudget')).hide();
+      e.target.reset();
+    } else alert("❌ " + (res.erreur || "Erreur"));
+  } catch { alert(m.erreurReseau); }
 });
 
-// ✅ Modifier une opération
-window.modifierOperation = async function(id) {
-  alert("🔄 Fonction modification à connecter à l'API");
+// ✅ ÉDITER UNE OPÉRATION
+window.editerOperation = async function(id) {
+  const op = donneesGlobales.find(o => o.id_operation === id);
+  if (!op) return;
+  operationEnCours = op;
+
+  if (op.type === 'recette') {
+    document.getElementById('idRecette').value = op.id_operation;
+    document.getElementById('libelleRecette').value = op.libelle;
+    document.getElementById('categorieRecette').value = op.categorie;
+    document.getElementById('referenceRecette').value = op.reference || '';
+    document.getElementById('montantRecette').value = op.montant;
+    document.getElementById('paiementRecette').value = op.mode_paiement;
+    document.getElementById('dateRecette').value = op.date_operation?.split('T')[0];
+    document.getElementById('commentaireRecette').value = op.commentaire || '';
+    new bootstrap.Modal('#modalOperation').show();
+  } else {
+    document.getElementById('idDepense').value = op.id_operation;
+    document.getElementById('libelleDepense').value = op.libelle;
+    document.getElementById('categorieDepense').value = op.categorie;
+    document.getElementById('referenceDepense').value = op.reference || '';
+    document.getElementById('montantDepense').value = op.montant;
+    document.getElementById('paiementDepense').value = op.mode_paiement;
+    document.getElementById('dateDepense').value = op.date_operation?.split('T')[0];
+    document.getElementById('commentaireDepense').value = op.commentaire || '';
+    new bootstrap.Modal('#modalDepense').show();
+  }
 };
 
-// ✅ Supprimer une opération
+// ✅ SUPPRIMER UNE OPÉRATION
 window.supprimerOperation = async function(id) {
-  if (periodeClose) return alert("⛔ Période clôturée — Suppression interdite");
-  if (!confirm("Confirmer la suppression ?")) return;
+  if (!confirm(m.confSuppr)) return;
   try {
-    const r = await fetch(`${API_URL}/supprimer/${id}`, {
-      method: 'POST', headers: { 'Authorization':`Bearer ${token}` }
-    });
-    const res = await r.json();
-    if (res.ok) { alert("✅ Supprimé"); charger(); }
+    const res = await requeteAPI(`/finances/supprimer/${id}`, { method: 'DELETE' });
+    if (res.ok) { alert(m.supprOk); charger(); }
     else alert("❌ " + (res.erreur || "Erreur"));
   } catch { alert(m.erreurReseau); }
 };
 
-// 📤 Export CSV
+// ✅ EXPORT CSV
 window.exporterCSV = function() {
-  if (!donneesGlobales || !donneesGlobales.operations) return alert("Aucune donnée à exporter");
-  const entetes = ['Date','Libellé','Type','Catégorie','Montant','ModePaiement','Référence','Commentaire'];
-  const lignes = donneesGlobales.operations.map(op => [
-    op.date_operation || '',
-    '"' + (op.libelle || '').replace(/"/g,'""') + '"',
-    op.type || '',
+  if (!donneesGlobales?.length) return alert("Aucune donnée à exporter");
+  const entetes = ['Date','Type','Libellé','Catégorie','Montant','ModePaiement','Référence','Commentaire'];
+  const lignes = donneesGlobales.map(op => [
+    op.date_operation?.split('T')[0],
+    op.type === 'recette' ? 'RECETTE' : 'DÉPENSE',
+    `"${(op.libelle||'').replace(/"/g,'""')}"`,
     op.categorie || '',
-    op.montant || 0,
+    op.montant,
     op.mode_paiement || '',
     op.reference || '',
-    '"' + (op.commentaire || '').replace(/"/g,'""') + '"'
+    `"${(op.commentaire||'').replace(/"/g,'""')}"`
   ].join(';'));
   const csv = [entetes.join(';'), ...lignes].join('\n');
   const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = `operations-${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url);
+  a.href=URL.createObjectURL(blob);
+  a.download=`operations-financieres-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
 };
 
-// 📄 Export PDF (impression navigateur)
-window.exporterRapportPDF = function() { window.print(); };
+// ✅ EXPORT PDF (impression navigateur)
+window.exporterRapportPDF = function() {
+  window.print();
+};
 
-// 🔄 Réinitialiser filtres
+// ✅ RÉINITIALISER FILTRES
 document.getElementById('btnReinitialiser').addEventListener('click', () => {
-  document.getElementById('recherche').value = '';
-  document.getElementById('filtreType').value = '';
-  document.getElementById('filtreCategorie').value = '';
-  document.getElementById('filtrePaiement').value = '';
-  document.getElementById('filtreUtilisateur').value = '';
+  document.getElementById('recherche').value='';
+  document.getElementById('filtreType').value='';
+  document.getElementById('filtreCategorie').value='';
+  document.getElementById('filtrePaiement').value='';
+  document.getElementById('filtreUtilisateur').value='';
   charger();
 });
 
-// ⏱️ Charger au changement de filtre
-['recherche','filtreType','filtreCategorie','filtrePaiement','filtreUtilisateur','filtreMois','filtreAnnee'].forEach(id => {
-  document.getElementById(id)?.addEventListener('change', charger);
-});
-document.getElementById('recherche')?.addEventListener('input', debounce(charger, 400));
+// ✅ ACTUALISER AU CHANGEMENT DE FILTRES
+document.getElementById('filtreMois').addEventListener('change', charger);
+document.getElementById('filtreAnnee').addEventListener('change', charger);
+document.getElementById('filtreType').addEventListener('change', charger);
+document.getElementById('filtreCategorie').addEventListener('change', charger);
+document.getElementById('filtrePaiement').addEventListener('change', charger);
+document.getElementById('recherche').addEventListener('input', charger);
 
-function debounce(f, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>f(...a),ms); }; }
-
-// 🚀 LANCEMENT AU CHARGEMENT
+// ✅ LANCEMENT AU CHARGEMENT
 document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(charger, 150);
+  charger();
 });
 </script>
-
 </body>
 </html>
