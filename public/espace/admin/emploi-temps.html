@@ -87,13 +87,9 @@
 </head>
 <body class="lang-fr">
 <script>
-  // ✅ CONFIGURATION API — SANS LOCALHOST
+  // ✅ CONFIGURATION API
   const API_URL = "https://mama-zoumana-api.onrender.com/api";
-
-  // ✅ Récupération sécurisée du token
   function getToken() { return localStorage.getItem('token'); }
-
-  // ✅ Fonction centralisée : token + 401 géré automatiquement
   async function requeteAPI(chemin, options = {}) {
     const reponse = await fetch(`${API_URL}${chemin}`, {
       ...options,
@@ -103,13 +99,13 @@
         ...options.headers
       }
     });
-    const donnees = await reponse.json();
     if (reponse.status === 401) {
       alert("⛔ Session expirée — Reconnectez-vous");
       localStorage.clear();
       window.location.href = 'connexion.html';
+      throw new Error('SESSION_EXPIREE');
     }
-    return donnees;
+    return await reponse.json();
   }
 
   // 💾 Stockage local de secours
@@ -126,7 +122,8 @@
       enregOk: "✅ Séance enregistrée !",
       erreurReseau: "❌ Erreur de connexion",
       aucune: "Aucune séance programmée",
-      accesRefuse: "⛔ Accès réservé à l'Administrateur"
+      accesRefuse: "⛔ Accès réservé à l'Administrateur",
+      modeLocalProf: "⚠️ Liste professeurs indisponible — saisissez le nom manuellement"
     },
     en: {
       serveurIndispo: "⚠️ Server offline — Local mode active",
@@ -136,7 +133,8 @@
       enregOk: "✅ Session saved!",
       erreurReseau: "❌ Network error",
       aucune: "No session scheduled",
-      accesRefuse: "⛔ Admin access required"
+      accesRefuse: "⛔ Admin access required",
+      modeLocalProf: "⚠️ Teachers list unavailable — type name manually"
     },
     ar: {
       serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
@@ -146,20 +144,36 @@
       enregOk: "✅ تم الحفظ!",
       erreurReseau: "❌ خطأ في الاتصال",
       aucune: "لا توجد حصص مجدولة",
-      accesRefuse: "⛔ يلزم إذن المدير"
+      accesRefuse: "⛔ يلزم إذن المدير",
+      modeLocalProf: "⚠️ قائمة المعلمين غير متاحة — اكتب الاسم يدوياً"
     }
   };
-
   let langueActuelle = localStorage.getItem('langue') || 'fr';
   function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
 
-  // 🔒 SÉCURITÉ — Vérification token ET rôle admin
-  const role = localStorage.getItem('role');
-  const rolesAdmin = ['admin', 'Admin', 'super_admin'];
-  if (!getToken() || !rolesAdmin.includes(role || '')) {
+  // 🔒 SÉCURITÉ
+  const role = (localStorage.getItem('role') || '').toLowerCase();
+  if (!getToken() || !['admin','super_admin'].includes(role)) {
     alert(m('accesRefuse'));
     localStorage.clear();
     location.href = 'dashboard.html';
+  }
+
+  // 📦 Données référentielles en cache
+  let listeClasses = [];
+  let listeMatieres = [];
+  let listeProfs = [];
+
+  // ✅ Rendre les noms bilingues
+  function nomClasse(id) {
+    const c = listeClasses.find(x => String(x.id_classe || x.id || x._id) === String(id));
+    if (!c) return id || '—';
+    return `${c.libelle_classe}${c.libelle_classe_ar ? ' / ' + c.libelle_classe_ar : ''}`;
+  }
+  function nomMatiere(id) {
+    const m = listeMatieres.find(x => String(x.id_matiere || x.id || x._id) === String(id));
+    if (!m) return id || '—';
+    return `${m.libelle_matiere}${m.libelle_matiere_ar ? ' / ' + m.libelle_matiere_ar : ''}`;
   }
 </script>
 
@@ -217,7 +231,7 @@
               <span class="txt-en">Class *</span>
               <span class="txt-ar">المستوى *</span>
             </label>
-            <select name="id_classe" id="sel-cl" class="form-select" required>
+            <select name="classe_id" id="sel-cl" class="form-select" required>
               <option value="">--- Chargement...</option>
             </select>
           </div>
@@ -227,19 +241,18 @@
               <span class="txt-en">Subject *</span>
               <span class="txt-ar">المادة *</span>
             </label>
-            <select name="id_matiere" id="sel-mat" class="form-select" required>
+            <select name="matiere_id" id="sel-mat" class="form-select" required>
               <option value="">--- Chargement...</option>
             </select>
           </div>
           <div class="mb-3">
             <label class="form-label fw-bold">
-              <span class="txt-fr">Professeur *</span>
-              <span class="txt-en">Teacher *</span>
-              <span class="txt-ar">المعلم *</span>
+              <span class="txt-fr">Professeur</span>
+              <span class="txt-en">Teacher</span>
+              <span class="txt-ar">المعلم</span>
             </label>
-            <select name="id_prof" id="sel-pr" class="form-select" required>
-              <option value="">--- Chargement...</option>
-            </select>
+            <input type="text" name="professeur" id="sel-pr" class="form-control" placeholder="Nom du professeur">
+            <small id="avertissementProf" class="text-warning d-none">⚠️ Liste indisponible — saisissez le nom</small>
           </div>
           <div class="mb-3">
             <label class="form-label fw-bold">
@@ -322,7 +335,6 @@
     document.querySelectorAll('.barre-langue button').forEach(b => b.classList.remove('active'));
     document.getElementById('btn-' + lang)?.classList.add('active');
   }
-
   // ✅ Appliquer langue au chargement
   document.body.className = 'lang-' + langueActuelle;
   document.getElementById('btn-' + langueActuelle)?.classList.add('active');
@@ -335,14 +347,14 @@
           <span class="badge bg-info text-dark me-2">${x.jour || ''}</span>
           <strong>${(x.heure_debut||'').slice(0,5)} — ${(x.heure_fin||'').slice(0,5)}</strong>
           <span class="mx-2">|</span>
-          <span class="text-warning">${x.classe || '—'}</span>
+          <span class="text-warning">${nomClasse(x.classe_id || x.classe)}</span>
           <span class="mx-1">•</span>
-          <span>${x.matiere || '—'}</span>
+          <span>${nomMatiere(x.matiere_id || x.matiere)}</span>
           <span class="mx-1">—</span>
-          <em class="text-success">${x.prof || 'Non affecté'}</em>
+          <em class="text-success">${x.professeur || x.prof || 'Non affecté'}</em>
           ${x.salle ? `<span class="badge bg-secondary ms-2">${x.salle}</span>` : ''}
         </div>
-        <button class="btn btn-suppr-lumineux btn-sm" onclick="supprimer(${x.id_emploi || x.id})">
+        <button class="btn btn-suppr-lumineux btn-sm" onclick="supprimer(${x.id || x._id})">
           <i class="bi bi-trash"></i>
           <span class="txt-fr"> Supprimer</span>
           <span class="txt-en"> Delete</span>
@@ -351,33 +363,57 @@
       </div>`;
   }
 
-  // ✅ CHARGER CLASSES, MATIÈRES, PROFESSEURS (avec requeteAPI)
+  // ✅ CHARGER CLASSES ET MATIÈRES avec LES BONNES ROUTES
   async function chargerListes() {
+    const selCl = document.getElementById('sel-cl');
+    const selMat = document.getElementById('sel-mat');
+    const avertissementProf = document.getElementById('avertissementProf');
+
     try {
-      const [clRes, mtRes, prRes] = await Promise.all([
-        requeteAPI('/classes/'),
-        requeteAPI('/matieres/'),
-        requeteAPI('/utilisateurs/professeurs')
+      const [clRes, mtRes] = await Promise.all([
+        requeteAPI('/classes/toutes'),  // ✅ BONNE ROUTE
+        requeteAPI('/matieres')           // ✅ BONNE ROUTE
       ]);
 
-      if (clRes.ok && clRes.lignes) {
-        document.getElementById('sel-cl').innerHTML =
-          '<option value="">--- Sélectionner ---</option>' +
-          clRes.lignes.map(x => `<option value="${x.id_classe}">${x.libelle_classe}</option>`).join('');
-      }
-      if (mtRes.ok && mtRes.lignes) {
-        document.getElementById('sel-mat').innerHTML =
-          '<option value="">--- Sélectionner ---</option>' +
-          mtRes.lignes.map(x => `<option value="${x.id_matiere}">${x.libelle_matiere}</option>`).join('');
-      }
-      if (prRes.ok && prRes.utilisateurs) {
-        document.getElementById('sel-pr').innerHTML =
-          '<option value="">--- Sélectionner ---</option>' +
-          prRes.utilisateurs.map(x => `<option value="${x.id}">${x.nom} ${x.prenom}</option>`).join('');
-      }
+      listeClasses = clRes.classes || clRes.lignes || clRes || [];
+      listeMatieres = mtRes.matieres || mtRes.lignes || mtRes || [];
+
+      if (!Array.isArray(listeClasses)) listeClasses = [];
+      if (!Array.isArray(listeMatieres)) listeMatieres = [];
+
     } catch (e) {
-      console.warn("🔌 Chargement listes impossible", e);
+      console.warn("🔌 Chargement référentiels impossible", e);
+      // Données de secours
+      listeClasses = [
+        {id_classe:'cp', libelle_classe:'CP', libelle_classe_ar:'الصف الأول'},
+        {id_classe:'ce1', libelle_classe:'CE1', libelle_classe_ar:'الصف الثاني'},
+        {id_classe:'ce2', libelle_classe:'CE2', libelle_classe_ar:'الصف الثالث'},
+        {id_classe:'cm1', libelle_classe:'CM1', libelle_classe_ar:'الصف الرابع'},
+        {id_classe:'cm2', libelle_classe:'CM2', libelle_classe_ar:'الصف الخامس'},
+        {id_classe:'6eme', libelle_classe:'6ème', libelle_classe_ar:'السادس'},
+        {id_classe:'5eme', libelle_classe:'5ème', libelle_classe_ar:'الخامس'},
+        {id_classe:'4eme', libelle_classe:'4ème', libelle_classe_ar:'الرابع'},
+        {id_classe:'3eme', libelle_classe:'3ème', libelle_classe_ar:'الثالث'}
+      ];
+      listeMatieres = [
+        {id_matiere:'fr', libelle_matiere:'Français', libelle_matiere_ar:'اللغة الفرنسية'},
+        {id_matiere:'math', libelle_matiere:'Mathématiques', libelle_matiere_ar:'الرياضيات'},
+        {id_matiere:'ar', libelle_matiere:'Arabe', libelle_matiere_ar:'اللغة العربية'},
+        {id_matiere:'hist', libelle_matiere:'Histoire-Géo', libelle_matiere_ar:'التاريخ والجغرافيا'},
+        {id_matiere:'sc', libelle_matiere:'Sciences', libelle_matiere_ar:'العلوم'},
+        {id_matiere:'ang', libelle_matiere:'Anglais', libelle_matiere_ar:'الإنجليزية'}
+      ];
     }
+
+    // Alimenter listes déroulantes
+    selCl.innerHTML = '<option value="">--- Sélectionner ---</option>' +
+      listeClasses.map(x => `<option value="${x.id_classe || x.id || x._id}">${x.libelle_classe}${x.libelle_classe_ar ? ' / ' + x.libelle_classe_ar : ''}</option>`).join('');
+
+    selMat.innerHTML = '<option value="">--- Sélectionner ---</option>' +
+      listeMatieres.map(x => `<option value="${x.id_matiere || x.id || x._id}">${x.libelle_matiere}${x.libelle_matiere_ar ? ' / ' + x.libelle_matiere_ar : ''}</option>`).join('');
+
+    // ⚠️ Route professeurs indisponible → champ texte libre
+    avertissementProf.classList.remove('d-none');
   }
 
   // ✅ CHARGER EMPLOI DU TEMPS
@@ -388,11 +424,11 @@
     alerteApi.classList.add('d-none');
 
     try {
-      const res = await requeteAPI('/emploi/tout');
-
-      if (res.ok && res.lignes && res.lignes.length > 0) {
-        zone.innerHTML = res.lignes.map(x => rendreLigneSeance(x)).join('');
-        sauvegarderEdtLocal(res.lignes);
+      const res = await requeteAPI('/emploi/global'); // ✅ BONNE ROUTE
+      const lignes = res.seances || res.lignes || res || [];
+      if (Array.isArray(lignes) && lignes.length > 0) {
+        zone.innerHTML = lignes.map(x => rendreLigneSeance(x)).join('');
+        sauvegarderEdtLocal(lignes);
       } else {
         zone.innerHTML = `<div class="text-center py-4 text-muted">
           <span class="txt-fr">${MSG.fr.aucune}</span>
@@ -405,7 +441,6 @@
       console.warn("🔌 Mode local EDT actif");
       texteAlerteApi.textContent = m('serveurIndispo');
       alerteApi.classList.remove('d-none');
-
       const locale = obtenirEdtLocal();
       if (locale.length === 0) {
         zone.innerHTML = `<div class="text-center py-4 text-muted">
@@ -423,28 +458,26 @@
   document.getElementById('formEdt').addEventListener('submit', async e => {
     e.preventDefault();
     const d = Object.fromEntries(new FormData(e.target));
-
     try {
-      const res = await requeteAPI('/emploi/ajouter', {
+      // ✅ BONNE ROUTE : POST /emploi
+      const res = await requeteAPI('/emploi', {
         method: 'POST',
         body: JSON.stringify(d)
       });
-
-      if (res.ok) {
+      if (res && !res.erreur) {
         alert(m('enregOk'));
         e.target.reset();
         chargerEdt();
       } else {
-        alert("❌ " + (res.erreur || m('erreurChargement')));
+        alert("❌ " + (res?.erreur || m('erreurChargement')));
       }
     } catch {
       // Mode local
       const locale = obtenirEdtLocal();
       d.id = Date.now();
-      d.id_emploi = d.id;
-      d.classe = document.querySelector(`#sel-cl option[value="${d.id_classe}"]`)?.textContent || '';
-      d.matiere = document.querySelector(`#sel-mat option[value="${d.id_matiere}"]`)?.textContent || '';
-      d.prof = document.querySelector(`#sel-pr option[value="${d.id_prof}"]`)?.textContent || '';
+      d.classe = nomClasse(d.classe_id);
+      d.matiere = nomMatiere(d.matiere_id);
+      d.prof = d.professeur;
       locale.push(d);
       sauvegarderEdtLocal(locale);
       alert(m('enregOk'));
@@ -456,13 +489,12 @@
   // ❌ SUPPRIMER UNE SÉANCE
   async function supprimer(id) {
     if (!confirm(m('confSuppr'))) return;
-
     try {
       await requeteAPI(`/emploi/${id}`, { method: 'DELETE' });
       alert(m('supprOk'));
     } catch {
       // Mode local
-      const locale = obtenirEdtLocal().filter(x => (x.id_emploi || x.id) !== id);
+      const locale = obtenirEdtLocal().filter(x => String((x.id_emploi || x.id || x._id)) !== String(id));
       sauvegarderEdtLocal(locale);
       alert(m('supprOk'));
     }
@@ -470,8 +502,10 @@
   }
 
   // 🚀 AU CHARGEMENT
-  chargerListes();
-  chargerEdt();
+  document.addEventListener('DOMContentLoaded', () => {
+    chargerListes();
+    chargerEdt();
+  });
 </script>
 </body>
 </html>

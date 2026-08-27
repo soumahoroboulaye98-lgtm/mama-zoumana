@@ -25,7 +25,6 @@
       --carte-fond-jour: #ffffff;
       --carte-fond-nuit: rgba(30, 41, 59, 0.7);
     }
-
     /* ☀️ MODE JOUR */
     body {
       background: linear-gradient(135deg, var(--fond-jour) 0%, #fffbeb 100%);
@@ -33,18 +32,15 @@
       color: var(--texte-jour);
       transition: all 0.35s ease;
     }
-
     /* 🌙 MODE NUIT */
     body.mode-nuit {
       background: linear-gradient(135deg, var(--fond-nuit) 0%, #1e293b 100%);
       color: var(--texte-nuit);
     }
-
     body.lang-ar {
       direction: rtl;
       text-align: right;
     }
-
     .entete {
       background: linear-gradient(90deg, var(--primaire), var(--secondaire));
       color: white;
@@ -56,7 +52,6 @@
     body.mode-nuit .entete {
       background: linear-gradient(90deg, #020617, var(--primaire));
     }
-
     .barre-outils {
       display: flex;
       gap: 6px;
@@ -76,7 +71,6 @@
       border-color: var(--accent);
     }
     .btn-theme { font-size: 1.1rem; padding: 4px 10px; }
-
     .carte-produit {
       background: var(--carte-fond-jour);
       border-radius: 16px;
@@ -94,14 +88,12 @@
       transform: translateY(-5px);
       box-shadow: 0 12px 30px rgba(12,74,110,0.18);
     }
-
     .prix {
       font-size: 1.4rem;
       font-weight: 700;
       color: var(--primaire);
     }
     body.mode-nuit .prix { color: var(--accent); }
-
     .stock {
       font-size: 0.85rem;
       padding: 3px 10px;
@@ -111,14 +103,12 @@
     body.mode-nuit .stock-dispo { background: rgba(22,101,52,0.3); color: #86efac; }
     .stock-rupture { background: #fee2e2; color: #991b1b; }
     body.mode-nuit .stock-rupture { background: rgba(153,27,27,0.3); color: #fca5a5; }
-
     .btn-acheter {
       background: linear-gradient(90deg, var(--succes), #059669);
       border: none;
       transition: all 0.25s ease;
     }
     .btn-acheter:hover { transform: translateY(-2px); }
-
     .categorie-btn {
       border-radius: 25px;
       border: 2px solid var(--primaire);
@@ -141,7 +131,53 @@
       color: #000;
       border-color: var(--accent);
     }
-
+    /* 🛒 PANIER FLOTTANT */
+    .panier-flottant {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1050;
+    }
+    .btn-panier {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(90deg, var(--primaire), var(--secondaire));
+      color: white;
+      border: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+      font-size: 1.5rem;
+      position: relative;
+    }
+    .badge-panier {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: var(--danger);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: bold;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-panier .modal-content {
+      border-radius: 16px;
+      border: none;
+    }
+    .quantite-input {
+      width: 70px;
+      text-align: center;
+    }
+    .ligne-panier {
+      transition: background 0.2s;
+    }
+    .ligne-panier:hover {
+      background: rgba(12,74,110,0.05);
+    }
     /* 🌐 TRILINGUE */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
@@ -150,13 +186,10 @@
     body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
     body.lang-ar .txt-ar { display: inline; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
-
     a { text-decoration: none; }
   </style>
 </head>
 <body>
-
-
   <!-- 🧭 EN-TÊTE -->
   <div class="entete">
     <div class="container">
@@ -190,9 +223,7 @@
     </div>
   </div>
 
-
   <div class="container pb-5">
-
     <!-- 🔍 FILTRES PAR CATÉGORIE -->
     <div class="d-flex flex-wrap gap-2 mb-4 justify-content-center">
       <button class="btn categorie-btn active" data-categorie="">
@@ -228,18 +259,76 @@
         </p>
       </div>
     </div>
-
   </div>
 
+  <!-- 🛒 BOUTON PANIER FLOTTANT -->
+  <div class="panier-flottant">
+    <button class="btn-panier" data-bs-toggle="modal" data-bs-target="#modalPanier">
+      <i class="bi bi-cart3"></i>
+      <span id="badgePanier" class="badge-panier d-none">0</span>
+    </button>
+  </div>
+
+  <!-- 🛒 MODALE PANIER -->
+  <div class="modal fade modal-panier" id="modalPanier" tabindex="-1" aria-labelledby="titrePanier" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header text-white" style="background: linear-gradient(90deg, #0c4a6e, #0369a1);">
+          <h5 class="modal-title" id="titrePanier">
+            <i class="bi bi-cart3 me-2"></i>
+            <span class="txt-fr">Mon Panier</span>
+            <span class="txt-en">My Cart</span>
+            <span class="txt-ar">سلة المشتريات</span>
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body p-0">
+          <div id="corpsPanier" class="p-3">
+            <p class="text-center text-muted py-4">
+              <span class="txt-fr">Votre panier est vide</span>
+              <span class="txt-en">Your cart is empty</span>
+              <span class="txt-ar">سلتك فارغة</span>
+            </p>
+          </div>
+          <div class="border-top p-3 bg-light">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <strong class="txt-fr">Total</strong><strong class="txt-en">Total</strong><strong class="txt-ar">المجموع</strong>
+              <span id="totalPanier" class="fs-4 fw-bold text-primary">0 FCFA</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <span class="txt-fr">Continuer les achats</span>
+            <span class="txt-en">Continue Shopping</span>
+            <span class="txt-ar">مواصلة التسوق</span>
+          </button>
+          <button type="button" class="btn btn-outline-danger" onclick="viderPanier()">
+            <i class="bi bi-trash me-1"></i>
+            <span class="txt-fr">Vider</span>
+            <span class="txt-en">Empty</span>
+            <span class="txt-ar">إفراغ</span>
+          </button>
+          <button type="button" class="btn btn-success text-white" id="btnCommander" onclick="passerCommande()">
+            <i class="bi bi-check-circle me-1"></i>
+            <span class="txt-fr">Commander</span>
+            <span class="txt-en">Order</span>
+            <span class="txt-ar">إرسال الطلب</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 // ==================================================
-// ⚙️ CONFIGURATION HARMONISÉE ✅
+// ⚙️ CONFIGURATION API
 // ==================================================
 const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 let categorieActuelle = '';
 let langueActuelle = localStorage.getItem('langue') || 'fr';
+let panier = JSON.parse(localStorage.getItem('panierBoutique') || '[]');
 
 const textes = {
   fr: {
@@ -249,9 +338,16 @@ const textes = {
     enStock: "✅ En stock",
     presqueEpuise: "⚠️ Plus que",
     rupture: "❌ Rupture de stock",
-    acheter: "Acheter",
+    acheter: "Ajouter au panier",
     indisponible: "Indisponible",
-    quantite: "en stock"
+    quantite: "en stock",
+    panierVide: "Votre panier est vide",
+    total: "Total",
+    commandeEnvoyee: "✅ Commande envoyée ! Nous vous contacterons pour le paiement.",
+    erreurCommande: "Erreur lors de la commande",
+    quantiteMax: "Stock insuffisant. Disponible :",
+    supp: "Retirer",
+    ajouter: "Ajouté au panier ✅"
   },
   en: {
     chargement: "Loading products...",
@@ -260,9 +356,16 @@ const textes = {
     enStock: "✅ In stock",
     presqueEpuise: "⚠️ Only",
     rupture: "❌ Out of stock",
-    acheter: "Buy",
+    acheter: "Add to Cart",
     indisponible: "Unavailable",
-    quantite: "left"
+    quantite: "left",
+    panierVide: "Your cart is empty",
+    total: "Total",
+    commandeEnvoyee: "✅ Order sent! We will contact you for payment.",
+    erreurCommande: "Order error",
+    quantiteMax: "Insufficient stock. Available:",
+    supp: "Remove",
+    ajouter: "Added to cart ✅"
   },
   ar: {
     chargement: "جاري تحميل المنتجات...",
@@ -271,12 +374,133 @@ const textes = {
     enStock: "✅ متوفر",
     presqueEpuise: "⚠️ تبقى فقط",
     rupture: "❌ غير متوفر",
-    acheter: "شراء",
+    acheter: "أضف للسلة",
     indisponible: "غير متوفر",
-    quantite: "قطع"
+    quantite: "قطع",
+    panierVide: "سلتك فارغة",
+    total: "المجموع",
+    commandeEnvoyee: "✅ تم إرسال الطلب! سنتواصل معك للدفع.",
+    erreurCommande: "خطأ في الطلب",
+    quantiteMax: "الكمية غير متوفرة. المتاح:",
+    supp: "حذف",
+    ajouter: "أضيف للسلة ✅"
   }
 };
-const t = textes[langueActuelle];
+let t = textes[langueActuelle];
+
+// ==================================================
+// 🛒 GESTION DU PANIER
+// ==================================================
+function sauvegarderPanier() {
+  localStorage.setItem('panierBoutique', JSON.stringify(panier));
+  mettreAJourBadgePanier();
+}
+
+function mettreAJourBadgePanier() {
+  const badge = document.getElementById('badgePanier');
+  const totalArticles = panier.reduce((somme, ligne) => somme + ligne.quantite, 0);
+  if (totalArticles > 0) {
+    badge.textContent = totalArticles;
+    badge.classList.remove('d-none');
+  } else {
+    badge.classList.add('d-none');
+  }
+}
+
+function ajouterAuPanier(produit) {
+  const existant = panier.find(p => p.id === produit.id);
+  if (existant) {
+    const stockDispo = Number(produit.stock || produit.quantite || 999);
+    if (existant.quantite >= stockDispo) {
+      alert(t.quantiteMax + ' ' + stockDispo);
+      return;
+    }
+    existant.quantite++;
+  } else {
+    panier.push({
+      id: produit.id || Date.now(),
+      nom: produit.nom_produit || produit.nom,
+      prix: Number(produit.prix_unitaire || produit.prix || 0),
+      quantite: 1,
+      stock: Number(produit.stock || produit.quantite || 999)
+    });
+  }
+  sauvegarderPanier();
+  alert(t.ajouter);
+}
+
+function modifierQuantite(id, nouvelleQuantite) {
+  const ligne = panier.find(p => p.id === id);
+  if (!ligne) return;
+  if (nouvelleQuantite <= 0) {
+    panier = panier.filter(p => p.id !== id);
+  } else if (nouvelleQuantite <= ligne.stock) {
+    ligne.quantite = nouvelleQuantite;
+  } else {
+    alert(t.quantiteMax + ' ' + ligne.stock);
+    return;
+  }
+  sauvegarderPanier();
+  afficherPanier();
+}
+
+function viderPanier() {
+  if (confirm(langueActuelle==='fr'?'Vider le panier ?': langueActuelle==='en'?'Empty cart?':'إفراغ السلة؟')) {
+    panier = [];
+    sauvegarderPanier();
+    afficherPanier();
+  }
+}
+
+function calculerTotal() {
+  return panier.reduce((somme, ligne) => somme + (ligne.prix * ligne.quantite), 0);
+}
+
+function afficherPanier() {
+  const corps = document.getElementById('corpsPanier');
+  const total = document.getElementById('totalPanier');
+
+  if (panier.length === 0) {
+    corps.innerHTML = `<p class="text-center text-muted py-4">${t.panierVide}</p>`;
+    total.textContent = '0 FCFA';
+    return;
+  }
+
+  corps.innerHTML = panier.map(ligne => `
+    <div class="ligne-panier d-flex align-items-center justify-content-between py-2 border-bottom">
+      <div class="flex-grow-1 px-2">
+        <h6 class="mb-1">${ligne.nom}</h6>
+        <small class="text-primary fw-bold">${ligne.prix.toLocaleString('fr-FR')} FCFA</small>
+      </div>
+      <div class="d-flex align-items-center gap-1">
+        <button class="btn btn-sm btn-outline-secondary" onclick="modifierQuantite(${ligne.id}, ${ligne.quantite - 1})">−</button>
+        <input type="number" class="form-control quantite-input" value="${ligne.quantite}" min="1" max="${ligne.stock}" onchange="modifierQuantite(${ligne.id}, parseInt(this.value)||1)">
+        <button class="btn btn-sm btn-outline-secondary" onclick="modifierQuantite(${ligne.id}, ${ligne.quantite + 1})">+</button>
+      </div>
+      <div class="px-2 text-end" style="min-width:100px;">
+        <strong>${(ligne.prix * ligne.quantite).toLocaleString('fr-FR')} FCFA</strong>
+      </div>
+      <button class="btn btn-sm btn-outline-danger ms-2" onclick="modifierQuantite(${ligne.id}, 0)"><i class="bi bi-x-lg"></i></button>
+    </div>
+  `).join('');
+
+  total.textContent = calculerTotal().toLocaleString('fr-FR') + ' FCFA';
+}
+
+async function passerCommande() {
+  if (panier.length === 0) return;
+  const commande = {
+    date: new Date().toISOString(),
+    articles: panier,
+    total: calculerTotal()
+  };
+  console.log("📋 Commande :", commande);
+  alert(t.commandeEnvoyee);
+  panier = [];
+  sauvegarderPanier();
+  afficherPanier();
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalPanier')).hide();
+}
 
 // ☀️🌙 MODE JOUR / NUIT
 function appliquerTheme(nuit) {
@@ -288,10 +512,23 @@ function appliquerTheme(nuit) {
 // 🗣️ GESTION DE LA LANGUE
 function appliquerLangue(lang) {
   langueActuelle = lang;
+  t = textes[lang];
   document.body.classList.remove('lang-fr','lang-en','lang-ar');
   document.body.classList.add('lang-' + lang);
-  document.querySelectorAll('.btn-langue').forEach(b=>b.classList.toggle('actif', b.dataset.lang === lang));
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('actif', b.dataset.lang === lang));
   localStorage.setItem('langue', lang);
+}
+
+// 🌐 REQUÊTE API SÉCURE
+async function requeteAPI(url) {
+  try {
+    const reponse = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    if (!reponse.ok) throw new Error(`Erreur ${reponse.status}`);
+    return await reponse.json();
+  } catch (err) {
+    console.warn("❌ API :", url, err.message);
+    return { ok: false, erreur: err.message };
+  }
 }
 
 // ==================================================
@@ -301,59 +538,69 @@ async function chargerProduits() {
   const grille = document.getElementById('grilleProduits');
   grille.innerHTML = `<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2">${t.chargement}</p></div>`;
 
-  try {
-    const url = categorieActuelle 
-      ? `${API_URL}/boutique/produits?categorie=${encodeURIComponent(categorieActuelle)}`
-      : `${API_URL}/boutique/produits`;
+  const url = categorieActuelle 
+    ? `${API_URL}/boutique/produits?categorie=${encodeURIComponent(categorieActuelle)}`
+    : `${API_URL}/boutique/produits`;
 
-    const res = await fetch(url);
-    const data = await res.json();
+  const data = await requeteAPI(url);
 
-    if (!data.ok || !data.produits || !data.produits.length) {
-      grille.innerHTML = `<div class="col-12 text-center py-5 text-muted">
-        <i class="bi bi-inbox fs-1"></i><br>${t.aucunProduit}
-      </div>`;
-      return;
+  if (!data.ok || !Array.isArray(data.produits) || data.produits.length === 0) {
+    grille.innerHTML = `<div class="col-12 text-center py-5 text-muted">
+      <i class="bi bi-inbox fs-1"></i><br>${data.erreur || t.aucunProduit}
+    </div>`;
+    return;
+  }
+
+  grille.innerHTML = '';
+  data.produits.forEach(prod => {
+    const id = prod.id || prod.id_produit || Date.now();
+    const nom = prod.nom_produit || prod.nom || 'Produit sans nom';
+    const description = prod.description || '';
+    const prix = Number(prod.prix_unitaire || prod.prix || 0);
+    const stock = Number(prod.stock || prod.quantite || 0);
+    const categorie = prod.categorie || '';
+
+    let libelleStock, classeStock;
+    if (stock > 10) {
+      libelleStock = `${t.enStock} (${stock})`;
+      classeStock = 'stock-dispo';
+    } else if (stock > 0) {
+      libelleStock = `${t.presqueEpuise} ${stock} ${t.quantite} !`;
+      classeStock = 'stock-dispo';
+    } else {
+      libelleStock = t.rupture;
+      classeStock = 'stock-rupture';
     }
 
-    grille.innerHTML = '';
-    data.produits.forEach(prod => {
-      const libelleStock = prod.stock > 10 
-        ? `${t.enStock} (${prod.stock})`
-        : prod.stock > 0 
-          ? `${t.presqueEpuise} ${prod.stock} ${t.quantite} !`
-          : t.rupture;
-
-      grille.innerHTML += `
-        <div class="col-sm-6 col-md-4 col-lg-3">
-          <div class="carte-produit p-3">
-            <div class="text-center mb-3">
-              <div style="font-size:3rem;">${iconeCategorie(prod.categorie)}</div>
-            </div>
-            <h5 class="text-center">${prod.nom_produit || prod.nom}</h5>
-            <p class="text-muted small text-center">${prod.description || ''}</p>
-            <div class="text-center mb-2">
-              <span class="stock ${prod.stock > 0 ? 'stock-dispo' : 'stock-rupture'}">${libelleStock}</span>
-            </div>
-            <div class="prix text-center">${Number(prod.prix_unitaire || prod.prix || 0).toLocaleString('fr-FR')} FCFA</div>
-            <hr>
-            <button class="btn btn-acheter w-100 text-white ${prod.stock <= 0 ? 'disabled opacity-50' : ''}" 
-              ${prod.stock <= 0 ? 'disabled' : ''}>
-              <i class="bi bi-cart-plus me-1"></i> 
-              ${prod.stock > 0 ? t.acheter : t.indisponible}
-            </button>
+    grille.innerHTML += `
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <div class="carte-produit p-3">
+          <div class="text-center mb-3">
+            <div style="font-size:3rem;">${iconeCategorie(categorie)}</div>
           </div>
+          <h5 class="text-center">${nom}</h5>
+          <p class="text-muted small text-center">${description}</p>
+          <div class="text-center mb-2">
+            <span class="stock ${classeStock}">${libelleStock}</span>
+          </div>
+          <div class="prix text-center">${prix.toLocaleString('fr-FR')} FCFA</div>
+          <hr>
+          <button class="btn btn-acheter w-100 text-white ${stock <= 0 ? 'disabled opacity-50' : ''}" 
+            ${stock <= 0 ? 'disabled' : ''} 
+            onclick='ajouterAuPanier(${JSON.stringify({id,nom,prix,stock}).replace(/'/g,"\\'")})'>
+            <i class="bi bi-cart-plus me-1"></i> 
+            ${stock > 0 ? t.acheter : t.indisponible}
+          </button>
         </div>
-      `;
-    });
-
-  } catch (e) {
-    grille.innerHTML = `<div class="col-12 text-center py-5 text-danger">❌ ${t.erreurChargement} : ${e.message}</div>`;
-  }
+      </div>
+    `;
+  });
 }
 
 // 🎯 ICÔNES PAR CATÉGORIE
 function iconeCategorie(cat) {
+  if (!cat) return '📦';
+  const cle = cat.toLowerCase().trim();
   const icones = {
     livres: '📚', livre: '📚',
     stylos: '✍️', stylo: '✍️',
@@ -361,7 +608,7 @@ function iconeCategorie(cat) {
     fournitures: '📐', fourniture: '📐',
     uniformes: '👕', uniforme: '👕'
   };
-  return icones[cat?.toLowerCase()] || '📦';
+  return icones[cle] || '📦';
 }
 
 // 🔍 FILTRER PAR CATÉGORIE
@@ -374,17 +621,15 @@ document.querySelectorAll('.categorie-btn').forEach(btn => {
   });
 });
 
-// 🧩 INITIALISATION AU CHARGEMENT
+// 🧩 INITIALISATION
 document.addEventListener('DOMContentLoaded', () => {
-  // Restaurer langue
   appliquerLangue(localStorage.getItem('langue') || 'fr');
   document.querySelector(`.btn-langue[data-lang="${langueActuelle}"]`)?.classList.add('actif');
 
-  // Restaurer thème
   const themeNuit = localStorage.getItem('themeNuit') === '1';
   appliquerTheme(themeNuit);
+  document.getElementById('btnJourNuit').textContent = themeNuit ? '🌙' : '☀️';
 
-  // Écouteurs
   document.querySelectorAll('.btn-langue').forEach(b => {
     b.addEventListener('click', () => appliquerLangue(b.dataset.lang));
   });
@@ -392,7 +637,10 @@ document.addEventListener('DOMContentLoaded', () => {
     appliquerTheme(!document.body.classList.contains('mode-nuit'));
   });
 
-  // Charger les produit
+  // Mise à jour panier au clic sur le bouton
+  document.querySelector('[data-bs-target="#modalPanier"]').addEventListener('click', afficherPanier);
+
+  mettreAJourBadgePanier();
   chargerProduits();
 });
 </script>

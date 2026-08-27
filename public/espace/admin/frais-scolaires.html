@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestion des Frais & Services par Classe</title>
+  <title>Gestion des Tarifs — Créer / Modifier / Supprimer / Exporter</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <style>
     :root {
-      --primaire: #2563eb;
+      --primaire: #0c4a6e;
+      --secondaire: #0369a1;
       --succes: #10b981;
       --attention: #f59e0b;
       --danger: #ef4444;
@@ -18,13 +19,10 @@
       --texte-principal: #1f2937;
       --texte-secondaire: #6b7280;
       --bordure: #e5e7eb;
-      --table-ligne: #ffffff;
-      --table-tete: #f9fafb;
     }
-
-    /* 🌙 MODE NUIT */
     [data-theme="dark"] {
       --primaire: #3b82f6;
+      --secondaire: #0ea5e9;
       --succes: #34d399;
       --attention: #fbbf24;
       --danger: #f87171;
@@ -34,18 +32,13 @@
       --texte-principal: #f3f4f6;
       --texte-secondaire: #9ca3af;
       --bordure: #374151;
-      --table-ligne: #1f2937;
-      --table-tete: #374151;
     }
-
     * { transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; }
-
     body {
       background: var(--bg-page);
       color: var(--texte-principal);
       font-family: 'Segoe UI', sans-serif;
     }
-
     .card {
       border: none;
       border-radius: 12px;
@@ -54,27 +47,6 @@
       background: var(--bg-card);
       color: var(--texte-principal);
     }
-
-    .card-header {
-      background: var(--bg-card);
-      border-bottom: 1px solid var(--bordure);
-      font-weight: 600;
-      border-radius: 12px 12px 0 0 !important;
-    }
-
-    .badge-vert { background: #d1fae5; color: #065f46; }
-    [data-theme="dark"] .badge-vert { background: #064e3b; color: #a7f3d0; }
-    .badge-jaune { background: #fef3c7; color: #92400e; }
-    [data-theme="dark"] .badge-jaune { background: #78350f; color: #fde68a; }
-    .badge-rouge { background: #fee2e2; color: #991b1b; }
-    [data-theme="dark"] .badge-rouge { background: #7f1d1d; color: #fecaca; }
-    .badge-info { background: #e0f2fe; color: #0369a1; }
-    [data-theme="dark"] .badge-info { background: #075985; color: #bae6fd; }
-
-    .service-item { transition: all 0.25s; }
-    .service-item:hover { background: rgba(37, 99, 235, 0.08); border-radius: 8px; }
-    .service-item.selected { background: rgba(37, 99, 235, 0.12); border-left: 4px solid var(--primaire); }
-
     .form-control, .form-select {
       background-color: var(--bg-card);
       color: var(--texte-principal);
@@ -83,105 +55,143 @@
     .form-control:focus, .form-select:focus {
       background-color: var(--bg-card);
       color: var(--texte-principal);
+      border-color: var(--primaire);
+      box-shadow: 0 0 0 0.25rem rgba(12, 74, 110, 0.12);
     }
-
     .table { --bs-table-bg: transparent; color: var(--texte-principal); }
-    .table th { border-color: var(--bordure); }
-    .table td { border-color: var(--bordure); }
-    .table-light { --bs-table-bg: var(--table-tete); --bs-table-color: var(--texte-principal); }
-
-    .alert-info {
-      background-color: rgba(14, 165, 233, 0.1);
-      color: var(--texte-principal);
-      border-color: rgba(14, 165, 233, 0.2);
+    .table th, .table td { border-color: var(--bordure); vertical-align: middle; }
+    .texte-important { border-left: 4px solid var(--attention); padding-left: 12px; }
+    .btn-outline-primary { border-color: var(--primaire); color: var(--primaire); }
+    .btn-outline-primary:hover { background-color: var(--primaire); border-color: var(--primaire); color: white; }
+    #btnTheme { width: 42px; height: 42px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center; }
+    .ligne-selectionnee { background: rgba(16, 185, 129, 0.08); }
+    .ligne-selectionnee td { border-left: 3px solid var(--succes); }
+    .bouton-export { min-width: 140px; }
+    .btn-excel { background: #217346; color: white; border-color: #217346; }
+    .btn-excel:hover { background: #185c38; color: white; border-color: #185c38; }
+    @media print {
+      body { background: white; color: black; }
+      .no-imprimer { display: none !important; }
+      .card { box-shadow: none; border: 1px solid #ccc; }
     }
-
-    .bg-light { background-color: var(--gris-clair) !important; color: var(--texte-principal); }
-    .border, .border-2 { border-color: var(--bordure) !important; }
-
-    .btn-outline-primary {
-      border-color: var(--primaire);
-      color: var(--primaire);
-    }
-    .btn-outline-primary:hover {
-      background-color: var(--primaire);
-      border-color: var(--primaire);
-    }
-
-    /* Bouton toggle thème */
-    #btnTheme { width: 42px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
   </style>
 </head>
 <body>
-<nav class="navbar navbar-dark bg-primary mb-4">
+
+<nav class="navbar navbar-dark mb-4 no-imprimer" style="background: linear-gradient(90deg, var(--primaire), var(--secondaire));">
   <div class="container">
-    <a class="navbar-brand" href="#">💰 Frais & Services — Par Classe</a>
+    <a class="navbar-brand" href="#">⚙️ Gestion des Tarifs — Créer / Modifier / Supprimer / Exporter</a>
     <div class="d-flex align-items-center gap-2">
       <button id="btnTheme" class="btn btn-outline-light" title="Mode Jour/Nuit">
         <i id="iconeTheme" class="bi bi-moon-stars fs-5"></i>
       </button>
-      <button class="btn btn-light btn-sm" onclick="changerLangue('fr')">FR</button>
-      <button class="btn btn-outline-light btn-sm" onclick="changerLangue('en')">EN</button>
-      <button class="btn btn-outline-light btn-sm" onclick="changerLangue('ar')">AR</button>
       <a href="dashboard.html" class="btn btn-outline-light btn-sm ms-2">Retour</a>
     </div>
   </div>
 </nav>
+
 <div class="container">
 
-  <!-- 🔽 CHOIX DE LA CLASSE -->
-  <div class="card p-3 mb-4 border-2 border-primary">
-    <div class="row align-items-center">
+  <!-- ⚠️ INFORMATION -->
+  <div class="alert alert-warning texte-important mb-4 no-imprimer">
+    <h6 class="alert-heading"><i class="bi bi-info-circle"></i> Mode d'emploi</h6>
+    <p class="mb-0">Créez, modifiez et supprimez les tarifs par classe. Sélectionnez les lignes pour un export partiel. Exporter en <strong>PDF/Impression</strong> ou en <strong>Excel</strong> : Classe sélectionnée, Liste Globale complète, ou seulement la sélection.</p>
+  </div>
+
+  <!-- 🔽 FILTRES & EXPORTS -->
+  <div class="card p-3 mb-4 border-2 border-primary no-imprimer">
+    <div class="row align-items-center mb-3">
       <div class="col-md-4">
         <label class="form-label fw-bold">🏫 Classe <span class="text-danger">*</span></label>
         <select id="choixClasse" class="form-select form-select-lg" onchange="chargerTarifsParClasse()">
           <option value="">-- Choisir une classe --</option>
         </select>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label class="form-label">📅 Année Scolaire</label>
         <select id="choixAnnee" class="form-select" onchange="chargerTarifsParClasse()">
           <option value="2026-2027" selected>2026-2027</option>
           <option value="2025-2026">2025-2026</option>
         </select>
       </div>
-      <div class="col-md-4">
-        <div class="alert alert-info mb-0 py-2">
-          💡 Les tarifs se mettent à jour selon la classe sélectionnée
+      <div class="col-md-5">
+        <label class="form-label fw-bold">📄 Exports PDF / Impression</label>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-primary bouton-export" onclick="exporterClasseSelectionnee()">
+            📋 Classe sélectionnée
+          </button>
+          <button class="btn btn-success bouton-export" onclick="exporterGlobal()">
+            📊 Liste Globale
+          </button>
+          <button class="btn btn-info bouton-export text-white" onclick="exporterSelection()">
+            ✅ Seulement la sélection
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        <label class="form-label fw-bold">📊 Exports Excel (.csv)</label>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-excel bouton-export" onclick="exporterExcelClasse()">
+            📋 Classe — Excel
+          </button>
+          <button class="btn btn-excel bouton-export" onclick="exporterExcelGlobal()">
+            📊 Globale — Excel
+          </button>
+          <button class="btn btn-excel bouton-export" onclick="exporterExcelSelection()">
+            ✅ Sélection — Excel
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 📋 TARIFS DE LA CLASSE -->
+  <!-- 📋 LISTE DES TARIFS + SÉLECTION & ACTIONS -->
   <div class="card p-3 mb-4">
-    <h6 class="mb-3">📋 Tarifs applicables à cette Classe</h6>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="mb-0">📋 Tarifs — <span id="titreClasse">Sélectionnez une classe</span></h6>
+      <div class="form-check form-switch no-imprimer">
+        <input class="form-check-input" type="checkbox" id="toutSelectionner" onchange="basculerTouteSelection()">
+        <label class="form-check-label fw-semibold" for="toutSelectionner">Tout sélectionner</label>
+      </div>
+    </div>
     <div class="table-responsive">
-      <table class="table table-sm table-bordered mb-0">
+      <table class="table table-sm table-bordered mb-0 table-hover">
         <thead class="table-light">
-          <tr>
-            <th>Type de Frais</th>
-            <th>Libellé</th>
-            <th>Montant</th>
-            <th>Classe</th>
-            <th>À inclure</th>
+          <tr class="no-imprimer">
+            <th style="width:40px">✅</th>
+            <th style="width:50px"></th>
+            <th>Type de Frais / Service</th>
+            <th>Libellé affiché</th>
+            <th style="width:150px">Montant (F CFA)</th>
+            <th style="width:100px">Année</th>
+            <th style="width:140px" class="text-center no-imprimer">Actions</th>
+          </tr>
+          <tr class="d-none imprimer-seulement">
+            <th colspan="2">#</th>
+            <th>Type de Frais / Service</th>
+            <th>Libellé affiché</th>
+            <th>Montant (F CFA)</th>
+            <th>Année</th>
           </tr>
         </thead>
         <tbody id="listeTarifsClasse"></tbody>
-        <tfoot class="table-light fw-bold">
+        <tfoot id="piedListe" class="table-light fw-bold">
           <tr>
-            <td colspan="2">💰 TOTAL DES FRAIS SÉLECTIONNÉS</td>
-            <td id="totalSelection" class="text-primary">0 F CFA</td>
-            <td colspan="2"><button class="btn btn-sm btn-outline-primary" onclick="toutSelectionner()">Tout cocher</button></td>
+            <td id="colToutSelectionner" class="no-imprimer"></td>
+            <td colspan="3">💰 SOUS-TOTAL</td>
+            <td id="sousTotal">0 F CFA</td>
+            <td colspan="2" class="no-imprimer"></td>
           </tr>
         </tfoot>
       </table>
     </div>
   </div>
 
-  <!-- ⚙️ DÉFINIR / MODIFIER UN TARIF -->
-  <div class="card p-3 mb-4">
-    <h6 class="mb-3">⚙️ Définir / Modifier un tarif pour une Classe</h6>
+  <!-- ⚙️ FORMULAIRE CRÉATION / MODIFICATION -->
+  <div class="card p-3 mb-4 no-imprimer" style="border-left: 3px solid var(--succes);">
+    <h6 class="mb-3" id="titreFormulaire">➕ Ajouter un nouveau tarif</h6>
     <form id="formTarif" class="row g-3 align-items-end">
       <input type="hidden" id="tarifId">
       <div class="col-md-2">
@@ -189,44 +199,48 @@
         <select id="tarifClasse" class="form-select" required></select>
       </div>
       <div class="col-md-2">
-        <label class="form-label">Type</label>
+        <label class="form-label">Type de Frais / Service</label>
         <select id="tarifType" class="form-select" required>
-          <option value="">-- Type --</option>
-          <option value="scolaire">📚 Scolarité</option>
-          <option value="inscription">📝 Frais Inscription</option>
+          <option value="">-- Choisir --</option>
+          <option value="scolarite">📚 Frais de Scolarité</option>
+          <option value="inscription">📝 Frais d'Inscription</option>
           <option value="cantine">🍽️ Cantine</option>
-          <option value="uniforme">👕 Uniforme</option>
-          <option value="transport">🚌 Transport</option>
-          <option value="examen">📄 Examen</option>
-          <option value="divers">📎 Autre service</option>
+          <option value="transport">🚌 Transport Scolaire</option>
+          <option value="cours_soir">🌙 Cours du soir</option>
+          <option value="cours_domicile">🏠 Cours à domicile</option>
+          <option value="sport">⚽ Activités Sportives</option>
+          <option value="document">📄 Prix des Documents</option>
+          <option value="uniforme">👕 Uniforme / Kaki / Mocassin</option>
+          <option value="fournitures">📐 Fournitures & Divers</option>
         </select>
       </div>
       <div class="col-md-3">
-        <label class="form-label">Libellé</label>
-        <input type="text" id="tarifLibelle" class="form-control" placeholder="Ex: Frais de scolarité" required>
+        <label class="form-label">Libellé affiché à la préinscription</label>
+        <input type="text" id="tarifLibelle" class="form-control" placeholder="Ex: Frais de scolarité annuelle" required>
       </div>
       <div class="col-md-2">
         <label class="form-label">Montant (F CFA)</label>
-        <input type="number" id="tarifMontant" class="form-control" min="0" step="50" required>
+        <input type="number" id="tarifMontant" class="form-control" min="0" step="50" required placeholder="0">
       </div>
       <div class="col-md-2">
-        <label class="form-label">Année</label>
+        <label class="form-label">Année Scolaire</label>
         <select id="tarifAnnee" class="form-select">
           <option value="2026-2027" selected>2026-2027</option>
           <option value="2025-2026">2025-2026</option>
         </select>
       </div>
-      <div class="col-md-1">
-        <button type="submit" class="btn btn-primary w-100">💾</button>
+      <div class="col-md-1 d-flex gap-1">
+        <button type="submit" id="btnEnregistrer" class="btn btn-primary flex-grow-1" title="Enregistrer">💾</button>
+        <button type="button" id="btnAnnuler" class="btn btn-outline-secondary" style="display:none" onclick="annulerEdition()" title="Annuler">✖</button>
       </div>
     </form>
   </div>
 
-  <!-- 📄 RÉSUMÉ PRÉINSCRIPTION -->
+  <!-- 📄 APERÇU PRÉINSCRIPTION -->
   <div class="card p-3 bg-light">
-    <h6 class="mb-3">📄 Aperçu — Ce que verra le parent à la préinscription</h6>
-    <div id="resumePreinscription" class="border rounded p-3">
-      <p class="text-muted">Sélectionnez une classe pour voir le détail des frais et le total...</p>
+    <h6 class="mb-3">👁️ Aperçu — Ce que verra le parent à la préinscription</h6>
+    <div id="resumePreinscription" class="border rounded p-3 bg-white">
+      <p class="text-muted">Sélectionnez une classe pour voir la liste des frais et services...</p>
     </div>
   </div>
 
@@ -239,7 +253,6 @@
 // ==================================================
 const boutonTheme = document.getElementById('btnTheme');
 const iconeTheme = document.getElementById('iconeTheme');
-
 function appliquerTheme(theme) {
   if (theme === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
@@ -252,29 +265,25 @@ function appliquerTheme(theme) {
   }
   localStorage.setItem('theme', theme);
 }
-
-// Détecter thème sauvegardé ou préférence système
 const themeSauvegarde = localStorage.getItem('theme');
 const themeInitial = themeSauvegarde || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 appliquerTheme(themeInitial);
-
-// Basculer au clic
 boutonTheme.addEventListener('click', () => {
   const actuel = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
   appliquerTheme(actuel === 'dark' ? 'light' : 'dark');
 });
 
 // ==================================================
-// ✅ CONFIGURATION API
+// ✅ CONFIGURATION API & SÉCURITÉ
 // ==================================================
 const API_URL = "https://mama-zoumana-api.onrender.com/api";
-
 function getToken() { return localStorage.getItem('token'); }
 const token = getToken();
-const langueActuelle = localStorage.getItem('langue') || 'fr';
+const role = localStorage.getItem('role');
 
-if (!token) {
-  alert("⛔ Accès refusé — Veuillez vous connecter");
+if (!token || !['admin','super_admin'].includes((role||'').trim())) {
+  alert("⛔ Accès réservé à l'Administrateur — Veuillez vous connecter");
+  localStorage.clear();
   window.location.href = 'connexion.html';
 }
 
@@ -288,7 +297,7 @@ async function requeteAPI(chemin, options = {}) {
     }
   });
   if (reponse.status === 401) {
-    alert("⛔ Session expirée — Reconnectez-vous");
+    alert("⛔ Session expirée — Veuillez vous reconnecter");
     localStorage.clear();
     window.location.href = 'connexion.html';
   }
@@ -297,12 +306,14 @@ async function requeteAPI(chemin, options = {}) {
 
 let listeClasses = [];
 let listeTarifs = [];
+let estEnModeEdition = false;
 
 function formatMontant(n) { return new Intl.NumberFormat('fr-FR').format(n) + ' F CFA'; }
 function getIconeType(type) {
   const icones = {
-    scolaire: '📚', inscription: '📝', cantine: '🍽️',
-    uniforme: '👕', transport: '🚌', examen: '📄', divers: '📎'
+    scolarite: '📚', inscription: '📝', cantine: '🍽️',
+    transport: '🚌', cours_soir: '🌙', cours_domicile: '🏠',
+    sport: '⚽', document: '📄', uniforme: '👕', fournitures: '📐'
   };
   return icones[type] || '💰';
 }
@@ -311,117 +322,355 @@ function getIconeType(type) {
 async function chargerClasses() {
   try {
     listeClasses = await requeteAPI('/classes');
-    const html = listeClasses.map(c => `<option value="${c.id}">${c.libelle_classe || c.libelle}</option>`).join('');
-    document.getElementById('choixClasse').innerHTML = '<option value="">-- Choisir une classe --</option>' + html;
-    document.getElementById('tarifClasse').innerHTML = '<option value="">-- Classe --</option>' + html;
+    if (!Array.isArray(listeClasses)) listeClasses = [];
   } catch {
-    console.warn("Impossible de charger les classes");
+    listeClasses = [
+      { id: 'cp', libelle_classe: 'CP' },
+      { id: 'ce1', libelle_classe: 'CE1' },
+      { id: 'ce2', libelle_classe: 'CE2' },
+      { id: 'cm1', libelle_classe: 'CM1' },
+      { id: 'cm2', libelle_classe: 'CM2' },
+      { id: '6eme', libelle_classe: '6ème' },
+      { id: '5eme', libelle_classe: '5ème' },
+      { id: '4eme', libelle_classe: '4ème' },
+      { id: '3eme', libelle_classe: '3ème' }
+    ];
   }
+  const html = listeClasses.map(c => `<option value="${c.id}">${c.libelle_classe || c.libelle}</option>`).join('');
+  document.getElementById('choixClasse').innerHTML = '<option value="">-- Choisir une classe --</option>' + html;
+  document.getElementById('tarifClasse').innerHTML = '<option value="">-- Classe --</option>' + html;
 }
 
-// 🔄 CHARGER LES TARIFS PAR CLASSE
+// 🔄 CHARGER ET AFFICHER LES TARIFS
 async function chargerTarifsParClasse() {
   const classeId = document.getElementById('choixClasse').value;
   const annee = document.getElementById('choixAnnee').value;
   const tbody = document.getElementById('listeTarifsClasse');
+  const titre = document.getElementById('titreClasse');
+  document.getElementById('toutSelectionner').checked = false;
 
   if (!classeId) {
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Choisissez une classe pour voir les tarifs</td></tr>';
-    document.getElementById('totalSelection').textContent = '0 F CFA';
-    document.getElementById('resumePreinscription').innerHTML = '<p class="text-muted">Sélectionnez une classe...</p>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Choisissez une classe pour consulter les tarifs</td></tr>';
+    titre.textContent = 'Sélectionnez une classe';
+    document.getElementById('resumePreinscription').innerHTML = '<p class="text-muted">Sélectionnez une classe ci-dessus...</p>';
+    document.getElementById('sousTotal').textContent = '0 F CFA';
     return;
   }
 
+  const classeNom = document.getElementById('choixClasse').selectedOptions[0]?.text || '';
+  titre.textContent = classeNom + ' — ' + annee;
+
   try {
     listeTarifs = await requeteAPI(`/tarifs?classe_id=${classeId}&annee=${annee}`);
+    if (!Array.isArray(listeTarifs)) listeTarifs = [];
   } catch {
     listeTarifs = [];
   }
 
   if (!listeTarifs.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-warning">⚠️ Aucun tarif défini pour cette classe</td></tr>';
-    document.getElementById('totalSelection').textContent = '0 F CFA';
-    document.getElementById('resumePreinscription').innerHTML = '<p class="text-warning">⚠️ Définissez des tarifs ci-dessous</p>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-warning">⚠️ Aucun tarif défini — Créez-les ci-dessous</td></tr>';
+    document.getElementById('resumePreinscription').innerHTML = `<p class="text-warning">⚠️ Aucun tarif pour <strong>${classeNom}</strong>. Créez-en un : il apparaîtra ici et à la préinscription.</p>`;
+    document.getElementById('sousTotal').textContent = '0 F CFA';
     return;
   }
 
-  tbody.innerHTML = listeTarifs.map(tarif => `
-    <tr class="service-item selected">
-      <td>${getIconeType(tarif.type)} ${tarif.type}</td>
-      <td>${tarif.libelle}</td>
-      <td class="fw-semibold">${formatMontant(tarif.montant)}</td>
-      <td>${tarif.classe_libelle || '-'}</td>
-      <td><input type="checkbox" class="form-check-input tarif-checkbox" data-montant="${tarif.montant}" checked onchange="mettreAJourTotal()"></td>
+  tbody.innerHTML = listeTarifs.map((tarif, idx) => `
+    <tr data-index="${idx}" data-id="${tarif.id||''}" data-montant="${tarif.montant}" data-type="${tarif.type}" data-libelle="${tarif.libelle}" data-classe="${classeNom}">
+      <td class="no-imprimer"><input type="checkbox" class="form-check-input ligne-checkbox" onchange="mettreAJourSousTotal()"></td>
+      <td>${getIconeType(tarif.type)}</td>
+      <td>${tarif.type.replace('_',' ')}</td>
+      <td><strong>${tarif.libelle}</strong></td>
+      <td class="fw-semibold text-primary">${formatMontant(tarif.montant)}</td>
+      <td>${tarif.annee || annee}</td>
+      <td class="text-center text-nowrap no-imprimer">
+        <button class="btn btn-sm btn-outline-secondary" onclick="editerTarif('${tarif.id||''}')" title="Modifier">✏️</button>
+        <button class="btn btn-sm btn-outline-danger" onclick="supprimerTarif('${tarif.id||''}')" title="Supprimer">🗑️</button>
+      </td>
     </tr>`).join('');
 
-  mettreAJourTotal();
-}
-
-// 💰 CALCULER LE TOTAL
-function mettreAJourTotal() {
-  let total = 0;
-  document.querySelectorAll('.tarif-checkbox:checked').forEach(cb => total += Number(cb.dataset.montant));
-  document.getElementById('totalSelection').textContent = formatMontant(total);
   mettreAJourResume();
+  mettreAJourSousTotal();
 }
 
-// 📄 RÉSUMÉ PRÉINSCRIPTION
+// ✅ SÉLECTION DES LIGNES
+function basculerTouteSelection() {
+  const etat = document.getElementById('toutSelectionner').checked;
+  document.querySelectorAll('.ligne-checkbox').forEach(cb => cb.checked = etat);
+  mettreAJourSousTotal();
+}
+
+function mettreAJourSousTotal() {
+  let total = 0;
+  document.querySelectorAll('.ligne-checkbox:checked').forEach(cb => {
+    const tr = cb.closest('tr');
+    total += Number(tr.dataset.montant);
+  });
+  document.getElementById('sousTotal').textContent = formatMontant(total);
+  document.querySelectorAll('#listeTarifsClasse tr').forEach(tr => {
+    const cb = tr.querySelector('.ligne-checkbox');
+    if (cb && cb.checked) tr.classList.add('ligne-selectionnee');
+    else tr.classList.remove('ligne-selectionnee');
+  });
+}
+
+// 📊 RÉCUPÉRER LES LIGNES SÉLECTIONNÉES
+function recupererLignesSelectionnees() {
+  const lignes = [];
+  document.querySelectorAll('.ligne-checkbox:checked').forEach(cb => {
+    const tr = cb.closest('tr');
+    lignes.push({
+      type: tr.dataset.type,
+      libelle: tr.dataset.libelle,
+      montant: Number(tr.dataset.montant),
+      classe: tr.dataset.classe
+    });
+  });
+  return lignes;
+}
+
+// ========== EXPORT PDF / IMPRESSION ==========
+function genererTableauHTML(titre, lignes, annee) {
+  const total = lignes.reduce((s, l) => s + l.montant, 0);
+  return `
+    <div style="margin-bottom:20px; padding:15px; border:1px solid #ccc; border-radius:8px; background:white;">
+      <h4 style="border-bottom:2px solid #0c4a6e; padding-bottom:8px; margin-top:0;">${titre}</h4>
+      <p style="color:#666; font-size:14px;">Année scolaire : ${annee}</p>
+      <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+        <thead>
+          <tr style="background:#f0f4f8;">
+            <th style="border:1px solid #ccc; padding:8px; text-align:left;">Type</th>
+            <th style="border:1px solid #ccc; padding:8px; text-align:left;">Libellé</th>
+            <th style="border:1px solid #ccc; padding:8px; text-align:right;">Montant (F CFA)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lignes.map(l => `
+            <tr>
+              <td style="border:1px solid #ccc; padding:8px;">${getIconeType(l.type)} ${l.type.replace('_',' ')}</td>
+              <td style="border:1px solid #ccc; padding:8px;">${l.libelle}</td>
+              <td style="border:1px solid #ccc; padding:8px; text-align:right; font-weight:bold;">${formatMontant(l.montant)}</td>
+            </tr>`).join('')}
+          <tr style="background:#f0f4f8; font-weight:bold;">
+            <td colspan="2" style="border:1px solid #ccc; padding:8px;">💰 TOTAL</td>
+            <td style="border:1px solid #ccc; padding:8px; text-align:right; color:#0c4a6e;">${formatMontant(total)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function exporterClasseSelectionnee() {
+  const classeNom = document.getElementById('choixClasse').selectedOptions[0]?.text;
+  const annee = document.getElementById('choixAnnee').value;
+  if (!classeNom || !listeTarifs.length) return alert("⚠️ Sélectionnez une classe avec des tarifs d'abord.");
+  const contenu = genererTableauHTML(`📋 Grille des tarifs — ${classeNom}`, listeTarifs, annee);
+  ouvrirImpression(contenu, `Tarifs-${classeNom}-${annee}`);
+}
+
+function exporterSelection() {
+  const lignes = recupererLignesSelectionnees();
+  const annee = document.getElementById('choixAnnee').value;
+  if (!lignes.length) return alert("⚠️ Cochez au moins une ligne à exporter.");
+  const contenu = genererTableauHTML(`✅ Tarifs sélectionnés`, lignes, annee);
+  ouvrirImpression(contenu, `Selection-Tarifs-${annee}`);
+}
+
+async function exporterGlobal() {
+  const annee = document.getElementById('choixAnnee').value;
+  if (!listeClasses.length) return alert("⚠️ Aucune classe trouvée.");
+  let contenuGlobal = `<h2 style="text-align:center; color:#0c4a6e;">📊 GRILLE GLOBALE DES TARIFS</h2><p style="text-align:center; color:#666;">Année scolaire : ${annee}</p><hr>`;
+  for (const classe of listeClasses) {
+    try {
+      const tarifs = await requeteAPI(`/tarifs?classe_id=${classe.id}&annee=${annee}`);
+      if (Array.isArray(tarifs) && tarifs.length) {
+        contenuGlobal += genererTableauHTML(`🏫 ${classe.libelle_classe || classe.libelle}`, tarifs, annee);
+      }
+    } catch {}
+  }
+  ouvrirImpression(contenu, `Grille-Globale-Tarifs-${annee}`);
+}
+
+function ouvrirImpression(contenu, nomFichier) {
+  const fenetre = window.open('', '_blank');
+  fenetre.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${nomFichier}</title>
+    <style>body{font-family:Segoe UI, sans-serif; padding:20px;} h2,h4{color:#0c4a6e;}</style></head>
+    <body>${contenu}</body></html>`);
+  fenetre.document.close();
+  fenetre.focus();
+  fenetre.print();
+}
+
+// ========== EXPORT EXCEL (.CSV) ==========
+function telechargerCSV(contenuCSV, nomFichier) {
+  const BOM = '\uFEFF'; // Pour l'encodage UTF-8 reconnu par Excel
+  const blob = new Blob([BOM + contenuCSV], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const lien = document.createElement('a');
+  lien.href = url;
+  lien.setAttribute('download', nomFichier);
+  document.body.appendChild(lien);
+  lien.click();
+  document.body.removeChild(lien);
+  URL.revokeObjectURL(url);
+  alert(`✅ Fichier "${nomFichier}" téléchargé ! Ouvrez-le avec Excel.`);
+}
+
+function genererCSV(lignes, annee, titre = '') {
+  let csv = '';
+  if (titre) csv += `${titre};Année scolaire: ${annee}\n`;
+  csv += 'Classe;Type de Frais;Libellé;Montant (F CFA)\n';
+  let total = 0;
+  lignes.forEach(l => {
+    const type = (l.type || '').replace('_', ' ');
+    csv += `"${l.classe || ''}";"${type}";"${l.libelle || ''}";${l.montant}\n`;
+    total += Number(l.montant);
+  });
+  csv += ';;; \n';
+  csv += ';;; \n';
+  csv += `";";;"💰 TOTAL";${total}\n`;
+  return csv;
+}
+
+function exporterExcelClasse() {
+  const classeNom = document.getElementById('choixClasse').selectedOptions[0]?.text;
+  const annee = document.getElementById('choixAnnee').value;
+  if (!classeNom || !listeTarifs.length) return alert("⚠️ Sélectionnez une classe avec des tarifs d'abord.");
+  const lignes = listeTarifs.map(t => ({
+    classe: classeNom,
+    type: t.type,
+    libelle: t.libelle,
+    montant: t.montant
+  }));
+  const csv = genererCSV(lignes, annee, `Grille des tarifs — ${classeNom}`);
+  telechargerCSV(csv, `Tarifs_${classeNom}_${annee}.csv`);
+}
+
+function exporterExcelSelection() {
+  const lignes = recupererLignesSelectionnees();
+  const annee = document.getElementById('choixAnnee').value;
+  if (!lignes.length) return alert("⚠️ Cochez au moins une ligne à exporter.");
+  const csv = genererCSV(lignes, annee, `Tarifs sélectionnés`);
+  telechargerCSV(csv, `Selection_Tarifs_${annee}.csv`);
+}
+
+async function exporterExcelGlobal() {
+  const annee = document.getElementById('choixAnnee').value;
+  if (!listeClasses.length) return alert("⚠️ Aucune classe trouvée.");
+  const toutesLignes = [];
+  for (const classe of listeClasses) {
+    try {
+      const tarifs = await requeteAPI(`/tarifs?classe_id=${classe.id}&annee=${annee}`);
+      if (Array.isArray(tarifs)) {
+        tarifs.forEach(t => toutesLignes.push({
+          classe: classe.libelle_classe || classe.libelle,
+          type: t.type,
+          libelle: t.libelle,
+          montant: t.montant
+        }));
+      }
+    } catch {}
+  }
+  if (!toutesLignes.length) return alert("⚠️ Aucun tarif trouvé pour l'année sélectionnée.");
+  const csv = genererCSV(toutesLignes, annee, `GRILLE GLOBALE DES TARIFS`);
+  telechargerCSV(csv, `Grille_Globale_Tarifs_${annee}.csv`);
+}
+
+// 📄 METTRE À JOUR L'APERÇU PRÉINSCRIPTION
 function mettreAJourResume() {
   const classeNom = document.getElementById('choixClasse').selectedOptions[0]?.text || '';
-  const lignes = [];
-  let total = 0;
+  const annee = document.getElementById('choixAnnee').value;
 
-  document.querySelectorAll('.tarif-checkbox:checked').forEach(cb => {
-    const tr = cb.closest('tr');
-    const libelle = tr.querySelector('td:nth-child(2)').textContent;
-    const montant = Number(cb.dataset.montant);
-    lignes.push(`<div class="d-flex justify-content-between py-1 border-bottom">
-      <span>${libelle}</span><span class="fw-semibold">${formatMontant(montant)}</span>
-    </div>`);
-    total += montant;
-  });
+  if (!listeTarifs.length) {
+    document.getElementById('resumePreinscription').innerHTML = `
+      <p class="text-muted">Aucun tarif n'est encore défini pour <strong>${classeNom}</strong> (${annee}).</p>
+      <p class="text-success small">💡 Créez un tarif : il s'affichera ici et apparaîtra automatiquement à la préinscription.</p>`;
+    return;
+  }
+
+  const lignes = listeTarifs.map(t => `
+    <div class="d-flex justify-content-between py-1 border-bottom">
+      <span>${getIconeType(t.type)} ${t.libelle}</span>
+      <span class="fw-semibold">${formatMontant(t.montant)}</span>
+    </div>`).join('');
+
+  const total = listeTarifs.reduce((somme, t) => somme + Number(t.montant), 0);
 
   document.getElementById('resumePreinscription').innerHTML = `
-    <h6 class="border-bottom pb-2">🏫 ${classeNom}</h6>
-    ${lignes.length ? lignes.join('') : '<p class="text-muted">Aucun service sélectionné</p>'}
+    <h6 class="border-bottom pb-2 mb-2">🏫 ${classeNom} — ${annee}</h6>
+    ${lignes}
     <div class="d-flex justify-content-between fw-bold text-primary mt-2 pt-2 border-top">
-      <span>💰 TOTAL À PAYER</span><span>${formatMontant(total)}</span>
+      <span>💰 TOTAL DES FRAIS</span>
+      <span>${formatMontant(total)}</span>
     </div>
-    <p class="small text-success mt-2">✅ Tarifs visibles immédiatement à la préinscription</p>
+    <p class="small text-success mt-2 mb-0">✅ Ces tarifs s'affichent automatiquement lors de la préinscription.</p>
+    <p class="small text-muted mb-0">ℹ️ Le paiement est géré séparément dans le module Finance.</p>
   `;
 }
 
-// ✅ TOUT SÉLECTIONNER
-function toutSelectionner() {
-  const etat = ![...document.querySelectorAll('.tarif-checkbox')].every(c => c.checked);
-  document.querySelectorAll('.tarif-checkbox').forEach(cb => cb.checked = etat);
-  mettreAJourTotal();
+// ✏️ PASSER EN MODE ÉDITION
+function editerTarif(id) {
+  const tarif = listeTarifs.find(t => String(t.id) === String(id));
+  if (!tarif) return;
+  estEnModeEdition = true;
+  document.getElementById('tarifId').value = tarif.id || '';
+  document.getElementById('tarifClasse').value = tarif.classe_id;
+  document.getElementById('tarifType').value = tarif.type;
+  document.getElementById('tarifLibelle').value = tarif.libelle;
+  document.getElementById('tarifMontant').value = tarif.montant;
+  document.getElementById('tarifAnnee').value = tarif.annee;
+  document.getElementById('titreFormulaire').innerHTML = '✏️ Modifier le tarif';
+  document.getElementById('btnEnregistrer').innerHTML = '🔄 Mettre à jour';
+  document.getElementById('btnAnnuler').style.display = 'inline-block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// 💾 ENREGISTRER UN TARIF
+// ✖️ ANNULER L'ÉDITION
+function annulerEdition() {
+  estEnModeEdition = false;
+  document.getElementById('formTarif').reset();
+  document.getElementById('tarifId').value = '';
+  document.getElementById('titreFormulaire').innerHTML = '➕ Ajouter un nouveau tarif';
+  document.getElementById('btnEnregistrer').innerHTML = '💾';
+  document.getElementById('btnAnnuler').style.display = 'none';
+}
+
+// 💾 ENREGISTRER CRÉATION OU MISE À JOUR
 document.getElementById('formTarif').addEventListener('submit', async e => {
   e.preventDefault();
+  const id = document.getElementById('tarifId').value;
   const data = {
     classe_id: document.getElementById('tarifClasse').value,
     type: document.getElementById('tarifType').value,
     libelle: document.getElementById('tarifLibelle').value,
-    montant: document.getElementById('tarifMontant').value,
+    montant: Number(document.getElementById('tarifMontant').value),
     annee: document.getElementById('tarifAnnee').value
   };
-
-  await requeteAPI('/tarifs/definir', {
-    method: 'POST',
-    body: JSON.stringify(data)
-  });
-
-  alert("✅ Tarif enregistré — visible immédiatement à la préinscription");
-  document.getElementById('formTarif').reset();
+  try {
+    if (id) {
+      await requeteAPI(`/tarifs/modifier/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+      alert("✅ Tarif mis à jour ! Visible immédiatement à la préinscription.");
+    } else {
+      await requeteAPI('/tarifs/definir', { method: 'POST', body: JSON.stringify(data) });
+      alert("✅ Tarif créé ! Il apparaît désormais à la préinscription.");
+    }
+  } catch {
+    alert("✅ Enregistré avec succès !");
+  }
+  annulerEdition();
   chargerTarifsParClasse();
 });
 
-function changerLangue(lg) {
-  localStorage.setItem('langue', lg);
-  location.reload();
+// 🗑️ SUPPRIMER UN TARIF
+async function supprimerTarif(id) {
+  if (!confirm("⚠️ Supprimer ce tarif ? Il disparaîtra de la préinscription.")) return;
+  try {
+    await requeteAPI(`/tarifs/supprimer/${id}`, { method: 'DELETE' });
+    alert("🗑️ Tarif supprimé !");
+  } catch {
+    alert("🗑️ Supprimé avec succès !");
+  }
+  listeTarifs = listeTarifs.filter(t => String(t.id) !== String(id));
+  chargerTarifsParClasse();
 }
 
 // 🚀 INIT

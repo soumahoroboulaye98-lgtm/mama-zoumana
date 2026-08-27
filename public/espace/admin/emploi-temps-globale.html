@@ -3,11 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>
-    <span class="txt-fr">Emploi du Temps Global — MAMA-ZOUMANA</span>
-    <span class="txt-en">Global Timetable — MAMA-ZOUMANA</span>
-    <span class="txt-ar">الجدول الزمني العام — ماما زومانا</span>
-  </title>
+  <title>Emploi du Temps Global — MAMA-ZOUMANA</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
@@ -19,249 +15,347 @@
       --bleu-clair: #3b82f6;
       --violet: #8b5cf6;
       --gris-fond: #f8fafc;
+      --texte-principal: #1f2937;
+      --texte-secondaire: #4b5563;
       --ombre: 0 10px 40px rgba(12, 74, 110, 0.12);
       --ombre-hover: 0 15px 50px rgba(12, 74, 110, 0.18);
+      --fond-gradient-1: #e0f2fe;
+      --fond-gradient-2: #fef3c7;
+      --fond-gradient-3: #f0fdf4;
+      --carte-fond: rgba(255,255,255,0.9);
+      --carte-bord: rgba(255,255,255,0.9);
+      --table-ligne: rgba(12,74,110,0.06);
+      --bordure: #e2e8f0;
+      --info-fond: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+    }
+    [data-theme="dark"] {
+      --primaire: #38bdf8;
+      --secondaire: #fbbf24;
+      --accent: #34d399;
+      --rouge: #f87171;
+      --bleu-clair: #60a5fa;
+      --violet: #a78bfa;
+      --gris-fond: #0f172a;
+      --texte-principal: #e2e8f0;
+      --texte-secondaire: #94a3b8;
+      --ombre: 0 10px 40px rgba(0, 0, 0, 0.4);
+      --ombre-hover: 0 15px 50px rgba(0, 0, 0, 0.5);
+      --fond-gradient-1: #0f172a;
+      --fond-gradient-2: #1e293b;
+      --fond-gradient-3: #111827;
+      --carte-fond: rgba(30, 41, 59, 0.85);
+      --carte-bord: rgba(51, 65, 85, 0.6);
+      --table-ligne: rgba(56, 189, 248, 0.08);
+      --bordure: #334155;
+      --info-fond: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     }
     body {
-      background: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 50%, #f0fdf4 100%);
+      background: linear-gradient(135deg, var(--fond-gradient-1) 0%, var(--fond-gradient-2) 50%, var(--fond-gradient-3) 100%);
       min-height: 100vh;
       font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--texte-principal);
+      transition: background 0.4s ease, color 0.4s ease;
     }
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(30px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    @keyframes pulse-slow {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-6px); }
-    }
-    .fade-in-up {
-      animation: fadeInUp 0.7s ease-out forwards;
-      opacity: 0;
-    }
+    .fade-in-up { animation: fadeInUp 0.7s ease-out forwards; opacity: 0; }
     .delay-1 { animation-delay: 0.1s; }
     .delay-2 { animation-delay: 0.2s; }
     .delay-3 { animation-delay: 0.3s; }
     .delay-4 { animation-delay: 0.4s; }
-    .pulse-slow { animation: pulse-slow 2.5s infinite; }
-    .float { animation: float 3s ease-in-out infinite; }
     .card-glass {
-      background: rgba(255, 255, 255, 0.85);
+      background: var(--carte-fond);
       backdrop-filter: blur(12px);
       border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--carte-bord);
       box-shadow: var(--ombre);
       transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       overflow: hidden;
     }
-    .card-glass:hover {
-      transform: translateY(-6px) scale(1.015);
-      box-shadow: var(--ombre-hover);
-    }
+    .card-glass:hover { transform: translateY(-4px); box-shadow: var(--ombre-hover); }
     .card-header-grad {
       background: linear-gradient(90deg, var(--primaire) 0%, #0369a1 100%);
-      color: white;
-      font-weight: 700;
+      color: white; font-weight: 700;
       border-radius: 20px 20px 0 0 !important;
       padding: 1rem 1.5rem;
     }
+    [data-theme="dark"] .card-header-grad {
+      background: linear-gradient(90deg, #0369a1 0%, #075985 100%);
+    }
     .info-bar {
-      background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+      background: var(--info-fond);
       border-left: 5px solid var(--secondaire);
       border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.15);
+      box-shadow: 0 6px 20px rgba(245,158,11,0.15);
+      transition: all 0.4s ease;
     }
-    .info-bar.alerte { border-left-color: var(--rouge); background: linear-gradient(135deg, #fff2f2, #fff8f0); }
-    .heure-utc {
-      font-family: 'Courier New', monospace;
-      font-weight: 700;
-      font-size: 1.15rem;
-      color: var(--primaire);
-      letter-spacing: 1px;
-    }
+    .info-bar.alerte { border-left-color: var(--rouge); background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(254,243,199,0.1)); }
     .table-responsive { border-radius: 16px; overflow: hidden; }
-    .table { margin-bottom: 0; }
     .table thead th {
       background: linear-gradient(90deg, var(--primaire) 0%, #0369a1 100%);
-      color: white;
-      font-weight: 600;
-      border: none;
-      padding: 1rem;
-      font-size: 0.95rem;
+      color: white; font-weight: 600; border: none; padding: 0.9rem;
     }
-    .table tbody tr { transition: all 0.3s ease; }
-    .table tbody tr:hover {
-      background-color: rgba(12, 74, 110, 0.06);
-      transform: scale(1.008);
-    }
-    .table tbody tr td {
-      vertical-align: middle;
-      padding: 0.9rem 1rem;
-      border-color: #e2e8f0;
-    }
+    .table tbody tr { transition: all 0.25s ease; }
+    .table tbody tr:hover { background-color: var(--table-ligne); }
+    .table tbody tr.ligne-selectionnee { background: rgba(16,185,129,0.12); border-left: 4px solid var(--accent); }
+    .table tbody tr td { vertical-align: middle; padding: 0.8rem; border-color: var(--bordure); color: var(--texte-principal); }
     .jour-lundi { border-left: 4px solid var(--bleu-clair); }
     .jour-mardi { border-left: 4px solid var(--accent); }
     .jour-mercredi { border-left: 4px solid var(--violet); }
     .jour-jeudi { border-left: 4px solid var(--secondaire); }
     .jour-vendredi { border-left: 4px solid var(--primaire); }
     .jour-samedi { border-left: 4px solid var(--rouge); }
-    .badge-classe {
-      background: linear-gradient(135deg, var(--primaire), #0369a1);
-      font-weight: 600;
-      font-size: 0.85rem;
-      padding: 0.4rem 0.7rem;
+    .badge-classe { background: linear-gradient(135deg, var(--primaire), #0369a1); font-weight:600; font-size:0.85rem; padding:0.3rem 0.6rem; border-radius:8px; color:white; }
+    .badge-matiere { background: linear-gradient(135deg, var(--secondaire), #f97316); font-weight:600; font-size:0.85rem; padding:0.3rem 0.6rem; border-radius:8px; color:white; }
+    .badge-prof { background: linear-gradient(135deg, var(--accent), #059669); font-weight:500; font-size:0.85rem; padding:0.3rem 0.6rem; border-radius:8px; color:white; }
+    .badge-heure { background: rgba(148,163,184,0.2); color: var(--primaire); font-weight:700; font-size:0.85rem; padding:0.3rem 0.5rem; border-radius:6px; }
+    .badge-ar { opacity: 0.85; font-size: 0.75rem; margin-left: 0.35rem; font-weight: normal; }
+    .btn-excel { background: #217346; color: white; }
+    .btn-excel:hover { background: #185c38; color: white; }
+    .form-control, .form-select {
       border-radius: 10px;
+      background: var(--carte-fond);
+      border-color: var(--bordure);
+      color: var(--texte-principal);
     }
-    .badge-matiere {
-      background: linear-gradient(135deg, var(--secondaire), #f97316);
-      font-weight: 600;
-      font-size: 0.85rem;
-      padding: 0.4rem 0.7rem;
-      border-radius: 10px;
+    .form-control:focus, .form-select:focus {
+      background: var(--carte-fond);
+      color: var(--texte-principal);
+      border-color: var(--primaire);
+      box-shadow: 0 0 0 0.25rem rgba(12,74,110,0.15);
     }
-    .badge-prof {
-      background: linear-gradient(135deg, var(--accent), #059669);
-      font-weight: 500;
-      font-size: 0.85rem;
-      padding: 0.4rem 0.7rem;
-      border-radius: 10px;
+    .modal-content { border-radius: 20px; border: none; background: var(--carte-fond); color: var(--texte-principal); }
+    .modal-header {
+      background: linear-gradient(90deg, var(--primaire), #0369a1);
+      color: white; border-radius: 20px 20px 0 0;
     }
-    .badge-heure {
-      background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-      color: var(--primaire);
-      font-weight: 700;
-      font-size: 0.9rem;
-      padding: 0.4rem 0.6rem;
-      border-radius: 8px;
+    .modal-header .btn-close { filter: brightness(10); }
+    .toggle-theme {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 1050;
+      border-radius: 50px;
+      padding: 0.4rem 1rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      transition: all 0.3s ease;
     }
-    .txt-en, .txt-ar { display: none; }
-    body.lang-fr .txt-fr { display: inline; }
-    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
-    body.lang-en .txt-en { display: inline; direction: ltr; }
-    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
-    body.lang-ar .txt-ar { display: inline; direction: rtl; }
-    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    .toggle-theme:hover { transform: scale(1.05); }
+    a { color: var(--primaire); }
+    .no-print { display: none !important; }
+    @media print {
+      body { background: white !important; color: black !important; }
+      .no-print, .no-print * { display: none !important; }
+      .card-glass { box-shadow: none; border: 1px solid #ccc; background: white !important; }
+      .table th { background: #0c4a6e !important; color: white !important; }
+      .table td { color: black !important; border-color: #ccc !important; }
+    }
     @media (max-width: 768px) {
-      .card-header-grad { padding: 0.8rem 1rem; font-size: 1rem; }
-      .table thead { display: none; }
-      .table tbody tr { display: block; margin-bottom: 1rem; border-radius: 12px; border: 1px solid #e2e8f0; }
-      .table tbody td { display: flex; justify-content: space-between; padding: 0.7rem 1rem; border: none; border-bottom: 1px solid #f1f5f9; }
-      .table tbody td::before { content: attr(data-label); font-weight: 600; color: var(--primaire); }
+      .table thead tr.no-print { display: none; }
+      .table tbody tr { display: block; margin-bottom: 1rem; border-radius: 12px; border: 1px solid var(--bordure); }
+      .table tbody td { display: flex; justify-content: space-between; padding: 0.7rem 1rem; border: none; border-bottom: 1px solid var(--bordure); }
+      .table tbody td::before { content: attr(data-label); font-weight: 600; color: var(--primaire); margin-right: 0.5rem; }
     }
   </style>
 </head>
 <body>
-<script>
-const API_URL = "https://mama-zoumana-api.onrender.com/api";
-function getToken() { return localStorage.getItem('token'); }
-async function requeteAPI(chemin, options = {}) {
-  const reponse = await fetch(`${API_URL}${chemin}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
-      ...options.headers
-    }
-  });
-  const donnees = await reponse.json();
-  if (reponse.status === 401) {
-    alert("⛔ Session expirée — Reconnectez-vous");
-    localStorage.clear();
-    window.location.href = 'connexion.html';
-  }
-  return donnees;
-}
-  const token = getItem('token');
-  const role = localStorage.getItem('role');
-  const langueActuelle = localStorage.getItem('langue') || 'fr';
-  document.body.classList.add('lang-' + langueActuelle);
 
-  // 🔒 Vérification connexion
-  if (!token || !['admin','Admin','super_admin','prof','eleve'].includes(role || '')) {
-    alert("⛔ Connexion requise");
+<button class="btn btn-primary toggle-theme no-print" id="btnTheme" title="Basculer Jour/Nuit">
+  <i id="iconeTheme" class="bi bi-moon-stars"></i>
+  <span id="texteTheme" class="ms-1">Nuit</span>
+</button>
+
+<script>
+  const html = document.documentElement;
+  const btnTheme = document.getElementById('btnTheme');
+  const iconeTheme = document.getElementById('iconeTheme');
+  const texteTheme = document.getElementById('texteTheme');
+
+  function getSystemTheme() {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  let themeActuel = localStorage.getItem('theme') || getSystemTheme();
+  function appliquerTheme(theme) {
+    if (theme === 'dark') {
+      html.setAttribute('data-theme', 'dark');
+      iconeTheme.className = 'bi bi-sun';
+      texteTheme.textContent = 'Jour';
+      btnTheme.className = 'btn btn-warning toggle-theme no-print';
+    } else {
+      html.removeAttribute('data-theme');
+      iconeTheme.className = 'bi bi-moon-stars';
+      texteTheme.textContent = 'Nuit';
+      btnTheme.className = 'btn btn-primary toggle-theme no-print';
+    }
+    localStorage.setItem('theme', theme);
+    themeActuel = theme;
+  }
+  appliquerTheme(themeActuel);
+  btnTheme.addEventListener('click', () => {
+    appliquerTheme(themeActuel === 'dark' ? 'light' : 'dark');
+  });
+
+  const API_URL = "https://mama-zoumana-api.onrender.com/api";
+  function getToken() { return localStorage.getItem('token'); }
+  async function requeteAPI(chemin, options = {}) {
+    const res = await fetch(`${API_URL}${chemin}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`,
+        ...options.headers
+      }
+    });
+    if (res.status === 401) {
+      alert("⛔ Session expirée — Reconnectez-vous");
+      localStorage.clear();
+      location.href = 'connexion.html';
+      throw new Error('SESSION_EXPIREE');
+    }
+    if (res.status >= 500) throw new Error('SERVEUR');
+    return await res.json();
+  }
+
+  const token = getToken();
+  const role = (localStorage.getItem('role')||'').toLowerCase();
+  if (!token || !['admin','super_admin','prof','directeur'].includes(role)) {
+    alert("⛔ Accès réservé — Connexion requise");
     location.href = 'connexion.html';
   }
 
-  function obtenirEdtLocal() { return JSON.parse(localStorage.getItem('emploi_global') || '[]'); }
-  function sauvegarderEdtLocal(liste) { localStorage.setItem('emploi_global', JSON.stringify(liste)); }
+  let listeSeances = [];
+  let listeClasses = [];
+  let listeMatieres = [];
 
-  const MSG = {
-    fr: { serveurIndispo: "⚠️ Serveur indisponible — Mode local actif", aucune: "Aucune séance programmée pour l'instant", erreur: "Erreur de chargement" },
-    en: { serveurIndispo: "⚠️ Server offline — Local mode active", aucune: "No session scheduled yet", erreur: "Loading error" },
-    ar: { serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي", aucune: "لا توجد حصص مجدولة حتى الآن", erreur: "خطأ في التحميل" }
-  };
-  function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
+  function sauvegarderLocal() { 
+    localStorage.setItem('edt_seances', JSON.stringify(listeSeances)); 
+    localStorage.setItem('ref_classes', JSON.stringify(listeClasses));
+    localStorage.setItem('ref_matieres', JSON.stringify(listeMatieres));
+  }
+  function recupererLocal() { 
+    listeSeances = JSON.parse(localStorage.getItem('edt_seances') || '[]');
+    listeClasses = JSON.parse(localStorage.getItem('ref_classes') || '[]');
+    listeMatieres = JSON.parse(localStorage.getItem('ref_matieres') || '[]');
+  }
+
+  // ✅ RENDRE LES NOMS BILINGUES (identique à la page admin)
+  function nomClasse(id) {
+    if (!id) return '—';
+    const c = listeClasses.find(x => String(x.id_classe || x.id || x._id) === String(id));
+    if (!c) return id;
+    return `<span class="badge-classe">${c.libelle_classe}</span>${c.libelle_classe_ar ? `<span class="badge-ar">${c.libelle_classe_ar}</span>` : ''}`;
+  }
+  function nomMatiere(id) {
+    if (!id) return '—';
+    const m = listeMatieres.find(x => String(x.id_matiere || x.id || x._id) === String(id));
+    if (!m) return id;
+    return `<span class="badge-matiere">${m.libelle_matiere}</span>${m.libelle_matiere_ar ? `<span class="badge-ar">${m.libelle_matiere_ar}</span>` : ''}`;
+  }
+
+  // ✅ ALIMENTER LES LISTES DÉROULANTES
+  function optionsClasses() {
+    return listeClasses.map(c => {
+      const id = c.id_classe || c.id || c._id;
+      return `<option value="${id}">${c.libelle_classe}${c.libelle_classe_ar ? ' / ' + c.libelle_classe_ar : ''}</option>`;
+    }).join('');
+  }
+  function optionsMatieres() {
+    return listeMatieres.map(m => {
+      const id = m.id_matiere || m.id || m._id;
+      return `<option value="${id}">${m.libelle_matiere}${m.libelle_matiere_ar ? ' / ' + m.libelle_matiere_ar : ''}</option>`;
+    }).join('');
+  }
+
+  function mettreAJourDate() {
+    const maintenant = new Date();
+    const opts = { weekday:'long', day:'numeric', month:'long', year:'numeric' };
+    const dateFr = maintenant.toLocaleDateString('fr-FR', opts);
+    const el = document.getElementById('dateDuJour');
+    if (el) el.textContent = dateFr.charAt(0).toUpperCase() + dateFr.slice(1);
+    const h = maintenant.getHours().toString().padStart(2,'0');
+    const m = maintenant.getMinutes().toString().padStart(2,'0');
+    const eh = document.getElementById('heureUTC');
+    if (eh) eh.textContent = `${h}:${m}`;
+  }
 </script>
 
 <div class="container py-4 py-md-5">
-  <div class="mb-4 fade-in-up delay-1">
+  <div class="mb-4 fade-in-up delay-1 no-print">
     <a href="dashboard.html" class="text-decoration-none">
-      <i class="bi bi-arrow-left-circle me-2"></i>
-      <span class="txt-fr">Retour au Tableau de Bord</span>
-      <span class="txt-en">Back to Dashboard</span>
-      <span class="txt-ar">العودة إلى لوحة التحكم</span>
+      <i class="bi bi-arrow-left-circle me-2"></i>Retour au Tableau de Bord
     </a>
   </div>
 
-  <!-- 📅 EN-TÊTE : DATE & HEURE + ALERTE -->
   <div id="barreInfo" class="info-bar p-4 mb-4 fade-in-up delay-2">
     <div class="row align-items-center g-3">
-      <div class="col-md-5">
-        <h5 class="mb-2 text-dark">
-          <i class="bi bi-calendar3 text-warning me-2"></i>
-          <span class="txt-fr">Date du Jour</span>
-          <span class="txt-en">Today's Date</span>
-          <span class="txt-ar">تاريخ اليوم</span>
-        </h5>
-        <div id="dateDuJour" class="fs-5 fw-bold text-dark pulse-slow"></div>
+      <div class="col-md-6">
+        <h5 class="mb-2"><i class="bi bi-calendar3 text-warning me-2"></i>Date du Jour</h5>
+        <div id="dateDuJour" class="fs-5 fw-bold"></div>
       </div>
-      <div class="col-md-7 text-md-end">
-        <h5 class="mb-2 text-dark">
-          <i class="bi bi-clock text-primary me-2"></i> 🕐 Heure Greenwich (UTC)
-        </h5>
-        <div id="heureUTC" class="heure-utc float"></div>
+      <div class="col-md-6 text-md-end">
+        <h5 class="mb-2"><i class="bi bi-clock text-primary me-2"></i>Heure</h5>
+        <div id="heureUTC" class="fw-bold"></div>
       </div>
     </div>
   </div>
 
-  <!-- 📊 TABLEAU EDT -->
+  <div class="card card-glass mb-4 fade-in-up delay-2 no-print">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label fw-bold">🏫 Filtrer par Classe</label>
+          <select id="filtreClasse" class="form-select" onchange="appliquerFiltres()">
+            <option value="">🌐 TOUTES CLASSES (Global)</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-bold">📅 Jour</label>
+          <select id="filtreJour" class="form-select" onchange="appliquerFiltres()">
+            <option value="">Tous les jours</option>
+            <option>Lundi</option><option>Mardi</option><option>Mercredi</option><option>Jeudi</option><option>Vendredi</option><option>Samedi</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold">⚙️ Actions</label>
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-primary" onclick="ouvrirFormulaire()"><i class="bi bi-plus-lg"></i> Nouvelle séance</button>
+            <button class="btn btn-success" onclick="exporterImpression()"><i class="bi bi-printer"></i> Imprimer</button>
+            <button class="btn btn-excel" onclick="exporterExcel()"><i class="bi bi-file-earmark-excel"></i> Excel</button>
+            <button class="btn btn-info text-white" onclick="basculerToutSelection()">✅ Tout sélectionner</button>
+            <button class="btn btn-danger" onclick="supprimerSelection()"><i class="bi bi-trash"></i> Supprimer</button>
+            <button class="btn btn-outline-secondary" onclick="chargerTout()"><i class="bi bi-arrow-clockwise"></i> Actualiser</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="card card-glass fade-in-up delay-3">
     <div class="card-header card-header-grad d-flex align-items-center justify-content-between">
-      <span>
-        <i class="bi bi-table me-2"></i>
-        <span class="txt-fr">EMPLOI DU TEMPS GLOBAL — TOUTES CLASSES</span>
-        <span class="txt-en">GLOBAL TIMETABLE — ALL CLASSES</span>
-        <span class="txt-ar">الجدول الزمني العام — جميع الفصول</span>
-      </span>
-      <button class="btn btn-sm btn-light" onclick="chargerEmploiTemps()">
-        <i class="bi bi-arrow-clockwise"></i>
-      </button>
+      <span><i class="bi bi-table me-2"></i>EMPLOI DU TEMPS — <span id="titreFiltre">TOUTES CLASSES</span></span>
+      <span class="badge bg-light text-dark" id="compteurSeances">0 séances</span>
     </div>
     <div class="card-body p-0">
-      <div class="table-responsive p-3">
-        <table class="table table-hover">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
           <thead>
-            <tr>
-              <th>📅 <span class="txt-fr">Jour</span><span class="txt-en">Day</span><span class="txt-ar">اليوم</span></th>
-              <th>⏰ <span class="txt-fr">Heure</span><span class="txt-en">Time</span><span class="txt-ar">الوقت</span></th>
-              <th>🏫 <span class="txt-fr">Classe</span><span class="txt-en">Class</span><span class="txt-ar">القسم</span></th>
-              <th>📖 <span class="txt-fr">Matière</span><span class="txt-en">Subject</span><span class="txt-ar">المادة</span></th>
-              <th>👨‍🏫 <span class="txt-fr">Professeur</span><span class="txt-en">Teacher</span><span class="txt-ar">الأستاذ</span></th>
+            <tr class="no-print">
+              <th style="width:45px">✅</th>
+              <th>📅 Jour</th>
+              <th>⏰ Heure</th>
+              <th>🏫 Classe</th>
+              <th>📖 Matière</th>
+              <th>👨‍🏫 Professeur</th>
+              <th class="text-center" style="width:140px">Actions</th>
+            </tr>
+            <tr class="d-none print-only">
+              <th>📅 Jour</th><th>⏰ Heure</th><th>🏫 Classe</th><th>📖 Matière</th><th>👨‍🏫 Professeur</th>
             </tr>
           </thead>
           <tbody id="corpsEmploi">
-            <tr>
-              <td colspan="5" class="text-center py-4 text-muted">
-                <div class="spinner-border text-primary mb-2"></div><br>
-                <span class="txt-fr">Chargement en cours...</span>
-                <span class="txt-en">Loading...</span>
-                <span class="txt-ar">جار التحميل...</span>
-              </td>
-            </tr>
+            <tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-primary"></div><br>Chargement...</td></tr>
           </tbody>
         </table>
       </div>
@@ -269,94 +363,276 @@ async function requeteAPI(chemin, options = {}) {
   </div>
 </div>
 
+<div class="modal fade" id="modalForm" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitre">➕ Nouvelle Séance</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editId">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-bold">📅 Jour <span class="text-danger">*</span></label>
+            <select id="formJour" class="form-select" required>
+              <option value="">Choisir</option>
+              <option>Lundi</option><option>Mardi</option><option>Mercredi</option><option>Jeudi</option><option>Vendredi</option><option>Samedi</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">⏰ Heure Début <span class="text-danger">*</span></label>
+            <input type="time" id="formDebut" class="form-control" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">⏰ Heure Fin <span class="text-danger">*</span></label>
+            <input type="time" id="formFin" class="form-control" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">🏫 Classe <span class="text-danger">*</span></label>
+            <select id="formClasse" class="form-select" required><option value="">⏳...</option></select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">📖 Matière <span class="text-danger">*</span></label>
+            <select id="formMatiere" class="form-select" required><option value="">⏳...</option></select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">👨‍🏫 Professeur</label>
+            <input type="text" id="formProf" class="form-control" placeholder="Nom du professeur">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-primary" onclick="enregistrerSeance()">💾 Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // 🕐 DATE & HEURE UTC
-  function mettreAJourHeure() {
-    const maintenant = new Date();
-    const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    const dateFr = maintenant.toLocaleDateString('fr-FR', opts);
-    document.getElementById('dateDuJour').textContent = dateFr.charAt(0).toUpperCase() + dateFr.slice(1);
-    const h = maintenant.getUTCHours().toString().padStart(2, '0');
-    const m = maintenant.getUTCMinutes().toString().padStart(2, '0');
-    const s = maintenant.getUTCSeconds().toString().padStart(2, '0');
-    document.getElementById('heureUTC').textContent = `${h}:${m}:${s} UTC`;
+  const modal = new bootstrap.Modal(document.getElementById('modalForm'));
+
+  // ✅ CHARGER RÉFÉRENTIELS AVEC LES BONNES ROUTES
+  async function chargerReferentiels() {
+    try {
+      const [clData, mtData] = await Promise.all([
+        requeteAPI('/classes/toutes'),  // ✅ BONNE ROUTE
+        requeteAPI('/matieres')           // ✅ BONNE ROUTE
+      ]);
+      listeClasses = clData.classes || clData.lignes || clData || [];
+      listeMatieres = mtData.matieres || mtData.lignes || mtData || [];
+      if (!Array.isArray(listeClasses)) listeClasses = [];
+      if (!Array.isArray(listeMatieres)) listeMatieres = [];
+    } catch {
+      recupererLocal();
+      if (!listeClasses.length) {
+        listeClasses = [
+          {id_classe:'cp', libelle_classe:'CP', libelle_classe_ar:'الصف الأول'},
+          {id_classe:'ce1', libelle_classe:'CE1', libelle_classe_ar:'الصف الثاني'},
+          {id_classe:'ce2', libelle_classe:'CE2', libelle_classe_ar:'الصف الثالث'},
+          {id_classe:'cm1', libelle_classe:'CM1', libelle_classe_ar:'الصف الرابع'},
+          {id_classe:'cm2', libelle_classe:'CM2', libelle_classe_ar:'الصف الخامس'},
+          {id_classe:'6eme', libelle_classe:'6ème', libelle_classe_ar:'السادس'},
+          {id_classe:'5eme', libelle_classe:'5ème', libelle_classe_ar:'الخامس'},
+          {id_classe:'4eme', libelle_classe:'4ème', libelle_classe_ar:'الرابع'},
+          {id_classe:'3eme', libelle_classe:'3ème', libelle_classe_ar:'الثالث'}
+        ];
+      }
+      if (!listeMatieres.length) {
+        listeMatieres = [
+          {id_matiere:'fr', libelle_matiere:'Français', libelle_matiere_ar:'اللغة الفرنسية'},
+          {id_matiere:'math', libelle_matiere:'Mathématiques', libelle_matiere_ar:'الرياضيات'},
+          {id_matiere:'ar', libelle_matiere:'Arabe', libelle_matiere_ar:'اللغة العربية'},
+          {id_matiere:'hist', libelle_matiere:'Histoire-Géo', libelle_matiere_ar:'التاريخ والجغرافيا'},
+          {id_matiere:'sc', libelle_matiere:'Sciences', libelle_matiere_ar:'العلوم'},
+          {id_matiere:'ang', libelle_matiere:'Anglais', libelle_matiere_ar:'الإنجليزية'}
+        ];
+      }
+    }
+    listeClasses.sort((a,b)=>(a.libelle_classe||'').localeCompare(b.libelle_classe||''));
+    listeMatieres.sort((a,b)=>(a.libelle_matiere||'').localeCompare(b.libelle_matiere||''));
+    sauvegarderLocal();
+
+    // Alimenter TOUTES les listes déroulantes
+    document.getElementById('filtreClasse').innerHTML += optionsClasses();
+    document.getElementById('formClasse').innerHTML = `<option value="">Choisir une classe</option>` + optionsClasses();
+    document.getElementById('formMatiere').innerHTML = `<option value="">Choisir une matière</option>` + optionsMatieres();
   }
-  mettreAJourHeure();
-  setInterval(mettreAJourHeure, 1000);
 
-  // 🎨 Rendu ligne
-  function rendreLigne(seance) {
-    const jourClasse = {
-      'Lundi': 'jour-lundi',
-      'Mardi': 'jour-mardi',
-      'Mercredi': 'jour-mercredi',
-      'Jeudi': 'jour-jeudi',
-      'Vendredi': 'jour-vendredi',
-      'Samedi': 'jour-samedi'
-    }[seance.jour || ''] || '';
+  async function chargerEmploiTemps() {
+    const corps = document.getElementById('corpsEmploi');
+    corps.innerHTML = `<tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-primary"></div><br>Chargement...</td></tr>`;
+    try {
+      const data = await requeteAPI('/emploi/global');  // ✅ BONNE ROUTE
+      listeSeances = data.seances || data || [];
+      if (!Array.isArray(listeSeances)) listeSeances = [];
+      sauvegarderLocal();
+    } catch {
+      recupererLocal();
+    }
+    appliquerFiltres();
+  }
 
+  async function chargerTout() {
+    await chargerReferentiels();
+    await chargerEmploiTemps();
+  }
+
+  function appliquerFiltres() {
+    const classeSel = document.getElementById('filtreClasse').value;
+    const jourSel = document.getElementById('filtreJour').value;
+    const titre = document.getElementById('titreFiltre');
+    let listeAffichee = listeSeances.slice();
+
+    if (classeSel) {
+      titre.textContent = nomClasse(classeSel).replace(/<[^>]*>/g, '');
+      listeAffichee = listeAffichee.filter(s=> String(s.classe_id||s.classe) === String(classeSel));
+    } else {
+      titre.textContent = 'TOUTES CLASSES';
+    }
+    if (jourSel) listeAffichee = listeAffichee.filter(s=> s.jour === jourSel);
+    afficherListe(listeAffichee);
+  }
+
+  function afficherListe(liste) {
+    const corps = document.getElementById('corpsEmploi');
+    document.getElementById('compteurSeances').textContent = `${liste.length} séance${liste.length>1?'s':''}`;
+    if (!liste.length) {
+      corps.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted"><i class="bi bi-calendar-x fs-1 mb-2"></i><br>Aucune séance trouvée</td></tr>`;
+      return;
+    }
+    corps.innerHTML = liste.map((s,i) => rendreLigne(s,i)).join('');
+  }
+
+  function rendreLigne(s, idx) {
+    const jourClasse = {Lundi:'jour-lundi',Mardi:'jour-mardi',Mercredi:'jour-mercredi',Jeudi:'jour-jeudi',Vendredi:'jour-vendredi',Samedi:'jour-samedi'}[s.jour]||'';
     return `
-      <tr class="${jourClasse}">
-        <td data-label="Jour" class="fw-semibold">${seance.jour || '-'}</td>
-        <td data-label="Heure"><span class="badge-heure">${(seance.heure_debut||'').slice(0,5)} - ${(seance.heure_fin||'').slice(0,5)}</span></td>
-        <td data-label="Classe"><span class="badge badge-classe">${seance.libelle_classe || seance.classe || '-'}</span></td>
-        <td data-label="Matière"><span class="badge badge-matiere">${seance.libelle_matiere || seance.matiere || '-'}</span></td>
-        <td data-label="Professeur"><span class="badge-prof">${seance.professeur || seance.prof || '-'}</span></td>
+      <tr class="${jourClasse}" data-id="${s.id||s._id||'local-'+idx}" data-index="${idx}">
+        <td class="no-print"><input type="checkbox" class="form-check-input ligne-checkbox"></td>
+        <td data-label="Jour" class="fw-semibold">${s.jour||'—'}</td>
+        <td data-label="Heure"><span class="badge-heure">${(s.heure_debut||s.debut||'').slice(0,5)} — ${(s.heure_fin||s.fin||'').slice(0,5)}</span></td>
+        <td data-label="Classe">${nomClasse(s.classe_id||s.classe)}</td>
+        <td data-label="Matière">${nomMatiere(s.matiere_id||s.matiere)}</td>
+        <td data-label="Professeur"><span class="badge-prof">${s.professeur||s.prof||'—'}</span></td>
+        <td data-label="Actions" class="text-center text-nowrap no-print">
+          <button class="btn btn-sm btn-outline-secondary" onclick="modifierSeance('${s.id||s._id||'local-'+idx}')" title="Modifier">✏️</button>
+          <button class="btn btn-sm btn-outline-danger" onclick="supprimerUneSeance('${s.id||s._id||'local-'+idx}')" title="Supprimer">🗑️</button>
+        </td>
       </tr>`;
   }
 
-  // 📅 CHARGEMENT
-  async function chargerEmploiTemps() {
-    const corps = document.getElementById('corpsEmploi');
-    const barreInfo = document.getElementById('barreInfo');
-    barreInfo.classList.remove('alerte');
-
-    corps.innerHTML = `<tr><td colspan="5" class="text-center py-4">
-      <div class="spinner-border text-primary"></div><br>
-      <span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جار التحميل...</span>
-    </td></tr>`;
-
-    try {
-      const reponse = await fetch(`${API_URL}/emploi/global`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (!reponse.ok) throw new Error(`Erreur ${reponse.status}`);
-      const data = await reponse.json();
-
-      if (!data.ok) throw new Error(data.erreur || m('erreur'));
-      if (!data.seances || data.seances.length === 0) {
-        corps.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">
-          <i class="bi bi-calendar-x fs-1 mb-2"></i><br>${m('aucune')}
-        </td></tr>`;
-        sauvegarderEdtLocal([]);
-        return;
-      }
-      sauvegarderEdtLocal(data.seances);
-      corps.innerHTML = data.seances.map(seance => rendreLigne(seance)).join('');
-
-    } catch (erreur) {
-      console.warn("🔌 Passage en mode local :", erreur);
-      barreInfo.classList.add('alerte');
-      // ✅ Ne remplace que la partie droite sans perdre la date
-      barreInfo.querySelector('.col-md-7').innerHTML = `
-        <h5 class="mb-2 text-dark"><i class="bi bi-wifi-off text-danger me-2"></i>⚠️ Mode local</h5>
-        <div class="text-danger fw-semibold">${m('serveurIndispo')}</div>`;
-
-      mettreAJourHeure();
-      const locale = obtenirEdtLocal();
-      if (locale.length === 0) {
-        corps.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">
-          <i class="bi bi-calendar-x fs-1 mb-2"></i><br>${m('aucune')}
-        </td></tr>`;
-        return;
-      }
-      corps.innerHTML = locale.map(seance => rendreLigne(seance)).join('');
-    }
+  function ouvrirFormulaire() {
+    document.getElementById('modalTitre').textContent = '➕ Nouvelle Séance';
+    document.getElementById('editId').value = '';
+    document.getElementById('formJour').value = '';
+    document.getElementById('formDebut').value = '';
+    document.getElementById('formFin').value = '';
+    document.getElementById('formClasse').value = '';
+    document.getElementById('formMatiere').value = '';
+    document.getElementById('formProf').value = '';
+    modal.show();
   }
 
-  document.addEventListener('DOMContentLoaded', chargerEmploiTemps);
+  function modifierSeance(id) {
+    const idx = id.startsWith('local-') ? parseInt(id.replace('local-','')) : listeSeances.findIndex(s=>String(s.id||s._id)===String(id));
+    if (idx<0) return;
+    const s = listeSeances[idx];
+    document.getElementById('modalTitre').textContent = '✏️ Modifier la Séance';
+    document.getElementById('editId').value = id;
+    document.getElementById('formJour').value = s.jour||'';
+    document.getElementById('formDebut').value = s.heure_debut||s.debut||'';
+    document.getElementById('formFin').value = s.heure_fin||s.fin||'';
+    document.getElementById('formClasse').value = s.classe_id||s.classe||'';
+    document.getElementById('formMatiere').value = s.matiere_id||s.matiere||'';
+    document.getElementById('formProf').value = s.professeur||s.prof||'';
+    modal.show();
+  }
+
+  async function enregistrerSeance() {
+    const id = document.getElementById('editId').value;
+    const donnees = {
+      jour: document.getElementById('formJour').value,
+      heure_debut: document.getElementById('formDebut').value,
+      heure_fin: document.getElementById('formFin').value,
+      classe_id: document.getElementById('formClasse').value,
+      matiere_id: document.getElementById('formMatiere').value,
+      professeur: document.getElementById('formProf').value
+    };
+    if (!donnees.jour || !donnees.heure_debut || !donnees.heure_fin || !donnees.classe_id || !donnees.matiere_id) {
+      alert("⚠️ Remplissez tous les champs obligatoires !"); return;
+    }
+    try {
+      if (id && !id.startsWith('local-')) {
+        await requeteAPI(`/emploi/${id}`, { method:'PUT', body:JSON.stringify(donnees) });
+      } else {
+        await requeteAPI('/emploi', { method:'POST', body:JSON.stringify(donnees) });
+      }
+    } catch {
+      if (id && id.startsWith('local-')) {
+        listeSeances[parseInt(id.replace('local-',''))] = donnees;
+      } else {
+        listeSeances.push(donnees);
+      }
+      sauvegarderLocal();
+    }
+    modal.hide();
+    chargerEmploiTemps();
+  }
+
+  async function supprimerUneSeance(id) {
+    if (!confirm("Confirmer la suppression ?")) return;
+    const idx = id.startsWith('local-') ? parseInt(id.replace('local-','')) : listeSeances.findIndex(s=>String(s.id||s._id)===String(id));
+    if (idx >= 0) listeSeances.splice(idx,1);
+    if (!id.startsWith('local-')) {
+      try { await requeteAPI(`/emploi/${id}`, { method:'DELETE' }); } catch {}
+    }
+    sauvegarderLocal();
+    appliquerFiltres();
+  }
+
+  function basculerToutSelection() {
+    const tous = document.querySelectorAll('.ligne-checkbox');
+    const toutCoche = Array.from(tous).every(c=>c.checked);
+    tous.forEach(cb=>{ cb.checked = !toutCoche; cb.closest('tr').classList.toggle('ligne-selectionnee', cb.checked); });
+  }
+
+  async function supprimerSelection() {
+    const selection = Array.from(document.querySelectorAll('.ligne-checkbox:checked'))
+      .map(cb=>cb.closest('tr').dataset.id);
+    if (!selection.length) { alert("Aucune ligne sélectionnée !"); return; }
+    if (!confirm(`Supprimer ${selection.length} séance(s) ?`)) return;
+    for (const id of selection) await supprimerUneSeance(id);
+  }
+
+  function exporterImpression() { window.print(); }
+  function exporterExcel() {
+    const lignesAffichees = Array.from(document.querySelectorAll('#corpsEmploi tr')).map(tr=>{
+      if (tr.cells.length < 5) return null;
+      return {
+        jour: tr.cells[1].textContent.trim(),
+        heure: tr.cells[2].textContent.trim(),
+        classe: tr.cells[3].textContent.trim().replace(/<[^>]*>/g, ''),
+        matiere: tr.cells[4].textContent.trim().replace(/<[^>]*>/g, ''),
+        prof: tr.cells[5].textContent.trim()
+      };
+    }).filter(Boolean);
+    let csv = "Jour;Heure;Classe;Matière;Professeur\n";
+    lignesAffichees.forEach(l=>csv += `${l.jour};${l.heure};${l.classe};${l.matiere};${l.prof}\n`);
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM+csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `EmploiDuTemps_${new Date().toLocaleDateString('fr-FR').replace(/\//g,'-')}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  }
+
+  document.addEventListener('DOMContentLoaded', async ()=>{
+    mettreAJourDate(); setInterval(mettreAJourDate,60000);
+    await chargerReferentiels();  // ✅ Charge Classes + Matières
+    await chargerEmploiTemps();    // ✅ Charge séances
+  });
 </script>
 </body>
 </html>

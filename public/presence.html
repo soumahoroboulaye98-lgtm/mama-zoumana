@@ -3,754 +3,406 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>
-    <span class="txt-fr">Gestion Présences — Enseignant</span>
-    <span class="txt-en">Attendance Management — Teacher</span>
-    <span class="txt-ar">إدارة الحضور — المعلم</span>
-  </title>
+  <title>Présences — Envoi Automatique</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    /* ✅ VARIABLES   — MODE   CLAIR */
     :root {
       --primaire: #0c4a6e;
       --accent: #f59e0b;
-      --sombre: #0f172a;
-      --sombre-clair: #1e293b;
       --vert: #10b981;
       --rouge: #ef4444;
       --jaune: #f59e0b;
       --fond-page: #f1f5f9;
       --texte-principal: #1e293b;
-      --texte-secondaire: #64748b;
       --carte-fond: #ffffff;
       --bordure: rgba(12, 74, 110, 0.1);
-      --ombre: rgba(12, 74, 110, 0.06);
-      --menu-debut: #0f172a;
-      --menu-fin: #0c4a6e;
     }
-
-    /* 🌙 MODE SOMBRE */
     body.mode-nuit {
       --fond-page: #0f172a;
       --texte-principal: #f8fafc;
-      --texte-secondaire: #cbd5e1;
       --carte-fond: rgba(30, 41, 59, 0.7);
       --bordure: rgba(245, 158, 11, 0.18);
-      --ombre: rgba(245, 158, 11, 0.08);
-      --menu-debut: #020617;
-      --menu-fin: #0c4a6e;
     }
-
-    /* ✅ TRILINGUE */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
-    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
     body.lang-en .txt-en { display: inline; }
-    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
-    body.lang-ar .txt-ar { display: inline; }
-    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
-    body.lang-ar { direction: rtl; }
-
+    body.lang-ar .txt-ar { display: inline; direction: rtl; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       background: var(--fond-page);
-      font-family: 'Segoe UI', 'Roboto', sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       min-height: 100vh;
       color: var(--texte-principal);
-      transition: background 0.4s ease, color 0.4s ease;
-    }
-
-    /* 📱 MENU LATÉRAL */
-    .menu-gauche {
-      background: linear-gradient(180deg, var(--menu-debut), var(--menu-fin));
-      min-height: 100vh;
-      width: 260px;
-      position: fixed;
-      padding: 0;
-      overflow-y: auto;
-      transition: background 0.4s ease;
-      z-index: 10;
-    }
-    .entete-menu {
-      padding: 25px 20px;
-      border-bottom: 1px solid rgba(245, 158, 11, 0.15);
-    }
-    .logo-menu {
-      color: var(--accent);
-      font-weight: 800;
-      font-size: 1.3rem;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: transform 0.3s ease;
-    }
-    .logo-menu:hover { transform: scale(1.03); }
-    .logo-menu i { font-size: 1.6rem; }
-
-    .nav-menu { padding: 20px 12px; }
-    .lien-nav {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 15px;
-      margin-bottom: 6px;
-      color: #cbd5e1;
-      text-decoration: none;
-      border-radius: 10px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-    .lien-nav:hover, .lien-nav.actif {
-      background: rgba(245, 158, 11, 0.12);
-      color: var(--accent);
-      transform: translateX(4px);
-    }
-    body.lang-ar .lien-nav:hover, body.lang-ar .lien-nav.actif { transform: translateX(-4px); }
-
-    /* 📄 CONTENU PRINCIPAL */
-    .contenu-principal {
-      margin-left: 260px;
-      padding: 25px 30px;
-      min-height: 100vh;
-      transition: margin-left 0.3s ease;
-    }
-    .barre-haut {
-      background: var(--carte-fond);
-      padding: 15px 25px;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px var(--ombre);
-      margin-bottom: 25px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 15px;
-      border: 1px solid var(--bordure);
       transition: all 0.4s ease;
     }
-
-    /* 🗣️ Boutons langue & thème */
-    .btn-langue, .btn-theme {
-      background: rgba(245, 158, 11, 0.1);
-      border: 1px solid var(--accent);
+    .entete {
+      background: linear-gradient(90deg, var(--primaire), #0369a1);
+      color: white;
+      padding: 18px 25px;
+      border-radius: 0 0 20px 20px;
+      margin-bottom: 25px;
+    }
+    .btn-theme, .btn-langue {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
       border-radius: 20px;
       padding: 5px 12px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      margin: 0 2px;
-      color: var(--accent);
-      font-weight: 600;
-      transition: all 0.3s ease;
     }
-    .btn-langue:hover, .btn-theme:hover {
-      background: var(--accent);
-      color: #000;
-      transform: translateY(-2px);
-    }
-    .btn-langue.active {
-      background: var(--accent);
-      color: #000;
-      box-shadow: 0 0 8px rgba(245, 158, 11, 0.35);
-    }
-    .btn-theme { border-radius: 50%; width: 40px; height: 40px; padding: 0; }
-
-    .btn-deco {
-      background: transparent;
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      padding: 6px 14px;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      font-weight: 500;
-    }
-    .btn-deco:hover {
-      background: var(--accent);
-      color: #000;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
-    }
-
-    /* 🎴 CARTES */
+    .btn-langue.active, .btn-theme:hover { background: var(--accent); color: #000; }
     .carte {
       background: var(--carte-fond);
       border-radius: 14px;
       padding: 22px;
-      box-shadow: 0 4px 15px var(--ombre);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
       margin-bottom: 25px;
       border: 1px solid var(--bordure);
       transition: all 0.4s ease;
     }
-    .carte:hover {
-      box-shadow: 0 8px 25px var(--ombre);
-      transform: translateY(-2px);
+    /* ✅ PHOTO ÉLÈVE */
+    .photo-eleve {
+      width: 55px; height: 55px; border-radius: 50%; object-fit: cover;
+      border: 3px solid var(--accent);
+      background: linear-gradient(135deg, var(--primaire), #0369a1);
+      color: white; display: flex; align-items: center; justify-content: center;
+      font-weight: bold; font-size: 1.1rem;
     }
-    .titre-section {
-      font-weight: 700;
-      color: var(--primaire);
-      margin-bottom: 1.5rem;
-      transition: color 0.4s ease;
+    /* ✅ MATRICULE */
+    .matricule {
+      font-size: 0.75rem; font-family: 'Courier New', monospace;
+      color: var(--primaire); font-weight: 600;
+      background: rgba(12,74,110,0.06);
+      padding: 2px 6px; border-radius: 4px;
+      display: inline-block; margin-top: 3px;
     }
-    body.mode-nuit .titre-section { color: var(--accent); }
-
-    /* 🏷️ BADGES */
+    body.mode-nuit .matricule { background: rgba(245,158,11,0.1); color: var(--accent); }
+    /* ✅ CLASSE */
+    .classe-eleve {
+      font-size: 0.8rem; color: var(--texte-principal);
+      opacity: 0.8; margin-top: 2px;
+    }
     .badge-pr { background: var(--vert); color: #fff; }
     .badge-ab { background: var(--rouge); color: #fff; }
     .badge-re { background: var(--jaune); color: #000; }
-
-    /* 🔘 BOUTONS STATUT */
-    .btn-pr {
-      background: linear-gradient(135deg, var(--vert), #059669);
-      color: #fff; border: none; transition: all 0.25s ease;
-    }
-    .btn-ab {
-      background: linear-gradient(135deg, var(--rouge), #dc2626);
-      color: #fff; border: none; transition: all 0.25s ease;
-    }
-    .btn-re {
-      background: linear-gradient(135deg, var(--jaune), #d97706);
-      color: #000; border: none; transition: all 0.25s ease;
-    }
-    .btn-pr:hover, .btn-ab:hover, .btn-re:hover {
-      transform: scale(1.08); box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-    }
-    .btn-check:checked + .btn-pr, .btn-pr.active,
-    .btn-check:checked + .btn-ab, .btn-ab.active,
-    .btn-check:checked + .btn-re, .btn-re.active {
-      transform: scale(1.1); box-shadow: 0 0 0 3px rgba(245,158,11,0.35);
-    }
-
-    .statut-eleve { width: 110px; }
-
-    /* ✅ BOUTONS ACTION */
-    .btn-orange {
-      background: linear-gradient(135deg, var(--accent), #f97316);
-      color: #000; border: none; font-weight: 600; transition: all 0.3s ease;
-    }
-    .btn-orange:hover {
-      background: #d97706; color: #000;
-      transform: translateY(-2px); box-shadow: 0 4px 12px rgba(245,158,11,0.3);
-    }
-    .btn-vert {
-      background: linear-gradient(135deg, var(--vert), #059669);
-      color: #fff; border: none; font-weight: 600; transition: all 0.3s ease;
-    }
-    .btn-vert:hover {
-      background: #047857; color: #fff;
-      transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16,185,129,0.3);
-    }
-
-    /* 📊 TABLEAU */
-    .table { color: inherit; }
-    .table-dark {
-      background: linear-gradient(135deg, var(--sombre), var(--sombre-clair));
-    }
+    .btn-pr { background: linear-gradient(135deg, var(--vert), #059669); color: #fff; border: none; }
+    .btn-ab { background: linear-gradient(135deg, var(--rouge), #dc2626); color: #fff; border: none; }
+    .btn-re { background: linear-gradient(135deg, var(--jaune), #d97706); color: #000; border: none; }
+    .btn-pr:hover, .btn-ab:hover, .btn-re:hover { transform: scale(1.08); box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
     .form-control, .form-select {
-      background: var(--carte-fond);
-      border: 1px solid var(--bordure);
-      color: var(--texte-principal);
-      transition: all 0.3s ease;
+      background: var(--carte-fond); border: 1px solid var(--bordure); color: var(--texte-principal);
     }
-    .form-control:focus, .form-select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
-      background: var(--carte-fond);
-      color: var(--texte-principal);
+    .signature-zone {
+      border-top: 2px dashed var(--bordure); margin-top: 15px; padding-top: 15px;
     }
-
-    /* 📈 CARTES STATISTIQUES */
-    .display-4 { transition: color 0.4s ease; }
-
-    /* 📱 RESPONSIVE */
-    @media (max-width: 992px) {
-      .menu-gauche { width: 220px; }
-      .contenu-principal { margin-left: 220px; padding: 20px 18px; }
-    }
+    .statut-eleve { width: 160px; }
+    .info-eleve { line-height: 1.5; }
+    .etat-envoi { font-size: 0.78rem; }
+    @keyframes pulse { 0% { opacity:1; } 50% { opacity:0.4; } 100% { opacity:1; } }
+    .envoi-attente { animation: pulse 1.2s infinite; }
     @media (max-width: 768px) {
-      .menu-gauche { position: relative; width: 100%; min-height: auto; max-height: 70px; overflow: hidden; }
-      .contenu-principal { margin-left: 0; padding: 15px 12px; }
-      .barre-haut { flex-direction: column; align-items: flex-start; }
-      .statut-eleve { width: auto; }
+      .photo-eleve { width: 45px; height: 45px; font-size: 0.95rem; }
+      .btn { font-size: 0.8rem; padding: 4px 6px; }
     }
   </style>
 </head>
 <body class="lang-fr">
 
-<div class="d-flex">
-  <aside class="menu-gauche">
-    <div class="entete-menu">
-      <a href="#" class="logo-menu">
-        <i class="bi bi-building"></i> MAMA-ZOUMANA
-      </a>
-    </div>
-    <nav class="nav-menu">
-      <a href="dashboard.html" class="lien-nav">
-        <i class="bi bi-speedometer2"></i>
-        <span class="txt-fr">Tableau de bord</span>
-        <span class="txt-en">Dashboard</span>
-        <span class="txt-ar">لوحة التحكم</span>
-      </a>
-      <a href="mes-classes.html" class="lien-nav">
-        <i class="bi bi-grid"></i>
-        <span class="txt-fr">Mes Classes</span>
-        <span class="txt-en">My Classes</span>
-        <span class="txt-ar">فصولي</span>
-      </a>
-      <a href="presence.html" class="lien-nav actif">
-        <i class="bi bi-check2-square"></i>
-        <span class="txt-fr">Présences & Retards</span>
-        <span class="txt-en">Attendance & Lateness</span>
-        <span class="txt-ar">الحضور والتأخير</span>
-      </a>
-      <a href="saisie-notes.html" class="lien-nav">
-        <i class="bi bi-pencil-square"></i>
-        <span class="txt-fr">Saisie des Notes</span>
-        <span class="txt-en">Enter Grades</span>
-        <span class="txt-ar">إدخال الدرجات</span>
-      </a>
-      <a href="devoirs.html" class="lien-nav">
-        <i class="bi bi-journal-text"></i>
-        <span class="txt-fr">Devoirs & Examens</span>
-        <span class="txt-en">Homework & Exams</span>
-        <span class="txt-ar">الواجبات والامتحانات</span>
-      </a>
-      <a href="messages.html" class="lien-nav">
-        <i class="bi bi-chat-dots"></i>
-        <span class="txt-fr">Messages</span>
-        <span class="txt-en">Messages</span>
-        <span class="txt-ar">الرسائل</span>
-      </a>
-    </nav>
-  </aside>
-
-  <main class="contenu-principal">
-    <div class="barre-haut">
-      <div class="titre-section">
-        <h4 class="mb-0">
-          <span class="txt-fr">Gestion des Présences</span>
-          <span class="txt-en">Attendance Management</span>
-          <span class="txt-ar">إدارة الحضور</span>
-        </h4>
-        <small class="text-muted">
-          <span class="txt-fr">Enregistrer présences, absences et retards</span>
-          <span class="txt-en">Record present, absent and late status</span>
-          <span class="txt-ar">تسجيل حالات الحضور والغياب والتأخير</span>
-        </small>
-      </div>
-      <div class="d-flex align-items-center gap-2">
-        <button id="btnTheme" class="btn-theme" title="Basculer jour/nuit">☀️</button>
-        <button class="btn-langue" data-lang="fr">FR</button>
-        <button class="btn-langue" data-lang="en">EN</button>
-        <button class="btn-langue" data-lang="ar">AR</button>
-        <i class="bi bi-person-circle fs-4 ms-2"></i>
-        <span id="nom-prof"></span>
-        <button class="btn btn-deco ms-2" onclick="deconnexion()">
-          <i class="bi bi-box-arrow-right"></i>
-          <span class="txt-fr">Déconnexion</span>
-          <span class="txt-en">Logout</span>
-          <span class="txt-ar">تسجيل الخروج</span>
-        </button>
+  <div class="entete">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <h4 class="mb-1">
+            <i class="bi bi-check2-square me-2"></i>
+            <span class="txt-fr">SAISIE DES PRÉSENCES — Envoi Automatique</span>
+            <span class="txt-en">ATTENDANCE — Auto-Send</span>
+          </h4>
+          <p class="mb-0 opacity-75 small">
+            <span class="txt-fr">Photo → Matricule → Nom & Prénoms → Classe → Statut → Envoi Auto</span>
+            <span class="txt-en">Photo → Student ID → Full Name → Class → Status → Auto-Send</span>
+          </p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn-langue" data-lang="fr">FR</button>
+          <button class="btn-langue" data-lang="en">EN</button>
+          <button class="btn-theme" id="btnTheme" title="Mode Jour/Nuit">☀️</button>
+        </div>
       </div>
     </div>
+  </div>
 
-    <!-- 🔽 FILTRES -->
+  <div class="container pb-5">
+    <!-- 📋 EN-TÊTE SAISIE -->
     <div class="carte">
       <div class="row g-3">
-        <div class="col-md-4">
-          <label class="form-label fw-bold">
-            <span class="txt-fr">🏫 Classe</span>
-            <span class="txt-en">🏫 Class</span>
-            <span class="txt-ar">🏫 القسم</span>
-          </label>
-          <select id="id_classe" class="form-select" onchange="chargerListeEleves()">
-            <option value="">
-              <span class="txt-fr">-- Chargement... --</span>
-              <span class="txt-en">-- Loading... --</span>
-              <span class="txt-ar">-- جار التحميل... --</span>
-            </option>
+        <div class="col-md-3">
+          <label class="form-label fw-bold">🏫 Classe</label>
+          <select id="id_classe" class="form-select" onchange="chargerEleves()">
+            <option value="">-- Chargement... --</option>
           </select>
         </div>
-        <div class="col-md-4">
-          <label class="form-label fw-bold">
-            <span class="txt-fr">📅 Date</span>
-            <span class="txt-en">📅 Date</span>
-            <span class="txt-ar">📅 التاريخ</span>
-          </label>
+        <div class="col-md-3">
+          <label class="form-label fw-bold">📚 Matière</label>
+          <select id="id_matiere" class="form-select">
+            <option value="">-- Sélectionner --</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-bold">📅 Date</label>
           <input type="date" id="date-presence" class="form-control">
         </div>
-        <div class="col-md-4 d-flex align-items-end gap-2">
-          <button class="btn btn-orange flex-grow-1" onclick="chargerPresences()">
+        <div class="col-md-3 d-flex align-items-end gap-2">
+          <button class="btn btn-primary flex-grow-1" onclick="chargerEleves()">
             <i class="bi bi-search"></i>
-            <span class="txt-fr"> Charger</span>
-            <span class="txt-en"> Load</span>
-            <span class="txt-ar"> تحميل</span>
-          </button>
-          <button class="btn btn-vert" onclick="enregistrerTout()">
-            <i class="bi bi-save"></i>
-            <span class="txt-fr"> Sauvegarder</span>
-            <span class="txt-en"> Save</span>
-            <span class="txt-ar"> حفظ</span>
+            <span class="txt-fr"> Charger la liste</span>
+            <span class="txt-en"> Load List</span>
           </button>
         </div>
       </div>
     </div>
 
-    <!-- 📊 LÉGENDE -->
-    <div class="alert alert-info py-2">
-      <span class="txt-fr">✅ Présent · ❌ Absent · ⚠️ En retard</span>
-      <span class="txt-en">✅ Present · ❌ Absent · ⚠️ Late</span>
-      <span class="txt-ar">✅ حاضر · ❌ غائب · ⚠️ متأخر</span>
+    <!-- 📊 LÉGENDE & DESTINATAIRESRES -->
+    <div class="alert alert-success py-2">
+      ✅ Présent · ⚠️ En retard · ❌ Absent · 📤 Envoi automatique : Administration → Parents → Élève → Dashboard Élève
     </div>
 
-    <!-- 📋 TABLEAU PRÉSENCES -->
+    <!-- 📋 TABLEAU ÉLÈVES -->
     <div class="carte">
-      <h5 class="mb-3 titre-section">
-        <span class="txt-fr">Liste des Élèves — Présences du jour</span>
-        <span class="txt-en">Student List — Daily Attendance</span>
-        <span class="txt-ar">قائمة التلاميذ — سجل الحضور اليومي</span>
-      </h5>
       <div class="table-responsive">
-        <table class="table table-striped table-hover">
+        <table class="table table-striped table-hover align-middle">
           <thead class="table-dark">
             <tr>
               <th class="text-center">#</th>
-              <th>
-                <span class="txt-fr">Élève</span>
-                <span class="txt-en">Student</span>
-                <span class="txt-ar">التلميذ</span>
-              </th>
-              <th class="text-center statut-eleve">
-                <span class="txt-fr">Statut</span>
-                <span class="txt-en">Status</span>
-                <span class="txt-ar">الحالة</span>
-              </th>
-              <th class="text-center">
-                <span class="txt-fr">Observation / Motif</span>
-                <span class="txt-en">Observation / Reason</span>
-                <span class="txt-ar">ملاحظات / السبب</span>
-              </th>
-              <th class="text-center">✅</th>
+              <th class="text-center">📷 Photo</th>
+              <th>👤 Élève — Matricule — Classe</th>
+              <th class="text-center statut-eleve">✏️ Statut (Cochez)</th>
+              <th class="text-center">📤 Transmission Auto</th>
             </tr>
           </thead>
           <tbody id="corps-tableau">
-            <tr>
-              <td colspan="5" class="text-center text-muted py-4">
-                <span class="txt-fr">Sélectionne une Classe → la liste se charge automatiquement</span>
-                <span class="txt-en">Select a Class → list loads automatically</span>
-                <span class="txt-ar">اختر القسم → يتم التحميل تلقائيا</span>
-              </td>
-            </tr>
+            <tr><td colspan="5" class="text-center text-muted py-4">
+              <span class="txt-fr">Sélectionnez Classe et Matière → Cliquez sur Charger</span>
+              <span class="txt-en">Select Class and Subject → Click Load</span>
+            </td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- 📊 STATISTIQUES DU JOUR -->
-    <div class="row g-4">
-      <div class="col-md-4">
-        <div class="carte text-center">
-          <div class="display-4 fw-bold text-success" id="stat-present">0</div>
-          <div class="text-muted">
-            <span class="txt-fr">Présents</span>
-            <span class="txt-en">Present</span>
-            <span class="txt-ar">الحضور</span>
+    <!-- ✍️ INFO SIGNATURE -->
+    <div class="carte signature-zone">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <h6 class="fw-bold mb-2">✍️ <span class="txt-fr">Professeur</span><span class="txt-en">Teacher</span></h6>
+          <div class="d-flex align-items-center gap-3">
+            <div class="border rounded p-3 text-center" style="min-width:200px;">
+              <div id="signature-prof" style="font-family: 'Brush Script MT', cursive; font-size:1.3rem;">________________________</div>
+              <small class="text-muted" id="date-signature"></small>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="col-md-4">
-        <div class="carte text-center">
-          <div class="display-4 fw-bold text-danger" id="stat-absent">0</div>
-          <div class="text-muted">
-            <span class="txt-fr">Absents</span>
-            <span class="txt-en">Absent</span>
-            <span class="txt-ar">الغياب</span>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="carte text-center">
-          <div class="display-4 fw-bold text-warning" id="stat-retard">0</div>
-          <div class="text-muted">
-            <span class="txt-fr">En retard</span>
-            <span class="txt-en">Late</span>
-            <span class="txt-ar">التأخير</span>
-          </div>
+        <div class="col-md-6">
+          <h6 class="fw-bold mb-2">📩 <span class="txt-fr">Destinataires</span><span class="txt-en">Recipients</span></h6>
+          <ul class="list-unstyled small mb-0">
+            <li>🏛️ Administration</li>
+            <li>👨‍👩‍👧 Parents / Responsables</li>
+            <li>👤 Élève</li>
+            <li>📊 Dashboard / Espace Élève</li>
+          </ul>
         </div>
       </div>
     </div>
-  </main>
-</div>
 
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 // ==================================================
-// ⚙️ CONFIGURATION — 100% HARMONISÉE ✅
+// ⚙️ CONFIGURATION API
 // ==================================================
 const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
 
-// ✅ SÉCURITÉ
-if(!token || role !== 'prof'){
-  alert("⛔ Accès réservé aux Enseignants — Reconnecte-toi");
-  localStorage.clear();
-  location.href = 'connexion.html';
-}
+const textes = {
+  fr: { present: "Présent", absent: "Absent", retard: "En retard", nonSaisi: "Non coché", envoiAttente: "⏳ En attente", envoiEnCours: "🔄 Envoi...", envoiOK: "✅ Envoyé Auto", envoiErreur: "❌ Échec" },
+  en: { present: "Present", absent: "Absent", retard: "Late", nonSaisi: "Not marked", envoiAttente: "⏳ Pending", envoiEnCours: "🔄 Sending...", envoiOK: "✅ Auto-Sent", envoiErreur: "❌ Failed" }
+};
+let langueActuelle = localStorage.getItem('langue') || 'fr';
+let t = textes[langueActuelle];
 
-// ==================================================
+// 🔒 SÉCURITÉ
+if(!token || role !== 'prof'){ alert("⛔ Accès réservé aux professeurs"); location.href='connexion.html'; }
+
 // 🌙 MODE JOUR / NUIT
-// ==================================================
 const btnTheme = document.getElementById('btnTheme');
-
 function appliquerTheme(nuit) {
-  if (nuit) {
-    document.body.classList.add('mode-nuit');
-    btnTheme.textContent = '🌙';
-  } else {
-    document.body.classList.remove('mode-nuit');
-    btnTheme.textContent = '☀️';
-  }
+  document.body.classList.toggle('mode-nuit', nuit);
+  btnTheme.textContent = nuit ? '🌙' : '☀️';
   localStorage.setItem('themeNuit', nuit ? '1' : '0');
 }
+btnTheme.addEventListener('click', () => appliquerTheme(!document.body.classList.contains('mode-nuit')));
 
-btnTheme.addEventListener('click', () => {
-  appliquerTheme(!document.body.classList.contains('mode-nuit'));
-});
-
-// 🗣️ GESTION DE LA LANGUE
+// 🗣️ LANGUE
 function appliquerLangue(lang) {
-  document.body.classList.remove('lang-fr','lang-en','lang-ar');
-  document.body.classList.add('lang-'+lang);
+  langueActuelle = lang; t = textes[lang];
+  document.body.classList.remove('lang-fr','lang-en','lang-ar'); document.body.classList.add('lang-'+lang);
   localStorage.setItem('langue', lang);
-  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
-  document.querySelector(`[data-lang="${lang}"]`)?.classList.add('active');
+  document.querySelectorAll('.btn-langue').forEach(b=>b.classList.toggle('active', b.dataset.lang===lang));
 }
+document.querySelectorAll('.btn-langue').forEach(b=>b.onclick=()=>appliquerLangue(b.dataset.lang));
+appliquerLangue(langueActuelle);
+appliquerTheme(localStorage.getItem('themeNuit')==='1');
 
-// ✅ Restauration langue et thème
-const langueSauvegardee = localStorage.getItem('langue') || 'fr';
-appliquerLangue(langueSauvegardee);
-document.querySelectorAll('.btn-langue').forEach(btn => {
-  btn.addEventListener('click', () => appliquerLangue(btn.dataset.lang));
-});
-appliquerTheme(localStorage.getItem('themeNuit') === '1');
-
-// ✅ Nom de l'enseignant
-document.getElementById('nom-prof').textContent = 
-  (localStorage.getItem('nom') || '') + ' ' + (localStorage.getItem('prenoms') || '');
-
-// ✅ Date du jour par défaut
+// 📅 DATE DU JOUR PAR DÉFAUT
 document.getElementById('date-presence').valueAsDate = new Date();
 
 let listeEleves = [];
+let id_classe_courante = null;
+let id_matiere_courante = null;
+let classeCouranteLibelle = '';
+let matiere_nom = '';
+const nomProf = (localStorage.getItem('nom')||'')+' '+(localStorage.getItem('prenoms')||'');
+const dateSaisie = new Date().toLocaleDateString(langueActuelle==='fr'?'fr-FR':'en-GB');
+document.getElementById('date-signature').textContent = 'le ' + dateSaisie;
+document.getElementById('signature-prof').innerHTML = nomProf + '<br><small>(Signature automatique)</small>';
 
-// 🚀 AU CHARGEMENT
-window.onload = chargerMesClasses;
+// 🚀 CHARGER CLASSES & MATIÈRES
+window.onload = chargerClassesEtMatieres;
 
-// 📥 CHARGER MES CLASSES
-async function chargerMesClasses() {
+async function chargerClassesEtMatieres() {
   try {
     const r = await fetch(`${API_URL}/notes/mes-classes-matieres`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: {Authorization:`Bearer ${token}`}
     });
     const res = await r.json();
-    const sel = document.getElementById('id_classe');
-    
-    if (res.ok && res.classes?.length > 0) {
-      sel.innerHTML = '<option value="">-- Sélectionner --</option>' +
-        res.classes.map(c => `<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('');
-    } else {
-      sel.innerHTML = '<option value="">-- Aucune classe assignée --</option>';
-    }
-  } catch(e) {
-    console.error("❌ Erreur chargement classes :", e);
-    document.getElementById('id_classe').innerHTML = '<option value="">-- Erreur chargement --</option>';
-  }
+    const selClasse = document.getElementById('id_classe');
+    const selMatiere = document.getElementById('id_matiere');
+
+    if(res.ok && Array.isArray(res.classes) && res.classes.length>0) {
+      selClasse.innerHTML = '<option value="">-- Sélectionner --</option>' +
+        res.classes.map(c=>`<option value="${c.id_classe}">${c.libelle_classe||c.nom_classe}</option>`).join('');
+    } else selClasse.innerHTML = '<option value="">-- Aucune classe --</option>';
+
+    if(res.ok && Array.isArray(res.matieres) && res.matieres.length>0) {
+      selMatiere.innerHTML = '<option value="">-- Sélectionner --</option>' +
+        res.matieres.map(m=>`<option value="${m.id_matiere}">${m.libelle_matiere||m.nom_matiere}</option>`).join('');
+    } else selMatiere.innerHTML = '<option value="">-- Aucune matière --</option>';
+  } catch(e) { console.error(e); }
 }
 
-// 📥 CHARGER LA LISTE DES ÉLÈVES
-async function chargerListeEleves() {
-  const id_classe = document.getElementById('id_classe').value;
-  if (!id_classe) {
-    document.getElementById('corps-tableau').innerHTML = `
-      <tr><td colspan="5" class="text-center text-muted py-4">
-        <span class="txt-fr">Sélectionne une Classe</span>
-        <span class="txt-en">Select a Class</span>
-        <span class="txt-ar">اختر القسم</span>
-      </td></tr>`;
-    listeEleves = [];
-    reinitialiserStats();
-    return;
+// 📥 CHARGER ÉLÈVES DE LA CLASSE — AFFICHE TOUTES INFOS IMMÉDIATEMENT
+async function chargerEleves() {
+  id_classe_courante = document.getElementById('id_classe').value;
+  id_matiere_courante = document.getElementById('id_matiere').value;
+  classeCouranteLibelle = document.getElementById('id_classe')?.selectedOptions?.[0]?.text || '';
+  matiere_nom = document.getElementById('id_matiere')?.selectedOptions?.[0]?.text || '';
+
+  if(!id_classe_courante || !id_matiere_courante) {
+    alert("⚠️ Sélectionnez Classe ET Matière d'abord !"); return;
   }
 
   try {
-    const r = await fetch(`${API_URL}/notes/eleves-classe/${id_classe}`, {
-      headers: { Authorization: `Bearer ${token}` }
+    const r = await fetch(`${API_URL}/notes/eleves-classe/${id_classe_courante}`, {
+      headers: {Authorization:`Bearer ${token}`}
     });
     const res = await r.json();
-    
-    if (res.ok && res.eleves?.length > 0) {
+    if(res.ok && Array.isArray(res.eleves)) {
       listeEleves = res.eleves;
       afficherTableau();
-    } else {
-      document.getElementById('corps-tableau').innerHTML = `
-        <tr><td colspan="5" class="text-center text-warning py-4">
-          <span class="txt-fr">⚠️ Aucun élève dans cette classe</span>
-          <span class="txt-en">⚠️ No student in this class</span>
-          <span class="txt-ar">⚠️ لا تلاميذ في هذا القسم</span>
-        </td></tr>`;
-      listeEleves = [];
-      reinitialiserStats();
     }
-  } catch(e) {
-    console.error("❌ Erreur chargement élèves :", e);
-  }
+  } catch(e) { console.error(e); }
 }
 
-// 📄 AFFICHER LE TABLEAU
-function afficherTableau() {
-  document.getElementById('corps-tableau').innerHTML = listeEleves.map((el, i) => `
-    <tr data-eleve="${el.id_utilisateur}">
-      <td class="fw-bold text-center">${i + 1}</td>
-      <td>${el.nom || ''} ${el.prenoms || ''}<br><small class="text-muted">${el.matricule || ''}</small></td>
-      <td class="text-center">
-        <div class="btn-group btn-group-sm" role="group">
-          <button type="button" class="btn btn-pr" data-statut="P" onclick="changerStatut(${el.id_utilisateur}, 'P')">✅</button>
-          <button type="button" class="btn btn-re" data-statut="R" onclick="changerStatut(${el.id_utilisateur}, 'R')">⚠️</button>
-          <button type="button" class="btn btn-ab" data-statut="A" onclick="changerStatut(${el.id_utilisateur}, 'A')">❌</button>
-        </div>
-        <span class="badge bg-secondary mt-1 d-block" id="badge-${el.id_utilisateur}">
-          <span class="txt-fr">Non saisi</span>
-          <span class="txt-en">Not set</span>
-          <span class="txt-ar">غير مسجل</span>
-        </span>
-      </td>
-      <td>
-        <input type="text" class="form-control form-control-sm" id="obs-${el.id_utilisateur}" placeholder="Observation...">
-      </td>
-      <td class="text-center" id="etat-${el.id_utilisateur}">💾</td>
-    </tr>`).join('');
-  reinitialiserStats();
+// 📷 GÉNÉRER PHOTO OU INITIALES
+function getPhoto(el) {
+  if(el.photo) return `<img src="${el.photo}" class="photo-eleve" alt="${el.nom}" loading="lazy">`;
+  const init = ((el.nom?.[0]||'')+(el.prenoms?.[0]||'')).toUpperCase()||'?';
+  return `<div class="photo-eleve">${init}</div>`;
 }
 
-// 🔄 CHANGER LE STATUT
-function changerStatut(idEleve, statut) {
+// ✏️ COCHER STATUT → DÉCLENCHE ENVOI AUTOMATIQUE IMMÉDIATEMENT
+window.changerStatut = async function(idEleve, statut) {
+  const el = listeEleves.find(x=>(x.id_utilisateur||x.id_eleve||x.id)==idEleve);
+  if(el) el.statut = statut;
+
+  // Mise à jour affichage badge
   const badge = document.getElementById(`badge-${idEleve}`);
-  const boutons = badge.parentElement.querySelectorAll('button');
-  boutons.forEach(b => b.classList.remove('active'));
-  badge.parentElement.querySelector(`[data-statut="${statut}"]`)?.classList.add('active');
+  if(statut==='P') { badge.className='badge badge-pr'; badge.textContent=t.present; }
+  else if(statut==='A') { badge.className='badge badge-ab'; badge.textContent=t.absent; }
+  else if(statut==='R') { badge.className='badge badge-re'; badge.textContent=t.retard; }
 
-  if (statut === 'P') {
-    badge.className = 'badge badge-pr mt-1 d-block';
-    badge.innerHTML = `<span class="txt-fr">Présent</span><span class="txt-en">Present</span><span class="txt-ar">حاضر</span>`;
-  } else if (statut === 'A') {
-    badge.className = 'badge badge-ab mt-1 d-block';
-    badge.innerHTML = `<span class="txt-fr">Absent</span><span class="txt-en">Absent</span><span class="txt-ar">غائب</span>`;
-  } else if (statut === 'R') {
-    badge.className = 'badge badge-re mt-1 d-block';
-    badge.innerHTML = `<span class="txt-fr">En retard</span><span class="txt-en">Late</span><span class="txt-ar">متأخر</span>`;
-  }
-
-  const el = listeEleves.find(x => x.id_utilisateur === idEleve);
-  if (el) { 
-    el.statut = statut; 
-    document.getElementById(`etat-${idEleve}`).textContent = "⚠️";
-  }
-  mettreAJourStats();
-}
-
-// 📊 STATISTIQUES
-function mettreAJourStats() {
-  const pres = listeEleves.filter(e => e.statut === 'P').length;
-  const abs = listeEleves.filter(e => e.statut === 'A').length;
-  const ret = listeEleves.filter(e => e.statut === 'R').length;
-  
-  document.getElementById('stat-present').textContent = pres;
-  document.getElementById('stat-absent').textContent = abs;
-  document.getElementById('stat-retard').textContent = ret;
-}
-
-function reinitialiserStats() {
-  document.getElementById('stat-present').textContent = '0';
-  document.getElementById('stat-absent').textContent = '0';
-  document.getElementById('stat-retard').textContent = '0';
-}
-
-// 📖 CHARGER PRÉSENCES ENREGISTRÉES
-async function chargerPresences() {
-  const id_classe = document.getElementById('id_classe').value;
-  const date = document.getElementById('date-presence').value;
-
-  if (!id_classe || !date) {
-    alert("⚠️ Sélectionne Classe et Date d'abord !");
-    return;
-  }
+  // 🚀 ENVOI AUTOMATIQUE IMMÉDIAT vers TOUS LES DESTINATAIRESRES
+  const zoneEnvoi = document.getElementById(`envoi-${idEleve}`);
+  zoneEnvoi.textContent = t.envoiEnCours; zoneEnvoi.classList.add('envoi-attente');
 
   try {
-    const r = await fetch(`${API_URL}/presence/lire`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ id_classe, date })
+    const payload = {
+      id_eleve: idEleve,
+      nom_eleve: `${el.nom||''} ${el.prenoms||''}`.trim(),
+      matricule: el.matricule||'—',
+      classe: classeCouranteLibelle,
+      id_classe: id_classe_courante,
+      matiere: matiere_nom,
+      id_matiere: id_matiere_courante,
+      date: document.getElementById('date-presence').value,
+      statut: statut,
+      nom_prof: nomProf,
+      date_saisie: dateSaisie,
+      destinataires: ['admin','parent','eleve','dashboard'] // 🎯 TOUS LES DESTINATAIRESRES
+    };
+
+    // Enregistrement + Notification vers TOUS
+    const r = await fetch(`${API_URL}/presence/enregistrer-et-notifier`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json', Authorization:`Bearer ${token}`},
+      body: JSON.stringify(payload)
     });
     const res = await r.json();
-    
-    if (res.ok && res.lignes) {
-      res.lignes.forEach(p => {
-        changerStatut(p.id_eleve, p.statut);
-        document.getElementById(`obs-${p.id_eleve}`).value = p.observation || '';
-      });
-      alert(`✅ ${res.lignes.length} enregistrements chargés !`);
-    }
+
+    zoneEnvoi.classList.remove('envoi-attente');
+    if(res.ok) zoneEnvoi.textContent = t.envoiOK;
+    else zoneEnvoi.textContent = t.envoiErreur;
   } catch(e) {
-    console.error("❌ Erreur chargement présences :", e);
+    zoneEnvoi.classList.remove('envoi-attente');
+    zoneEnvoi.textContent = t.envoiErreur;
+    console.error(e);
   }
-}
+};
 
-// 💾 ENREGISTRER TOUT
-async function enregistrerTout() {
-  const id_classe = document.getElementById('id_classe').value;
-  const date = document.getElementById('date-presence').value;
+// 📄 AFFICHAGE TABLEAU DANS L'ORDRE DÉFINI
+function afficherTableau() {
+  document.getElementById('corps-tableau').innerHTML = listeEleves.map((el, i)=>{
+    const id = el.id_utilisateur||el.id_eleve||el.id;
+    const nomComplet = `${el.nom||''} ${el.prenoms||''}`.trim() || 'Élève inconnu';
+    const matricule = el.matricule || '—';
+    const classe = el.libelle_classe || classeCouranteLibelle || '—';
 
-  if (!id_classe || !date || listeEleves.length === 0) {
-    alert("⚠️ Sélectionne Classe, Date et charge les élèves d'abord !");
-    return;
-  }
-
-  let okCount = 0;
-  for (const el of listeEleves) {
-    if (!el.statut) continue;
-    const observation = document.getElementById(`obs-${el.id_utilisateur}`)?.value || '';
-
-    try {
-      const r = await fetch(`${API_URL}/presence/enregistrer`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          id_eleve: el.id_utilisateur,
-          id_classe,
-          date,
-          statut: el.statut,
-          observation
-        })
-      });
-      const res = await r.json();
-      if (res.ok) {
-        okCount++;
-        document.getElementById(`etat-${el.id_utilisateur}`).textContent = "✅";
-      } else {
-        document.getElementById(`etat-${el.id_utilisateur}`).textContent = "❌";
-      }
-    } catch(e) {
-      document.getElementById(`etat-${el.id_utilisateur}`).textContent = "❌";
-    }
-  }
-  alert(`✅ ${okCount}/${listeEleves.length} présences enregistrées !`);
-}
-
-// DÉCONNEXION
-function deconnexion(){
-  localStorage.clear();
-  location.href = 'connexion.html';
+    return `
+    <tr data-id="${id}">
+      <!-- ✅ N° -->
+      <td class="text-center fw-bold">${i+1}</td>
+      <!-- ✅ PHOTO → AFFICHÉE EN PREMIER -->
+      <td class="text-center">${getPhoto(el)}</td>
+      <!-- ✅ MATRICULE → NOM & PRÉNOMS → CLASSE → TOUTES INFOS AVANT SAISIE -->
+      <td class="info-eleve">
+        <div class="fw-bold">${nomComplet}</div>
+        <span class="matricule">📋 ${matricule}</span>
+        <div class="classe-eleve">🏫 ${classe}</div>
+      </td>
+      <!-- ✅ STATUT À COCHER PAR LE PROF → DÉCLENCHE ENVOI AUTO -->
+      <td class="text-center statut-eleve">
+        <div class="btn-group btn-group-sm" role="group">
+          <button class="btn btn-pr" onclick="changerStatut(${id},'P')" title="Présent">✅</button>
+          <button class="btn btn-re" onclick="changerStatut(${id},'R')" title="En retard">⚠️</button>
+          <button class="btn btn-ab" onclick="changerStatut(${id},'A')" title="Absent">❌</button>
+        </div>
+        <span class="badge bg-secondary mt-1 d-block" id="badge-${id}">${t.nonSaisi}</span>
+      </td>
+      <!-- ✅ ÉTAT ENVOI AUTOMATIQUE -->
+      <td class="text-center etat-envoi" id="envoi-${id}">${t.envoiAttente}</td>
+    </tr>`;
+  }).join('');
 }
 </script>
 </body>

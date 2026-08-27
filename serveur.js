@@ -5,7 +5,6 @@ require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
-
 // ==============================================
 // 📁 CONFIGURATION — Téléversement de fichiers
 // ==============================================
@@ -14,13 +13,11 @@ const stockage = multer.diskStorage({
   filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
 const upload = multer({ storage: stockage });
-
 // ==============================================
 // ✅ CRÉATION DE L'APPLICATION
 // ==============================================
 const app = express();
 const PORT = process.env.PORT || 10000;
-
 // ==============================================
 // 📦 MIDDLEWARES GLOBAUX
 // ==============================================
@@ -34,7 +31,6 @@ app.use(cors({
 app.options('*', cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
 // ==============================================
 // 📁 DOSSIER PUBLIC
 // ==============================================
@@ -46,7 +42,6 @@ app.use(express.static(dossierPublic, {
     res.setHeader('Cache-Control', 'public, max-age=86400');
   }
 }));
-
 // ==============================================
 // ⚙️ CHARGEMENT CONFIGURATION
 // ==============================================
@@ -66,7 +61,6 @@ app.use((req, res, next) => {
   res.locals.configSite = configSite;
   next();
 });
-
 // ==============================================
 // 🔐 MIDDLEWARES D'AUTHENTIFICATION
 // ==============================================
@@ -80,7 +74,142 @@ try {
   console.log("⚠️ Erreur chargement middlewares auth :", e.message);
   protegerAdmin = [];
 }
+// ==================================================
+// 🤖 CRÉER AUTOMATIQUEMENT L'ACTUALITÉ DE RENTRÉE
+// ==================================================
+async function creerActualiteRentreeAutomatique() {
+  try {
+    const annee = new Date().getFullYear();
+    const mois = new Date().getMonth() + 1;
+    const annee_scolaire = mois >= 9 ? `${annee}-${annee + 1}` : `${annee - 1}-${annee}`;
 
+    // Vérifier si déjà créée cette année
+    const existe = await pool.query(`
+      SELECT id FROM actualites 
+      WHERE rentree = true AND annee_scolaire = $1
+      LIMIT 1
+    `, [annee_scolaire]);
+
+    if (existe.rows.length === 0) {
+      // Création automatique
+      await pool.query(`
+        INSERT INTO actualites(
+          titre_fr, titre_en, titre_ar,
+          resume_fr, resume_en, resume_ar,
+          contenu_fr, contenu_en, contenu_ar,
+          categorie, rentree, est_publie, epingle,
+          date_publication, annee_scolaire, date_creation
+        ) VALUES (
+          '📚 Rentrée Scolaire ${annee_scolaire}',
+          '📚 School Start ${annee_scolaire}',
+          '📚 بداية العام الدراسي ${annee_scolaire}',
+          'La rentrée scolaire aura lieu le 1er octobre ${annee}. Bienvenue à tous les élèves !',
+          'School starts October 1st ${annee}. Welcome to all students!',
+          'تبدأ الدراسة في 1 أكتوبر ${annee}. أهلاً بجميع التلاميذ !',
+          '<p>Chers parents, chers élèves,</p><p>La rentrée scolaire pour l\\'année <strong>${annee_scolaire}</strong> est fixée au <strong>1er octobre ${annee}</strong>.</p><p>Nous vous attendons nombreux pour cette nouvelle année scolaire ! 🎉</p>',
+          '<p>Dear parents and students,</p><p>School start for <strong>${annee_scolaire}</strong> is set to <strong>October 1st ${annee}</strong>.</p><p>We look forward to welcoming you! 🎉</p>',
+          '<p>أولياء الأمور الأعزاء، تلاميذي الأعزاء،</p><p>تبدأ العام الدراسي <strong>${annee_scolaire}</strong> في <strong>1 أكتوبر ${annee}</strong>.</p><p>نتطلع لاستقبالكم في العام الجديد ! 🎉</p>',
+          'rentree', true, true, true,
+          '${annee}-09-01', $1, NOW()
+        )
+      `, [annee_scolaire]);
+
+      console.log(`✅ 🤖 Actualité de rentrée ${annee_scolaire} CRÉÉE AUTOMATIQUEMENT`);
+    } else {
+      console.log(`✅ Actualité de rentrée ${annee_scolaire} déjà existante`);
+    }
+  } catch (e) {
+    console.error("❌ Erreur création actualité rentrée :", e.message);
+  }
+}
+
+// 🚀 Exécuter au démarrage
+creerActualiteRentreeAutomatique();
+
+// ==============================================
+// 📡 ROUTE : /api/frais-scolaires/tarifs  ✅ NOUVELLE ROUTE AJOUTÉE
+// Retourne les tarifs agrégés par classe pour la préinscription
+// ==============================================
+app.get('/api/frais-scolaires/tarifs', async (req, res) => {
+  const annee = req.query.annee || '2026-2027';
+  const format = req.query.format || 'agregat';
+
+  try {
+    // 🔍 Étape 1 : Récupérer toutes les classes
+    const classesResult = await pool.query(
+      "SELECT id, libelle_classe FROM classes ORDER BY id"
+    );
+    const classes = classesResult.rows;
+
+    // 🔍 Étape 2 : Récupérer TOUS les tarifs de l'année
+    const tarifsResult = await pool.query(
+      "SELECT * FROM tarifs WHERE annee = $1 ORDER BY classe_id, type",
+      [annee]
+    );
+    const tarifs = tarifsResult.rows;
+
+    // 📊 Étape 3 : Construire la grille tarifaire complète
+    const grille = {};
+    const tarifsParClasse = {};
+
+    tarifs.forEach(t => {
+      if (!tarifsParClasse[t.classe_id]) tarifsParClasse[t.classe_id] = [];
+      tarifsParClasse[t.classe_id].push(t);
+    });
+
+    // 📋 Format Agrégat (optimisé pour la préinscription)
+    if (format === 'agregat') {
+      classes.forEach(classe => {
+        const cid = classe.id;
+        const liste = tarifsParClasse[cid] || [];
+
+        const fraisScolarite = liste.find(t => t.type === 'scolarite')?.montant || 0;
+        const fraisInscription = liste.find(t => t.type === 'inscription')?.montant || 0;
+        const fraisCantine = liste.find(t => t.type === 'cantine')?.montant || 0;
+        const fraisTransport = liste.find(t => t.type === 'transport')?.montant || 0;
+
+        const totalClasse = liste.reduce((sum, t) => sum + Number(t.montant), 0);
+
+        grille[cid] = {
+          libelle: classe.libelle_classe,
+          frais_fr: Number(fraisScolarite),
+          frais_ar: Number(fraisScolarite),
+          frais_inscription: Number(fraisInscription),
+          frais_cantine: Number(fraisCantine),
+          frais_transport: Number(fraisTransport),
+          total_frais: Number(totalClasse),
+          annee: annee
+        };
+      });
+    } else {
+      classes.forEach(classe => {
+        const cid = classe.id;
+        grille[cid] = {
+          libelle: classe.libelle_classe,
+          annee: annee,
+          liste_frais: tarifsParClasse[cid] || [],
+          total_frais: (tarifsParClasse[cid] || []).reduce((sum, t) => sum + Number(t.montant), 0)
+        };
+      });
+    }
+
+    return res.json({
+      ok: true,
+      annee_reference: annee,
+      format_utilise: format,
+      nombre_classes: classes.length,
+      grille: grille
+    });
+
+  } catch (erreur) {
+    console.error("❌ Erreur route /frais-scolaires/tarifs :", erreur.message);
+    return res.status(500).json({
+      ok: false,
+      erreur: "Impossible de charger la grille tarifaire",
+      detail: erreur.message
+    });
+  }
+});
 // ==============================================
 // 📄 ROUTES DOCUMENTS (intégrées directement)
 // ==============================================
@@ -140,7 +269,7 @@ if (protegerAdmin.length > 0) {
           COUNT(CASE WHEN id_eleve IS NOT NULL THEN 1 END) AS eleves,
           COUNT(CASE WHEN id_personnel IS NOT NULL THEN 1 END) AS professeurs,
           COUNT(CASE WHEN EXTRACT(MONTH FROM date_delivrance) = EXTRACT(MONTH FROM CURRENT_DATE)
-                AND EXTRACT(YEAR FROM date_delivrance) = EXTRACT(YEAR FROM CURRENT_DATE) THEN 1 END) AS ce_mois
+              AND EXTRACT(YEAR FROM date_delivrance) = EXTRACT(YEAR FROM CURRENT_DATE) THEN 1 END) AS ce_mois
         FROM documents_delivres
       `);
       res.json({ ok: true, stats: r.rows[0] });
@@ -150,7 +279,6 @@ if (protegerAdmin.length > 0) {
     }
   });
 }
-
 // ==============================================
 // 📊 ROUTES COMPLÉMENTAIRES
 // ==============================================
@@ -168,7 +296,6 @@ if (protegerAdmin.length > 0) {
     }
   });
 }
-
 const routerPersonnel = express.Router();
 if (protegerAdmin.length > 0) {
   routerPersonnel.get('/liste', protegerAdmin, async (req, res) => {
@@ -183,7 +310,6 @@ if (protegerAdmin.length > 0) {
     }
   });
 }
-
 const routerPaiements = express.Router();
 if (protegerAdmin.length > 0) {
   routerPaiements.get('/tous', protegerAdmin, async (req, res) => {
@@ -196,7 +322,6 @@ if (protegerAdmin.length > 0) {
     }
   });
 }
-
 // ==============================================
 // 🔗 CHARGEMENT SÉCURISÉ DES ROUTES
 // ==============================================
@@ -210,8 +335,6 @@ function chargerRoute(chemin) {
     return null;
   }
 }
-
-// Charger une par une
 const rAuth = chargerRoute('./routes/auth');
 const rAdmin = chargerRoute('./routes/admin');
 const rUtilisateurs = chargerRoute('./routes/utilisateurs');
@@ -238,7 +361,6 @@ const rParent = chargerRoute('./routes/parent');
 const rCalendrier = chargerRoute('./routes/calendrier');
 const rReglement = chargerRoute('./routes/reglement');
 const rEquipe = chargerRoute('./routes/equipe');
-
 // ==============================================
 // 🔗 DÉCLARATION DES ROUTES
 // ==============================================
@@ -272,12 +394,12 @@ if (rCalendrier) app.use('/api/calendrier', rCalendrier);
 if (rReglement) app.use('/api/reglement', rReglement);
 if (rEquipe) app.use('/api/equipe', rEquipe);
 app.use('/api/personnel', routerPersonnel);
-
 // ==============================================
 // 🔄 ROUTE DE TEST API — LISTE COMPLÈTE
 // ==============================================
 app.get('/api', (req, res) => {
   const liste = [];
+  liste.push("/api/frais-scolaires/tarifs"); // ✅ Nouvelle route ajoutée dans la liste
   if (rAuth) liste.push("/api/auth");
   if (rAdmin) liste.push("/api/admin");
   if (rUtilisateurs) liste.push("/api/utilisateurs");
@@ -309,7 +431,6 @@ app.get('/api', (req, res) => {
   if (rEquipe) liste.push("/api/equipe");
   liste.push("/api/personnel");
   liste.push("/api/test");
-
   res.json({
     ok: true,
     message: "✅ API MAMA-ZOUMANA opérationnelle",
@@ -317,12 +438,10 @@ app.get('/api', (req, res) => {
     routes_disponibles: liste
   });
 });
-
 app.get('/inscription.html', (req, res) => res.redirect('/preinscription.html'));
 app.use('/api/inscription', (req, res) =>
   res.json({ ok: false, message: "⚠️ Utilisez /api/preinscription à la place" })
 );
-
 // ==============================================
 // 🏠 PAGE D'ACCUEIL
 // ==============================================
@@ -342,7 +461,6 @@ app.get('/', (req, res) => {
     `);
   }
 });
-
 // ==============================================
 // 🧪 TEST DE CONNEXION BASE
 // ==============================================
@@ -360,7 +478,6 @@ app.get('/api/test', async (req, res) => {
     res.json({ ok: false, erreur: e.message, message: "❌ Connexion base échouée" });
   }
 });
-
 // ==============================================
 // 🚀 DÉMARRAGE SÉCURE
 // ==============================================
@@ -370,6 +487,7 @@ chargerConfig()
       console.log(`\n🚀 Serveur démarré sur le port ${PORT}`);
       console.log(`🌍 API racine     : https://mama-zoumana.onrender.com/api`);
       console.log(`🧪 Test base       : https://mama-zoumana.onrender.com/api/test\n`);
+      console.log(`💰 Frais scolaires : https://mama-zoumana.onrender.com/api/frais-scolaires/tarifs\n`);
     });
   })
   .catch(err => {

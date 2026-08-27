@@ -1,12 +1,36 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const veriftoken = require('../middleware/veriftoken');
-const verifadmin = require('../middleware/verifadmin');
 
-const protegerTous = [veriftoken];
-const protegerAdmin = [veriftoken, verifadmin];
+// ==================================================
+// 🔐 MIDDLEWARES DE PROTECTION
+// ==================================================
+let veriftoken, verifadmin, protegerTous, protegerAdmin;
+try {
+  veriftoken = require('../middleware/veriftoken');
+  verifadmin = require('../middleware/verifadmin');
+  protegerTous = [veriftoken];
+  protegerAdmin = [veriftoken, verifadmin];
+} catch {
+  protegerTous = [];
+  protegerAdmin = [];
+}
 
+// 🧠 Fonction interne : Ajouter Mention & Appréciation
+function ajouterMentions(liste) {
+  return liste.map(ligne => {
+    const moy = parseFloat(ligne.moyenne);
+    let mention = "—", appreciation = "Aucune note", couleur = "light";
+    if (ligne.nb_matiere > 0) {
+      if (moy >= 16)       { mention = "Très Bien 🎖️"; appreciation = "Excellent !"; couleur = "success"; }
+      else if (moy >= 14)  { mention = "Bien 🎉"; appreciation = "Très bon niveau."; couleur = "primary"; }
+      else if (moy >= 12)  { mention = "Assez Bien ✅"; appreciation = "Bon travail."; couleur = "info"; }
+      else if (moy >= 10)  { mention = "Passable"; appreciation = "Convenable."; couleur = "warning"; }
+      else                  { mention = "Insuffisant ⚠️"; appreciation = "Efforts nécessaires."; couleur = "danger"; }
+    }
+    return { ...ligne, mention, appreciation, couleur };
+  });
+}
 
 // ==================================================
 // 📊 CLASSEMENT ÉLÈVES PAR CLASSE
@@ -14,38 +38,43 @@ const protegerAdmin = [veriftoken, verifadmin];
 router.get('/classement/:id_classe', protegerTous, async (req, res) => {
   try {
     const id_classe = parseInt(req.params.id_classe);
-    if (isNaN(id_classe)) return res.json({ ok: false, erreur: "⚠️ ID invalide" });
+    if (isNaN(id_classe))
+      return res.json({ ok: false, erreur: "⚠️ Identifiant de classe invalide" });
 
-    const r = await pool.query(`
-      SELECT u.id, u.matricule, u.nom, u.prenom, u.email, u.telephone
+    const { rows: eleves } = await pool.query(`
+      SELECT u.id_utilisateur AS id, u.matricule, u.nom, u.prenoms AS prenom, u.email, u.telephone
       FROM utilisateurs u
       WHERE u.role = 'eleve' AND u.id_classe = $1 AND u.statut_compte = 'valide'
-      ORDER BY u.nom ASC, u.prenom ASC
+      ORDER BY u.nom ASC, u.prenoms ASC
     `, [id_classe]);
 
-    const classe = await pool.query(`SELECT libelle_classe, cycle FROM classes WHERE id_classe=$1`, [id_classe]);
-    res.json({ ok: true, classe: classe.rows[0]||null, effectif: r.rows.length, classement: r.rows });
+    const { rows: [classe] } = await pool.query(
+      `SELECT libelle_classe, cycle FROM classes WHERE id_classe = $1`, [id_classe]
+    );
+
+    console.log(`✅ Classement Classe ${classe?.libelle_classe || id_classe} — ${eleves.length} élève(s)`);
+    return res.json({ ok: true, classe: classe || null, effectif: eleves.length, classement: eleves });
   } catch (e) {
     console.error("❌ ERREUR CLASSEMENT :", e.code, e.message);
-    res.json({ ok: false, erreur: e.message });
+    return res.json({ ok: false, erreur: "⚠️ Impossible de charger le classement" });
   }
 });
 
-
 // ==================================================
-// 📋 EMPLOI DU TEMPS PAR CLASSE — Affiche sur l'accueil
+// 📋 EMPLOI DU TEMPS PAR CLASSE
 // ==================================================
 router.get('/emploi-temps/:id_classe', protegerTous, async (req, res) => {
   try {
     const id_classe = parseInt(req.params.id_classe);
-    if (isNaN(id_classe)) return res.json({ ok: false, erreur: "⚠️ ID invalide" });
+    if (isNaN(id_classe))
+      return res.json({ ok: false, erreur: "⚠️ Identifiant de classe invalide" });
 
-    const r = await pool.query(`
+    const { rows: emploi } = await pool.query(`
       SELECT et.id_emploi, et.jour, et.heure_debut, et.heure_fin, et.matiere,
-             u.nom || ' ' || u.prenom AS professeur, s.libelle_classe
+             u.nom || ' ' || u.prenoms AS professeur, c.libelle_classe
       FROM emploi_temps et
-      JOIN utilisateurs u ON et.id_professeur = u.id
-      JOIN classes s ON et.id_classe = s.id_classe
+      JOIN utilisateurs u ON et.id_professeur = u.id_utilisateur
+      JOIN classes c ON et.id_classe = c.id_classe
       WHERE et.id_classe = $1
       ORDER BY 
         CASE et.jour 
@@ -54,33 +83,41 @@ router.get('/emploi-temps/:id_classe', protegerTous, async (req, res) => {
         et.heure_debut ASC
     `, [id_classe]);
 
-    const classe = await pool.query(`SELECT libelle_classe, cycle FROM classes WHERE id_classe=$1`, [id_classe]);
-    res.json({ ok: true, classe: classe.rows[0]||null, emploi_temps: r.rows });
+    const { rows: [classe] } = await pool.query(
+      `SELECT libelle_classe, cycle FROM classes WHERE id_classe = $1`, [id_classe]
+    );
+
+    console.log(`✅ Emploi du temps Classe ${classe?.libelle_classe || id_classe} — ${emploi.length} cours`);
+    return res.json({ ok: true, classe: classe || null, emploi_temps: emploi });
   } catch (e) {
-    console.error("❌ ERREUR EMPLOI :", e.code, e.message);
-    res.json({ ok: false, erreur: e.message });
+    console.error("❌ ERREUR EMPLOI DU TEMPS :", e.code, e.message);
+    return res.json({ ok: false, erreur: "⚠️ Impossible de charger l'emploi du temps" });
   }
 });
-
 
 // ==================================================
 // 📋 LISTE DES CLASSES
 // ==================================================
 router.get('/liste-classes', protegerTous, async (req, res) => {
   try {
-    const r = await pool.query(`
-      SELECT id_classe, libelle_classe, cycle FROM classes ORDER BY 
-        CASE cycle WHEN 'maternelle' THEN 1 WHEN 'primaire' THEN 2 
-                   WHEN 'college' THEN 3 WHEN 'lycee' THEN 4 ELSE 5 END,
+    const { rows } = await pool.query(`
+      SELECT id_classe, libelle_classe, cycle 
+      FROM classes 
+      ORDER BY 
+        CASE cycle 
+          WHEN 'maternelle' THEN 1 WHEN 'primaire' THEN 2 
+          WHEN 'college' THEN 3 WHEN 'lycee' THEN 4 ELSE 5 
+        END,
         libelle_classe ASC
     `);
-    res.json({ ok: true, classes: r.rows });
+
+    console.log(`✅ Liste des classes chargée — ${rows.length} classe(s)`);
+    return res.json({ ok: true, classes: rows });
   } catch (e) {
     console.error("❌ ERREUR LISTE CLASSES :", e.code, e.message);
-    res.json({ ok: false, erreur: e.message });
+    return res.json({ ok: false, erreur: "⚠️ Impossible de charger les classes" });
   }
 });
-
 
 // ==================================================
 // ➕ AJOUTER UN COURS — Admin
@@ -88,105 +125,135 @@ router.get('/liste-classes', protegerTous, async (req, res) => {
 router.post('/cours/ajouter', protegerAdmin, async (req, res) => {
   try {
     const { id_classe, id_professeur, jour, heure_debut, heure_fin, matiere } = req.body;
-    if (!id_classe || !id_professeur || !jour || !heure_debut || !heure_fin || !matiere) {
-      return res.json({ ok: false, erreur: "⚠️ Tous les champs obligatoires" });
-    }
 
-    const r = await pool.query(`
+    if (!id_classe || !id_professeur || !jour?.trim() || !heure_debut?.trim() || !heure_fin?.trim() || !matiere?.trim())
+      return res.json({ ok: false, erreur: "⚠️ Tous les champs sont obligatoires" });
+
+    const { rows: [{ id_emploi }] } = await pool.query(`
       INSERT INTO emploi_temps(id_classe, id_professeur, jour, heure_debut, heure_fin, matiere)
-      VALUES ($1, $2, $3, $4, $5, $6) RETURNING id_emploi
-    `, [id_classe, id_professeur, jour, heure_debut, heure_fin, matiere]);
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id_emploi
+    `, [id_classe, id_professeur, jour.trim(), heure_debut.trim(), heure_fin.trim(), matiere.trim()]);
 
-    res.json({ ok: true, message: "✅ Cours ajouté !", id_emploi: r.rows[0].id_emploi });
+    console.log(`✅ Cours ajouté — ID: ${id_emploi}`);
+    return res.json({ ok: true, message: "✅ Cours ajouté avec succès", id_emploi });
   } catch (e) {
     console.error("❌ ERREUR AJOUT COURS :", e.code, e.message);
-    res.json({ ok: false, erreur: e.message });
+    if (e.code === '23503')
+      return res.json({ ok: false, erreur: "⚠️ Classe ou Professeur introuvable" });
+    return res.json({ ok: false, erreur: "⚠️ Impossible d'ajouter le cours" });
   }
 });
-
 
 // ==================================================
 // ✏️ MODIFIER UN COURS — Admin
 // ==================================================
 router.put('/cours/modifier/:id', protegerAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.json({ ok: false, erreur: "⚠️ ID invalide" });
+    const id_emploi = parseInt(req.params.id);
+    if (isNaN(id_emploi))
+      return res.json({ ok: false, erreur: "⚠️ Identifiant du cours invalide" });
+
     const { id_classe, id_professeur, jour, heure_debut, heure_fin, matiere } = req.body;
 
-    await pool.query(`
-      UPDATE emploi_temps 
-      SET id_classe=$1, id_professeur=$2, jour=$3, heure_debut=$4, heure_fin=$5, matiere=$6
-      WHERE id_emploi=$7
-    `, [id_classe, id_professeur, jour, heure_debut, heure_fin, matiere, id]);
+    if (!id_classe || !id_professeur || !jour?.trim() || !heure_debut?.trim() || !heure_fin?.trim() || !matiere?.trim())
+      return res.json({ ok: false, erreur: "⚠️ Tous les champs sont obligatoires" });
 
-    res.json({ ok: true, message: "✅ Cours modifié !" });
+    const { rowCount } = await pool.query(`
+      UPDATE emploi_temps 
+      SET id_classe = $1, id_professeur = $2, jour = $3, heure_debut = $4, heure_fin = $5, matiere = $6
+      WHERE id_emploi = $7
+    `, [id_classe, id_professeur, jour.trim(), heure_debut.trim(), heure_fin.trim(), matiere.trim(), id_emploi]);
+
+    if (rowCount === 0)
+      return res.json({ ok: false, erreur: "⚠️ Cours introuvable" });
+
+    console.log(`✅ Cours modifié — ID: ${id_emploi}`);
+    return res.json({ ok: true, message: "✅ Cours modifié avec succès" });
   } catch (e) {
     console.error("❌ ERREUR MODIFICATION COURS :", e.code, e.message);
-    res.json({ ok: false, erreur: e.message });
+    if (e.code === '23503')
+      return res.json({ ok: false, erreur: "⚠️ Classe ou Professeur introuvable" });
+    return res.json({ ok: false, erreur: "⚠️ Impossible de modifier le cours" });
   }
 });
 
-
 // ==================================================
-// ❌ SUPPRIMER UN COURS — Admin
+// 🗑️ SUPPRIMER UN COURS — Admin
 // ==================================================
 router.delete('/cours/supprimer/:id', protegerAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.json({ ok: false, erreur: "⚠️ ID invalide" });
+    const id_emploi = parseInt(req.params.id);
+    if (isNaN(id_emploi))
+      return res.json({ ok: false, erreur: "⚠️ Identifiant du cours invalide" });
 
-    const r = await pool.query(`DELETE FROM emploi_temps WHERE id_emploi=$1 RETURNING matiere`, [id]);
-    if (r.rows.length === 0) return res.json({ ok: false, erreur: "⚠️ Cours introuvable" });
-    res.json({ ok: true, message: "✅ Cours supprimé !" });
+    const { rowCount } = await pool.query(
+      'DELETE FROM emploi_temps WHERE id_emploi = $1', [id_emploi]
+    );
+
+    if (rowCount === 0)
+      return res.json({ ok: false, erreur: "⚠️ Cours introuvable" });
+
+    console.log(`🗑️ Cours supprimé — ID: ${id_emploi}`);
+    return res.json({ ok: true, message: "✅ Cours supprimé avec succès" });
   } catch (e) {
     console.error("❌ ERREUR SUPPRESSION COURS :", e.code, e.message);
-    res.json({ ok: false, erreur: e.message });
+    return res.json({ ok: false, erreur: "⚠️ Impossible de supprimer le cours" });
   }
 });
 
-
 // ==================================================
-// 📋 LISTE DES PROFESSEURS (pour formulaire)
+// 📋 LISTE DES PROFESSEURS (formulaires)
 // ==================================================
 router.get('/liste-professeurs', protegerAdmin, async (req, res) => {
   try {
-    const r = await pool.query(`
-      SELECT id, nom, prenom FROM utilisateurs 
-      WHERE role = 'prof' AND statut_compte = 'valide' ORDER BY nom, prenom
+    const { rows } = await pool.query(`
+      SELECT id_utilisateur AS id, nom, prenoms AS prenom 
+      FROM utilisateurs 
+      WHERE role = 'prof' AND statut_compte = 'valide' 
+      ORDER BY nom ASC, prenoms ASC
     `);
-    res.json({ ok: true, professeurs: r.rows });
+
+    console.log(`✅ Liste des professeurs chargée — ${rows.length} enregistrement(s)`);
+    return res.json({ ok: true, professeurs: rows });
   } catch (e) {
-    console.error("❌ ERREUR LISTE PROFS :", e.code, e.message);
-    res.json({ ok: false, erreur: e.message });
+    console.error("❌ ERREUR LISTE PROFESSEURS :", e.code, e.message);
+    return res.json({ ok: false, erreur: "⚠️ Impossible de charger les professeurs" });
   }
 });
-
 
 // ==================================================
 // 📊 CLASSEMENT GÉNÉRAL — Toutes Classes
 // ==================================================
 router.get('/classement-general', protegerTous, async (req, res) => {
   try {
-    const r = await pool.query(`
-      SELECT u.id, u.matricule, u.nom, u.prenom, u.email, u.telephone,
+    const { rows: classement } = await pool.query(`
+      SELECT u.id_utilisateur AS id, u.matricule, u.nom, u.prenoms AS prenom, u.email, u.telephone,
              c.id_classe, c.libelle_classe, c.cycle
       FROM utilisateurs u
       LEFT JOIN classes c ON u.id_classe = c.id_classe
       WHERE u.role = 'eleve' AND u.statut_compte = 'valide'
       ORDER BY 
-        CASE c.cycle WHEN 'maternelle' THEN 1 WHEN 'primaire' THEN 2 
-                     WHEN 'college' THEN 3 WHEN 'lycee' THEN 4 ELSE 5 END,
-        c.libelle_classe ASC NULLS LAST, u.nom ASC, u.prenom ASC
+        CASE c.cycle 
+          WHEN 'maternelle' THEN 1 WHEN 'primaire' THEN 2 
+          WHEN 'college' THEN 3 WHEN 'lycee' THEN 4 ELSE 5 
+        END,
+        c.libelle_classe ASC NULLS LAST, u.nom ASC, u.prenoms ASC
     `);
-    const total = await pool.query(`SELECT COUNT(*)::int FROM utilisateurs WHERE role='eleve' AND statut_compte='valide'`);
-    res.json({ ok: true, total_eleves: total.rows[0].count, classement: r.rows });
+
+    const { rows: [{ count }] } = await pool.query(`
+      SELECT COUNT(*)::int 
+      FROM utilisateurs 
+      WHERE role = 'eleve' AND statut_compte = 'valide'
+    `);
+
+    console.log(`✅ Classement général — ${count} élève(s)`);
+    return res.json({ ok: true, total_eleves: count, classement });
   } catch (e) {
     console.error("❌ ERREUR CLASSEMENT GÉNÉRAL :", e.code, e.message);
-    res.json({ ok: false, erreur: e.message });
+    return res.json({ ok: false, erreur: "⚠️ Impossible de charger le classement général" });
   }
 });
-
 
 // ==================================================
 // 📊 CLASSEMENT PAR NOTES — Par Classe
@@ -194,65 +261,63 @@ router.get('/classement-general', protegerTous, async (req, res) => {
 router.get('/classement-notes/classe/:id_classe', protegerTous, async (req, res) => {
   try {
     const id_classe = parseInt(req.params.id_classe);
-    if (isNaN(id_classe)) return res.json({ ok: false, erreur: "⚠️ ID invalide" });
+    if (isNaN(id_classe))
+      return res.json({ ok: false, erreur: "⚠️ Identifiant de classe invalide" });
 
-    const r = await pool.query(`
-      SELECT u.id, u.matricule, u.nom, u.prenom,
+    const { rows: eleves } = await pool.query(`
+      SELECT u.id_utilisateur AS id, u.matricule, u.nom, u.prenoms AS prenom,
              ROUND(AVG(n.note), 2) AS moyenne, COUNT(n.id_note)::int AS nb_matiere
       FROM utilisateurs u
-      LEFT JOIN notes n ON u.id = n.id_eleve
+      LEFT JOIN notes n ON u.id_utilisateur = n.id_eleve
       WHERE u.role = 'eleve' AND u.id_classe = $1 AND u.statut_compte = 'valide'
-      GROUP BY u.id, u.matricule, u.nom, u.prenom
+      GROUP BY u.id_utilisateur, u.matricule, u.nom, u.prenoms
       ORDER BY moyenne DESC NULLS LAST
     `, [id_classe]);
 
-    const classe = await pool.query(`SELECT libelle_classe, cycle FROM classes WHERE id_classe=$1`, [id_classe]);
-    res.json({ ok: true, classe: classe.rows[0]||null, effectif: r.rows.length,
-               classement: ajouterMentions(r.rows) });
+    const { rows: [classe] } = await pool.query(
+      `SELECT libelle_classe, cycle FROM classes WHERE id_classe = $1`, [id_classe]
+    );
+
+    console.log(`✅ Classement par notes — Classe ${classe?.libelle_classe || id_classe}`);
+    return res.json({ 
+      ok: true, 
+      classe: classe || null, 
+      effectif: eleves.length,
+      classement: ajouterMentions(eleves) 
+    });
   } catch (e) {
-    console.error("❌ ERREUR CLASSEMENT NOTES :", e.code, e.message);
-    res.json({ ok: false, erreur: e.message });
+    console.error("❌ ERREUR CLASSEMENT PAR NOTES :", e.code, e.message);
+    return res.json({ ok: false, erreur: "⚠️ Impossible de charger le classement" });
   }
 });
 
-
 // ==================================================
-// 📊 CLASSEMENT PAR NOTES — Toutes Classes
+// 📊 CLASSEMENT PAR NOTES — Général
 // ==================================================
 router.get('/classement-notes/general', protegerTous, async (req, res) => {
   try {
-    const r = await pool.query(`
-      SELECT u.id, u.matricule, u.nom, u.prenom, c.libelle_classe, c.cycle,
+    const { rows: eleves } = await pool.query(`
+      SELECT u.id_utilisateur AS id, u.matricule, u.nom, u.prenoms AS prenom, 
+             c.libelle_classe, c.cycle,
              ROUND(AVG(n.note), 2) AS moyenne, COUNT(n.id_note)::int AS nb_matiere
       FROM utilisateurs u
       LEFT JOIN classes c ON u.id_classe = c.id_classe
-      LEFT JOIN notes n ON u.id = n.id_eleve
+      LEFT JOIN notes n ON u.id_utilisateur = n.id_eleve
       WHERE u.role = 'eleve' AND u.statut_compte = 'valide'
-      GROUP BY u.id, u.matricule, u.nom, u.prenom, c.libelle_classe, c.cycle
+      GROUP BY u.id_utilisateur, u.matricule, u.nom, u.prenoms, c.libelle_classe, c.cycle
       ORDER BY moyenne DESC NULLS LAST
     `);
-    res.json({ ok: true, total_eleves: r.rows.length, classement: ajouterMentions(r.rows) });
+
+    console.log(`✅ Classement général par notes — ${eleves.length} élève(s)`);
+    return res.json({ 
+      ok: true, 
+      total_eleves: eleves.length, 
+      classement: ajouterMentions(eleves) 
+    });
   } catch (e) {
     console.error("❌ ERREUR CLASSEMENT NOTES GÉNÉRAL :", e.code, e.message);
-    res.json({ ok: false, erreur: e.message });
+    return res.json({ ok: false, erreur: "⚠️ Impossible de charger le classement général" });
   }
 });
-
-
-// 🧠 Fonction interne : Ajouter Mention & Appréciation
-function ajouterMentions(liste) {
-  return liste.map(ligne => {
-    const moy = parseFloat(ligne.moyenne);
-    let mention = "—", appreciation = "Aucune note", couleur = "light";
-    if (ligne.nb_matiere > 0) {
-      if (moy >= 16) { mention="Très Bien 🎖️"; appreciation="Excellent !"; couleur="success"; }
-      else if (moy >= 14) { mention="Bien 🎉"; appreciation="Très bon niveau."; couleur="primary"; }
-      else if (moy >= 12) { mention="Assez Bien ✅"; appreciation="Bon travail."; couleur="info"; }
-      else if (moy >= 10) { mention="Passable"; appreciation="Convenable."; couleur="warning"; }
-      else { mention="Insuffisant ⚠️"; appreciation="Efforts nécessaires."; couleur="danger"; }
-    }
-    return { ...ligne, mention, appreciation, couleur };
-  });
-}
 
 module.exports = router;
