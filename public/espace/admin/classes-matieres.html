@@ -11,7 +11,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    /* ===== 🎨 VARIABLES UNIFIÉES ===== */
     :root {
       --primaire: #0c4a6e;
       --secondaire: #0369a1;
@@ -28,7 +27,6 @@
       --fond-carte: #1e293b;
       --fond-input: #0f172a;
     }
-    /* ===== ☀️ MODE CLAIR ===== */
     body.mode-jour {
       --primaire: #0c4a6e;
       --secondaire: #0369a1;
@@ -46,14 +44,12 @@
       min-height: 100vh;
       font-family: 'Segoe UI', sans-serif;
     }
-    /* ===== 🧭 EN-TÊTE ===== */
     .entete-page {
       background: linear-gradient(135deg, var(--primaire), var(--secondaire));
       padding: 1.5rem 0;
       margin-bottom: 2rem;
       box-shadow: 0 2px 10px rgba(0,0,0,0.15);
     }
-    /* ===== 📇 CARTES ===== */
     .carte-gestion {
       background: var(--fond-carte);
       border-radius: 12px;
@@ -62,7 +58,6 @@
       margin-bottom: 1.5rem;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    /* ===== 📝 FORMULAIRES ===== */
     .form-control, .form-select {
       background: var(--fond-input);
       border: 1px solid var(--bordure);
@@ -76,7 +71,6 @@
       box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
     }
     .form-label { color: var(--texte); }
-    /* ===== 🔘 BOUTONS ===== */
     .btn-anim-orange {
       background: transparent;
       border: 1px solid rgba(255,255,255,0.3);
@@ -105,12 +99,10 @@
       box-shadow: 0 0 10px rgba(239,68,68,0.25);
     }
     .btn-suppr-lumineux:hover { box-shadow: 0 0 18px rgba(239,68,68,0.4); }
-    /* ===== 📋 ZONE LISTE ===== */
     .zone-liste { border-top: 2px solid rgba(245,158,11,0.3); margin-top: 2rem; padding-top: 2rem; }
     .barre-outils { display: flex; gap: 0.5rem; align-items: center; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
     .alerte-api { border-left: 4px solid var(--alerte); background: rgba(239,68,68,0.1); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
     .menu-fixed { position: fixed; bottom: 2rem; right: 2rem; z-index: 999; }
-    /* ===== 🌐 TRILINGUE ===== */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
@@ -120,458 +112,396 @@
     body.lang-ar { direction: rtl; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
     body.lang-ar .txt-ar { display: inline; }
-    /* ===== BADGES STATUT ===== */
     .badge { font-size: 0.75rem; }
   </style>
 </head>
 <body class="lang-fr">
 <script>
-  // ==================================================
-  // 🔗 URL API UNIFIÉE
-  // ==================================================
-  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:10000/api'
-    : 'https://mama-zoumana.onrender.com/api';
+const API_URL = "https://mama-zoumana-api.onrender.com/api";
 
-  // ==================================================
-  // 🪟 RÉCUPÉRATION SESSION
-  // ==================================================
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
-  let langueActuelle = localStorage.getItem('langue') || 'fr';
-  let estModeJour = localStorage.getItem('theme') === 'clair';
+function getToken() {
+  return localStorage.getItem('token');
+}
 
-  // ==================================================
-  // ✅ VÉRIFICATION SESSION
-  // ==================================================
-  if (!token || !['admin','super_admin'].includes(role || '')) {
-    alert("⚠️ Session invalide ou expirée. Veuillez vous reconnecter.");
-    localStorage.clear();
-    location.href = 'connexion.html';
-  }
-
-  // ==================================================
-  // 🌐 TRADUCTIONS DES MESSAGES
-  // ==================================================
-  const MSG = {
-    fr: {
-      accesReserve: "⛔ Accès réservé à l'Administrateur",
-      serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
-      sauvegardeOk: "✅ Enregistré avec succès !",
-      modifOk: "✅ Modifié avec succès !",
-      supprConfirm: "⚠️ Supprimer cet élément ? Cette action est irréversible.",
-      supprOk: "✅ Supprimé avec succès !",
-      erreurReseau: "❌ Erreur réseau. Vérifiez votre connexion.",
-      aucuneDonnee: "Aucune donnée enregistrée. Ajoutez votre première classe ou matière.",
-      erreurCapacite: "⚠️ La capacité doit être comprise entre 10 et 80 élèves.",
-      erreurChamp: "⚠️ Veuillez remplir tous les champs obligatoires (*).",
-      classeLiee: "⚠️ Impossible de supprimer : cette classe est utilisée.",
-      sessionExpiree: "⚠️ Session expirée — Reconnexion requise",
-      erreur401: "🔑 Session expirée ou jeton invalide. Veuillez vous reconnecter.",
-      erreur403: "🚫 Droits insuffisants. Compte Administrateur requis.",
-      erreurServeur: "⚠️ Erreur serveur. Réessayez plus tard."
-    },
-    en: {
-      accesReserve: "⛔ Access restricted to Administrator",
-      serveurIndispo: "⚠️ Server unavailable — Local mode active",
-      sauvegardeOk: "✅ Saved successfully!",
-      modifOk: "✅ Updated successfully!",
-      supprConfirm: "⚠️ Delete this item? This cannot be undone.",
-      supprOk: "✅ Deleted successfully!",
-      erreurReseau: "❌ Network error. Check your connection.",
-      aucuneDonnee: "No data yet. Add your first class or subject.",
-      erreurCapacite: "⚠️ Capacity must be between 10 and 80 students.",
-      erreurChamp: "⚠️ Please fill all required fields (*).",
-      classeLiee: "⚠️ Cannot delete: used in registrations.",
-      sessionExpiree: "⚠️ Session expired — Please log in again",
-      erreur401: "🔑 Session expired or invalid token. Please log in again.",
-      erreur403: "🚫 Insufficient permissions. Administrator account required.",
-      erreurServeur: "⚠️ Server error. Please try again later."
-    },
-    ar: {
-      accesReserve: "⛔ الوصول مقصور على المدير فقط",
-      serveurIndispo: "⚠️ الخادم غير متاح — العمل محليًا",
-      sauvegardeOk: "✅ تم الحفظ بنجاح !",
-      modifOk: "✅ تم التحديث بنجاح !",
-      supprConfirm: "⚠️ حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.",
-      supprOk: "✅ تم الحذف بنجاح !",
-      erreurReseau: "❌ خطأ في الشبكة. تحقق من اتصالك.",
-      aucuneDonnee: "لا توجد بيانات. أضف فصلاً أو مادة جديدة.",
-      erreurCapacite: "⚠️ السعة يجب أن تكون بين 10 و 80 تلميذًا.",
-      erreurChamp: "⚠️ الرجاء ملء جميع الحقول المطلوبة (*).",
-      classeLiee: "⚠️ لا يمكن الحذف: قيد الاستخدام.",
-      sessionExpiree: "⚠️ انتهت الجلسة — الرجاء إعادة تسجيل الدخول",
-      erreur401: "🔑 انتهت الجلسة أو رمز الدخول غير صالح. الرجاء إعادة تسجيل الدخول.",
-      erreur403: "🚫 صلاحيات غير كافية. مطلوب حساب مدير.",
-      erreurServeur: "⚠️ خطأ في الخادم. الرجاء المحاولة لاحقًا."
-    }
-  };
-  function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
-
-  // ==================================================
-  // 🛡️ GESTION CENTRALISÉE DES ERREURS API
-  // ==================================================
-  async function requeteAPI(url, options = {}) {
-    const entetes = {
+async function requeteAPI(chemin, options = {}) {
+  const reponse = await fetch(`${API_URL}${chemin}`, {
+    ...options,
+    headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${getToken()}`,
       ...options.headers
-    };
-    try {
-      const res = await fetch(url, { ...options, headers: entetes });
-      if (res.status === 401) {
-        alert(m('erreur401'));
-        localStorage.clear();
-        location.href = 'connexion.html';
-        throw new Error('SESSION_EXPIREE');
-      }
-      if (res.status === 403) {
-        alert(m('erreur403'));
-        throw new Error('DROITS_INSUFFISANTS');
-      }
-      if (res.status >= 500) {
-        alert(m('erreurServeur'));
-        throw new Error('ERREUR_SERVEUR');
-      }
-      return await res.json();
-    } catch (err) {
-      if (!['SESSION_EXPIREE','DROITS_INSUFFISANTS','ERREUR_SERVEUR'].includes(err.message)) {
-        console.error("❌ Erreur réseau :", err);
-      }
-      throw err;
-    }
-  }
-
-  // ==================================================
-  // 💾 STOCKAGE LOCAL (si API indisponible)
-  // ==================================================
-  function obtenirClassesLocales() { return JSON.parse(localStorage.getItem('liste_classes') || '[]'); }
-  function sauvegarderClassesLocales(liste) { localStorage.setItem('liste_classes', JSON.stringify(liste)); }
-  function obtenirMatieresLocales() { return JSON.parse(localStorage.getItem('liste_matieres') || '[]'); }
-  function sauvegarderMatieresLocales(liste) { localStorage.setItem('liste_matieres', JSON.stringify(liste)); }
-
-  // ==================================================
-  // ☀️🌙 MODE JOUR / NUIT
-  // ==================================================
-  function appliquerTheme() {
-    estModeJour = localStorage.getItem('theme') === 'clair';
-    document.body.classList.toggle('mode-jour', estModeJour);
-    const btn = document.getElementById('btnJourNuit');
-    if (btn) btn.textContent = estModeJour ? '🌙' : '☀️';
-  }
-  window.basculerTheme = function() {
-    estModeJour = !estModeJour;
-    localStorage.setItem('theme', estModeJour ? 'clair' : 'sombre');
-    appliquerTheme();
-  };
-
-  // ==================================================
-  // 🗣️ CHANGER DE LANGUE
-  // ==================================================
-  window.changerLangue = function(lang) {
-    langueActuelle = lang;
-    localStorage.setItem('langue', lang);
-    document.body.className = (estModeJour ? 'mode-jour ' : '') + 'lang-' + lang;
-    document.querySelectorAll('.barre-outils .btn').forEach(b => b.classList.remove('actif'));
-    document.getElementById('btn-' + lang)?.classList.add('actif');
-  };
-
-  // ==================================================
-  // 🚀 INITIALISATION — ATTEND CHARGEMENT PAGE
-  // ==================================================
-  document.addEventListener('DOMContentLoaded', () => {
-    appliquerTheme();
-    document.body.classList.add('lang-' + langueActuelle);
-    document.getElementById('btn-' + langueActuelle)?.classList.add('actif');
-    chargerListe();
-  });
-
-  // ==================================================
-  // 📤 ENREGISTRER / MODIFIER UNE CLASSE
-  // ==================================================
-  document.addEventListener('DOMContentLoaded', () => {
-    const formClasse = document.getElementById('formClasse');
-    if (formClasse) {
-      formClasse.addEventListener('submit', async e => {
-        e.preventDefault();
-        const d = Object.fromEntries(new FormData(e.target));
-        d.capacite_max = Number(d.capacite_max);
-        if (!d.libelle_classe || !d.cycle) return alert(m('erreurChamp'));
-        if (d.capacite_max < 10 || d.capacite_max > 80) return alert(m('erreurCapacite'));
-        const estModif = !!d.id_classe;
-        const donneesClasse = {
-          libelle_classe: d.libelle_classe.trim(),
-          libelle_classe_ar: (d.libelle_classe_ar || '').trim(),
-          libelle_classe_en: '',
-          cycle: d.cycle,
-          capacite_max: d.capacite_max,
-          salle: (d.salle || '').trim(),
-          statut: d.statut || 'ouverte'
-        };
-        try {
-          const url = estModif 
-            ? `${API_URL}/classes/${d.id_classe}` 
-            : `${API_URL}/classes`;
-          const methode = estModif ? 'PUT' : 'POST';
-          const data = await requeteAPI(url, {
-            method: methode,
-            body: JSON.stringify(donneesClasse)
-          });
-          if (data.ok || data.success) {
-            alert(estModif ? m('modifOk') : m('sauvegardeOk'));
-            reinitFormulaireClasse();
-            chargerListe();
-          } else {
-            alert("❌ " + (data.erreur || data.message || "Erreur serveur"));
-          }
-        } catch (err) {
-          console.error("⚠️ Mode local activé :", err.message);
-          let liste = obtenirClassesLocales();
-          if (estModif) {
-            const idx = liste.findIndex(c => String(c.id_classe) === String(d.id_classe));
-            if (idx !== -1) liste[idx] = { ...liste[idx], ...donneesClasse };
-          } else {
-            liste.push({ id_classe: Date.now(), ...donneesClasse });
-          }
-          sauvegarderClassesLocales(liste);
-          alert((estModif ? m('modifOk') : m('sauvegardeOk')) + " (mode local)");
-          reinitFormulaireClasse();
-          chargerListe(true);
-        }
-      });
-    }
-
-    // ==================================================
-    // 📤 ENREGISTRER / MODIFIER UNE MATIÈRE
-    // ==================================================
-    const formMatiere = document.getElementById('formMatiere');
-    if (formMatiere) {
-      formMatiere.addEventListener('submit', async e => {
-        e.preventDefault();
-        const d = Object.fromEntries(new FormData(e.target));
-        d.coefficient = Number(d.coefficient);
-        d.volume_horaire = Number(d.volume_horaire);
-        if (!d.libelle_matiere) return alert(m('erreurChamp'));
-        const estModif = !!d.id_matiere;
-        const donneesMatiere = {
-          libelle_matiere: d.libelle_matiere.trim(),
-          libelle_matiere_ar: (d.libelle_matiere_ar || '').trim(),
-          coefficient: d.coefficient,
-          volume_horaire: d.volume_horaire,
-          langue_ens: d.langue_ens || 'fr'
-        };
-        try {
-          const url = estModif 
-            ? `${API_URL}/matieres/${d.id_matiere}` 
-            : `${API_URL}/matieres`;
-          const methode = estModif ? 'PUT' : 'POST';
-          const data = await requeteAPI(url, {
-            method: methode,
-            body: JSON.stringify(donneesMatiere)
-          });
-          if (data.ok || data.success) {
-            alert(estModif ? m('modifOk') : m('sauvegardeOk'));
-            reinitFormulaireMatiere();
-            chargerListe();
-          } else {
-            alert("❌ " + (data.erreur || data.message || "Erreur serveur"));
-          }
-        } catch (err) {
-          console.error("⚠️ Mode local activé :", err.message);
-          let liste = obtenirMatieresLocales();
-          if (estModif) {
-            const idx = liste.findIndex(m => String(m.id_matiere) === String(d.id_matiere));
-            if (idx !== -1) liste[idx] = { ...liste[idx], ...donneesMatiere };
-          } else {
-            liste.push({ id_matiere: Date.now(), ...donneesMatiere });
-          }
-          sauvegarderMatieresLocales(liste);
-          alert((estModif ? m('modifOk') : m('sauvegardeOk')) + " (mode local)");
-          reinitFormulaireMatiere();
-          chargerListe(true);
-        }
-      });
     }
   });
 
-  function reinitFormulaireClasse() {
-    document.getElementById('formClasse')?.reset();
-    document.getElementById('edit-id-classe').value = '';
-    const btn = document.getElementById('btn-classe');
-    if (btn) btn.innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
+  if (reponse.status === 401) {
+    alert("🔑 Session expirée ou jeton invalide. Veuillez vous reconnecter.");
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    location.href = 'connexion.html';
+    throw new Error('SESSION_EXPIREE');
   }
-  function reinitFormulaireMatiere() {
-    document.getElementById('formMatiere')?.reset();
-    document.getElementById('edit-id-mat').value = '';
-    const btn = document.getElementById('btn-mat');
-    if (btn) btn.innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
+  if (reponse.status === 403) {
+    alert("🚫 Droits insuffisants. Compte Administrateur requis.");
+    throw new Error('DROITS_INSUFFISANTS');
   }
+  if (reponse.status >= 500) {
+    alert("⚠️ Erreur serveur. Réessayez plus tard.");
+    throw new Error('ERREUR_SERVEUR');
+  }
+  return await reponse.json();
+}
 
-  // ==================================================
-  // 📋 CHARGER LA LISTE COMPLÈTE
-  // ==================================================
-  async function chargerListe(forcerLocal = false) {
-    const corps = document.getElementById('liste-complete');
-    const alerteApi = document.getElementById('alerteApi');
-    const texteAlerteApi = document.getElementById('texteAlerteApi');
-    let classes = [];
-    let matieres = [];
-    if (!forcerLocal) {
+const token = getToken();
+const role = localStorage.getItem('role');
+let langueActuelle = localStorage.getItem('langue') || 'fr';
+let estModeJour = localStorage.getItem('theme') === 'clair';
+
+const MSG = {
+  fr: {
+    accesReserve: "⛔ Accès réservé à l'Administrateur",
+    serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
+    sauvegardeOk: "✅ Enregistré avec succès !",
+    modifOk: "✅ Modifié avec succès !",
+    supprConfirm: "⚠️ Supprimer cet élément ? Cette action est irréversible.",
+    supprOk: "✅ Supprimé avec succès !",
+    erreurReseau: "❌ Erreur réseau. Vérifiez votre connexion.",
+    aucuneDonnee: "Aucune donnée enregistrée. Ajoutez votre première classe ou matière.",
+    erreurCapacite: "⚠️ La capacité doit être comprise entre 10 et 80 élèves.",
+    erreurChamp: "⚠️ Veuillez remplir tous les champs obligatoires (*).",
+    classeLiee: "⚠️ Impossible de supprimer : cette classe est utilisée."
+  },
+  en: {
+    accesReserve: "⛔ Access restricted to Administrator",
+    serveurIndispo: "⚠️ Server unavailable — Local mode active",
+    sauvegardeOk: "✅ Saved successfully!",
+    modifOk: "✅ Updated successfully!",
+    supprConfirm: "⚠️ Delete this item? This cannot be undone.",
+    supprOk: "✅ Deleted successfully!",
+    erreurReseau: "❌ Network error. Check your connection.",
+    aucuneDonnee: "No data yet. Add your first class or subject.",
+    erreurCapacite: "⚠️ Capacity must be between 10 and 80 students.",
+    erreurChamp: "⚠️ Please fill all required fields (*).",
+    classeLiee: "⚠️ Cannot delete: used in registrations."
+  },
+  ar: {
+    accesReserve: "⛔ الوصول مقصور على المدير فقط",
+    serveurIndispo: "⚠️ الخادم غير متاح — العمل محليًا",
+    sauvegardeOk: "✅ تم الحفظ بنجاح !",
+    modifOk: "✅ تم التحديث بنجاح !",
+    supprConfirm: "⚠️ حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.",
+    supprOk: "✅ تم الحذف بنجاح !",
+    erreurReseau: "❌ خطأ في الشبكة. تحقق من اتصالك.",
+    aucuneDonnee: "لا توجد بيانات. أضف فصلاً أو مادة جديدة.",
+    erreurCapacite: "⚠️ السعة يجب أن تكون بين 10 و 80 تلميذًا.",
+    erreurChamp: "⚠️ الرجاء ملء جميع الحقول المطلوبة (*).",
+    classeLiee: "⚠️ لا يمكن الحذف: قيد الاستخدام."
+  }
+};
+function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
+
+// 🔒 SÉCURITÉ — Insensible à la casse
+if (!token || !['admin','super_admin','directeur'].includes((role||'').toLowerCase())) {
+  alert(m('accesReserve'));
+  localStorage.clear();
+  location.href = 'connexion.html';
+}
+
+function obtenirClassesLocales() { return JSON.parse(localStorage.getItem('liste_classes') || '[]'); }
+function sauvegarderClassesLocales(liste) { localStorage.setItem('liste_classes', JSON.stringify(liste)); }
+function obtenirMatieresLocales() { return JSON.parse(localStorage.getItem('liste_matieres') || '[]'); }
+function sauvegarderMatieresLocales(liste) { localStorage.setItem('liste_matieres', JSON.stringify(liste)); }
+
+function appliquerTheme() {
+  estModeJour = localStorage.getItem('theme') === 'clair';
+  document.body.classList.toggle('mode-jour', estModeJour);
+  const btn = document.getElementById('btnJourNuit');
+  if (btn) btn.textContent = estModeJour ? '🌙' : '☀️';
+}
+window.basculerTheme = function() {
+  estModeJour = !estModeJour;
+  localStorage.setItem('theme', estModeJour ? 'clair' : 'sombre');
+  appliquerTheme();
+};
+
+window.changerLangue = function(lang) {
+  langueActuelle = lang;
+  localStorage.setItem('langue', lang);
+  document.body.className = (estModeJour ? 'mode-jour ' : '') + 'lang-' + lang;
+  document.querySelectorAll('.barre-outils .btn').forEach(b => b.classList.remove('actif'));
+  document.getElementById('btn-' + lang)?.classList.add('actif');
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  appliquerTheme();
+  document.body.classList.add('lang-' + langueActuelle);
+  document.getElementById('btn-' + langueActuelle)?.classList.add('actif');
+  chargerListe();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const formClasse = document.getElementById('formClasse');
+  if (formClasse) {
+    formClasse.addEventListener('submit', async e => {
+      e.preventDefault();
+      const d = Object.fromEntries(new FormData(e.target));
+      d.capacite_max = Number(d.capacite_max);
+      if (!d.libelle_classe || !d.cycle) return alert(m('erreurChamp'));
+      if (d.capacite_max < 10 || d.capacite_max > 80) return alert(m('erreurCapacite'));
+
+      const estModif = !!d.id_classe;
+      const donneesClasse = {
+        libelle_classe: d.libelle_classe.trim(),
+        libelle_classe_ar: (d.libelle_classe_ar || '').trim(),
+        libelle_classe_en: '',
+        cycle: d.cycle,
+        capacite_max: d.capacite_max,
+        salle: (d.salle || '').trim(),
+        statut: d.statut || 'ouverte'
+      };
+
       try {
-        const [clData, mtData] = await Promise.all([
-          requeteAPI(`${API_URL}/classes/toutes`),
-          requeteAPI(`${API_URL}/matieres`)
-        ]);
-        classes = clData.ok ? (clData.classes || clData.lignes || []) : [];
-        matieres = mtData.ok ? (mtData.matieres || mtData.lignes || []) : [];
-        if (!Array.isArray(classes)) classes = [];
-        if (!Array.isArray(matieres)) matieres = [];
-        sauvegarderClassesLocales(classes);
-        sauvegarderMatieresLocales(matieres);
-        alerteApi.classList.add('d-none');
-      } catch {
-        forcerLocal = true;
+        const urlApi = estModif ? `/classes/${d.id_classe}` : '/classes';
+        const methode = estModif ? 'PUT' : 'POST';
+        const data = await requeteAPI(urlApi, {
+          method: methode,
+          body: JSON.stringify(donneesClasse)
+        });
+        if (data.ok || data.success) {
+          alert(estModif ? m('modifOk') : m('sauvegardeOk'));
+          reinitFormulaireClasse();
+          chargerListe();
+        } else {
+          alert("❌ " + (data.erreur || data.message || m('erreurReseau')));
+        }
+      } catch (err) {
+        console.log("⚠️ Mode local :", err.message);
+        let liste = obtenirClassesLocales();
+        if (estModif) {
+          const idx = liste.findIndex(c => String(c.id_classe) === String(d.id_classe));
+          if (idx !== -1) liste[idx] = { ...liste[idx], ...donneesClasse };
+        } else {
+          liste.push({ id_classe: Date.now(), ...donneesClasse });
+        }
+        sauvegarderClassesLocales(liste);
+        alert((estModif ? m('modifOk') : m('sauvegardeOk')) + " (mode local)");
+        reinitFormulaireClasse();
+        chargerListe(true);
       }
-    }
-    if (forcerLocal) {
-      if (texteAlerteApi) texteAlerteApi.textContent = m('serveurIndispo');
-      alerteApi.classList.remove('d-none');
-      classes = obtenirClassesLocales();
-      matieres = obtenirMatieresLocales();
-    }
-    let html = '';
-    // 📚 AFFICHER LES CLASSES
-    if (classes.length > 0) {
-      html += `<div class="col-md-6"><h5 class="mb-3 text-white"><i class="bi bi-building me-2 text-warning"></i>
-        <span class="txt-fr">Classes</span><span class="txt-en">Classes</span><span class="txt-ar">المستويات</span>
-      </h5>`;
-      html += classes.map(x => {
-        const statutBadge = {ouverte:'bg-success',complete:'bg-primary',fermee:'bg-secondary'}[x.statut] || 'bg-secondary';
-        const statutTexte = {ouverte:'Ouverte',complete:'Complète',fermee:'Fermée'}[x.statut] || 'Ouverte';
-        const placesLibres = typeof x.places_restantes !== 'undefined' 
-          ? `<span class="badge bg-info text-dark ms-1">${x.places_restantes}/${x.capacite_max}</span>` 
-          : `<span class="badge bg-light text-dark ms-1">${x.capacite_max || '—'} pl</span>`;
-        return `
-        <div class="carte-gestion d-flex justify-content-between align-items-center">
-          <div>
-            <strong>${x.libelle_classe}</strong>
-            ${x.libelle_classe_ar ? `<span class="text-muted ms-1">(${x.libelle_classe_ar})</span>` : ''}
-            <span class="opacity-75 ms-2 small">${x.cycle || '—'}</span>
-            ${placesLibres}
-            ${x.salle ? `<span class="badge bg-secondary ms-1">${x.salle}</span>` : ''}
-            <span class="badge ${statutBadge} ms-1">${statutTexte}</span>
-          </div>
-          <div class="d-flex gap-1">
-            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierClasse(${JSON.stringify(x).replace(/'/g,"\\'")})'>✏️</button>
-            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerClasse(${JSON.stringify(x.id || x.id_classe)})">🗑️</button>
-          </div>
-        </div>`;
-      }).join('');
-      html += `</div>`;
-    }
-    // 📖 AFFICHER LES MATIÈRES
-    if (matieres.length > 0) {
-      html += `<div class="col-md-6"><h5 class="mb-3 text-white"><i class="bi bi-book me-2 text-warning"></i>
-        <span class="txt-fr">Matières</span><span class="txt-en">Subjects</span><span class="txt-ar">المواد</span>
-      </h5>`;
-      html += matieres.map(x => {
-        const langueLabel = {fr:'🇫🇷',ar:'🇸🇦',en:'🇬🇧'}[x.langue_ens] || '🇫🇷';
-        return `
-        <div class="carte-gestion d-flex justify-content-between align-items-center">
-          <div>
-            <strong>${x.libelle_matiere}</strong>
-            ${x.libelle_matiere_ar ? `<span class="text-muted ms-1">(${x.libelle_matiere_ar})</span>` : ''}
-            <span class="badge bg-info text-dark ms-1">Coef ${x.coefficient}</span>
-            <span class="badge bg-secondary ms-1">${x.volume_horaire || 0}h/sem</span>
-            <span class="badge bg-light text-dark ms-1">${langueLabel}</span>
-          </div>
-          <div class="d-flex gap-1">
-            <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierMatiere(${JSON.stringify(x).replace(/'/g,"\\'")})'>✏️</button>
-            <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerMatiere(${JSON.stringify(x.id_matiere || x.id)})">🗑️</button>
-          </div>
-        </div>`;
-      }).join('');
-      html += `</div>`;
-    }
-    corps.innerHTML = html || `<div class="col-12 text-center opacity-75 py-5">
-      <i class="bi bi-inbox fs-1 mb-2"></i>
-      <p>${m('aucuneDonnee')}</p>
-    </div>`;
+    });
   }
 
-  // ==================================================
-  // ✏️ MODIFIER — PRÉ-REMPLIR LE FORMULAIRE
-  // ==================================================
-  window.modifierClasse = function(x) {
-    document.getElementById('edit-id-classe').value = x.id_classe || x.id || '';
-    document.getElementById('edit-libelle').value = x.libelle_classe || '';
-    document.getElementById('edit-libelle-ar').value = x.libelle_classe_ar || '';
-    document.getElementById('edit-cycle').value = x.cycle || '';
-    document.getElementById('edit-capacite').value = x.capacite_max || 30;
-    document.getElementById('edit-salle').value = x.salle || '';
-    document.getElementById('edit-statut').value = x.statut || 'ouverte';
-    const btn = document.getElementById('btn-classe');
-    if (btn) btn.innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-  window.modifierMatiere = function(x) {
-    document.getElementById('edit-id-mat').value = x.id_matiere || x.id || '';
-    document.getElementById('edit-nom-mat').value = x.libelle_matiere || '';
-    document.getElementById('edit-nom-mat-ar').value = x.libelle_matiere_ar || '';
-    document.getElementById('edit-coef').value = x.coefficient || 1;
-    document.getElementById('edit-vol').value = x.volume_horaire || 3;
-    document.getElementById('edit-langue').value = x.langue_ens || 'fr';
-    const btn = document.getElementById('btn-mat');
-    if (btn) btn.innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const formMatiere = document.getElementById('formMatiere');
+  if (formMatiere) {
+    formMatiere.addEventListener('submit', async e => {
+      e.preventDefault();
+      const d = Object.fromEntries(new FormData(e.target));
+      d.coefficient = Number(d.coefficient);
+      d.volume_horaire = Number(d.volume_horaire);
+      if (!d.libelle_matiere) return alert(m('erreurChamp'));
 
-  // ==================================================
-  // ❌ SUPPRIMER CLASSE
-  // ==================================================
-  window.supprimerClasse = async function(id) {
-    if (!id) return;
-    if (!confirm(m('supprConfirm'))) return;
-    try {
-      const data = await requeteAPI(`${API_URL}/classes/${id}`, { method: 'DELETE' });
-      if (data.ok) {
-        alert(m('supprOk'));
-        chargerListe();
-      } else {
-        alert("❌ " + (data.erreur || m('erreurReseau')));
-      }
-    } catch {
-      let liste = obtenirClassesLocales().filter(c => String(c.id_classe) !== String(id) && String(c.id) !== String(id));
-      sauvegarderClassesLocales(liste);
-      alert(m('supprOk') + " (mode local)");
-      chargerListe(true);
-    }
-  };
+      const estModif = !!d.id_matiere;
+      const donneesMatiere = {
+        libelle_matiere: d.libelle_matiere.trim(),
+        libelle_matiere_ar: (d.libelle_matiere_ar || '').trim(),
+        coefficient: d.coefficient,
+        volume_horaire: d.volume_horaire,
+        langue_ens: d.langue_ens || 'fr'
+      };
 
-  // ==================================================
-  // ❌ SUPPRIMER MATIÈRE
-  // ==================================================
-  window.supprimerMatiere = async function(id) {
-    if (!id) return;
-    if (!confirm(m('supprConfirm'))) return;
-    try {
-      const data = await requeteAPI(`${API_URL}/matieres/${id}`, { method: 'DELETE' });
-      if (data.ok) {
-        alert(m('supprOk'));
-        chargerListe();
-      } else {
-        alert("❌ " + (data.erreur || m('erreurReseau')));
+      try {
+        const urlApi = estModif ? `/matieres/${d.id_matiere}` : '/matieres';
+        const methode = estModif ? 'PUT' : 'POST';
+        const data = await requeteAPI(urlApi, {
+          method: methode,
+          body: JSON.stringify(donneesMatiere)
+        });
+        if (data.ok || data.success) {
+          alert(estModif ? m('modifOk') : m('sauvegardeOk'));
+          reinitFormulaireMatiere();
+          chargerListe();
+        } else {
+          alert("❌ " + (data.erreur || data.message || m('erreurReseau')));
+        }
+      } catch (err) {
+        console.log("⚠️ Mode local :", err.message);
+        let liste = obtenirMatieresLocales();
+        if (estModif) {
+          const idx = liste.findIndex(m => String(m.id_matiere) === String(d.id_matiere));
+          if (idx !== -1) liste[idx] = { ...liste[idx], ...donneesMatiere };
+        } else {
+          liste.push({ id_matiere: Date.now(), ...donneesMatiere });
+        }
+        sauvegarderMatieresLocales(liste);
+        alert((estModif ? m('modifOk') : m('sauvegardeOk')) + " (mode local)");
+        reinitFormulaireMatiere();
+        chargerListe(true);
       }
+    });
+  }
+});
+
+function reinitFormulaireClasse() {
+  document.getElementById('formClasse')?.reset();
+  document.getElementById('edit-id-classe').value = '';
+  const btn = document.getElementById('btn-classe');
+  if (btn) btn.innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
+}
+function reinitFormulaireMatiere() {
+  document.getElementById('formMatiere')?.reset();
+  document.getElementById('edit-id-mat').value = '';
+  const btn = document.getElementById('btn-mat');
+  if (btn) btn.innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
+}
+
+async function chargerListe(forcerLocal = false) {
+  const corps = document.getElementById('liste-complete');
+  const alerteApi = document.getElementById('alerteApi');
+  const texteAlerteApi = document.getElementById('texteAlerteApi');
+  let classes = [], matieres = [];
+
+  if (!forcerLocal) {
+    try {
+      const [clData, mtData] = await Promise.all([
+        requeteAPI('/classes/toutes'),
+        requeteAPI('/matieres')
+      ]);
+      classes = clData.ok ? (clData.classes || clData.lignes || []) : [];
+      matieres = mtData.ok ? (mtData.matieres || mtData.lignes || []) : [];
+      if (!Array.isArray(classes)) classes = [];
+      if (!Array.isArray(matieres)) matieres = [];
+      sauvegarderClassesLocales(classes);
+      sauvegarderMatieresLocales(matieres);
+      alerteApi.classList.add('d-none');
     } catch {
-      let liste = obtenirMatieresLocales().filter(m => String(m.id_matiere) !== String(id) && String(m.id) !== String(id));
-      sauvegarderMatieresLocales(liste);
-      alert(m('supprOk') + " (mode local)");
-      chargerListe(true);
+      forcerLocal = true;
     }
-  };
+  }
+
+  if (forcerLocal) {
+    if (texteAlerteApi) texteAlerteApi.textContent = m('serveurIndispo');
+    alerteApi.classList.remove('d-none');
+    classes = obtenirClassesLocales();
+    matieres = obtenirMatieresLocales();
+  }
+
+  let html = '';
+  if (classes.length > 0) {
+    html += `<div class="col-md-6"><h5 class="mb-3 text-white"><i class="bi bi-building me-2 text-warning"></i>
+      <span class="txt-fr">Classes</span><span class="txt-en">Classes</span><span class="txt-ar">المستويات</span></h5>`;
+    html += classes.map(x => {
+      const statutBadge = {ouverte:'bg-success',complete:'bg-primary',fermee:'bg-secondary'}[x.statut] || 'bg-secondary';
+      const statutTexte = {ouverte:'Ouverte',complete:'Complète',fermee:'Fermée'}[x.statut] || 'Ouverte';
+      const placesLibres = typeof x.places_restantes !== 'undefined'
+        ? `<span class="badge bg-info text-dark ms-1">${x.places_restantes}/${x.capacite_max}</span>`
+        : `<span class="badge bg-light text-dark ms-1">${x.capacite_max || '—'} pl</span>`;
+      return `<div class="carte-gestion d-flex justify-content-between align-items-center">
+        <div>
+          <strong>${x.libelle_classe}</strong>
+          ${x.libelle_classe_ar ? `<span class="text-muted ms-1">(${x.libelle_classe_ar})</span>` : ''}
+          <span class="opacity-75 ms-2 small">${x.cycle || '—'}</span>
+          ${placesLibres}
+          ${x.salle ? `<span class="badge bg-secondary ms-1">${x.salle}</span>` : ''}
+          <span class="badge ${statutBadge} ms-1">${statutTexte}</span>
+        </div>
+        <div class="d-flex gap-1">
+          <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierClasse(${JSON.stringify(x).replace(/'/g,"\\'")})'>✏️</button>
+          <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerClasse(${JSON.stringify(x.id || x.id_classe)})">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
+    html += `</div>`;
+  }
+
+  if (matieres.length > 0) {
+    html += `<div class="col-md-6"><h5 class="mb-3 text-white"><i class="bi bi-book me-2 text-warning"></i>
+      <span class="txt-fr">Matières</span><span class="txt-en">Subjects</span><span class="txt-ar">المواد</span></h5>`;
+    html += matieres.map(x => {
+      const langueLabel = {fr:'🇫🇷',ar:'🇸🇦',en:'🇬🇧'}[x.langue_ens] || '🇫🇷';
+      return `<div class="carte-gestion d-flex justify-content-between align-items-center">
+        <div>
+          <strong>${x.libelle_matiere}</strong>
+          ${x.libelle_matiere_ar ? `<span class="text-muted ms-1">(${x.libelle_matiere_ar})</span>` : ''}
+          <span class="badge bg-info text-dark ms-1">Coef ${x.coefficient}</span>
+          <span class="badge bg-secondary ms-1">${x.volume_horaire || 0}h/sem</span>
+          <span class="badge bg-light text-dark ms-1">${langueLabel}</span>
+        </div>
+        <div class="d-flex gap-1">
+          <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierMatiere(${JSON.stringify(x).replace(/'/g,"\\'")})'>✏️</button>
+          <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerMatiere(${JSON.stringify(x.id_matiere || x.id)})">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
+    html += `</div>`;
+  }
+
+  corps.innerHTML = html || `<div class="col-12 text-center opacity-75 py-5">
+    <i class="bi bi-inbox fs-1 mb-2"></i><p>${m('aucuneDonnee')}</p>
+  </div>`;
+}
+
+window.modifierClasse = function(x) {
+  document.getElementById('edit-id-classe').value = x.id_classe || x.id || '';
+  document.getElementById('edit-libelle').value = x.libelle_classe || '';
+  document.getElementById('edit-libelle-ar').value = x.libelle_classe_ar || '';
+  document.getElementById('edit-cycle').value = x.cycle || '';
+  document.getElementById('edit-capacite').value = x.capacite_max || 30;
+  document.getElementById('edit-salle').value = x.salle || '';
+  document.getElementById('edit-statut').value = x.statut || 'ouverte';
+  const btn = document.getElementById('btn-classe');
+  if (btn) btn.innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+window.modifierMatiere = function(x) {
+  document.getElementById('edit-id-mat').value = x.id_matiere || x.id || '';
+  document.getElementById('edit-nom-mat').value = x.libelle_matiere || '';
+  document.getElementById('edit-nom-mat-ar').value = x.libelle_matiere_ar || '';
+  document.getElementById('edit-coef').value = x.coefficient || 1;
+  document.getElementById('edit-vol').value = x.volume_horaire || 3;
+  document.getElementById('edit-langue').value = x.langue_ens || 'fr';
+  const btn = document.getElementById('btn-mat');
+  if (btn) btn.innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+window.supprimerClasse = async function(id) {
+  if (!id) return;
+  if (!confirm(m('supprConfirm'))) return;
+  try {
+    const data = await requeteAPI(`/classes/${id}`, { method: 'DELETE' });
+    if (data.ok || data.success) {
+      alert(m('supprOk'));
+      chargerListe();
+    } else {
+      alert("❌ " + (data.erreur || m('erreurReseau')));
+    }
+  } catch {
+    let liste = obtenirClassesLocales().filter(c => String(c.id_classe) !== String(id) && String(c.id) !== String(id));
+    sauvegarderClassesLocales(liste);
+    alert(m('supprOk') + " (mode local)");
+    chargerListe(true);
+  }
+};
+
+window.supprimerMatiere = async function(id) {
+  if (!id) return;
+  if (!confirm(m('supprConfirm'))) return;
+  try {
+    const data = await requeteAPI(`/matieres/${id}`, { method: 'DELETE' });
+    if (data.ok || data.success) {
+      alert(m('supprOk'));
+      chargerListe();
+    } else {
+      alert("❌ " + (data.erreur || m('erreurReseau')));
+    }
+  } catch {
+    let liste = obtenirMatieresLocales().filter(m => String(m.id_matiere) !== String(id) && String(m.id) !== String(id));
+    sauvegarderMatieresLocales(liste);
+    alert(m('supprOk') + " (mode local)");
+    chargerListe(true);
+  }
+};
 </script>
 
-<!-- 🧭 EN-TÊTE -->
 <div class="entete-page">
   <div class="container d-flex justify-content-between align-items-center">
     <div>
@@ -597,13 +527,11 @@
 </div>
 
 <div class="container py-4">
-  <!-- ⚠️ ALERTE API -->
   <div id="alerteApi" class="alerte-api d-none">
     <i class="bi bi-wifi-off me-2"></i>
     <span id="texteAlerteApi"></span>
   </div>
 
-  <!-- 🛠️ BARRE OUTILS -->
   <div class="barre-outils">
     <button class="btn btn-anim-orange px-3 py-2" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
     <button class="btn btn-anim-orange px-3 py-2" onclick="changerLangue('ar')" id="btn-ar">🇸🇦 AR</button>
@@ -612,7 +540,6 @@
   </div>
 
   <div class="row g-4">
-    <!-- 📚 FORMULAIRE CLASSE -->
     <div class="col-md-6">
       <div class="carte-gestion">
         <h5 class="mb-3">
@@ -690,7 +617,6 @@
       </div>
     </div>
 
-    <!-- 📖 FORMULAIRE MATIÈRE -->
     <div class="col-md-6">
       <div class="carte-gestion">
         <h5 class="mb-3">
@@ -757,7 +683,6 @@
     </div>
   </div>
 
-  <!-- 📋 LISTE DES ENREGISTREMENTS -->
   <div class="zone-liste">
     <h4 class="mb-3">
       <i class="bi bi-list-ul me-2" style="color:var(--accent)"></i>
@@ -778,7 +703,6 @@
   </div>
 </div>
 
-<!-- 🔚 DÉCONNEXION -->
 <div class="menu-fixed">
   <a href="deconnexion.html" class="btn btn-suppr-lumineux px-4 py-2">
     <i class="bi bi-box-arrow-right"></i>
@@ -787,6 +711,5 @@
     <span class="txt-ar"> خروج</span>
   </a>
 </div>
-
 </body>
 </html>

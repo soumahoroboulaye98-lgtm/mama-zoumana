@@ -380,6 +380,48 @@
       font-size: 0.95rem;
       transition: color 0.4s ease;
     }
+    /* ===== 📚 GESTION DU SITE ===== */
+    .bloc-admin {
+      background: var(--carte-fond);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: var(--ombre);
+      border: 1px solid var(--bordure);
+      opacity: 0;
+      transform: translateY(25px);
+      transition: all 0.4s ease;
+    }
+    .bloc-admin.visible { opacity: 1; transform: translateY(0); }
+    .bloc-admin:hover { box-shadow: var(--ombre-hover); transform: translateY(-4px); }
+    .bloc-admin h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primaire);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: color 0.4s ease;
+    }
+    .bloc-admin ul { list-style: none; padding: 0; margin: 0; }
+    .bloc-admin li {
+      padding: 0.8rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      transition: all 0.25s ease;
+    }
+    .bloc-admin li:hover {
+      background: rgba(12,74,110,0.04);
+      padding-left: 1.4rem;
+    }
+    .bloc-admin li a {
+      text-decoration: none;
+      color: var(--texte-principal);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .bloc-admin li a i { color: var(--accent); font-size: 1.1rem; width: 20px; text-align: center; }
     /* ===== 📱 RESPONSIVE ===== */
     @media (max-width: 991px) {
       .contenu { padding: 1.5rem; }
@@ -396,17 +438,50 @@
 <body>
 <!-- 🔐 SÉCURITÉ, THÈME & LANGUE -->
 <script>
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
+  // ✅ Configuration API — SANS LOCALHOST
+  const API_URL = "https://mama-zoumana-api.onrender.com/api";
+
+  // ✅ Récupération sécurisée des infos utilisateur
+  function getToken() { return localStorage.getItem('token'); }
+  function getRole() { return (localStorage.getItem('role') || '').toLowerCase().trim(); }
+
   const nomUtilisateur = localStorage.getItem('nom') || 'Utilisateur';
   const prenomUtilisateur = localStorage.getItem('prenoms') || '';
   const nomComplet = (nomUtilisateur + ' ' + prenomUtilisateur).trim();
-  const API_URL = 'https://mama-zoumana-api.onrender.com/api';
 
-  // ✅ VÉRIFICATION ACCÈS — Accepte admin ET Admin
-  if (!token || !['admin','Admin','super_admin'].includes(role)) {
-    alert("⛔ Accès réservé à l'Administrateur");
-    location.href = '../connexion.html';
+  // ✅ VÉRIFICATION ACCÈS — Token + Rôle autorisé
+  const token = getToken();
+  const role = getRole();
+  const rolesAutorises = ['admin', 'super_admin', 'directeur'];
+
+  if (!token || !rolesAutorises.includes(role)) {
+    alert("⛔ Accès réservé à l'Administrateur — Veuillez vous reconnecter");
+    localStorage.clear();
+    location.href = 'connexion.html';
+  }
+
+  // ✅ Fonction API centralisée avec token auto-inclus
+  async function requeteAPI(chemin, options = {}) {
+    const reponse = await fetch(`${API_URL}${chemin}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`,
+        ...options.headers
+      }
+    });
+
+    if (reponse.status === 401) {
+      alert("⛔ Session expirée — Veuillez vous reconnecter");
+      localStorage.clear();
+      window.location.href = 'connexion.html';
+      throw new Error('SESSION_EXPIREE');
+    }
+    if (reponse.status === 403) {
+      alert("🚫 Droits insuffisants — Compte Administrateur requis");
+      throw new Error('DROITS_INSUFFISANTS');
+    }
+    return reponse.ok ? await reponse.json() : null;
   }
 
   // 🌙 GESTION DU THÈME JOUR/NUIT
@@ -421,14 +496,15 @@
     localStorage.setItem('themeNuit', nuit ? '1' : '0');
   }
 
-  // ✅ LANGUE
+  // ✅ GESTION DE LA LANGUE
   let langue = localStorage.getItem('langue') || 'fr';
   document.body.classList.add('lang-' + langue);
+
   window.appliquerLangue = function(lang) {
     localStorage.setItem('langue', lang);
     document.body.classList.remove('lang-fr','lang-en','lang-ar');
     document.body.classList.add('lang-' + lang);
-    document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('actif', b.dataset.lang === lang));
+    document.querySelectorAll('.btn-langue').forEach(b => b?.classList.toggle('actif', b.dataset.lang === lang));
     langue = lang;
   };
 
@@ -438,7 +514,10 @@
       en: 'Are you sure you want to log out?',
       fr: 'Êtes-vous sûr de vouloir vous déconnecter ?'
     }[langue];
-    if (confirm(msg)) { localStorage.clear(); location.href = '../connexion.html'; }
+    if (confirm(msg)) {
+      localStorage.clear();
+      location.href = 'connexion.html';
+    }
   };
 
   // ✅ ANIMATION D'APPARITION DES CARTES
@@ -447,29 +526,23 @@
     tout.forEach((c, i) => setTimeout(() => c.classList.add('visible'), 100 + i * 100));
   }
 
-  // ✅ CHARGER TOUTES LES DONNÉES — Gestion 404 silencieuse
+  // ✅ CHARGER TOUTES LES DONNÉES
   async function chargerTout() {
-    // 📊 Valeurs par défaut
     let classes = 0, eleves = 0, profs = 0, attente = 0;
 
     // 📊 Statistiques
     try {
-      const rStats = await fetch(API_URL + '/statistiques', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (rStats.ok) {
-        const dStats = await rStats.json();
-        if (dStats.ok && dStats.stats) {
-          classes = dStats.stats.classes || 0;
-          eleves = dStats.stats.eleves || 0;
-          profs = dStats.stats.profs || 0;
-          attente = dStats.stats.attente || 0;
-        }
+      const dStats = await requeteAPI('/statistiques');
+      if (dStats?.ok || dStats?.success) {
+        classes = dStats.stats?.classes || 0;
+        eleves = dStats.stats?.eleves || 0;
+        profs = dStats.stats?.profs || 0;
+        attente = dStats.stats?.attente || 0;
       }
     } catch (e) {
       console.log("ℹ️ Statistiques indisponibles");
     }
-    // Afficher les statistiques (même à 0)
+
     document.getElementById('stat-classes').textContent = classes;
     document.getElementById('stat-eleves').textContent = eleves;
     document.getElementById('stat-profs').textContent = profs;
@@ -477,26 +550,16 @@
 
     // ⚠️ Alertes
     try {
-      const rAlt = await fetch(API_URL + '/alertes', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (rAlt.ok) {
-        const dAlt = await rAlt.json();
-        if (dAlt.ok && dAlt.alertes?.length > 0) {
-          const cont = document.getElementById('zone-alertes');
-          cont.innerHTML = '';
-          dAlt.alertes.forEach(a => {
-            cont.innerHTML += `
-              <div class="alerte-item ${a.type}">
-                <i class="bi ${a.icone}"></i>
-                <div><strong>${a.messageEleve || a.messageProf || a.message}</strong></div>
-              </div>`;
-          });
-        } else {
-          document.getElementById('zone-alertes').innerHTML = `<p class="text-muted small">✅ Aucune alerte détectée</p>`;
-        }
+      const dAlt = await requeteAPI('/alertes');
+      const cont = document.getElementById('zone-alertes');
+      if ((dAlt?.ok || dAlt?.success) && dAlt?.alertes?.length > 0) {
+        cont.innerHTML = dAlt.alertes.map(a => `
+          <div class="alerte-item ${a.type}">
+            <i class="bi ${a.icone}"></i>
+            <div><strong>${a.messageEleve || a.messageProf || a.message}</strong></div>
+          </div>`).join('');
       } else {
-        document.getElementById('zone-alertes').innerHTML = `<p class="text-muted small">✅ Aucune alerte détectée</p>`;
+        cont.innerHTML = `<p class="text-muted small">✅ Aucune alerte détectée</p>`;
       }
     } catch {
       document.getElementById('zone-alertes').innerHTML = `<p class="text-muted small">✅ Aucune alerte détectée</p>`;
@@ -504,30 +567,22 @@
 
     // 🕐 Activité récente
     try {
-      const rAct = await fetch(API_URL + '/activite-recente', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (rAct.ok) {
-        const dAct = await rAct.json();
-        if (dAct.ok && dAct.activite?.length > 0) {
-          const cont = document.getElementById('zone-activite');
-          cont.innerHTML = '';
-          dAct.activite.forEach(a => {
-            const dateAffiche = a.date ? new Date(a.date).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
-            cont.innerHTML += `
-              <div class="activite-item">
-                <i class="bi ${a.icone}"></i>
-                <div class="activite-texte">
-                  <div class="small">${a.texte}</div>
-                  <div class="activite-date">${dateAffiche}</div>
-                </div>
-              </div>`;
-          });
-        } else {
-          document.getElementById('zone-activite').innerHTML = `<p class="text-muted small">Aucune activité récente</p>`;
-        }
+      const dAct = await requeteAPI('/activite-recente');
+      const cont = document.getElementById('zone-activite');
+      if ((dAct?.ok || dAct?.success) && dAct?.activite?.length > 0) {
+        cont.innerHTML = dAct.activite.map(a => {
+          const dateAffiche = a.date ? new Date(a.date).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+          return `
+            <div class="activite-item">
+              <i class="bi ${a.icone}"></i>
+              <div class="activite-texte">
+                <div class>small">${a.texte}</div>
+                <div class="activite-date">${dateAffiche}</div>
+              </div>
+            </div>`;
+        }).join('');
       } else {
-        document.getElementById('zone-activite').innerHTML = `<p class="text-muted small">Aucune activité récente</p>`;
+        cont.innerHTML = `<p class="text-muted small">Aucune activité récente</p>`;
       }
     } catch {
       document.getElementById('zone-activite').innerHTML = `<p class="text-muted small">Aucune activité récente</p>`;
@@ -535,32 +590,24 @@
 
     // 📈 Répartition élèves par classe
     try {
-      const rRep = await fetch(API_URL + '/repartition-eleves', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (rRep.ok) {
-        const dRep = await rRep.json();
-        if (dRep.ok && dRep.repartition?.length > 0) {
-          const cont = document.getElementById('zone-repartition');
-          cont.innerHTML = '';
-          const max = Math.max(...dRep.repartition.map(r => parseInt(r.nombre)));
-          dRep.repartition.forEach((r, idx) => {
-            const pct = max > 0 ? (parseInt(r.nombre)/max)*100 : 0;
-            cont.innerHTML += `
-              <div class="mb-2">
-                <div class="d-flex justify-content-between small mb-1">
-                  <strong>${r.libelle_classe}</strong><span>${r.nombre} élève(s)</span>
-                </div>
-                <div class="repartition-barre">
-                  <div class="repartition-valeur" style="width:${pct}%">${r.nombre}</div>
-                </div>
-              </div>`;
-          });
-        } else {
-          document.getElementById('zone-repartition').innerHTML = `<p class="text-muted small">Aucune donnée disponible</p>`;
-        }
+      const dRep = await requeteAPI('/repartition-eleves');
+      const cont = document.getElementById('zone-repartition');
+      if ((dRep?.ok || dRep?.success) && dRep?.repartition?.length > 0) {
+        const max = Math.max(...dRep.repartition.map(r => parseInt(r.nombre)));
+        cont.innerHTML = dRep.repartition.map(r => {
+          const pct = max > 0 ? (parseInt(r.nombre)/max)*100 : 0;
+          return `
+            <div class="mb-2">
+              <div class="d-flex justify-content-between small mb-1">
+                <strong>${r.libelle_classe}</strong><span>${r.nombre} élève(s)</span>
+              </div>
+              <div class="repartition-barre">
+                <div class="repartition-valeur" style="width:${pct}%">${r.nombre}</div>
+              </div>
+            </div>`;
+        }).join('');
       } else {
-        document.getElementById('zone-repartition').innerHTML = `<p class="text-muted small">Aucune donnée disponible</p>`;
+        cont.innerHTML = `<p class="text-muted small">Aucune donnée disponible</p>`;
       }
     } catch {
       document.getElementById('zone-repartition').innerHTML = `<p class="text-muted small">Aucune donnée disponible</p>`;
@@ -568,15 +615,10 @@
 
     // 📄 État notes & bulletins
     try {
-      const rEtat = await fetch(API_URL + '/etat-bulletins', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (rEtat.ok) {
-        const dEtat = await rEtat.json();
-        if (dEtat.ok) {
-          document.getElementById('etat-notes').textContent = dEtat.notesSaisies || 0;
-          document.getElementById('etat-bulletins').textContent = dEtat.bulletinsGeneres || 0;
-        }
+      const dEtat = await requeteAPI('/etat-bulletins');
+      if (dEtat?.ok || dEtat?.success) {
+        document.getElementById('etat-notes').textContent = dEtat.notesSaisies || 0;
+        document.getElementById('etat-bulletins').textContent = dEtat.bulletinsGeneres || 0;
       }
     } catch {
       // Silencieux
@@ -584,23 +626,19 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    // Restaurer thème
     appliquerTheme(localStorage.getItem('themeNuit') === '1');
-    
-    // Restaurer langue
+
     document.querySelectorAll('.btn-langue').forEach(b => {
-      b.classList.toggle('actif', b.dataset.lang === langue);
+      b?.classList.toggle('actif', b.dataset.lang === langue);
     });
-    
-    // Afficher nom utilisateur
+
     document.getElementById('nom-affiche').textContent = nomComplet;
     document.getElementById('nom-affiche2').textContent = nomComplet;
-    
-    // Lier bouton thème
+
     document.getElementById('btnTheme').addEventListener('click', () => {
       appliquerTheme(!document.body.classList.contains('mode-nuit'));
     });
-    
+
     chargerTout();
     setTimeout(animerCartes, 100);
   });
@@ -617,7 +655,6 @@
     </button>
     <div class="collapse navbar-collapse" id="menuPrincipal">
       <ul class="navbar-nav me-auto">
-        <!-- 🏠 ACCUEIL -->
         <li class="nav-item">
           <a class="nav-link actif" href="dashboard.html">
             <i class="bi bi-speedometer2"></i>
@@ -626,7 +663,6 @@
             <span class="txt-ar">لوحة التحكم</span>
           </a>
         </li>
-        <!-- 👥 UTILISATEURS -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
             <i class="bi bi-people"></i>
@@ -639,7 +675,6 @@
             <li><a class="dropdown-item" href="affectation-prof.html"><i class="bi bi-person-check"></i> <span class="txt-fr">Affectation Enseignants</span><span class="txt-en">Teacher Assignment</span><span class="txt-ar">تكليف المدرسين</span></a></li>
           </ul>
         </li>
-        <!-- 📚 ENSEIGNEMENT -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
             <i class="bi bi-book-half"></i>
@@ -653,7 +688,6 @@
             <li><a class="dropdown-item" href="emploi-temps.html"><i class="bi bi-calendar-event"></i> <span class="txt-fr">Emploi du Temps (Détaillé)</span><span class="txt-en">Detailed Timetable</span><span class="txt-ar">الجدول الزمني المفصل</span></a></li>
           </ul>
         </li>
-        <!-- ✏️ NOTES & BULLETINS -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
             <i class="bi bi-pencil-square"></i>
@@ -666,7 +700,6 @@
             <li><a class="dropdown-item" href="generer-bulletin.html"><i class="bi bi-file-earmark-text"></i> <span class="txt-fr">Générer Bulletins</span><span class="txt-en">Generate Reports</span><span class="txt-ar">إنشاء الشهادات</span></a></li>
           </ul>
         </li>
-        <!-- 📝 INSCRIPTIONS -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
             <i class="bi bi-pencil-square"></i>
@@ -680,7 +713,6 @@
             <li><a class="dropdown-item" href="valider-inscription.html"><i class="bi bi-check2-square"></i> <span class="txt-fr">Valider Inscriptions</span><span class="txt-en">Validate Enrollments</span><span class="txt-ar">الموافقة على التسجيلات</span></a></li>
           </ul>
         </li>
-        <!-- 📰 COMMUNICATION -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
             <i class="bi bi-megaphone"></i>
@@ -694,7 +726,6 @@
             <li><a class="dropdown-item" href="evenements.html"><i class="bi bi-calendar-event"></i> <span class="txt-fr">Événements</span><span class="txt-en">Events</span><span class="txt-ar">الفعاليات</span></a></li>
           </ul>
         </li>
-        <!-- 🎨 SITE & CONTENU -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
             <i class="bi bi-palette"></i>
@@ -711,7 +742,6 @@
             <li><a class="dropdown-item" href="admin-reglement.html"><i class="bi bi-file-text"></i> <span class="txt-fr">Règlement Intérieur</span><span class="txt-en">Internal Rules</span><span class="txt-ar">النظام الداخلي</span></a></li>
           </ul>
         </li>
-        <!-- ⚙️ DIVERS -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
             <i class="bi bi-gear"></i>
@@ -729,7 +759,6 @@
           </ul>
         </li>
       </ul>
-      <!-- 🌐 LANGUE, THÈME & UTILISATEUR -->
       <div class="d-flex align-items-center">
         <div class="d-flex align-items-center">
           <button id="btnTheme" class="btn-theme" title="Basculer jour/nuit">☀️</button>
@@ -814,9 +843,7 @@
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- ⚠️ ALERTES + ACTIVITÉ RÉCENTE -->
+  </div  <!-- ⚠️ ALERTES + ACTIVITÉ RÉCENTE -->
   <div class="row g-4 mb-5">
     <div class="col-md-6">
       <div class="contenu-card">
@@ -836,7 +863,8 @@
   <div class="row g-4 mb-5">
     <div class="col-md-6">
       <div class="contenu-card">
-        <h5>📈 <span class="txt-fr">Répartition par Classe</span><span class="txt-en">Distribution by Class</span><span class="txt-ar">التوزيع حسب الفصل</span></h5>        <div id="zone-repartition"><p class="text-muted small">Chargement...</p></div>
+        <h5>📈 <span class="txt-fr">Répartition par Classe</span><span class="txt-en">Distribution by Class</span><span class="txt-ar">التوزيع حسب الفصل</span></h5>
+        <div id="zone-repartition"><p class="text-muted small">Chargement...</p></div>
       </div>
     </div>
     <div class="col-md-6">

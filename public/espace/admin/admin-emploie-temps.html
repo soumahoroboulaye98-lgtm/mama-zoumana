@@ -11,7 +11,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    /* ===== 🎨 VARIABLES — MODE CLAIR ===== */
     :root {
       --fond: #f8fafc;
       --surface: #ffffff;
@@ -24,8 +23,6 @@
       --danger: #ef4444;
       --ombre: 0 2px 8px rgba(0,0,0,0.06);
     }
-
-    /* ===== 🌙 MODE SOMBRE ===== */
     [data-theme="sombre"] {
       --fond: #0f172a;
       --surface: #1e293b;
@@ -38,18 +35,11 @@
       --danger: #f87171;
       --ombre: 0 2px 12px rgba(0,0,0,0.35);
     }
-
     * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.25s ease; }
     body { background: var(--fond); color: var(--texte); min-height: 100vh; font-family:'Segoe UI', sans-serif; }
-
-    /* ===== EN-TÊTE ===== */
     .entete-page { background: var(--surface); border-bottom: 2px solid var(--accent); padding: 1.2rem 0; box-shadow: var(--ombre); }
-
-    /* ===== CARTES ===== */
     .carte { background: var(--surface); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--bord); box-shadow: var(--ombre); }
     .carte:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
-
-    /* ===== FORMULAIRES ===== */
     .form-control, .form-select {
       background: var(--fond); border: 1px solid var(--bord); color: var(--texte); border-radius: 8px;
     }
@@ -57,23 +47,17 @@
       background: var(--fond); border-color: var(--accent); color: var(--texte);
       box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.20);
     }
-
-    /* ===== BOUTONS ===== */
     .btn-primaire { background: var(--primaire); color: white; border-radius: 8px; border: none; padding: 0.5rem 1rem; }
     .btn-primaire:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(12,74,110,0.25); }
     .btn-ajouter { background: var(--succes); color: white; border-radius: 8px; border: none; padding: 0.5rem 1rem; }
     .btn-ajouter:hover { background: #059669; color: white; transform: translateY(-1px); }
     .btn-modif { background: var(--accent); color: #000; padding: 5px 10px; font-size: 14px; border-radius: 6px; border: none; }
     .btn-suppr { background: var(--danger); color: white; padding: 5px 10px; font-size: 14px; border-radius: 6px; border: none; }
-
-    /* ===== TABLEAU ===== */
     .table { color: var(--texte); margin-bottom: 0; }
     .table th { border-color: var(--bord); background: var(--primaire); color: white; }
     .table td { border-color: var(--bord); }
     .table-striped > tbody > tr:nth-of-type(odd) { background: rgba(12,74,110,0.03); }
     [data-theme="sombre"] .table-striped > tbody > tr:nth-of-type(odd) { background: rgba(56,189,248,0.04); }
-
-    /* ===== TRADUCTION ===== */
     .lang-en, .lang-ar { display: none; }
     body.lang-fr .lang-fr { display: inline; }
     body.lang-en { direction: ltr; }
@@ -82,127 +66,145 @@
     body.lang-ar { direction: rtl; }
     body.lang-ar .lang-fr, body.lang-ar .lang-en { display: none; }
     body.lang-ar .lang-ar { display: inline; }
-
-    /* ===== INTERRUPTEUR MODE ===== */
     .btn-mode { border-radius: 20px; padding: 4px 12px; font-size: 14px; border: 1px solid var(--bord); background: var(--surface); color: var(--texte); }
     .btn-mode:hover { border-color: var(--accent); }
   </style>
 </head>
 <body class="lang-fr" data-theme="clair">
 
-
-<!-- 🔗 CONFIGURATION API -->
+<!-- 🔗 CONFIGURATION API — PLUS DE LOCALHOST -->
 <script>
-  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/api/classe-emploi'
-    : 'https://mama-zoumana-api.onrender.com/api/classe-emploi';
+const API_URL = "https://mama-zoumana-api.onrender.com/api";
 
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
-  let langue = localStorage.getItem('langue') || 'fr';
-  let theme = localStorage.getItem('theme') || 'clair';
+function getToken() {
+  return localStorage.getItem('token');
+}
 
-  // 💾 TRADUCTIONS
-  const MSG = {
-    fr: {
-      titre: "📅 Gestion de l'Emploi du Temps",
-      choisirClasse: "-- Choisir une classe --",
-      ajouterCours: "Ajouter un cours",
-      modifierCours: "Modifier le cours",
-      jour: "Jour",
-      heureDebut: "Heure de début",
-      heureFin: "Heure de fin",
-      matiere: "Matière",
-      professeur: "Enseignant",
-      choisirProf: "-- Sélectionner --",
-      enregistrer: "💾 Enregistrer",
-      listeCours: "📋 Emploi du Temps",
-      horaires: "Horaire",
-      actions: "Actions",
-      aucuneDonnee: "Aucun cours programmé",
-      selectionnerClasseDabord: "⚠️ Sélectionnez une classe d'abord !",
-      confirmerSuppression: "Confirmer la suppression ?",
-      coursAjoute: "✅ Cours ajouté !",
-      coursModifie: "✅ Cours mis à jour !",
-      coursSupprime: "✅ Cours supprimé !",
-      deconnexion: "Déconnexion"
-    },
-    en: {
-      titre: "📅 Timetable Management",
-      choisirClasse: "-- Select a class --",
-      ajouterCours: "Add course",
-      modifierCours: "Edit course",
-      jour: "Day",
-      heureDebut: "Start time",
-      heureFin: "End time",
-      matiere: "Subject",
-      professeur: "Teacher",
-      choisirProf: "-- Select --",
-      enregistrer: "💾 Save",
-      listeCours: "📋 Timetable",
-      horaires: "Time",
-      actions: "Actions",
-      aucuneDonnee: "No course scheduled",
-      selectionnerClasseDabord: "⚠️ Select a class first!",
-      confirmerSuppression: "Confirm deletion?",
-      coursAjoute: "✅ Course added!",
-      coursModifie: "✅ Course updated!",
-      coursSupprime: "✅ Course deleted!",
-      deconnexion: "Sign out"
-    },
-    ar: {
-      titre: "📅 إدارة الجدول الزمني",
-      choisirClasse: "-- اختر المستوى --",
-      ajouterCours: "إضافة حصة",
-      modifierCours: "تعديل الحصة",
-      jour: "اليوم",
-      heureDebut: "وقت البدء",
-      heureFin: "وقت الانتهاء",
-      matiere: "المادة",
-      professeur: "الأستاذ",
-      choisirProf: "-- اختر --",
-      enregistrer: "💾 حفظ",
-      listeCours: "📋 الجدول الزمني",
-      horaires: "الوقت",
-      actions: "إجراءات",
-      aucuneDonnee: "لا توجد حصص",
-      selectionnerClasseDabord: "⚠️ اختر المستوى أولاً !",
-      confirmerSuppression: "تأكيد الحذف ؟",
-      coursAjoute: "✅ تمت الإضافة !",
-      coursModifie: "✅ تم التحديث !",
-      coursSupprime: "✅ تم الحذف !",
-      deconnexion: "تسجيل الخروج"
+async function requeteAPI(chemin, options = {}) {
+  const reponse = await fetch(`${API_URL}${chemin}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+      ...options.headers
     }
-  };
-  function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
-
-  // 🔒 SÉCURITÉ
-  if(!token || !['admin','comptable','directeur'].includes(role)){
-    alert("⛔ Accès réservé à l'administration");
-    localStorage.clear();
-    location.href = 'connexion.html';
+  });
+  const donnees = await reponse.json();
+  if (reponse.status === 401) {
+    alert("⛔ Session expirée — Veuillez vous reconnecter");
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    window.location.href = 'connexion.html';
+    return;
   }
+  return donnees;
+}
 
-  // 🌙 APPLIQUER LE THÈME SAUVEGARDÉ
-  function appliquerTheme(t) {
-    theme = t;
-    document.documentElement.setAttribute('data-theme', t);
-    localStorage.setItem('theme', t);
-    document.getElementById('btn-theme').innerHTML = t === 'clair' ? '<i class="bi bi-moon"></i>' : '<i class="bi bi-sun"></i>';
-  }
-  function basculerTheme() { appliquerTheme(theme === 'clair' ? 'sombre' : 'clair'); }
+const token = getToken();
+const role = localStorage.getItem('role');
+let langue = localStorage.getItem('langue') || 'fr';
+let theme = localStorage.getItem('theme') || 'clair';
 
-  // 🗣️ APPLIQUER LA LANGUE
-  function appliquerLangue(lg) {
-    langue = lg;
-    localStorage.setItem('langue', lg);
-    document.body.classList.remove('lang-fr','lang-en','lang-ar');
-    document.body.classList.add('lang-' + lg);
-    document.getElementById('selecteurLangue').value = lg;
-    document.title = document.querySelector(`.lang-${lg}`)?.textContent || document.title;
+// 💾 TRADUCTIONS
+const MSG = {
+  fr: {
+    titre: "📅 Gestion de l'Emploi du Temps",
+    choisirClasse: "-- Choisir une classe --",
+    ajouterCours: "Ajouter un cours",
+    modifierCours: "Modifier le cours",
+    jour: "Jour",
+    heureDebut: "Heure de début",
+    heureFin: "Heure de fin",
+    matiere: "Matière",
+    professeur: "Enseignant",
+    choisirProf: "-- Sélectionner --",
+    enregistrer: "💾 Enregistrer",
+    listeCours: "📋 Emploi du Temps",
+    horaires: "Horaire",
+    actions: "Actions",
+    aucuneDonnee: "Aucun cours programmé",
+    selectionnerClasseDabord: "⚠️ Sélectionnez une classe d'abord !",
+    confirmerSuppression: "Confirmer la suppression ?",
+    coursAjoute: "✅ Cours ajouté !",
+    coursModifie: "✅ Cours mis à jour !",
+    coursSupprime: "✅ Cours supprimé !",
+    deconnexion: "Déconnexion"
+  },
+  en: {
+    titre: "📅 Timetable Management",
+    choisirClasse: "-- Select a class --",
+    ajouterCours: "Add course",
+    modifierCours: "Edit course",
+    jour: "Day",
+    heureDebut: "Start time",
+    heureFin: "End time",
+    matiere: "Subject",
+    professeur: "Teacher",
+    choisirProf: "-- Select --",
+    enregistrer: "💾 Save",
+    listeCours: "📋 Timetable",
+    horaires: "Time",
+    actions: "Actions",
+    aucuneDonnee: "No course scheduled",
+    selectionnerClasseDabord: "⚠️ Select a class first!",
+    confirmerSuppression: "Confirm deletion?",
+    coursAjoute: "✅ Course added!",
+    coursModifie: "✅ Course updated!",
+    coursSupprime: "✅ Course deleted!",
+    deconnexion: "Sign out"
+  },
+  ar: {
+    titre: "📅 إدارة الجدول الزمني",
+    choisirClasse: "-- اختر المستوى --",
+    ajouterCours: "إضافة حصة",
+    modifierCours: "تعديل الحصة",
+    jour: "اليوم",
+    heureDebut: "وقت البدء",
+    heureFin: "وقت الانتهاء",
+    matiere: "المادة",
+    professeur: "الأستاذ",
+    choisirProf: "-- اختر --",
+    enregistrer: "💾 حفظ",
+    listeCours: "📋 الجدول الزمني",
+    horaires: "الوقت",
+    actions: "إجراءات",
+    aucuneDonnee: "لا توجد حصص",
+    selectionnerClasseDabord: "⚠️ اختر المستوى أولاً !",
+    confirmerSuppression: "تأكيد الحذف ؟",
+    coursAjoute: "✅ تمت الإضافة !",
+    coursModifie: "✅ تم التحديث !",
+    coursSupprime: "✅ تم الحذف !",
+    deconnexion: "تسجيل الخروج"
   }
+};
+function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
+
+// 🔒 SÉCURITÉ
+if(!token || !['admin','comptable','directeur'].includes((role||'').toLowerCase())){
+  alert("⛔ Accès réservé à l'administration");
+  localStorage.clear();
+  location.href = 'connexion.html';
+}
+
+// 🌙 THÈME
+function appliquerTheme(t) {
+  theme = t;
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('theme', t);
+  document.getElementById('btn-theme').innerHTML = t === 'clair' ? '<i class="bi bi-moon"></i>' : '<i class="bi bi-sun"></i>';
+}
+function basculerTheme() { appliquerTheme(theme === 'clair' ? 'sombre' : 'clair'); }
+
+// 🗣️ LANGUE
+function appliquerLangue(lg) {
+  langue = lg;
+  localStorage.setItem('langue', lg);
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + lg);
+  document.getElementById('selecteurLangue').value = lg;
+  document.title = document.querySelector(`.lang-${lg}`)?.textContent || document.title;
+}
 </script>
-
 
 <!-- 📌 EN-TÊTE -->
 <div class="entete-page">
@@ -234,9 +236,7 @@
   </div>
 </div>
 
-
 <div class="container py-4">
-
   <!-- 🏫 CHOIX CLASSE -->
   <div class="carte">
     <label class="form-label fw-bold">1️⃣ <span class="lang-fr">Sélectionnez une classe</span><span class="lang-en">Select a class</span><span class="lang-ar">اختر المستوى</span> :</label>
@@ -307,7 +307,6 @@
       </table>
     </div>
   </div>
-
 </div>
 
 <script>
@@ -324,12 +323,11 @@ window.onload = async () => {
 // 🏫 CHARGER LA LISTE DES CLASSES
 async function chargerClasses() {
   try {
-    const res = await fetch(`${API_URL}/liste-classes`, { headers:{'Authorization':`Bearer ${token}`} });
-    const d = await res.json();
+    const d = await requeteAPI('/enseignement/classes/liste');
     if (d.ok) {
       const sel = document.getElementById('id_classe');
       sel.innerHTML = `<option value="">${m('choisirClasse')}</option>`;
-      d.classes.forEach(c => sel.innerHTML += `<option value="${c.id}">${c.libelle_classe_fr || c.libelle_classe}</option>`);
+      d.classes.forEach(c => sel.innerHTML += `<option value="${c.id}">${c.nom_fr || c.code}</option>`);
     }
   } catch(e){ console.error("Erreur classes :", e); }
 }
@@ -337,12 +335,11 @@ async function chargerClasses() {
 // 👨‍🏫 CHARGER LA LISTE DES ENSEIGNANTS
 async function chargerProfesseurs() {
   try {
-    const res = await fetch(`${API_URL}/liste-professeurs`, { headers:{'Authorization':`Bearer ${token}`} });
-    const d = await res.json();
+    const d = await requeteAPI('/utilisateurs/professeurs');
     if (d.ok) {
       const sel = document.getElementById('id_professeur');
       sel.innerHTML = `<option value="">${m('choisirProf')}</option>`;
-      d.professeurs.forEach(p => sel.innerHTML += `<option value="${p.id_utilisateur || p.id}">${p.nom} ${p.prenoms||''}</option>`);
+      d.professeurs.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.prenom || ''} ${p.nom || ''}</option>`);
     }
   } catch(e){ console.error("Erreur profs :", e); }
 }
@@ -356,10 +353,9 @@ async function chargerEmploi() {
     return;
   }
   try {
-    const res = await fetch(`${API_URL}/emploi-temps/${id}`, { headers:{'Authorization':`Bearer ${token}`} });
-    const d = await res.json();
+    const d = await requeteAPI(`/enseignement/emploi/liste?classe_id=${id}`);
     if (d.ok) {
-      listeCours = d.emploi_temps;
+      listeCours = d.emploi || [];
       afficherListe();
     }
   } catch(e){ console.error("Erreur emploi :", e); }
@@ -368,25 +364,23 @@ async function chargerEmploi() {
 // 🖥️ AFFICHER LE TABLEAU
 function afficherListe() {
   const ordre = {Lundi:1, Mardi:2, Mercredi:3, Jeudi:4, Vendredi:5, Samedi:6};
-  listeCours.sort((a,b) => ordre[a.jour] - ordre[b.jour] || a.heure_debut.localeCompare(b.heure_debut));
-
+  listeCours.sort((a,b) => ordre[a.jour] - ordre[b.jour] || a.heure_debut?.localeCompare(b.heure_debut));
   const corps = document.getElementById('corpsEmploi');
   if (!listeCours.length) {
     corps.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">${m('aucuneDonnee')}</td></tr>`;
     return;
   }
-
   corps.innerHTML = '';
   listeCours.forEach(c => {
     corps.innerHTML += `
       <tr>
         <td class="fw-semibold">${c.jour}</td>
-        <td>${c.heure_debut.slice(0,5)} — ${c.heure_fin.slice(0,5)}</td>
-        <td>${c.matiere}</td>
-        <td>${c.professeur}</td>
+        <td>${(c.heure_debut||'').slice(0,5)} — ${(c.heure_fin||'').slice(0,5)}</td>
+        <td>${c.matiere_nom || c.matiere}</td>
+        <td>${c.prof_nom || c.professeur}</td>
         <td>
-          <button class="btn btn-sm btn-modif" onclick="modifier(${c.id_emploi})" title="Modifier">✏️</button>
-          <button class="btn btn-sm btn-suppr" onclick="supprimer(${c.id_emploi})" title="Supprimer">🗑️</button>
+          <button class="btn btn-sm btn-modif" onclick="modifier(${c.id})" title="Modifier">✏️</button>
+          <button class="btn btn-sm btn-suppr" onclick="supprimer(${c.id})" title="Supprimer">🗑️</button>
         </td>
       </tr>`;
   });
@@ -394,14 +388,14 @@ function afficherListe() {
 
 // ✏️ PRÉ-REMPLIR POUR MODIFICATION
 function modifier(id) {
-  const c = listeCours.find(x => Number(x.id_emploi) === Number(id));
+  const c = listeCours.find(x => Number(x.id) === Number(id));
   if(!c) return;
-  document.getElementById('id_emploi').value = c.id_emploi;
+  document.getElementById('id_emploi').value = c.id;
   document.getElementById('jour').value = c.jour;
-  document.getElementById('heure_debut').value = c.heure_debut.slice(0,5);
-  document.getElementById('heure_fin').value = c.heure_fin.slice(0,5);
-  document.getElementById('matiere').value = c.matiere;
-  document.getElementById('id_professeur').value = c.id_professeur;
+  document.getElementById('heure_debut').value = (c.heure_debut||'').slice(0,5);
+  document.getElementById('heure_fin').value = (c.heure_fin||'').slice(0,5);
+  document.getElementById('matiere').value = c.matiere_nom || c.matiere || '';
+  document.getElementById('id_professeur').value = c.professeur_id || '';
   document.getElementById('titreForm').innerHTML = '✏️ ' + m('modifierCours');
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -411,31 +405,25 @@ document.getElementById('formCours').onsubmit = async e => {
   e.preventDefault();
   const id_classe = document.getElementById('id_classe').value;
   if (!id_classe) return alert(m('selectionnerClasseDabord'));
-
   const id_emploi = document.getElementById('id_emploi').value;
   const donnees = {
-    id_classe,
-    id_professeur: document.getElementById('id_professeur').value,
+    affectation_id: id_emploi || null,
     jour: document.getElementById('jour').value,
     heure_debut: document.getElementById('heure_debut').value,
     heure_fin: document.getElementById('heure_fin').value,
-    matiere: document.getElementById('matiere').value
+    salle: ''
   };
-
   try {
-    let res;
+    let d;
     if (id_emploi) {
-      res = await fetch(`${API_URL}/cours/modifier/${id_emploi}`, {
-        method: 'PUT', headers: {'Content-Type':'application/json', 'Authorization':`Bearer ${token}`},
+      d = await requeteAPI(`/enseignement/emploi/${id_emploi}`, {
+        method: 'PUT',
         body: JSON.stringify(donnees)
       });
     } else {
-      res = await fetch(`${API_URL}/cours/ajouter`, {
-        method: 'POST', headers: {'Content-Type':'application/json', 'Authorization':`Bearer ${token}`},
-        body: JSON.stringify(donnees)
-      });
+      alert("ℹ️ Créez d'abord une Affectation avant d'ajouter un cours à l'emploi du temps");
+      return;
     }
-    const d = await res.json();
     alert(d.message || d.erreur);
     if (d.ok) { reinitForm(); chargerEmploi(); }
   } catch(err){ alert("❌ Erreur réseau"); }
@@ -445,10 +433,7 @@ document.getElementById('formCours').onsubmit = async e => {
 async function supprimer(id) {
   if (!confirm(m('confirmerSuppression'))) return;
   try {
-    const res = await fetch(`${API_URL}/cours/supprimer/${id}`, {
-      method: 'DELETE', headers:{'Authorization':`Bearer ${token}`}
-    });
-    const d = await res.json();
+    const d = await requeteAPI(`/enseignement/emploi/${id}`, { method: "DELETE" });
     alert(d.message || d.erreur);
     if (d.ok) chargerEmploi();
   } catch(err){ alert("❌ Erreur réseau"); }

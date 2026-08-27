@@ -11,7 +11,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    /* ===== 🎨 VARIABLES — MODE CLAIR ===== */
     :root {
       --fond: #f8fafc;
       --surface: #ffffff;
@@ -24,7 +23,6 @@
       --danger: #ef4444;
       --ombre: 0 2px 8px rgba(0,0,0,0.06);
     }
-    /* ===== 🌙 MODE SOMBRE ===== */
     [data-theme="sombre"] {
       --fond: #0f172a;
       --surface: #1e293b;
@@ -39,12 +37,9 @@
     }
     * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.25s ease; }
     body { background: var(--fond); color: var(--texte); min-height: 100vh; font-family: 'Segoe UI', sans-serif; }
-    /* ===== EN-TÊTE ===== */
     .entete-page { background: var(--surface); border-bottom: 3px solid var(--accent); padding: 1.2rem 0; box-shadow: var(--ombre); }
-    /* ===== CARTES ===== */
     .carte { background: var(--surface); border-radius: 12px; border-left: 4px solid var(--accent); padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--bord); box-shadow: var(--ombre); }
     .carte:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
-    /* ===== FORMULAIRES ===== */
     .form-control, .form-select {
       background: var(--fond); border: 1px solid var(--bord); color: var(--texte); border-radius: 8px;
     }
@@ -52,7 +47,6 @@
       background: var(--fond); border-color: var(--accent); color: var(--texte);
       box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.20);
     }
-    /* ===== BOUTONS ===== */
     .btn-valide { background: var(--succes); color: white; border-radius: 8px; border: none; padding: 0.5rem 1rem; }
     .btn-valide:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16,185,129,0.25); }
     .btn-suppr { background: var(--danger); color: white; border-radius: 8px; border: none; }
@@ -60,12 +54,9 @@
     .btn-langue.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: bold; }
     .btn-mode { border-radius: 20px; padding: 4px 12px; font-size: 14px; border: 1px solid var(--bord); background: var(--surface); color: var(--texte); }
     .btn-mode:hover { border-color: var(--accent); }
-    /* ===== LIGNE AFFECTATION ===== */
     .ligne-affectation { border-bottom: 1px solid var(--bord); padding: 1rem 0; transition: background 0.2s; }
     .ligne-affectation:hover { background: rgba(245,158,11,0.05); border-radius: 8px; }
-    /* ===== ALERTE ===== */
     .alerte-api { border-left: 3px solid var(--danger); background: rgba(239,68,68,0.1); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
-    /* ===== TRADUCTION ===== */
     .lang-en, .lang-ar { display: none; }
     body.lang-fr .lang-fr { display: inline; }
     body.lang-en { direction: ltr; }
@@ -80,108 +71,131 @@
   </style>
 </head>
 <body class="lang-fr" data-theme="clair">
-<!-- 🔗 URL ADAPTATIVE -->
+
+<!-- 🔗 CONFIGURATION API — PLUS DE LOCALHOST -->
 <script>
-  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/api'
-    : 'https://mama-zoumana-api.onrender.com/api';
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
-  let langue = localStorage.getItem('langue') || 'fr';
-  let theme = localStorage.getItem('theme') || 'clair';
-  let modeLocal = false;
+const API_URL = "https://mama-zoumana-api.onrender.com/api";
 
-  // 💾 STOCKAGE LOCAL
-  function obtenirAffectationsLocales() { return JSON.parse(localStorage.getItem('affectations') || '[]'); }
-  function sauvegarderAffectationsLocales(liste) { localStorage.setItem('affectations', JSON.stringify(liste)); }
-  function obtenirProfesseursLocaux() { return JSON.parse(localStorage.getItem('professeurs') || '[]'); }
-  function sauvegarderProfesseursLocaux(liste) { localStorage.setItem('professeurs', JSON.stringify(liste)); }
-  function obtenirClassesLocales() { return JSON.parse(localStorage.getItem('classes') || '[]'); }
-  function sauvegarderClassesLocales(liste) { localStorage.setItem('classes', JSON.stringify(liste)); }
-  function obtenirMatieresLocales() { return JSON.parse(localStorage.getItem('matieres') || '[]'); }
-  function sauvegarderMatieresLocales(liste) { localStorage.setItem('matieres', JSON.stringify(liste)); }
+function getToken() {
+  return localStorage.getItem('token');
+}
 
-  // 🗣️ MESSAGES TRADUITS
-  const MSG = {
-    fr: {
-      accesReserve: "⛔ Accès réservé à l'Administrateur",
-      serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
-      selectionner: "--- Sélectionner ---",
-      charger: "--- Chargement ---",
-      aucunProf: "⚠️ Aucun professeur trouvé",
-      aucuneClasse: "⚠️ Aucune classe trouvée",
-      aucuneMatiere: "⚠️ Aucune matière trouvée",
-      erreurChamps: "⚠️ Sélectionne Professeur, Classe et Matière !",
-      ajouterOk: "✅ Affectation enregistrée !",
-      supprConfirm: "⚠️ Confirmer la suppression ?",
-      supprOk: "✅ Supprimé !",
-      aucune: "Aucune affectation enregistrée",
-      erreurReseau: "❌ Erreur Réseau"
-    },
-    en: {
-      accesReserve: "⛔ Access restricted to Administrator",
-      serveurIndispo: "⚠️ Server offline — Local mode active",
-      selectionner: "--- Select ---",
-      charger: "--- Loading ---",
-      aucunProf: "⚠️ No teacher found",
-      aucuneClasse: "⚠️ No class found",
-      aucuneMatiere: "⚠️ No subject found",
-      erreurChamps: "⚠️ Select Teacher, Class and Subject!",
-      ajouterOk: "✅ Assignment saved!",
-      supprConfirm: "⚠️ Confirm deletion?",
-      supprOk: "✅ Deleted!",
-      aucune: "No assignment registered",
-      erreurReseau: "❌ Network Error"
-    },
-    ar: {
-      accesReserve: "⛔ الوصول مقصور على المدير",
-      serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
-      selectionner: "--- اختر ---",
-      charger: "--- جار التحميل ---",
-      aucunProf: "⚠️ لم يتم العثور على مدرسين",
-      aucuneClasse: "⚠️ لم يتم العثور على فصول",
-      aucuneMatiere: "⚠️ لم يتم العثور على مواد",
-      erreurChamps: "⚠️ اختر المدرس والفصل والمادة!",
-      ajouterOk: "✅ تم حفظ التكليف!",
-      supprConfirm: "⚠️ تأكيد الحذف؟",
-      supprOk: "✅ تم الحذف!",
-      aucune: "لا يوجد تكليفات مسجلة",
-      erreurReseau: "❌ خطأ في الشبكة"
+async function requeteAPI(chemin, options = {}) {
+  const reponse = await fetch(`${API_URL}${chemin}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+      ...options.headers
     }
-  };
-  function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
-
-  // 🌙 GESTION DU THÈME
-  function appliquerTheme(t) {
-    theme = t;
-    document.documentElement.setAttribute('data-theme', t);
-    localStorage.setItem('theme', t);
-    document.getElementById('btn-theme').innerHTML = t === 'clair' ? '<i class="bi bi-moon"></i>' : '<i class="bi bi-sun"></i>';
-  }
-  function basculerTheme() { appliquerTheme(theme === 'clair' ? 'sombre' : 'clair'); }
-
-  // 🗣️ GESTION DE LA LANGUE
-  function appliquerLangue(lg) {
-    langue = lg;
-    localStorage.setItem('langue', lg);
-    document.body.classList.remove('lang-fr','lang-en','lang-ar');
-    document.body.classList.add('lang-' + lg);
-    document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
-    document.getElementById('btn-' + lg)?.classList.add('active');
-  }
-
-  // 🔒 SÉCURITÉ — Corrigé pour accepter admin ET Admin
-  if(!token || !['admin','Admin','super_admin','directeur'].includes(role)){
-    alert(m('accesReserve'));
-    localStorage.clear();
-    location.href = 'connexion.html';
-  }
-
-  // Appliquer au chargement
-  document.addEventListener('DOMContentLoaded', () => {
-    appliquerLangue(langue);
-    appliquerTheme(theme);
   });
+  const donnees = await reponse.json();
+  if (reponse.status === 401) {
+    alert("⛔ Session expirée — Veuillez vous reconnecter");
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    window.location.href = 'connexion.html';
+    return;
+  }
+  return donnees;
+}
+
+const token = getToken();
+const role = localStorage.getItem('role');
+let langue = localStorage.getItem('langue') || 'fr';
+let theme = localStorage.getItem('theme') || 'clair';
+let modeLocal = false;
+
+// 💾 STOCKAGE LOCAL
+function obtenirAffectationsLocales() { return JSON.parse(localStorage.getItem('affectations') || '[]'); }
+function sauvegarderAffectationsLocales(liste) { localStorage.setItem('affectations', JSON.stringify(liste)); }
+function obtenirProfesseursLocaux() { return JSON.parse(localStorage.getItem('professeurs') || '[]'); }
+function sauvegarderProfesseursLocaux(liste) { localStorage.setItem('professeurs', JSON.stringify(liste)); }
+function obtenirClassesLocales() { return JSON.parse(localStorage.getItem('classes') || '[]'); }
+function sauvegarderClassesLocales(liste) { localStorage.setItem('classes', JSON.stringify(liste)); }
+function obtenirMatieresLocales() { return JSON.parse(localStorage.getItem('matieres') || '[]'); }
+function sauvegarderMatieresLocales(liste) { localStorage.setItem('matieres', JSON.stringify(liste)); }
+
+// 🗣️ MESSAGES TRADUITS
+const MSG = {
+  fr: {
+    accesReserve: "⛔ Accès réservé à l'Administrateur",
+    serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
+    selectionner: "--- Sélectionner ---",
+    charger: "--- Chargement ---",
+    aucunProf: "⚠️ Aucun professeur trouvé",
+    aucuneClasse: "⚠️ Aucune classe trouvée",
+    aucuneMatiere: "⚠️ Aucune matière trouvée",
+    erreurChamps: "⚠️ Sélectionne Professeur, Classe et Matière !",
+    ajouterOk: "✅ Affectation enregistrée !",
+    supprConfirm: "⚠️ Confirmer la suppression ?",
+    supprOk: "✅ Supprimé !",
+    aucune: "Aucune affectation enregistrée",
+    erreurReseau: "❌ Erreur Réseau"
+  },
+  en: {
+    accesReserve: "⛔ Access restricted to Administrator",
+    serveurIndispo: "⚠️ Server offline — Local mode active",
+    selectionner: "--- Select ---",
+    charger: "--- Loading ---",
+    aucunProf: "⚠️ No teacher found",
+    aucuneClasse: "⚠️ No class found",
+    aucuneMatiere: "⚠️ No subject found",
+    erreurChamps: "⚠️ Select Teacher, Class and Subject!",
+    ajouterOk: "✅ Assignment saved!",
+    supprConfirm: "⚠️ Confirm deletion?",
+    supprOk: "✅ Deleted!",
+    aucune: "No assignment registered",
+    erreurReseau: "❌ Network Error"
+  },
+  ar: {
+    accesReserve: "⛔ الوصول مقصور على المدير",
+    serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
+    selectionner: "--- اختر ---",
+    charger: "--- جار التحميل ---",
+    aucunProf: "⚠️ لم يتم العثور على مدرسين",
+    aucuneClasse: "⚠️ لم يتم العثور على فصول",
+    aucuneMatiere: "⚠️ لم يتم العثور على مواد",
+    erreurChamps: "⚠️ اختر المدرس والفصل والمادة!",
+    ajouterOk: "✅ تم حفظ التكليف!",
+    supprConfirm: "⚠️ تأكيد الحذف؟",
+    supprOk: "✅ تم الحذف!",
+    aucune: "لا يوجد تكليفات مسجلة",
+    erreurReseau: "❌ خطأ في الشبكة"
+  }
+};
+function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
+
+// 🌙 THÈME
+function appliquerTheme(t) {
+  theme = t;
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('theme', t);
+  document.getElementById('btn-theme').innerHTML = t === 'clair' ? '<i class="bi bi-moon"></i>' : '<i class="bi bi-sun"></i>';
+}
+function basculerTheme() { appliquerTheme(theme === 'clair' ? 'sombre' : 'clair'); }
+
+// 🗣️ LANGUE
+function appliquerLangue(lg) {
+  langue = lg;
+  localStorage.setItem('langue', lg);
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + lg);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + lg)?.classList.add('active');
+}
+
+// 🔒 SÉCURITÉ
+if(!token || !['admin','super_admin','directeur'].includes((role||'').toLowerCase())){
+  alert(m('accesReserve'));
+  localStorage.clear();
+  location.href = 'connexion.html';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  appliquerLangue(langue);
+  appliquerTheme(theme);
+});
 </script>
 
 <!-- 📌 EN-TÊTE -->
@@ -218,7 +232,6 @@
 </div>
 
 <div class="container py-4">
-  <!-- ⚠️ ALERTE MODE LOCAL -->
   <div id="alerteApi" class="alerte-api d-none">
     <i class="bi bi-wifi-off me-2"></i>
     <span id="texteAlerteApi"></span>
@@ -260,7 +273,7 @@
         </label>
         <select id="matiere" class="form-select">
           <option value="">--- Chargement ---</option>
-        </label>
+        </select>
       </div>
       <div class="col-md-2">
         <button class="btn btn-valide w-100" onclick="enregistrerAffectation()">
@@ -291,7 +304,6 @@
 </div>
 
 <script>
-// 📡 GESTION ALERTE
 function basculerModeLocal(actif) {
   modeLocal = actif;
   const alerte = document.getElementById('alerteApi');
@@ -304,21 +316,21 @@ function basculerModeLocal(actif) {
   }
 }
 
-// 👨‍🏫 CHARGER PROFESSEURS — Corrigé pour correspondre au format API
+// 👨‍🏫 CHARGER PROFESSEURS
 async function chargerProfesseurs(forcerLocal = false) {
   const sel = document.getElementById('professeur');
   sel.innerHTML = `<option value="">${m('charger')}</option>`;
   let liste = [];
   if (!forcerLocal) {
     try {
-      const r = await fetch(`${API_URL}/utilisateurs/professeurs`, { 
-        headers: { 'Authorization': `Bearer ${token}` } 
-      });
-      if (!r.ok) throw new Error(`Erreur ${r.status}`);
-      const res = await r.json();
-      liste = res.utilisateurs || res.lignes || []; // ✅ correspond au format API
-      sauvegarderProfesseursLocaux(liste);
-      basculerModeLocal(false);
+      const res = await requeteAPI('/utilisateurs/professeurs');
+      if (res.ok) {
+        liste = res.utilisateurs || res.professeurs || res.lignes || [];
+        sauvegarderProfesseursLocaux(liste);
+        basculerModeLocal(false);
+      } else {
+        throw new Error();
+      }
     } catch (e) {
       console.warn("🔌 Mode local professeurs :", e.message);
       forcerLocal = true;
@@ -331,28 +343,28 @@ async function chargerProfesseurs(forcerLocal = false) {
   sel.innerHTML = `<option value="">${m('selectionner')}</option>`;
   if (liste.length > 0) {
     liste.forEach(u => {
-      sel.innerHTML += `<option value="${u.id}">${u.nom} ${u.prenom || ''}</option>`;
+      sel.innerHTML += `<option value="${u.id}">${u.prenom || ''} ${u.nom || ''}</option>`;
     });
   } else {
     sel.innerHTML += `<option value="" disabled>${m('aucunProf')}</option>`;
   }
 }
 
-// 🏫 CHARGER CLASSES — Corrigé pour correspondre au format API
+// 🏫 CHARGER CLASSES
 async function chargerClasses(forcerLocal = false) {
   const sel = document.getElementById('classe');
   sel.innerHTML = `<option value="">${m('charger')}</option>`;
   let liste = [];
   if (!forcerLocal) {
     try {
-      const r = await fetch(`${API_URL}/classes`, { 
-        headers: { 'Authorization': `Bearer ${token}` } 
-      });
-      if (!r.ok) throw new Error(`Erreur ${r.status}`);
-      const res = await r.json();
-      liste = res.lignes || []; // ✅ correspond au format corrigé de classes.js
-      sauvegarderClassesLocales(liste);
-      basculerModeLocal(false);
+      const res = await requeteAPI('/enseignement/classes/liste');
+      if (res.ok) {
+        liste = res.classes || res.lignes || [];
+        sauvegarderClassesLocales(liste);
+        basculerModeLocal(false);
+      } else {
+        throw new Error();
+      }
     } catch (e) {
       console.warn("🔌 Mode local classes :", e.message);
       forcerLocal = true;
@@ -365,28 +377,28 @@ async function chargerClasses(forcerLocal = false) {
   sel.innerHTML = `<option value="">${m('selectionner')}</option>`;
   if (liste.length > 0) {
     liste.forEach(c => {
-      sel.innerHTML += `<option value="${c.id_classe || c.id}">${c.libelle_classe}</option>`;
+      sel.innerHTML += `<option value="${c.id}">${c.nom_fr || c.code || c.libelle_classe || ''}</option>`;
     });
   } else {
     sel.innerHTML += `<option value="" disabled>${m('aucuneClasse')}</option>`;
   }
 }
 
-// 📚 CHARGER MATIÈRES — Corrigé pour correspondre au format API
+// 📚 CHARGER MATIÈRES
 async function chargerMatieres(forcerLocal = false) {
   const sel = document.getElementById('matiere');
   sel.innerHTML = `<option value="">${m('charger')}</option>`;
   let liste = [];
   if (!forcerLocal) {
     try {
-      const r = await fetch(`${API_URL}/matieres`, { 
-        headers: { 'Authorization': `Bearer ${token}` } 
-      });
-      if (!r.ok) throw new Error(`Erreur ${r.status}`);
-      const res = await r.json();
-      liste = res.lignes || []; // ✅ correspond au format corrigé de matieres.js
-      sauvegarderMatieresLocales(liste);
-      basculerModeLocal(false);
+      const res = await requeteAPI('/enseignement/matieres/liste');
+      if (res.ok) {
+        liste = res.matieres || res.lignes || [];
+        sauvegarderMatieresLocales(liste);
+        basculerModeLocal(false);
+      } else {
+        throw new Error();
+      }
     } catch (e) {
       console.warn("🔌 Mode local matieres :", e.message);
       forcerLocal = true;
@@ -399,7 +411,7 @@ async function chargerMatieres(forcerLocal = false) {
   sel.innerHTML = `<option value="">${m('selectionner')}</option>`;
   if (liste.length > 0) {
     liste.forEach(m => {
-      sel.innerHTML += `<option value="${m.id_matiere}">${m.libelle_matiere}</option>`;
+      sel.innerHTML += `<option value="${m.id}">${m.nom_fr || m.libelle_matiere || ''}</option>`;
     });
   } else {
     sel.innerHTML += `<option value="" disabled>${m('aucuneMatiere')}</option>`;
@@ -411,48 +423,49 @@ async function enregistrerAffectation() {
   const id_prof = document.getElementById('professeur').value;
   const id_classe = document.getElementById('classe').value;
   const id_matiere = document.getElementById('matiere').value;
-
   if (!id_prof || !id_classe || !id_matiere) {
     alert(m('erreurChamps'));
     return;
   }
-
   const optionProf = document.querySelector(`#professeur option[value="${id_prof}"]`);
   const optionClasse = document.querySelector(`#classe option[value="${id_classe}"]`);
   const optionMatiere = document.querySelector(`#matiere option[value="${id_matiere}"]`);
-
   const nouvelle = {
-    id_affectation: Date.now(),
-    id_prof, id_classe, id_matiere,
+    id: Date.now(),
+    professeur_id: id_prof,
+    classe_id: id_classe,
+    matiere_id: id_matiere,
     professeur_nom: optionProf?.textContent?.trim() || '',
-    classe: optionClasse?.textContent?.trim() || '',
-    matiere: optionMatiere?.textContent?.trim() || ''
+    classe_nom: optionClasse?.textContent?.trim() || '',
+    matiere_nom: optionMatiere?.textContent?.trim() || ''
   };
-
   let liste = obtenirAffectationsLocales();
   try {
-    const r = await fetch(`${API_URL}/affectations`, {
+    const res = await requeteAPI('/enseignement/affectations/ajouter', {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json', 
-        'Authorization': `Bearer ${token}` 
-      },
-      body: JSON.stringify({ id_prof, id_classe, id_matiere })
+      body: JSON.stringify({
+        professeur_id: id_prof,
+        classe_id: id_classe,
+        matiere_id: id_matiere
+      })
     });
-    if (!r.ok) throw new Error(`Erreur ${r.status}`);
-    const res = await r.json();
-    liste.unshift({ ...nouvelle, id_affectation: res.id_affectation || nouvelle.id_affectation });
-    sauvegarderAffectationsLocales(liste);
-    alert(m('ajouterOk'));
-    document.getElementById('professeur').value = '';
-    document.getElementById('classe').value = '';
-    document.getElementById('matiere').value = '';
-    await chargerListeAffectations();
+    if (res.ok) {
+      nouvelle.id = res.id || nouvelle.id;
+      liste.unshift(nouvelle);
+      sauvegarderAffectationsLocales(liste);
+      alert(m('ajouterOk'));
+      document.getElementById('professeur').value = '';
+      document.getElementById('classe').value = '';
+      document.getElementById('matiere').value = '';
+      await chargerListeAffectations();
+    } else {
+      throw new Error(res.erreur);
+    }
   } catch (e) {
     console.warn("🔌 Mode local sauvegarde :", e.message);
     liste.unshift(nouvelle);
     sauvegarderAffectationsLocales(liste);
-    alert(m('ajouterOk') + " (mode local)");
+    alert(m('ajouterOk') + " (local)");
     document.getElementById('professeur').value = '';
     document.getElementById('classe').value = '';
     document.getElementById('matiere').value = '';
@@ -466,14 +479,14 @@ async function chargerListeAffectations(forcerLocal = false) {
   let liste = [];
   if (!forcerLocal) {
     try {
-      const r = await fetch(`${API_URL}/affectations`, { 
-        headers: { 'Authorization': `Bearer ${token}` } 
-      });
-      if (!r.ok) throw new Error(`Erreur ${r.status}`);
-      const res = await r.json();
-      liste = res.lignes || []; // ✅ correspond au format de affectations.js
-      sauvegarderAffectationsLocales(liste);
-      basculerModeLocal(false);
+      const res = await requeteAPI('/enseignement/affectations/liste');
+      if (res.ok) {
+        liste = res.affectations || res.lignes || [];
+        sauvegarderAffectationsLocales(liste);
+        basculerModeLocal(false);
+      } else {
+        throw new Error();
+      }
     } catch (e) {
       console.warn("🔌 Mode local liste affectations :", e.message);
       forcerLocal = true;
@@ -490,16 +503,16 @@ async function chargerListeAffectations(forcerLocal = false) {
   zone.innerHTML = liste.map(a => `
     <div class="ligne-affectation row align-items-center">
       <div class="col-md-4">
-        <div class="fw-bold">👨‍🏫 ${a.professeur || a.professeur_nom || ''}</div>
+        <div class="fw-bold">👨‍🏫 ${a.professeur_nom || a.professeur || ''}</div>
       </div>
       <div class="col-md-3 text-center">
-        <div>🏫 ${a.libelle_classe || a.classe || ''}</div>
+        <div>🏫 ${a.classe_nom || a.classe || ''}</div>
       </div>
       <div class="col-md-3 text-center">
-        <div>📚 ${a.libelle_matiere || a.matiere || ''}</div>
+        <div>📚 ${a.matiere_nom || a.matiere || ''}</div>
       </div>
       <div class="col-md-2 text-center">
-        <button class="btn btn-suppr btn-sm" onclick="supprimerAffectation(${a.id_affectation})">
+        <button class="btn btn-suppr btn-sm" onclick="supprimerAffectation(${a.id})">
           <i class="bi bi-trash3"></i>
           <span class="lang-fr"> Supprimer</span>
           <span class="lang-en"> Delete</span>
@@ -512,20 +525,20 @@ async function chargerListeAffectations(forcerLocal = false) {
 // 🗑️ SUPPRIMER AFFECTATION
 async function supprimerAffectation(id) {
   if (!confirm(m('supprConfirm'))) return;
-  let liste = obtenirAffectationsLocales().filter(a => String(a.id_affectation) !== String(id));
+  let liste = obtenirAffectationsLocales().filter(a => String(a.id) !== String(id));
   try {
-    const r = await fetch(`${API_URL}/affectations/${id}`, { 
-      method: 'DELETE', 
-      headers: { 'Authorization': `Bearer ${token}` } 
-    });
-    if (!r.ok) throw new Error(`Erreur ${r.status}`);
-    sauvegarderAffectationsLocales(liste);
-    alert(m('supprOk'));
-    await chargerListeAffectations();
+    const res = await requeteAPI(`/enseignement/affectations/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      sauvegarderAffectationsLocales(liste);
+      alert(m('supprOk'));
+      await chargerListeAffectations();
+    } else {
+      throw new Error(res.erreur);
+    }
   } catch (e) {
     console.warn("🔌 Suppression en mode local :", e.message);
     sauvegarderAffectationsLocales(liste);
-    alert(m('supprOk') + " (mode local)");
+    alert(m('supprOk') + " (local)");
     chargerListeAffectations(true);
   }
 }

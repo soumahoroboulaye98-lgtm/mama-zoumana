@@ -65,13 +65,38 @@
 
 <!-- 🔗 CONFIGURATION API & SÉCURITÉ -->
 <script>
-  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/api/calendrier'
-    : 'https://mama-zoumana-api.onrender.com/api/calendrier';
-  const token = localStorage.getItem('token');
-  const role = (localStorage.getItem('role') || '').trim();
-  let langue = localStorage.getItem('langue') || 'fr';
-  let modeLocal = false;
+ // ✅ NOUVELLE VERSION — TOUJOURS ÇA, DANS TOUTES LES PAGES
+const API_URL = "https://mama-zoumana-api.onrender.com/api";
+
+// Récupérer le token stocké après connexion
+function getToken() {
+  return localStorage.getItem('token');
+}
+
+// Fonction pour envoyer les requêtes AVEC le token
+async function requeteAPI(chemin, options = {}) {
+  const reponse = await fetch(`${API_URL}${chemin}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`, // ✅ ENVOIE LE TOKEN AUTOMATIQUEMENT
+      ...options.headers
+    }
+  });
+
+  const donnees = await reponse.json();
+
+  // ⚠️ Si token expiré → rediriger vers connexion
+  if (reponse.status === 401) {
+    alert("⛔ Session expirée — Veuillez vous reconnecter");
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    window.location.href = 'connexion.html'; // ← adapte le nom de ta page
+    return;
+  }
+
+  return donnees;
+}
 
   // 💾 STOCKAGE LOCAL
   function obtenirPeriodesLocales() { return JSON.parse(localStorage.getItem('calendrier_periodes') || '[]'); }

@@ -11,7 +11,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    /* ===== 🎨 VARIABLES — MODE CLAIR ===== */
     :root {
       --fond: #f8fafc;
       --surface: #ffffff;
@@ -24,8 +23,6 @@
       --danger: #ef4444;
       --ombre: 0 2px 8px rgba(0,0,0,0.06);
     }
-
-    /* ===== 🌙 MODE SOMBRE ===== */
     [data-theme="sombre"] {
       --fond: #0f172a;
       --surface: #1e293b;
@@ -38,18 +35,11 @@
       --danger: #f87171;
       --ombre: 0 2px 12px rgba(0,0,0,0.35);
     }
-
     * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.25s ease; }
     body { background: var(--fond); color: var(--texte); min-height: 100vh; font-family:'Segoe UI', sans-serif; }
-
-    /* ===== EN-TÊTE ===== */
     .entete-page { background: var(--surface); border-bottom: 3px solid var(--accent); padding: 1.2rem 0; box-shadow: var(--ombre); }
-
-    /* ===== CARTES ===== */
     .carte { background: var(--surface); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border-left: 4px solid var(--accent); border: 1px solid var(--bord); box-shadow: var(--ombre); }
     .carte:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
-
-    /* ===== FORMULAIRES ===== */
     .form-control, .form-select {
       background: var(--fond); border: 1px solid var(--bord); color: var(--texte); border-radius: 8px;
     }
@@ -57,29 +47,19 @@
       background: var(--fond); border-color: var(--accent); color: var(--texte);
       box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.20);
     }
-
-    /* ===== BOUTONS ===== */
     .btn-valide { background: var(--succes); color: white; border-radius: 8px; border: none; padding: 0.5rem 1rem; }
     .btn-valide:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16,185,129,0.25); }
     .btn-modif { background: var(--accent); color: #000; padding: 6px 12px; font-size: 14px; border-radius: 6px; border: none; }
     .btn-modif:hover { filter: brightness(1.08); }
     .btn-suppr { background: var(--danger); color: white; padding: 6px 12px; font-size: 14px; border-radius: 6px; border: none; }
     .btn-suppr:hover { filter: brightness(1.08); }
-
-    /* ===== BADGES ===== */
     .badge-publie { background: rgba(16,185,129,0.15); color: var(--succes); padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
     .badge-brouillon { background: rgba(245,158,11,0.15); color: var(--accent); padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-
-    /* ===== CONTENU ARTICLE ===== */
     .contenu-article { color: var(--texte-secondaire); line-height: 1.8; white-space: pre-wrap; margin-top: 0.75rem; padding: 1rem; background: var(--fond); border-radius: 8px; }
-
-    /* ===== MODAL ===== */
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 1050; }
     .modal.active { display: flex; }
     .modal-contenu { background: var(--surface); padding: 1.8rem; border-radius: 12px; width: 92%; max-width: 680px; max-height: 92vh; overflow-y: auto; border: 1px solid var(--bord); box-shadow: var(--ombre); }
     .modal-contenu h2 { color: var(--accent); margin-bottom: 1.2rem; }
-
-    /* ===== LIGNES & ACTIONS ===== */
     .ligne { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem; }
     .btn-fermer { background: #475569; color: white; border-radius: 6px; border: none; padding: 0.5rem 1rem; }
@@ -89,12 +69,8 @@
     .message.succes { background: rgba(16,185,129,0.1); color: var(--succes); display: block; }
     .message.erreur { background: rgba(239,68,68,0.1); color: var(--danger); display: block; }
     .alerte-api { border-left: 3px solid var(--danger); background: rgba(239,68,68,0.1); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
-
-    /* ===== INTERRUPTEUR MODE ===== */
     .btn-mode { border-radius: 20px; padding: 4px 12px; font-size: 14px; border: 1px solid var(--bord); background: var(--surface); color: var(--texte); }
     .btn-mode:hover { border-color: var(--accent); }
-
-    /* ===== TRADUCTION ===== */
     .lang-en, .lang-ar { display: none; }
     body.lang-fr .lang-fr { display: inline; }
     body.lang-en { direction: ltr; }
@@ -103,7 +79,6 @@
     body.lang-ar { direction: rtl; }
     body.lang-ar .lang-fr, body.lang-ar .lang-en { display: none; }
     body.lang-ar .lang-ar { display: inline; }
-
     @media (max-width: 768px) {
       .ligne { grid-template-columns: 1fr; }
     }
@@ -111,143 +86,162 @@
 </head>
 <body class="lang-fr" data-theme="clair">
 
-
-<!-- 🔗 CONFIGURATION API & SÉCURITÉ -->
+<!-- 🔗 CONFIGURATION API — PLUS DE LOCALHOST -->
 <script>
-  // ✅ URL corrigée pour correspondre à la route
-  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/api/reglement'
-    : 'https://mama-zoumana.onrender.com/api/reglement';
+const API_URL = "https://mama-zoumana-api.onrender.com/api";
 
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
-  let langue = localStorage.getItem('langue') || 'fr';
-  let theme = localStorage.getItem('theme') || 'clair';
-  let modeLocal = false;
+function getToken() {
+  return localStorage.getItem('token');
+}
 
-  // 💾 TRADUCTIONS
-  const MSG = {
-    fr: {
-      accesReserve: "⛔ Accès réservé à l'Administrateur",
-      serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
-      compteur: "article(s)",
-      ajouterTitre: "Ajouter un article",
-      modifierTitre: "Modifier un article",
-      titreFR: "Titre (FR) *",
-      titreEN: "Titre (EN)",
-      titreAR: "Titre (AR)",
-      contenuFR: "Contenu (FR) *",
-      contenuEN: "Contenu (EN)",
-      contenuAR: "Contenu (AR)",
-      ordre: "Ordre",
-      publie: "Publié",
-      brouillon: "📄 Brouillon",
-      estPublie: "✅ Publié",
-      annuler: "Annuler",
-      enregistrer: "Enregistrer",
-      ajouterOk: "✅ Article ajouté !",
-      modifierOk: "✅ Article modifié !",
-      confirmerSuppr: "Confirmer la suppression ?",
-      supprOk: "✅ Article supprimé !",
-      ajouterBtn: "➕ Ajouter un article",
-      modifierBtn: "✏️ Modifier",
-      supprimerBtn: "🗑️ Supprimer",
-      retour: "Retour",
-      aucunArticle: "Aucun article enregistré",
-      reglement: "Règlement Intérieur"
-    },
-    en: {
-      accesReserve: "⛔ Access restricted to Administrator",
-      serveurIndispo: "⚠️ Server offline — Local mode active",
-      compteur: "article(s)",
-      ajouterTitre: "Add an article",
-      modifierTitre: "Edit article",
-      titreFR: "Title (FR) *",
-      titreEN: "Title (EN)",
-      titreAR: "Title (AR)",
-      contenuFR: "Content (FR) *",
-      contenuEN: "Content (EN)",
-      contenuAR: "Content (AR)",
-      ordre: "Order",
-      publie: "Published",
-      brouillon: "📄 Draft",
-      estPublie: "✅ Published",
-      annuler: "Cancel",
-      enregistrer: "Save",
-      ajouterOk: "✅ Article added!",
-      modifierOk: "✅ Article updated!",
-      confirmerSuppr: "Confirm deletion?",
-      supprOk: "✅ Article deleted!",
-      ajouterBtn: "➕ Add article",
-      modifierBtn: "✏️ Edit",
-      supprimerBtn: "🗑️ Delete",
-      retour: "Back",
-      aucunArticle: "No article registered",
-      reglement: "Internal Rules"
-    },
-    ar: {
-      accesReserve: "⛔ الوصول مقصور على المدير",
-      serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
-      compteur: "مادة",
-      ajouterTitre: "إضافة مادة",
-      modifierTitre: "تعديل المادة",
-      titreFR: "العنوان (فرنسي) *",
-      titreEN: "العنوان (إنجليزي)",
-      titreAR: "العنوان (عربي) *",
-      contenuFR: "المحتوى (فرنسي) *",
-      contenuEN: "المحتوى (إنجليزي)",
-      contenuAR: "المحتوى (عربي)",
-      ordre: "الترتيب",
-      publie: "منشور",
-      brouillon: "📄 مسودة",
-      estPublie: "✅ منشور",
-      annuler: "إلغاء",
-      enregistrer: "حفظ",
-      ajouterOk: "✅ تمت إضافة المادة!",
-      modifierOk: "✅ تم تعديل المادة!",
-      confirmerSuppr: "تأكيد الحذف؟",
-      supprOk: "✅ تم حذف المادة!",
-      ajouterBtn: "➕ إضافة مادة",
-      modifierBtn: "✏️ تعديل",
-      supprimerBtn: "🗑️ حذف",
-      retour: "عودة",
-      aucunArticle: "لا توجد مواد مسجلة",
-      reglement: "النظام الداخلي"
+async function requeteAPI(chemin, options = {}) {
+  const reponse = await fetch(`${API_URL}${chemin}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+      ...options.headers
     }
-  };
-  function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
-
-  // 🌙 GESTION DU THÈME
-  function appliquerTheme(t) {
-    theme = t;
-    document.documentElement.setAttribute('data-theme', t);
-    localStorage.setItem('theme', t);
-    document.getElementById('btn-theme').innerHTML = t === 'clair' ? '<i class="bi bi-moon"></i>' : '<i class="bi bi-sun"></i>';
+  });
+  const donnees = await reponse.json();
+  if (reponse.status === 401) {
+    alert("⛔ Session expirée — Veuillez vous reconnecter");
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    window.location.href = 'connexion.html';
+    return;
   }
-  function basculerTheme() { appliquerTheme(theme === 'clair' ? 'sombre' : 'clair'); }
+  return donnees;
+}
 
-  // 🗣️ GESTION DE LA LANGUE
-  function appliquerLangue(lg) {
-    langue = lg;
-    localStorage.setItem('langue', lg);
-    document.body.classList.remove('lang-fr','lang-en','lang-ar');
-    document.body.classList.add('lang-' + lg);
-    document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('btn-outline-warning', 'bg-warning', 'text-dark', 'fw-bold'));
-    document.getElementById('btn-' + lg)?.classList.add('btn-outline-warning', 'bg-warning', 'text-dark', 'fw-bold');
+const token = getToken();
+const role = localStorage.getItem('role');
+let langue = localStorage.getItem('langue') || 'fr';
+let theme = localStorage.getItem('theme') || 'clair';
+let modeLocal = false;
+
+// 💾 TRADUCTIONS
+const MSG = {
+  fr: {
+    accesReserve: "⛔ Accès réservé à l'Administrateur",
+    serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
+    compteur: "article(s)",
+    ajouterTitre: "Ajouter un article",
+    modifierTitre: "Modifier un article",
+    titreFR: "Titre (FR) *",
+    titreEN: "Titre (EN)",
+    titreAR: "Titre (AR)",
+    contenuFR: "Contenu (FR) *",
+    contenuEN: "Contenu (EN)",
+    contenuAR: "Contenu (AR)",
+    ordre: "Ordre",
+    publie: "Publié",
+    brouillon: "📄 Brouillon",
+    estPublie: "✅ Publié",
+    annuler: "Annuler",
+    enregistrer: "Enregistrer",
+    ajouterOk: "✅ Article ajouté !",
+    modifierOk: "✅ Article modifié !",
+    confirmerSuppr: "Confirmer la suppression ?",
+    supprOk: "✅ Article supprimé !",
+    ajouterBtn: "➕ Ajouter un article",
+    modifierBtn: "✏️ Modifier",
+    supprimerBtn: "🗑️ Supprimer",
+    retour: "Retour",
+    aucunArticle: "Aucun article enregistré",
+    reglement: "Règlement Intérieur"
+  },
+  en: {
+    accesReserve: "⛔ Access restricted to Administrator",
+    serveurIndispo: "⚠️ Server offline — Local mode active",
+    compteur: "article(s)",
+    ajouterTitre: "Add an article",
+    modifierTitre: "Edit article",
+    titreFR: "Title (FR) *",
+    titreEN: "Title (EN)",
+    titreAR: "Title (AR)",
+    contenuFR: "Content (FR) *",
+    contenuEN: "Content (EN)",
+    contenuAR: "Content (AR)",
+    ordre: "Order",
+    publie: "Published",
+    brouillon: "📄 Draft",
+    estPublie: "✅ Published",
+    annuler: "Cancel",
+    enregistrer: "Save",
+    ajouterOk: "✅ Article added!",
+    modifierOk: "✅ Article updated!",
+    confirmerSuppr: "Confirm deletion?",
+    supprOk: "✅ Article deleted!",
+    ajouterBtn: "➕ Add article",
+    modifierBtn: "✏️ Edit",
+    supprimerBtn: "🗑️ Delete",
+    retour: "Back",
+    aucunArticle: "No article registered",
+    reglement: "Internal Rules"
+  },
+  ar: {
+    accesReserve: "⛔ الوصول مقصور على المدير",
+    serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
+    compteur: "مادة",
+    ajouterTitre: "إضافة مادة",
+    modifierTitre: "تعديل المادة",
+    titreFR: "العنوان (فرنسي) *",
+    titreEN: "العنوان (إنجليزي)",
+    titreAR: "العنوان (عربي) *",
+    contenuFR: "المحتوى (فرنسي) *",
+    contenuEN: "المحتوى (إنجليزي)",
+    contenuAR: "المحتوى (عربي)",
+    ordre: "الترتيب",
+    publie: "منشور",
+    brouillon: "📄 مسودة",
+    estPublie: "✅ منشور",
+    annuler: "إلغاء",
+    enregistrer: "حفظ",
+    ajouterOk: "✅ تمت إضافة المادة!",
+    modifierOk: "✅ تم تعديل المادة!",
+    confirmerSuppr: "تأكيد الحذف؟",
+    supprOk: "✅ تم حذف المادة!",
+    ajouterBtn: "➕ إضافة مادة",
+    modifierBtn: "✏️ تعديل",
+    supprimerBtn: "🗑️ حذف",
+    retour: "عودة",
+    aucunArticle: "لا توجد مواد مسجلة",
+    reglement: "النظام الداخلي"
   }
+};
+function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
 
-  // 🔒 SÉCURITÉ
-  if(!token || !['admin','super_admin','directeur'].includes(role)){
-    alert(m('accesReserve'));
-    localStorage.clear();
-    location.href = 'connexion.html';
-  }
+// 🌙 THÈME
+function appliquerTheme(t) {
+  theme = t;
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('theme', t);
+  document.getElementById('btn-theme').innerHTML = t === 'clair' ? '<i class="bi bi-moon"></i>' : '<i class="bi bi-sun"></i>';
+}
+function basculerTheme() { appliquerTheme(theme === 'clair' ? 'sombre' : 'clair'); }
 
-  // 💾 STOCKAGE LOCAL
-  function obtenirArticlesLocaux() { return JSON.parse(localStorage.getItem('reglement_articles') || '[]'); }
-  function sauvegarderArticlesLocaux(liste) { localStorage.setItem('reglement_articles', JSON.stringify(liste)); }
+// 🗣️ LANGUE
+function appliquerLangue(lg) {
+  langue = lg;
+  localStorage.setItem('langue', lg);
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + lg);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('btn-outline-warning', 'bg-warning', 'text-dark', 'fw-bold'));
+  document.getElementById('btn-' + lg)?.classList.add('btn-outline-warning', 'bg-warning', 'text-dark', 'fw-bold');
+}
+
+// 🔒 SÉCURITÉ
+if(!token || !['admin','super_admin','directeur'].includes((role||'').toLowerCase())){
+  alert(m('accesReserve'));
+  localStorage.clear();
+  location.href = 'connexion.html';
+}
+
+// 💾 STOCKAGE LOCAL
+function obtenirArticlesLocaux() { return JSON.parse(localStorage.getItem('reglement_articles') || '[]'); }
+function sauvegarderArticlesLocaux(liste) { localStorage.setItem('reglement_articles', JSON.stringify(liste)); }
 </script>
-
 
 <!-- 📌 EN-TÊTE -->
 <div class="entete-page">
@@ -282,16 +276,12 @@
   </div>
 </div>
 
-
 <div class="container py-4">
-
-  <!-- ⚠️ ALERTE MODE LOCAL -->
   <div id="alerteApi" class="alerte-api d-none">
     <i class="bi bi-wifi-off me-2"></i>
     <span id="texteAlerteApi"></span>
   </div>
 
-  <!-- BARRE D'ACTION -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <p class="mb-0 fw-bold"><span id="compteur">0</span> <span class="lang-fr">article(s)</span><span class="lang-en">article(s)</span><span class="lang-ar">مادة</span></p>
     <button class="btn btn-valide" onclick="ouvrirFormulaire()">
@@ -302,12 +292,9 @@
     </button>
   </div>
 
-  <!-- 📋 LISTE DES ARTICLES -->
   <div id="liste"></div>
 </div>
 
-
-<!-- 📝 MODAL FORMULAIRE -->
 <div class="modal" id="formModal">
   <div class="modal-contenu">
     <h2 id="titreForm">...</h2>
@@ -347,11 +334,9 @@
   </div>
 </div>
 
-
 <script>
 let listeArticles = [];
 
-// 📡 ALERTE MODE LOCAL
 function basculerModeLocal(actif) {
   modeLocal = actif;
   const alerte = document.getElementById('alerteApi');
@@ -359,23 +344,20 @@ function basculerModeLocal(actif) {
   alerte.classList.toggle('d-none', !actif);
 }
 
-// 🗣️ CHANGEMENT DE LANGUE
-function appliquerLangueEtReafficher(nouvelleLangue) {
-  appliquerLangue(nouvelleLangue);
-  afficherListe();
-}
-
 // 📋 CHARGER LA LISTE
 async function chargerListe(forcerLocal = false) {
   let liste = [];
   if (!forcerLocal) {
     try {
-      const res = await fetch(`${API_URL}/liste?tout=1`, { headers:{'Authorization':`Bearer ${token}`} });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      liste = data.articles || [];
-      sauvegarderArticlesLocaux(liste);
-      basculerModeLocal(false);
+      // ✅ UTILISE requeteAPI — PLUS DE fetch NI API_URL NI HEADERS
+      const data = await requeteAPI('/reglement/liste?tout=1');
+      if (data.ok) {
+        liste = data.articles || [];
+        sauvegarderArticlesLocaux(liste);
+        basculerModeLocal(false);
+      } else {
+        throw new Error();
+      }
     } catch {
       forcerLocal = true;
     }
@@ -389,7 +371,7 @@ async function chargerListe(forcerLocal = false) {
   afficherListe();
 }
 
-// 🖥️ AFFICHER LA LISTE — Affiche dans la langue active
+// 🖥️ AFFICHER LA LISTE
 function afficherListe() {
   const conteneur = document.getElementById('liste');
   if (!listeArticles.length) {
@@ -401,7 +383,7 @@ function afficherListe() {
     const titreAffiche = langue === 'en' && a.titre_en ? a.titre_en :
                          langue === 'ar' && a.titre_ar ? a.titre_ar : a.titre_fr;
     const contenuAffiche = langue === 'en' && a.contenu_en ? a.contenu_en :
-                            langue === 'ar' && a.contenu_ar ? a.contenu_ar : a.contenu_fr;
+                           langue === 'ar' && a.contenu_ar ? a.contenu_ar : a.contenu_fr;
     conteneur.innerHTML += `
       <div class="carte">
         <h5 class="fw-bold mb-2">
@@ -462,17 +444,14 @@ document.getElementById('formArticle').addEventListener('submit', async e => {
     ordre: parseInt(document.getElementById('ordre').value) || 1,
     est_publie: document.getElementById('est_publie').checked
   };
-
   const msg = document.getElementById('message');
   try {
-    const url = id ? `${API_URL}/${id}` : `${API_URL}/ajouter`;
+    const url = id ? `/reglement/${id}` : `/reglement/ajouter`;
     const methode = id ? 'PUT' : 'POST';
-    const res = await fetch(url, {
+    const rep = await requeteAPI(url, {
       method: methode,
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(donnees)
     });
-    const rep = await res.json();
     if (rep.ok) {
       msg.className = 'message succes';
       msg.textContent = id ? m('modifierOk') : m('ajouterOk');
@@ -504,8 +483,7 @@ document.getElementById('formArticle').addEventListener('submit', async e => {
 async function supprimer(id) {
   if (!confirm(m('confirmerSuppr'))) return;
   try {
-    const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers:{'Authorization':`Bearer ${token}`} });
-    const rep = await res.json();
+    const rep = await requeteAPI(`/reglement/${id}`, { method: 'DELETE' });
     if (rep.ok) {
       await chargerListe();
       alert(m('supprOk'));

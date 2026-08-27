@@ -11,6 +11,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
+    /* ===== 🎨 VARIABLES — THÈME CLAIR / SOMBRE ===== */
     :root {
       --primaire: #0c4a6e;
       --secondaire: #0369a1;
@@ -23,11 +24,31 @@
       --texte-gris: #94a3b8;
       --fond-page: #f1f5f9;
       --blanc: #ffffff;
+      --texte-principal: #1e293b;
+      --texte-inverse: #f8fafc;
       --bord-radius: 16px;
       --ombre: 0 4px 20px rgba(0,0,0,0.07);
       --ombre-hover: 0 12px 40px rgba(0,0,0,0.12);
+      --fond-carte: #ffffff;
+      --bord-carte: #e2e8f0;
+      --fond-entete: linear-gradient(180deg, #0f172a, #1e293b);
+      --fond-bloc-langue: #fafafa;
+      --texte-formulaire: #1e293b;
     }
-
+    /* 🌙 MODE SOMBRE */
+    body.nuit {
+      --primaire: #38bdf8;
+      --secondaire: #0ea5e9;
+      --fond-page: #0f172a;
+      --texte-principal: #e2e8f0;
+      --texte-inverse: #0f172a;
+      --fond-carte: #1e293b;
+      --bord-carte: #334155;
+      --ombre: 0 4px 20px rgba(0,0,0,0.35);
+      --ombre-hover: 0 12px 40px rgba(0,0,0,0.45);
+      --fond-bloc-langue: #1e293b;
+      --texte-formulaire: #e2e8f0;
+    }
     /* ===== 🌐 LANGUE ===== */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
@@ -39,10 +60,13 @@
     body.lang-ar { direction: rtl; }
     body.lang-ar .titre-section,
     body.lang-ar .menu-titre { text-align: right; }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: var(--fond-page); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+    body {
+      background: var(--fond-page);
+      color: var(--texte-principal);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
     /* ===== ✨ ANIMATIONS ===== */
     @keyframes monterApparaitre {
       from { opacity: 0; transform: translateY(30px); }
@@ -60,10 +84,9 @@
     .retard-2 { animation-delay: 0.2s; }
     .retard-3 { animation-delay: 0.3s; }
     .retard-4 { animation-delay: 0.4s; }
-
     /* ===== 🧭 MENU LATÉRAL ===== */
     .sidebar {
-      background: linear-gradient(180deg, var(--sombre), var(--sombre-clair));
+      background: var(--fond-entete);
       min-height: 100vh;
       width: 270px;
       position: fixed; left: 0; top: 0;
@@ -71,19 +94,16 @@
       box-shadow: 4px 0 25px rgba(0,0,0,0.08);
     }
     body.lang-ar .sidebar { left: auto; right: 0; }
-
     .sidebar-logo { padding: 0 1.5rem; margin-bottom: 2rem; }
     .logo {
       color: var(--accent); font-weight: 800; font-size: 1.45rem;
       display: flex; align-items: center; gap: 10px; text-decoration: none;
     }
     .logo i { font-size: 1.8rem; }
-
     .menu-titre {
       color: var(--texte-gris); font-size: 0.75rem; text-transform: uppercase;
       letter-spacing: 1px; padding: 0 1.5rem; margin: 1.8rem 0 0.6rem; font-weight: 600;
     }
-
     .menu-item {
       display: flex; align-items: center; gap: 0.85rem;
       padding: 0.95rem 1.5rem; margin: 0.2rem 1rem;
@@ -99,12 +119,10 @@
     .menu-item:hover { background: rgba(245,158,11,0.12); color: var(--accent); transform: translateX(5px); }
     body.lang-ar .menu-item:hover { transform: translateX(-5px); }
     .menu-item i { font-size: 1.15rem; width: 20px; text-align: center; flex-shrink: 0; }
-
     .contenu { margin-left: 270px; padding: 2rem; min-height: 100vh; }
     body.lang-ar .contenu { margin-left: 0; margin-right: 270px; }
-
     .entete-superieur { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
-    .btn-accueil-page, .btn-deconnexion-page {
+    .btn-accueil-page, .btn-deconnexion-page, .btn-theme {
       padding: 0.6rem 1.2rem; border-radius: 12px; display: flex; align-items: center; gap: 0.5rem;
       font-weight: 600; text-decoration: none; transition: all 0.3s; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
@@ -112,30 +130,28 @@
     .btn-accueil-page:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(12,74,110,0.35); color: white; }
     .btn-deconnexion-page { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; }
     .btn-deconnexion-page:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,38,38,0.35); color: white; }
-
-    .btn-langue { border-radius: 50px !important; border: 2px solid transparent; margin: 0 2px; padding: 0.35rem 0.9rem; font-weight: 600; transition: all 0.25s; background: white; color: #475569; }
+    .btn-theme { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; }
+    .btn-theme:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,102,241,0.35); color: white; }
+    .btn-langue { border-radius: 50px !important; border: 2px solid transparent; margin: 0 2px; padding: 0.35rem 0.9rem; font-weight: 600; transition: all 0.25s; background: var(--fond-carte); color: var(--texte-principal); }
     .btn-langue.actif { background: var(--accent); color: var(--sombre); border-color: var(--accent); box-shadow: 0 0 12px rgba(245,158,11,0.4); }
-
-    .zone-utilisateur { display: flex; align-items: center; gap: 1rem; background: white; padding: 0.5rem 1rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .zone-utilisateur { display: flex; align-items: center; gap: 1rem; background: var(--fond-carte); padding: 0.5rem 1rem; border-radius: 12px; box-shadow: var(--ombre); }
     .nom-utilisateur-affiche { font-weight: 600; color: var(--primaire); }
-
     .titre-page { font-size: 1.8rem; font-weight: 800; color: var(--primaire); margin-bottom: 1.5rem; }
-    .carte { background: white; border-radius: var(--bord-radius); box-shadow: var(--ombre); transition: all 0.3s; border: none; }
+    .carte { background: var(--fond-carte); border-radius: var(--bord-radius); box-shadow: var(--ombre); transition: all 0.3s; border: 1px solid var(--bord-carte); }
     .carte:hover { box-shadow: var(--ombre-hover); }
     .btn-primaire { background: linear-gradient(135deg, var(--primaire), var(--secondaire)); border: none; border-radius: 10px; color: white; font-weight: 600; transition: all 0.3s; }
     .btn-primaire:hover { background: linear-gradient(135deg, #0369a1, #075985); transform: translateY(-2px); color: white; box-shadow: 0 6px 18px rgba(12,74,110,0.25); }
     .btn-accent { background: linear-gradient(135deg, var(--accent), #d97706); border: none; border-radius: 10px; color: #000; font-weight: 600; transition: all 0.3s; }
     .btn-accent:hover { background: linear-gradient(135deg, #d97706, #b45309); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245,158,11,0.35); color: white; }
-    .form-control, .form-select { border-radius: 10px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem; transition: all 0.2s; }
-    .form-control:focus, .form-select:focus { box-shadow: 0 0 0 3px rgba(12,74,110,0.15); border-color: var(--primaire); }
-
+    .form-control, .form-select { border-radius: 10px; border: 1px solid var(--bord-carte); padding: 0.75rem 1rem; transition: all 0.2s; background: var(--fond-page); color: var(--texte-formulaire); }
+    .form-control:focus, .form-select:focus { box-shadow: 0 0 0 3px rgba(12,74,110,0.15); border-color: var(--primaire); background: var(--fond-page); color: var(--texte-formulaire); }
     /* 📦 BLOC PAR LANGUE */
     .bloc-langue {
-      border: 2px solid #e2e8f0;
+      border: 2px solid var(--bord-carte);
       border-radius: 12px;
       padding: 1.15rem;
       margin-bottom: 1rem;
-      background: #fafafa;
+      background: var(--fond-bloc-langue);
       transition: all 0.3s ease;
     }
     .bloc-langue:focus-within { border-color: var(--accent); box-shadow: 0 0 12px rgba(245,158,11,0.1); }
@@ -149,10 +165,8 @@
     .bloc-en h6 { color: #10b981; border-bottom-color: #10b981; }
     .bloc-ar h6 { color: #f59e0b; border-bottom-color: #f59e0b; direction: rtl; text-align: right; }
     .etoile-rouge { color: #ef4444; font-weight: bold; }
-
     /* ⚠️ Alerte serveur */
     .alerte-api { border-left: 4px solid var(--alerte); background: rgba(239,68,68,0.08); }
-
     /* ⏳ COMPTE À REBOURS — COULEURS PAR PROXIMITÉ */
     .j5 { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; border-left: 4px solid #f59e0b; }
     .j4 { background: linear-gradient(135deg, #fed7aa, #fdba74); color: #9a3412; border-left: 4px solid #fb923c; }
@@ -160,31 +174,30 @@
     .j2 { background: linear-gradient(135deg, #fecaca, #fca5a5); color: #b91c1c; border-left: 4px solid #ef4444; }
     .j1 { background: linear-gradient(135deg, #fca5a5, #f87171); color: #991b1b; border-left: 4px solid #dc2626; }
     .jourJ { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #7f1d1d; border-left: 4px solid #b91c1c; font-weight: bold; animation: pulseLigne 1s ease-in-out infinite; }
-    .passe { background: #f1f5f9; color: #64748b; opacity: 0.7; }
+    .passe { background: #e2e8f0; color: #64748b; opacity: 0.7; }
     body.lang-ar .j5, body.lang-ar .j4, body.lang-ar .j3,
     body.lang-ar .j2, body.lang-ar .j1, body.lang-ar .jourJ { border-left: none; border-right: 4px solid; }
-
-    /* 🖼️ CARTE ÉVÉNEMENT — DESIGN UNIQUE */
+    /* 🖼️ CARTE ÉVÉNEMENT */
     .carte-evenement {
       padding: 1.5rem;
       margin-bottom: 1.25rem;
       transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
       border-radius: 16px;
-      border: 1px solid transparent;
+      border: 1px solid var(--bord-carte);
       overflow: hidden;
       position: relative;
-      background: white;
+      background: var(--fond-carte);
     }
     .carte-evenement::before {
       content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(135deg, transparent, rgba(255,255,255,0.5), transparent);
+      background: linear-gradient(135deg, transparent, rgba(255,255,255,0.3), transparent);
       transform: translateX(-100%);
       transition: transform 0.7s ease;
     }
     .carte-evenement:hover::before { transform: translateX(100%); }
     .carte-evenement:hover {
       transform: translateY(-6px) scale(1.01);
-      box-shadow: 0 18px 45px rgba(0,0,0,0.14);
+      box-shadow: var(--ombre-hover);
       border-color: rgba(245,158,11,0.35);
     }
     .image-conteneur {
@@ -211,7 +224,6 @@
       z-index: 1;
     }
     body.lang-ar .icone-type { right: auto; left: 12px; }
-
     /* 🎬 VIDÉO */
     .video-conteneur {
       width: 100%;
@@ -222,10 +234,8 @@
       box-shadow: 0 6px 20px rgba(0,0,0,0.18);
     }
     .video-conteneur video { width: 100%; display: block; }
-
     .badge { padding: 0.4rem 0.75rem; border-radius: 8px; font-weight: 600; }
     .btn-action-petit { padding: 0.25rem 0.5rem; font-size: 0.85rem; border-radius: 8px; }
-
     @media (max-width: 991px) {
       .sidebar { position: relative; width: 100%; min-height: auto; }
       .contenu { margin: 0 !important; padding: 1rem; }
@@ -234,40 +244,108 @@
   </style>
 </head>
 <body>
-
 <script>
-  const token = localStorage.getItem('token');
+  // ==================================================
+  // ✅ CONFIGURATION API — SANS AUCUN LOCALHOST
+  // ==================================================
+  const API_URL = "https://mama-zoumana-api.onrender.com/api";
+
+  // ✅ Récupération sécurisée du token
+  function getToken() { return localStorage.getItem('token'); }
+
+  // ✅ Fonction CENTRALISÉE : token injecté + 401 géré automatiquement
+  async function requeteAPI(chemin, options = {}) {
+    const reponse = await fetch(`${API_URL}${chemin}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`,
+        ...options.headers
+      }
+    });
+    const donnees = await reponse.json();
+    if (reponse.status === 401) {
+      alert("⛔ Session expirée — Reconnectez-vous");
+      localStorage.clear();
+      window.location.href = 'connexion.html';
+    }
+    return donnees;
+  }
+
+  // ==================================================
+  // 🌙 MODE JOUR / NUIT — MÉMORISÉ dans localStorage
+  // ==================================================
+  function appliquerTheme() {
+    const theme = localStorage.getItem('theme') || 'jour';
+    document.body.classList.toggle('nuit', theme === 'nuit');
+    const bouton = document.getElementById('btn-theme');
+    if (bouton) {
+      bouton.innerHTML = theme === 'nuit'
+        ? '<i class="bi bi-sun"></i> <span class="txt-fr">Jour</span><span class="txt-en">Day</span><span class="txt-ar">نهار</span>'
+        : '<i class="bi bi-moon"></i> <span class="txt-fr">Nuit</span><span class="txt-en">Night</span><span class="txt-ar">ليل</span>';
+    }
+  }
+  function basculerTheme() {
+    const actuel = localStorage.getItem('theme') || 'jour';
+    const prochain = actuel === 'jour' ? 'nuit' : 'jour';
+    localStorage.setItem('theme', prochain);
+    appliquerTheme();
+  }
+  appliquerTheme();
+
+  // ==================================================
+  // 🔐 SÉCURITÉ & CONTRÔLE D'ACCÈS
+  // ==================================================
   const role = localStorage.getItem('role');
   const nomUtilisateur = localStorage.getItem('nom') || 'Utilisateur';
   const prenomUtilisateur = localStorage.getItem('prenoms') || '';
   const nomComplet = (nomUtilisateur + ' ' + prenomUtilisateur).trim();
+  const rolesAdmin = ['admin', 'Admin', 'super_admin'];
 
-  // 🔗 URL adaptative : localhost en local, Render en ligne
-  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/api'
-    : 'https://mama-zoumana-api.onrender.com/api';
-
-  // 🔐 SÉCURITÉ
-  if (!token || !['admin','super_admin'].includes(role)) {
+  if (!getToken() || !rolesAdmin.includes(role || '')) {
     alert("⛔ Accès réservé à l'Administrateur");
-    location.href = '../connexion.html';
+    localStorage.clear();
+    location.href = 'connexion.html';
   }
 
+  // 🌐 GESTION DE LA LANGUE
   let langue = localStorage.getItem('langue') || 'fr';
   document.body.classList.add('lang-' + langue);
 
-  // 💾 Stockage local pour mode hors ligne
+  // 💾 MODE HORS LIGNE — Stockage local
   function obtenirEvenementsLocaux() { return JSON.parse(localStorage.getItem('evenements') || '[]'); }
   function sauvegarderEvenementsLocaux(liste) { localStorage.setItem('evenements', JSON.stringify(liste)); }
 
-  // 🌐 TRADUCTIONS
+  // 🗣️ TRADUCTIONS MULTILANGUES
   const MSG = {
-    fr: { serveurIndispo: "⚠️ Serveur indisponible — Mode local actif", erreurChargement: "❌ Chargement impossible", confSuppr: "⚠️ Supprimer définitivement cet événement ? Irréversible.", supprOk: "✅ Supprimé !", erreurReseau: "❌ Erreur de connexion", titreObligatoire: "⚠️ Remplissez les titres dans les 3 langues" },
-    en: { serveurIndispo: "⚠️ Server offline — Local mode active", erreurChargement: "❌ Failed to load", confSuppr: "⚠️ Delete this event permanently? Cannot be undone.", supprOk: "✅ Deleted!", erreurReseau: "❌ Connection error", titreObligatoire: "⚠️ Fill titles in all 3 languages" },
-    ar: { serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي", erreurChargement: "❌ تعذر التحميل", confSuppr: "⚠️ حذف هذا الحدث نهائيًا؟ لا يمكن التراجع.", supprOk: "✅ تم الحذف!", erreurReseau: "❌ خطأ في الاتصال", titreObligatoire: "⚠️ املأ العناوين بجميع اللغات الثلاث" }
+    fr: {
+      serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
+      erreurChargement: "❌ Chargement impossible",
+      confSuppr: "⚠️ Supprimer définitivement cet événement ? Irréversible.",
+      supprOk: "✅ Supprimé !",
+      erreurReseau: "❌ Erreur de connexion",
+      titreObligatoire: "⚠️ Remplissez les titres dans les 3 langues"
+    },
+    en: {
+      serveurIndispo: "⚠️ Server offline — Local mode active",
+      erreurChargement: "❌ Failed to load",
+      confSuppr: "⚠️ Delete this event permanently? Cannot be undone.",
+      supprOk: "✅ Deleted!",
+      erreurReseau: "❌ Connection error",
+      titreObligatoire: "⚠️ Fill titles in all 3 languages"
+    },
+    ar: {
+      serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
+      erreurChargement: "❌ تعذر التحميل",
+      confSuppr: "⚠️ حذف هذا الحدث نهائيًا؟ لا يمكن التراجع.",
+      supprOk: "✅ تم الحذف!",
+      erreurReseau: "❌ خطأ في الاتصال",
+      titreObligatoire: "⚠️ املأ العناوين بجميع اللغات الثلاث"
+    }
   };
   function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
 
+  // 🌐 CHANGER DE LANGUE
   window.appliquerLangue = function(lang) {
     localStorage.setItem('langue', lang);
     document.body.classList.remove('lang-fr','lang-en','lang-ar');
@@ -278,9 +356,14 @@
     chargerListe();
   };
 
+  // 🚪 DÉCONNEXION
   window.deconnecter = function() {
-    const msg = { ar: 'هل تريد تسجيل الخروج ؟', en: 'Are you sure you want to log out?', fr: 'Êtes-vous sûr de vouloir vous déconnecter ?' }[langue];
-    if (confirm(msg)) { localStorage.clear(); location.href = '../connexion.html'; }
+    const msg = {
+      ar: 'هل تريد تسجيل الخروج ؟',
+      en: 'Are you sure you want to log out?',
+      fr: 'Êtes-vous sûr de vouloir vous déconnecter ?'
+    }[langue];
+    if (confirm(msg)) { localStorage.clear(); location.href = 'connexion.html'; }
   };
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -291,7 +374,7 @@
 </script>
 
 <div class="sidebar">
-  <div class="sidebar-logo"><a href="dashboard.html" class="logo"><i class="bi bi-building"></i> MAMA-ZOUMANA</a></div>
+  <div class="sidebar-logo"><a href="dashboard.html" class="logo"><i classbi-building"></i> MAMA-ZOUMANA</a></div>
   <a href="dashboard.html" class="menu-item">
     <i class="bi bi-speedometer2"></i>
     <span class="txt-fr">Tableau de bord</span><span class="txt-en">Dashboard</span><span class="txt-ar">لوحة التحكم</span>
@@ -327,6 +410,10 @@
         <i class="bi bi-arrow-left"></i>
         <span class="txt-fr">Retour</span><span class="txt-en">Back</span><span class="txt-ar">رجوع</span>
       </a>
+      <button onclick="basculerTheme()" id="btn-theme" class="btn-theme">
+        <i class="bi bi-moon"></i>
+        <span class="txt-fr">Nuit</span><span class="txt-en">Night</span><span class="txt-ar">ليل</span>
+      </button>
       <a href="#" onclick="deconnecter(); return false;" class="btn-deconnexion-page">
         <i class="bi bi-box-arrow-right"></i>
         <span class="txt-fr">Déconnexion</span><span class="txt-en">Log out</span><span class="txt-ar">تسجيل الخروج</span>
@@ -354,7 +441,6 @@
   <div class="carte p-4 mb-5">
     <h5 class="mb-4"><i class="bi bi-pencil-square text-primary me-2"></i> <span class="txt-fr">Ajouter un Événement</span><span class="txt-en">Add New Event</span><span class="txt-ar">إضافة حدث جديد</span></h5>
     <form id="formEvent" class="row g-3">
-
       <!-- 🇫🇷 FRANÇAIS -->
       <div class="bloc-langue bloc-fr">
         <h6>🇫🇷 Français <span class="etoile-rouge">*</span></h6>
@@ -484,11 +570,10 @@
       </div>
     </div>
   </div>
-
 </div>
 
 <script>
-  // ⏳ CALCUL JOURS RESTANTS
+  // ⏳ CALCUL DU NOMBRE DE JOURS RESTANTS
   function calculJoursRestants(dateEvenement) {
     const aujourdhui = new Date();
     aujourdhui.setHours(0,0,0,0);
@@ -497,7 +582,7 @@
     return Math.ceil((evt - aujourdhui) / (1000 * 60 * 60 * 24));
   }
 
-  // 🔔 NIVEAU D'AVERTISSEMENT PAR PROXIMITÉ
+  // 🔔 NIVEAU D'AVERTISSEMENT SELON PROXIMITÉ
   function getAvertissement(jours) {
     if (jours === 5) return { cls:'j5', txt:{fr:"🟡 Dans 5 jours", en:"🟡 In 5 days", ar:"🟡 خلال 5 أيام"} };
     if (jours === 4) return { cls:'j4', txt:{fr:"🟠 Dans 4 jours", en:"🟠 In 4 days", ar:"🟠 خلال 4 أيام"} };
@@ -509,7 +594,7 @@
     return { cls:'', txt:{fr:`📅 Dans ${jours} jours`, en:`📅 In ${jours} days`, ar:`📅 خلال ${jours} يوماً`} };
   }
 
-  // 🏷️ Type affiché selon la langue
+  // 🏷️ TYPE D'ÉVÉNEMENT TRADUIT
   function getTypeAffiche(evt) {
     const types = {
       fr: {scolaire:'📚 Scolaire', 'extra-scolaire':'🎉 Extra-scolaire', ferie:'🔴 Férié', rencontre:'🤝 Rencontre', autre:'📌 Autre'},
@@ -520,7 +605,7 @@
     return types[langue]?.[cle] || types.fr[cle] || '📌 Autre';
   }
 
-  // 📄 Texte de cible selon langue
+  // 📄 CIBLE TRADUITE
   function getCibleAffiche(cible) {
     return cible === 'tous'
       ? '<span class="txt-fr">Tous</span><span class="txt-en">All</span><span class="txt-ar">الجميع</span>'
@@ -529,7 +614,7 @@
       : '<span class="txt-fr">Enseignants</span><span class="txt-en">Teachers</span><span class="txt-ar">المعلمون</span>';
   }
 
-  // 🖨️ Rendu d'un événement
+  // 🖨️ GÉNÉRER LE HTML D'UNE CARTE ÉVÉNEMENT
   function rendreEvenement(evt, index) {
     const jours = calculJoursRestants(evt.date_evenement);
     const avert = getAvertissement(jours);
@@ -537,7 +622,6 @@
     const titre = evt[`titre_${langue}`] || evt.titre_fr || evt.titre_en || evt.titre_ar || '';
     const description = evt[`description_${langue}`] || evt.description_fr || evt.description_en || evt.description_ar || '';
     const typeAffiche = getTypeAffiche(evt);
-
     return `
       <div class="carte-evenement ${avert.cls} animer-apparition retard-${(index%4)+1}">
         ${evt.url_image ? `
@@ -555,13 +639,13 @@
           ${evt.heure_evenement ? ` &nbsp; ⏰ ${evt.heure_evenement}` : ''}
           ${evt.lieu ? ` &nbsp; 📍 ${evt.lieu}` : ''}
         </p>
-        ${description ? `<p class="mb-3 text-dark opacity-85">${description}</p>` : ''}
+        ${description ? `<p class="mb-3 opacity-85">${description}</p>` : ''}
         ${evt.url_video ? `
           <div class="video-conteneur">
             <video controls preload="metadata" src="${evt.url_video}"></video>
           </div>` : ''
         }
-        <small class="text-muted d-block mt-3 pt-2 border-top border-opacity-25 border-dark">
+        <small class="text-muted d-block mt-3 pt-2 border-top border-opacity-25">
           🔔 <span class="txt-fr">Notifié à</span><span class="txt-en">Notified to</span><span class="txt-ar">أُشعر إلى</span> : 
           ${getCibleAffiche(evt.cible)}
           &nbsp;|&nbsp; ${typeAffiche}
@@ -573,21 +657,14 @@
       </div>`;
   }
 
-  // 📋 CHARGER LA LISTE
+  // 📋 CHARGER LA LISTE DES ÉVÉNEMENTS
   async function chargerListe(){
     const conteneur = document.getElementById('listeEvenements');
     const alerteApi = document.getElementById('alerteApi');
     const texteAlerteApi = document.getElementById('texteAlerteApi');
-
     try {
-      const res = await fetch(`${API_URL}/evenements/liste`, {
-        headers: { 'Authorization': 'Bearer ' + token }
-      });
-
-      if (!res.ok) throw new Error(`Erreur ${res.status}`);
-      const data = await res.json();
+      const data = await requeteAPI('/evenements/liste');
       alerteApi.classList.add('d-none');
-
       if(!data.ok || !data.evenements || !data.evenements.length){
         conteneur.innerHTML = `<div class="text-center text-muted py-5">
           <i class="bi bi-calendar-x fs-1 mb-3 d-block"></i>
@@ -598,103 +675,87 @@
         sauvegarderEvenementsLocaux([]);
         return;
       }
-
       data.evenements.sort((a,b) => new Date(a.date_evenement) - new Date(b.date_evenement));
       sauvegarderEvenementsLocaux(data.evenements);
-
       conteneur.innerHTML = data.evenements.map((evt, i) => rendreEvenement(evt, i)).join('');
-
     } catch {
-      // 📴 MODE LOCAL
+      // 📴 MODE LOCAL SI SERVEUR INDISPONIBLE
       console.warn("🔌 Mode local actif");
       texteAlerteApi.textContent = m('serveurIndispo');
       alerteApi.classList.remove('d-none');
-
       const listeLocale = obtenirEvenementsLocaux();
       if(listeLocale.length === 0){
         conteneur.innerHTML = `<div class="text-center text-muted py-5">
           <i class="bi bi-calendar-x fs-1 mb-3 d-block"></i>
           <p class="txt-fr">Aucun événement programmé</p>
-          <p class="txt-en">No scheduled events</p>
-          <p class="txt-ar">لا توجد فعاليات مقررة</p>
+          <p class="txt-en">No scheduled events</p          <p class="txt-ar">لا توجد فعاليات مقررة</p>
         </div>`;
         return;
       }
-
       listeLocale.sort((a,b) => new Date(a.date_evenement) - new Date(b.date_evenement));
       conteneur.innerHTML = listeLocale.map((evt, i) => rendreEvenement(evt, i)).join('');
     }
   }
 
-  // ➕ AJOUTER/PUBLIER UN ÉVÉNEMENT
+  // ➕ SOUMETTRE LE FORMULAIRE D'AJOUT
   document.getElementById('formEvent').addEventListener('submit', async e => {
     e.preventDefault();
+    const form = new FormData(e.target);
+    const donnees = Object.fromEntries(form);
 
-    const donnees = {
-      titre_fr: document.getElementById('titre_fr').value.trim(),
-      titre_en: document.getElementById('titre_en').value.trim(),
-      titre_ar: document.getElementById('titre_ar').value.trim(),
-      description_fr: document.getElementById('description_fr').value.trim(),
-      description_en: document.getElementById('description_en').value.trim(),
-      description_ar: document.getElementById('description_ar').value.trim(),
-      type_fr: document.getElementById('type_fr').value,
-      type_en: document.getElementById('type_en').value,
-      type_ar: document.getElementById('type_ar').value,
-      date_evenement: e.target.date_evenement.value,
-      heure_evenement: e.target.heure_evenement.value,
-      lieu: e.target.lieu.value.trim(),
-      cible: e.target.cible.value,
-      url_image: e.target.url_image.value.trim(),
-      url_video: e.target.url_video.value.trim()
-    };
-
+    // ✅ Validation : titres obligatoires dans les 3 langues
     if (!donnees.titre_fr || !donnees.titre_en || !donnees.titre_ar) {
       alert(m('titreObligatoire'));
       return;
     }
 
     try {
-      const res = await fetch(`${API_URL}/evenements/publier`, {
+      const resultat = await requeteAPI('/evenements/ajouter', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify(donnees)
       });
-      const rep = await res.json();
 
-      if(rep.ok){
-        alert(langue==='fr'?"✅ Événement publié !":langue==='en'?"✅ Event published!":"✅ تم النشر!");
+      if (resultat.ok) {
+        alert(langue === 'ar' ? '✅ Événement publié !' : langue === 'en' ? '✅ Event published!' : '✅ Événement publié !');
         e.target.reset();
         chargerListe();
-      }else{
-        alert("❌ " + (rep.erreur || "Erreur serveur"));
+      } else {
+        alert(resultat.erreur || m('erreurChargement'));
       }
-    }catch{
-      // 📴 SAUVEGARDE LOCALE
+    } catch {
+      // 📴 Mode local si serveur indisponible
       const liste = obtenirEvenementsLocaux();
       donnees.id_evenement = Date.now();
       liste.push(donnees);
       sauvegarderEvenementsLocaux(liste);
-      alert(langue==='fr'?"✅ Enregistré localement !":langue==='en'?"✅ Saved locally!":"✅ تم الحفظ محلياً!");
+      alert(langue === 'ar' ? '✅ Enregistré localement !' : langue === 'en' ? '✅ Saved locally!' : '✅ Enregistré localement !');
       e.target.reset();
       chargerListe();
     }
   });
 
-  // 🗑️ SUPPRESSION
+  // 🗑️ SUPPRIMER UN ÉVÉNEMENT
   window.supprimerEvenement = async function(id) {
     if (!confirm(m('confSuppr'))) return;
     try {
-      await fetch(`${API_URL}/evenements/${id}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
-      alert(m('supprOk'));
+      const resultat = await requeteAPI(`/evenements/supprimer/${id}`, {
+        method: 'DELETE'
+      });
+      if (resultat.ok) {
+        alert(m('supprOk'));
+        chargerListe();
+      } else {
+        alert(resultat.erreur || m('erreurReseau'));
+      }
     } catch {
-      // 📴 Suppression locale
-      const liste = obtenirEvenementsLocaux().filter(e => e.id_evenement !== id);
+      // 📴 Suppression en mode local
+      let liste = obtenirEvenementsLocaux();
+      liste = liste.filter(e => e.id_evenement !== id);
       sauvegarderEvenementsLocaux(liste);
       alert(m('supprOk'));
+      chargerListe();
     }
-    chargerListe();
   };
 </script>
-
 </body>
 </html>

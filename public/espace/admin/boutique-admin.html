@@ -11,7 +11,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    /* ===== 🎨 VARIABLES — MODE CLAIR ===== */
     :root {
       --primaire: #0c4a6e;
       --secondaire: #0369a1;
@@ -24,8 +23,6 @@
       --texte-secondaire: #475569;
       --bordure: rgba(0,0,0,0.08);
     }
-
-    /* ===== 🌙 VARIABLES — MODE SOMBRE ===== */
     [data-theme="sombre"] {
       --primaire: #38bdf8;
       --secondaire: #0ea5e9;
@@ -38,16 +35,12 @@
       --texte-secondaire: #cbd5e1;
       --bordure: rgba(255,255,255,0.08);
     }
-
-    /* ===== GÉNÉRAL ===== */
     * { transition: background-color 0.35s ease, color 0.35s ease; }
     body {
       background: var(--fond-body);
       color: var(--texte-principal);
       min-height: 100vh;
     }
-
-    /* ===== TRADUCTIONS ===== */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
@@ -57,8 +50,6 @@
     body.lang-ar { direction: rtl; }
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
     body.lang-ar .txt-ar { display: inline; }
-
-    /* ===== CARTES ===== */
     .card-glass {
       background: var(--fond-carte);
       backdrop-filter: blur(10px);
@@ -66,16 +57,12 @@
       box-shadow: 0 8px 32px rgba(0,0,0,0.1);
       border: 1px solid var(--bordure);
     }
-
-    /* ===== ONGLETS ===== */
     .nav-tabs .nav-link { color: var(--texte-secondaire); border: none; }
     .nav-tabs .nav-link.active {
       background: linear-gradient(90deg, var(--primaire), var(--secondaire));
       color: white !important;
       border-radius: 8px 8px 0 0;
     }
-
-    /* ===== BOUTONS ===== */
     .btn-primaire {
       background: linear-gradient(90deg, var(--primaire), var(--secondaire));
       border: none;
@@ -83,8 +70,6 @@
       transition: transform 0.2s ease;
     }
     .btn-primaire:hover { transform: translateY(-2px); color: white; }
-
-    /* ===== IMAGES ===== */
     .img-mini {
       width: 60px;
       height: 60px;
@@ -92,8 +77,6 @@
       border-radius: 8px;
       border: 2px solid var(--bordure);
     }
-
-    /* ===== ALERTE ===== */
     .alerte-api {
       border-left: 4px solid var(--alerte);
       background: rgba(245,158,11,0.15);
@@ -102,13 +85,9 @@
       margin-bottom: 1rem;
       color: var(--texte-principal);
     }
-
-    /* ===== TABLEAU ===== */
     .table { --bs-table-color: var(--texte-principal); }
     .table th { --bs-table-bg: var(--primaire); color: white; }
     .table td { border-color: var(--bordure); }
-
-    /* ===== BOUTON MODE NUIT/JOUR ===== */
     .btn-theme {
       position: fixed;
       top: 1rem;
@@ -126,8 +105,6 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .btn-theme:hover { color: white; transform: scale(1.08); }
-
-    /* ===== FORMULAIRES ===== */
     .form-control, .form-select {
       background: rgba(255,255,255,0.05);
       border-color: var(--bordure);
@@ -143,95 +120,112 @@
 </head>
 <body>
 
-<!-- 🌙 BOUTON CHANGEMENT DE THÈME -->
 <button class="btn-theme" id="btnTheme" title="Mode Jour/Nuit">
   <i class="bi bi-moon-stars"></i>
 </button>
 
 <script>
-  // 🔗 URL adaptative
-  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/api'
-    : 'https://mama-zoumana-api.onrender.com/api';
+const API_URL = "https://mama-zoumana-api.onrender.com/api";
 
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
-  let langueActuelle = localStorage.getItem('langue') || 'fr';
-  let themeActuel = localStorage.getItem('theme') || 'clair';
+function getToken() {
+  return localStorage.getItem('token');
+}
 
-  // 💾 Stockage local
-  function obtenirProduitsLocaux() { return JSON.parse(localStorage.getItem('boutique_produits') || '[]'); }
-  function sauvegarderProduitsLocaux(liste) { localStorage.setItem('boutique_produits', JSON.stringify(liste)); }
-  function obtenirCommandesLocales() { return JSON.parse(localStorage.getItem('boutique_commandes') || '[]'); }
-  function sauvegarderCommandesLocales(liste) { localStorage.setItem('boutique_commandes', JSON.stringify(liste)); }
-
-  // 🗣️ Messages
-  const MSG = {
-    fr: {
-      accesReserve: "⛔ Accès réservé à l'administrateur",
-      serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
-      aucunProduit: "Aucun produit enregistré",
-      aucuneCommande: "Aucune commande enregistrée",
-      confirmerSuppr: "⚠️ Confirmer la suppression définitive du produit ?",
-      supprOk: "✅ Produit supprimé !",
-      enregistreOk: "✅ Produit enregistré !",
-      erreurReseau: "❌ Erreur réseau",
-      modeClair: "Mode clair",
-      modeSombre: "Mode sombre"
-    },
-    en: {
-      accesReserve: "⛔ Access restricted to administrator",
-      serveurIndispo: "⚠️ Server offline — Local mode active",
-      aucunProduit: "No product registered",
-      aucuneCommande: "No order registered",
-      confirmerSuppr: "⚠️ Permanently delete this product?",
-      supprOk: "✅ Product deleted!",
-      enregistreOk: "✅ Product saved!",
-      erreurReseau: "❌ Network error",
-      modeClair: "Light mode",
-      modeSombre: "Dark mode"
-    },
-    ar: {
-      accesReserve: "⛔ الوصول مقصور على المدير",
-      serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
-      aucunProduit: "لا توجد منتجات مسجلة",
-      aucuneCommande: "لا توجد طلبات مسجلة",
-      confirmerSuppr: "⚠️ حذف هذا المنتج نهائياً؟",
-      supprOk: "✅ تم حذف المنتج!",
-      enregistreOk: "✅ تم حفظ المنتج!",
-      erreurReseau: "❌ خطأ في الشبكة",
-      modeClair: "وضع فاتح",
-      modeSombre: "وضع داكن"
+async function requeteAPI(chemin, options = {}) {
+  const reponse = await fetch(`${API_URL}${chemin}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+      ...options.headers
     }
-  };
-  function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
-
-  // 🌙 GESTION DU THÈME CLAIR/SOMBRE
-  function appliquerTheme(theme) {
-    themeActuel = theme;
-    localStorage.setItem('theme', theme);
-    if (theme === 'sombre') {
-      document.documentElement.setAttribute('data-theme', 'sombre');
-      document.getElementById('btnTheme').innerHTML = '<i class="bi bi-sun"></i>';
-      document.getElementById('btnTheme').setAttribute('title', m('modeClair'));
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-      document.getElementById('btnTheme').innerHTML = '<i class="bi bi-moon-stars"></i>';
-      document.getElementById('btnTheme').setAttribute('title', m('modeSombre'));
-    }
+  });
+  const donnees = await reponse.json();
+  if (reponse.status === 401) {
+    alert("⛔ Session expirée — Veuillez vous reconnecter");
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    window.location.href = 'connexion.html';
+    return;
   }
-  function basculerTheme() {
-    appliquerTheme(themeActuel === 'clair' ? 'sombre' : 'clair');
-  }
+  return donnees;
+}
 
-  // 🔒 SÉCURITÉ
-  if (!token || role !== 'admin') {
-    alert(m('accesReserve'));
-    localStorage.clear();
-    location.href = 'connexion.html';
-  }
+const token = getToken();
+const role = localStorage.getItem('role');
+let langueActuelle = localStorage.getItem('langue') || 'fr';
+let themeActuel = localStorage.getItem('theme') || 'clair';
 
-  document.body.classList.add('lang-' + langueActuelle);
+function obtenirProduitsLocaux() { return JSON.parse(localStorage.getItem('boutique_produits') || '[]'); }
+function sauvegarderProduitsLocaux(liste) { localStorage.setItem('boutique_produits', JSON.stringify(liste)); }
+function obtenirCommandesLocales() { return JSON.parse(localStorage.getItem('boutique_commandes') || '[]'); }
+function sauvegarderCommandesLocales(liste) { localStorage.setItem('boutique_commandes', JSON.stringify(liste)); }
+
+const MSG = {
+  fr: {
+    accesReserve: "⛔ Accès réservé à l'administrateur",
+    serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
+    aucunProduit: "Aucun produit enregistré",
+    aucuneCommande: "Aucune commande enregistrée",
+    confirmerSuppr: "⚠️ Confirmer la suppression définitive du produit ?",
+    supprOk: "✅ Produit supprimé !",
+    enregistreOk: "✅ Produit enregistré !",
+    erreurReseau: "❌ Erreur réseau",
+    modeClair: "Mode clair",
+    modeSombre: "Mode sombre"
+  },
+  en: {
+    accesReserve: "⛔ Access restricted to administrator",
+    serveurIndispo: "⚠️ Server offline — Local mode active",
+    aucunProduit: "No product registered",
+    aucuneCommande: "No order registered",
+    confirmerSuppr: "⚠️ Permanently delete this product?",
+    supprOk: "✅ Product deleted!",
+    enregistreOk: "✅ Product saved!",
+    erreurReseau: "❌ Network error",
+    modeClair: "Light mode",
+    modeSombre: "Dark mode"
+  },
+  ar: {
+    accesReserve: "⛔ الوصول مقصور على المدير",
+    serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
+    aucunProduit: "لا توجد منتجات مسجلة",
+    aucuneCommande: "لا توجد طلبات مسجلة",
+    confirmerSuppr: "⚠️ حذف هذا المنتج نهائياً؟",
+    supprOk: "✅ تم حذف المنتج!",
+    enregistreOk: "✅ تم حفظ المنتج!",
+    erreurReseau: "❌ خطأ في الشبكة",
+    modeClair: "وضع فاتح",
+    modeSombre: "وضع داكن"
+  }
+};
+function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
+
+function appliquerTheme(theme) {
+  themeActuel = theme;
+  localStorage.setItem('theme', theme);
+  if (theme === 'sombre') {
+    document.documentElement.setAttribute('data-theme', 'sombre');
+    document.getElementById('btnTheme').innerHTML = '<i class="bi bi-sun"></i>';
+    document.getElementById('btnTheme').setAttribute('title', m('modeClair'));
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    document.getElementById('btnTheme').innerHTML = '<i class="bi bi-moon-stars"></i>';
+    document.getElementById('btnTheme').setAttribute('title', m('modeSombre'));
+  }
+}
+function basculerTheme() {
+  appliquerTheme(themeActuel === 'clair' ? 'sombre' : 'clair');
+}
+
+// 🔒 SÉCURITÉ — Insensible à la casse
+if (!token || !['admin','super_admin','directeur'].includes((role||'').toLowerCase())) {
+  alert(m('accesReserve'));
+  localStorage.clear();
+  location.href = 'connexion.html';
+}
+
+document.body.classList.add('lang-' + langueActuelle);
 </script>
 
 <div class="container py-4">
@@ -252,14 +246,11 @@
       </h4>
     </div>
     <div class="card-body">
-
-      <!-- ⚠️ ALERTE API -->
       <div id="alerteApi" class="alerte-api d-none">
         <i class="bi bi-wifi-off me-2"></i>
         <span id="texteAlerteApi"></span>
       </div>
 
-      <!-- 📑 Onglets -->
       <ul class="nav nav-tabs mb-4" id="onglets">
         <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#produits">📦 <span class="txt-fr">Produits</span><span class="txt-en">Products</span><span class="txt-ar">المنتجات</span></button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#ajouter">➕ <span class="txt-fr">Ajouter/Modifier</span><span class="txt-en">Add/Edit</span><span class="txt-ar">إضافة/تعديل</span></button></li>
@@ -267,7 +258,6 @@
       </ul>
 
       <div class="tab-content">
-        <!-- 📦 LISTE DES PRODUITS -->
         <div class="tab-pane fade show active" id="produits">
           <div class="table-responsive">
             <table class="table table-hover table-bordered">
@@ -287,7 +277,6 @@
           </div>
         </div>
 
-        <!-- ➕ FORMULAIRE AJOUTER/MODIFIER -->
         <div class="tab-pane fade" id="ajouter">
           <form id="formProduit" enctype="multipart/form-data">
             <input type="hidden" id="idProduit">
@@ -322,7 +311,7 @@
               </div>
               <div class="col-md-4 mb-3">
                 <label class="form-label"><span class="txt-fr">Statut</span><span class="txt-en">Status</span><span class="txt-ar">الحالة</span></label>
-                <select id="actif" class="form-select">
+                <select id="actif" class="formactif" class="form-select">
                   <option value="true">✅ <span class="txt-fr">Actif</span><span class="txt-en">Active</span><span class="txt-ar">نشط</span></option>
                   <option value="false">❌ <span class="txt-fr">Inactif</span><span class="txt-en">Inactive</span><span class="txt-ar">غير نشط</span></option>
                 </select>
@@ -339,7 +328,6 @@
           </form>
         </div>
 
-        <!-- 🛒 LISTE DES COMMANDES -->
         <div class="tab-pane fade" id="commandes">
           <div class="table-responsive">
             <table class="table table-hover table-bordered">
@@ -364,236 +352,226 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  let produits = [];
-  let commandes = [];
+let produits = [];
+let commandes = [];
 
-  // 🌙 INITIALISATION THÈME
-  appliquerTheme(themeActuel);
-  document.getElementById('btnTheme').addEventListener('click', basculerTheme);
+appliquerTheme(themeActuel);
+document.getElementById('btnTheme').addEventListener('click', basculerTheme);
 
-  // 🗣️ CHANGEMENT DE LANGUE
-  function changerLangue(lang) {
-    langueActuelle = lang;
-    localStorage.setItem('langue', lang);
-    document.body.classList.remove('lang-fr','lang-en','lang-ar');
-    document.body.classList.add('lang-' + lang);
-  }
+function changerLangue(lang) {
+  langueActuelle = lang;
+  localStorage.setItem('langue', lang);
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + lang);
+}
 
-  // 🖼️ Rendu image
-  function rendreImage(img) {
-    if (!img) return '📦';
-    const src = img.startsWith('http') ? img : `${API_URL}/${img}`;
-    return `<img src="${src}" class="img-mini" alt="">`;
-  }
+function rendreImage(img) {
+  if (!img) return '📦';
+  const src = img.startsWith('http') ? img : `${API_URL}/${img}`;
+  return `<img src="${src}" class="img-mini" alt="">`;
+}
 
-  // 📦 CHARGER PRODUITS
-  async function chargerProduits(forcerLocal = false) {
-    const corps = document.getElementById('corpsProduits');
-    const alerteApi = document.getElementById('alerteApi');
-    const texteAlerteApi = document.getElementById('texteAlerteApi');
+// 📦 CHARGER PRODUITS
+async function chargerProduits(forcerLocal = false) {
+  const corps = document.getElementById('corpsProduits');
+  const alerteApi = document.getElementById('alerteApi');
+  const texteAlerteApi = document.getElementById('texteAlerteApi');
+  corps.innerHTML = `<tr><td colspan="7" class="text-center py-4"><div class="spinner-border"></div></td></tr>`;
 
-    corps.innerHTML = `<tr><td colspan="7" class="text-center py-4"><div class="spinner-border"></div></td></tr>`;
-
-    if (!forcerLocal) {
-      try {
-        const res = await fetch(`${API_URL}/boutique/produits`, { headers: { 'Authorization': `Bearer ${token}` } });
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        produits = data.produits || [];
+  if (!forcerLocal) {
+    try {
+      const res = await requeteAPI('/boutique/produits');
+      if (res.ok) {
+        produits = res.produits || res.lignes || [];
         sauvegarderProduitsLocaux(produits);
         alerteApi.classList.add('d-none');
-      } catch {
-        forcerLocal = true;
+      } else {
+        throw new Error();
       }
+    } catch {
+      forcerLocal = true;
     }
-
-    if (forcerLocal) {
-      texteAlerteApi.textContent = m('serveurIndispo');
-      alerteApi.classList.remove('d-none');
-      produits = obtenirProduitsLocaux();
-    }
-
-    if (produits.length === 0) {
-      corps.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">${m('aucunProduit')}</td></tr>`;
-      return;
-    }
-
-    corps.innerHTML = '';
-    produits.forEach(p => {
-      const imgHtml = rendreImage(p.image_url);
-      corps.innerHTML += `<tr>
-        <td>${imgHtml}</td>
-        <td><strong>${p.nom_produit}</strong><br><small class="text-muted">${p.description||''}</small></td>
-        <td><span class="badge bg-secondary">${p.categorie}</span></td>
-        <td>${Number(p.prix_unitaire).toLocaleString('fr-FR')} FCFA</td>
-        <td class="${Number(p.stock)<=5?'text-danger fw-bold':''}">${p.stock}</td>
-        <td>${String(p.actif)==='true'?'✅':'❌'}</td>
-        <td>
-          <button class="btn btn-sm btn-outline-primary" onclick="editer(${p.id_produit})"><i class="bi bi-pencil"></i></button>
-          <button class="btn btn-sm btn-outline-danger" onclick="supprimer(${p.id_produit})"><i class="bi bi-trash"></i></button>
-        </td>
-      </tr>`;
-    });
   }
 
-  // ✏️ ÉDITER PRODUIT
-  window.editer = function(id) {
-    const p = produits.find(x => Number(x.id_produit) === Number(id));
-    if (!p) return alert("Produit introuvable");
+  if (forcerLocal) {
+    texteAlerteApi.textContent = m('serveurIndispo');
+    alerteApi.classList.remove('d-none');
+    produits = obtenirProduitsLocaux();
+  }
 
-    document.getElementById('idProduit').value = p.id_produit;
-    document.getElementById('categorie').value = p.categorie;
-    document.getElementById('nomProduit').value = p.nom_produit;
-    document.getElementById('description').value = p.description || '';
-    document.getElementById('prix').value = p.prix_unitaire;
-    document.getElementById('stock').value = p.stock;
-    document.getElementById('actif').value = String(p.actif);
-    document.getElementById('apercuImage').innerHTML = p.image_url ? `<img src="${p.image_url}" style="max-height:120px;border-radius:8px;">` : '';
+  if (produits.length === 0) {
+    corps.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">${m('aucunProduit')}</td></tr>`;
+    return;
+  }
 
-    document.querySelector('[data-bs-target="#ajouter"]').click();
-  };
+  corps.innerHTML = '';
+  produits.forEach(p => {
+    const imgHtml = rendreImage(p.image_url);
+    corps.innerHTML += `<tr>
+      <td>${imgHtml}</td>
+      <td><strong>${p.nom_produit || ''}</strong><br><small class="text-muted">${p.description||''}</small></td>
+      <td><span class="badge bg-secondary">${p.categorie || ''}</span></td>
+      <td>${Number(p.prix_unitaire||0).toLocaleString('fr-FR')} FCFA</td>
+      <td class="${Number(p.stock||0)<=5?'text-danger fw-bold':''}">${p.stock || 0}</td>
+      <td>${String(p.actif)==='true'?'✅':'❌'}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary" onclick="editer(${p.id_produit || p.id})"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline-danger" onclick="supprimer(${p.id_produit || p.id})"><i class="bi bi-trash"></i></button>
+      </td>
+    </tr>`;
+  });
+}
 
-  // ❌ SUPPRIMER PRODUIT
-  window.supprimer = async function(id) {
-    if (!confirm(m('confirmerSuppr'))) return;
-    let liste = obtenirProduitsLocaux();
+// ✏️ ÉDITER PRODUIT
+window.editer = function(id) {
+  const p = produits.find(x => Number(x.id_produit || x.id) === Number(id));
+  if (!p) return alert("Produit introuvable");
+  document.getElementById('idProduit').value = p.id_produit || p.id || '';
+  document.getElementById('categorie').value = p.categorie || '';
+  document.getElementById('nomProduit').value = p.nom_produit || '';
+  document.getElementById('description').value = p.description || '';
+  document.getElementById('prix').value = p.prix_unitaire || 0;
+  document.getElementById('stock').value = p.stock || 0;
+  document.getElementById('actif').value = String(p.actif);
+  document.getElementById('apercuImage').innerHTML = p.image_url ? `<img src="${p.image_url}" style="max-height:120px;border-radius:8px;">` : '';
+  document.querySelector('[data-bs-target="#ajouter"]').click();
+};
 
-    try {
-      const res = await fetch(`${API_URL}/boutique/produits/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error();
-      liste = liste.filter(p => String(p.id_produit) !== String(id));
+// ❌ SUPPRIMER PRODUIT
+window.supprimer = async function(id) {
+  if (!confirm(m('confirmerSuppr'))) return;
+  let liste = obtenirProduitsLocaux();
+  try {
+    const res = await requeteAPI(`/boutique/produits/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      liste = liste.filter(p => String(p.id_produit || p.id) !== String(id));
       sauvegarderProduitsLocaux(liste);
       alert(m('supprOk'));
       chargerProduits();
-    } catch {
-      liste = liste.filter(p => String(p.id_produit) !== String(id));
-      sauvegarderProduitsLocaux(liste);
-      alert(m('supprOk') + " (enregistré localement)");
-      chargerProduits(true);
+    } else {
+      throw new Error();
     }
+  } catch {
+    liste = liste.filter(p => String(p.id_produit || p.id) !== String(id));
+    sauvegarderProduitsLocaux(liste);
+    alert(m('supprOk') + " (enregistré localement)");
+    chargerProduits(true);
+  }
+};
+
+// 💾 ENREGISTRER PRODUIT
+document.getElementById('formProduit').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = document.getElementById('idProduit').value.trim();
+  const nouveauProduit = {
+    categorie: document.getElementById('categorie').value,
+    nom_produit: document.getElementById('nomProduit').value,
+    description: document.getElementById('description').value,
+    prix_unitaire: Number(document.getElementById('prix').value),
+    stock: Number(document.getElementById('stock').value),
+    actif: document.getElementById('actif').value === 'true',
+    image_url: ''
   };
+  let liste = obtenirProduitsLocaux();
 
-  // 💾 ENREGISTRER PRODUIT
-  document.getElementById('formProduit').addEventListener('submit', async e => {
-    e.preventDefault();
-    const id = document.getElementById('idProduit').value.trim();
-
-    const nouveauProduit = {
-      id_produit: id ? Number(id) : Date.now(),
-      categorie: document.getElementById('categorie').value,
-      nom_produit: document.getElementById('nomProduit').value,
-      description: document.getElementById('description').value,
-      prix_unitaire: Number(document.getElementById('prix').value),
-      stock: Number(document.getElementById('stock').value),
-      actif: document.getElementById('actif').value === 'true',
-      image_url: ''
-    };
-
-    let liste = obtenirProduitsLocaux();
-
-    try {
-      const url = id ? `${API_URL}/boutique/produits/${id}` : `${API_URL}/boutique/produits`;
-      const methode = id ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method: methode,
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(nouveauProduit)
-      });
-
-      if (!res.ok) throw new Error();
-
+  try {
+    const methode = id ? 'PUT' : 'POST';
+    const urlApi = id ? `/boutique/produits/${id}` : `/boutique/produits`;
+    const res = await requeteAPI(urlApi, {
+      method: methode,
+      body: JSON.stringify(nouveauProduit)
+    });
+    if (res.ok) {
+      nouveauProduit.id_produit = res.id || res.id_produit || (id ? Number(id) : Date.now());
       if (id) {
-        const idx = liste.findIndex(p => String(p.id_produit) === String(id));
+        const idx = liste.findIndex(p => String(p.id_produit || p.id) === String(id));
         if (idx !== -1) liste[idx] = nouveauProduit;
       } else {
         liste.unshift(nouveauProduit);
       }
       sauvegarderProduitsLocaux(liste);
-
       alert(m('enregistreOk'));
       e.target.reset();
       document.getElementById('idProduit').value = '';
       document.getElementById('apercuImage').innerHTML = '';
       chargerProduits();
-
-    } catch {
-      // 📴 MODE LOCAL
-      if (id) {
-        const idx = liste.findIndex(p => String(p.id_produit) === String(id));
-        if (idx !== -1) liste[idx] = nouveauProduit;
-      } else {
-        liste.unshift(nouveauProduit);
-      }
-      sauvegarderProduitsLocaux(liste);
-
-      alert(m('enregistreOk') + " (enregistré localement)");
-      e.target.reset();
-      document.getElementById('idProduit').value = '';
-      document.getElementById('apercuImage').innerHTML = '';
-      chargerProduits(true);
+    } else {
+      throw new Error();
     }
-  });
+  } catch {
+    nouveauProduit.id_produit = id ? Number(id) : Date.now();
+    if (id) {
+      const idx = liste.findIndex(p => String(p.id_produit || p.id) === String(id));
+      if (idx !== -1) liste[idx] = nouveauProduit;
+    } else {
+      liste.unshift(nouveauProduit);
+    }
+    sauvegarderProduitsLocaux(liste);
+    alert(m('enregistreOk') + " (enregistré localement)");
+    e.target.reset();
+    document.getElementById('idProduit').value = '';
+    document.getElementById('apercuImage').innerHTML = '';
+    chargerProduits(true);
+  }
+});
 
-  // 🛒 CHARGER COMMANDES
-  async function chargerCommandes(forcerLocal = false) {
-    const corps = document.getElementById('corpsCommandes');
-    corps.innerHTML = `<tr><td colspan="6" class="text-center py-4"><div class="spinner-border"></div></td></tr>`;
+// 🛒 CHARGER COMMANDES
+async function chargerCommandes(forcerLocal = false) {
+  const corps = document.getElementById('corpsCommandes');
+  corps.innerHTML = `<tr><td colspan="6" class="text-center py-4"><div class="spinner-border"></div></td></tr>`;
 
-    if (!forcerLocal) {
-      try {
-        const res = await fetch(`${API_URL}/boutique/commandes`, { headers: { 'Authorization': `Bearer ${token}` } });
-        if (!res.ok) throw new Error();
-        const d = await res.json();
-        commandes = d.commandes || [];
+  if (!forcerLocal) {
+    try {
+      const res = await requeteAPI('/boutique/commandes');
+      if (res.ok) {
+        commandes = res.commandes || res.lignes || [];
         sauvegarderCommandesLocales(commandes);
-      } catch {
-        forcerLocal = true;
+      } else {
+        throw new Error();
       }
+    } catch {
+      forcerLocal = true;
     }
-
-    if (forcerLocal) {
-      commandes = obtenirCommandesLocales();
-    }
-
-    if (commandes.length === 0) {
-      corps.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">${m('aucuneCommande')}</td></tr>`;
-      return;
-    }
-
-    corps.innerHTML = '';
-    commandes.forEach(c => {
-      const statutBadge = c.statut_commande === 'en_attente' ? 'bg-warning text-dark' : 'bg-success';
-      corps.innerHTML += `<tr>
-        <td>#${c.id_commande}</td>
-        <td>${c.nom_acheteur || '-'}</td>
-        <td>${c.telephone || '-'}</td>
-        <td>${Number(c.montant_total||0).toLocaleString('fr-FR')} FCFA</td>
-        <td><span class="badge ${statutBadge}">${c.statut_commande || '-'}</span></td>
-        <td>${c.date_commande ? new Date(c.date_commande).toLocaleDateString('fr-FR') : '-'}</td>
-      </tr>`;
-    });
   }
 
-  // 🖼️ APERÇU IMAGE EN TEMPS RÉEL
-  document.getElementById('imageProduit').addEventListener('change', e => {
-    const f = e.target.files[0];
-    if (f) {
-      const reader = new FileReader();
-      reader.onload = ev => {
-        document.getElementById('apercuImage').innerHTML = `<img src="${ev.target.result}" style="max-height:140px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">`;
-      };
-      reader.readAsDataURL(f);
-    }
+  if (forcerLocal) {
+    commandes = obtenirCommandesLocales();
+  }
+
+  if (commandes.length === 0) {
+    corps.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">${m('aucuneCommande')}</td></tr>`;
+    return;
+  }
+
+  corps.innerHTML = '';
+  commandes.forEach(c => {
+    const statutBadge = c.statut_commande === 'en_attente' ? 'bg-warning text-dark' : 'bg-success';
+    corps.innerHTML += `<tr>
+      <td>#${c.id_commande || c.id}</td>
+      <td>${c.nom_acheteur || '-'}</td>
+      <td>${c.telephone || '-'}</td>
+      <td>${Number(c.montant_total||0).toLocaleString('fr-FR')} FCFA</td>
+      <td><span class="badge ${statutBadge}">${c.statut_commande || '-'}</span></td>
+      <td>${c.date_commande ? new Date(c.date_commande).toLocaleDateString('fr-FR') : '-'}</td>
+    </tr>`;
   });
+}
 
-  // 🚀 CHARGEMENT INITIAL
-  chargerProduits();
-  chargerCommandes();
+// 🖼️ APERÇU IMAGE EN TEMPS RÉEL
+document.getElementById('imageProduit').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (f) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      document.getElementById('apercuImage').innerHTML = `<img src="${ev.target.result}" style="max-height:140px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">`;
+    };
+    reader.readAsDataURL(f);
+  }
+});
+
+// 🚀 CHARGEMENT INITIAL
+chargerProduits();
+chargerCommandes();
 </script>
-
 </body>
 </html>

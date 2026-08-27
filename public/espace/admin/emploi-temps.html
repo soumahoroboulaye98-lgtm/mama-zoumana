@@ -86,35 +86,81 @@
   </style>
 </head>
 <body class="lang-fr">
-
 <script>
-const token = localStorage.getItem('token');
-const role = localStorage.getItem('role');
+  // ✅ CONFIGURATION API — SANS LOCALHOST
+  const API_URL = "https://mama-zoumana-api.onrender.com/api";
 
-// 🔗 URL API
-const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:5000/api'
-  : 'https://mama-zoumana-api.onrender.com/api';
+  // ✅ Récupération sécurisée du token
+  function getToken() { return localStorage.getItem('token'); }
 
-// 💾 Mode local
-function obtenirEdtLocal() { return JSON.parse(localStorage.getItem('emploi_du_temps') || '[]'); }
-function sauvegarderEdtLocal(liste) { localStorage.setItem('emploi_du_temps', JSON.stringify(liste)); }
+  // ✅ Fonction centralisée : token + 401 géré automatiquement
+  async function requeteAPI(chemin, options = {}) {
+    const reponse = await fetch(`${API_URL}${chemin}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`,
+        ...options.headers
+      }
+    });
+    const donnees = await reponse.json();
+    if (reponse.status === 401) {
+      alert("⛔ Session expirée — Reconnectez-vous");
+      localStorage.clear();
+      window.location.href = 'connexion.html';
+    }
+    return donnees;
+  }
 
-// 🗣️ Traductions
-const MSG = {
-  fr: { serveurIndispo: "⚠️ Serveur indisponible — Mode local actif", erreurChargement: "❌ Erreur de chargement", confSuppr: "⚠️ Supprimer cette séance ?", supprOk: "✅ Séance supprimée !", enregOk: "✅ Séance enregistrée !", erreurReseau: "❌ Erreur de connexion", aucune: "Aucune séance programmée" },
-  en: { serveurIndispo: "⚠️ Server offline — Local mode active", erreurChargement: "❌ Loading error", confSuppr: "⚠️ Delete this session?", supprOk: "✅ Session deleted!", enregOk: "✅ Session saved!", erreurReseau: "❌ Network error", aucune: "No session scheduled" },
-  ar: { serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي", erreurChargement: "❌ خطأ في التحميل", confSuppr: "⚠️ حذف هذه الحصة ؟", supprOk: "✅ تم الحذف!", enregOk: "✅ تم الحفظ!", erreurReseau: "❌ خطأ في الاتصال", aucune: "لا توجد حصص مجدولة" }
-};
-let langueActuelle = localStorage.getItem('langue') || 'fr';
-function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
+  // 💾 Stockage local de secours
+  function obtenirEdtLocal() { return JSON.parse(localStorage.getItem('emploi_du_temps') || '[]'); }
+  function sauvegarderEdtLocal(liste) { localStorage.setItem('emploi_du_temps', JSON.stringify(liste)); }
 
-// 🔒 SÉCURITÉ — Accepte aussi 'admin' ET vérifie le token
-if(!token || (role !== 'admin' && role !== 'Admin')){
-  alert("⛔ Accès réservé à l'Administrateur");
-  localStorage.clear();
-  location.href='dashboard.html';
-}
+  // 🗣️ Traductions
+  const MSG = {
+    fr: {
+      serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
+      erreurChargement: "❌ Erreur de chargement",
+      confSuppr: "⚠️ Supprimer cette séance ?",
+      supprOk: "✅ Séance supprimée !",
+      enregOk: "✅ Séance enregistrée !",
+      erreurReseau: "❌ Erreur de connexion",
+      aucune: "Aucune séance programmée",
+      accesRefuse: "⛔ Accès réservé à l'Administrateur"
+    },
+    en: {
+      serveurIndispo: "⚠️ Server offline — Local mode active",
+      erreurChargement: "❌ Loading error",
+      confSuppr: "⚠️ Delete this session?",
+      supprOk: "✅ Session deleted!",
+      enregOk: "✅ Session saved!",
+      erreurReseau: "❌ Network error",
+      aucune: "No session scheduled",
+      accesRefuse: "⛔ Admin access required"
+    },
+    ar: {
+      serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
+      erreurChargement: "❌ خطأ في التحميل",
+      confSuppr: "⚠️ حذف هذه الحصة ؟",
+      supprOk: "✅ تم الحذف!",
+      enregOk: "✅ تم الحفظ!",
+      erreurReseau: "❌ خطأ في الاتصال",
+      aucune: "لا توجد حصص مجدولة",
+      accesRefuse: "⛔ يلزم إذن المدير"
+    }
+  };
+
+  let langueActuelle = localStorage.getItem('langue') || 'fr';
+  function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
+
+  // 🔒 SÉCURITÉ — Vérification token ET rôle admin
+  const role = localStorage.getItem('role');
+  const rolesAdmin = ['admin', 'Admin', 'super_admin'];
+  if (!getToken() || !rolesAdmin.includes(role || '')) {
+    alert(m('accesRefuse'));
+    localStorage.clear();
+    location.href = 'dashboard.html';
+  }
 </script>
 
 <div class="entete-page">
@@ -266,166 +312,166 @@ if(!token || (role !== 'admin' && role !== 'Admin')){
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// 🗣️ CHANGEMENT DE LANGUE
-function changerLangue(lang){
-  langueActuelle = lang;
-  document.body.className = 'lang-' + lang;
-  localStorage.setItem('langue', lang);
-  document.querySelectorAll('.barre-langue button').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById('btn-'+lang);
-  if(btn) btn.classList.add('active');
-}
-
-// ✅ Appliquer langue au chargement
-document.body.className = 'lang-' + langueActuelle;
-document.getElementById('btn-'+langueActuelle)?.classList.add('active');
-
-// 📄 Rendu d'une ligne séance
-function rendreLigneSeance(x) {
-  return `
-    <div class="d-flex justify-content-between align-items-center p-3 mb-2 rounded" style="background:var(--sombre)">
-      <div>
-        <span class="badge bg-info text-dark me-2">${x.jour || ''}</span>
-        <strong>${(x.heure_debut||'').slice(0,5)} — ${(x.heure_fin||'').slice(0,5)}</strong>
-        <span class="mx-2">|</span>
-        <span class="text-warning">${x.classe || '—'}</span>
-        <span class="mx-1">•</span>
-        <span>${x.matiere || '—'}</span>
-        <span class="mx-1">—</span>
-        <em class="text-success">${x.prof || 'Non affecté'}</em>
-        ${x.salle ? `<span class="badge bg-secondary ms-2">${x.salle}</span>` : ''}
-      </div>
-      <button class="btn btn-suppr-lumineux btn-sm" onclick="supprimer(${x.id_emploi || x.id})">
-        <i class="bi bi-trash"></i>
-        <span class="txt-fr"> Supprimer</span>
-        <span class="txt-en"> Delete</span>
-        <span class="txt-ar"> حذف</span>
-      </button>
-    </div>`;
-}
-
-// ✅ CHARGER CLASSES, MATIÈRES, PROFESSEURS
-async function chargerListes(){
-  try {
-    const [clRes, mtRes, prRes] = await Promise.all([
-      fetch(`${API_URL}/classes/`, {headers:{'Authorization':`Bearer ${token}`}}).then(r => r.json()),
-      fetch(`${API_URL}/matieres/`, {headers:{'Authorization':`Bearer ${token}`}}).then(r => r.json()),
-      fetch(`${API_URL}/utilisateurs/professeurs`, {headers:{'Authorization':`Bearer ${token}`}}).then(r => r.json())
-    ]);
-
-    if(clRes.ok && clRes.lignes){
-      document.getElementById('sel-cl').innerHTML =
-        '<option value="">--- Sélectionner ---</option>' +
-        clRes.lignes.map(x => `<option value="${x.id_classe}">${x.libelle_classe}</option>`).join('');
-    }
-    if(mtRes.ok && mtRes.lignes){
-      document.getElementById('sel-mat').innerHTML =
-        '<option value="">--- Sélectionner ---</option>' +
-        mtRes.lignes.map(x => `<option value="${x.id_matiere}">${x.libelle_matiere}</option>`).join('');
-    }
-    if(prRes.ok && prRes.utilisateurs){
-      document.getElementById('sel-pr').innerHTML =
-        '<option value="">--- Sélectionner ---</option>' +
-        prRes.utilisateurs.map(x => `<option value="${x.id}">${x.nom} ${x.prenom}</option>`).join('');
-    }
-  } catch(e) {
-    console.warn("🔌 Chargement listes impossible", e);
+  // 🗣️ CHANGEMENT DE LANGUE
+  function changerLangue(lang) {
+    langueActuelle = lang;
+    document.body.className = 'lang-' + lang;
+    localStorage.setItem('langue', lang);
+    document.querySelectorAll('.barre-langue button').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + lang)?.classList.add('active');
   }
-}
 
-// ✅ CHARGER EMPLOI DU TEMPS
-async function chargerEdt(){
-  const zone = document.getElementById('liste-edt');
-  const alerteApi = document.getElementById('alerteApi');
-  const texteAlerteApi = document.getElementById('texteAlerteApi');
+  // ✅ Appliquer langue au chargement
+  document.body.className = 'lang-' + langueActuelle;
+  document.getElementById('btn-' + langueActuelle)?.classList.add('active');
 
-  try {
-    const r = await fetch(`${API_URL}/emploi/tout`, {headers:{'Authorization':`Bearer ${token}`}});
-    const res = await r.json();
+  // 📄 Rendu d'une ligne séance
+  function rendreLigneSeance(x) {
+    return `
+      <div class="d-flex justify-content-between align-items-center p-3 mb-2 rounded" style="background:var(--sombre)">
+        <div>
+          <span class="badge bg-info text-dark me-2">${x.jour || ''}</span>
+          <strong>${(x.heure_debut||'').slice(0,5)} — ${(x.heure_fin||'').slice(0,5)}</strong>
+          <span class="mx-2">|</span>
+          <span class="text-warning">${x.classe || '—'}</span>
+          <span class="mx-1">•</span>
+          <span>${x.matiere || '—'}</span>
+          <span class="mx-1">—</span>
+          <em class="text-success">${x.prof || 'Non affecté'}</em>
+          ${x.salle ? `<span class="badge bg-secondary ms-2">${x.salle}</span>` : ''}
+        </div>
+        <button class="btn btn-suppr-lumineux btn-sm" onclick="supprimer(${x.id_emploi || x.id})">
+          <i class="bi bi-trash"></i>
+          <span class="txt-fr"> Supprimer</span>
+          <span class="txt-en"> Delete</span>
+          <span class="txt-ar"> حذف</span>
+        </button>
+      </div>`;
+  }
+
+  // ✅ CHARGER CLASSES, MATIÈRES, PROFESSEURS (avec requeteAPI)
+  async function chargerListes() {
+    try {
+      const [clRes, mtRes, prRes] = await Promise.all([
+        requeteAPI('/classes/'),
+        requeteAPI('/matieres/'),
+        requeteAPI('/utilisateurs/professeurs')
+      ]);
+
+      if (clRes.ok && clRes.lignes) {
+        document.getElementById('sel-cl').innerHTML =
+          '<option value="">--- Sélectionner ---</option>' +
+          clRes.lignes.map(x => `<option value="${x.id_classe}">${x.libelle_classe}</option>`).join('');
+      }
+      if (mtRes.ok && mtRes.lignes) {
+        document.getElementById('sel-mat').innerHTML =
+          '<option value="">--- Sélectionner ---</option>' +
+          mtRes.lignes.map(x => `<option value="${x.id_matiere}">${x.libelle_matiere}</option>`).join('');
+      }
+      if (prRes.ok && prRes.utilisateurs) {
+        document.getElementById('sel-pr').innerHTML =
+          '<option value="">--- Sélectionner ---</option>' +
+          prRes.utilisateurs.map(x => `<option value="${x.id}">${x.nom} ${x.prenom}</option>`).join('');
+      }
+    } catch (e) {
+      console.warn("🔌 Chargement listes impossible", e);
+    }
+  }
+
+  // ✅ CHARGER EMPLOI DU TEMPS
+  async function chargerEdt() {
+    const zone = document.getElementById('liste-edt');
+    const alerteApi = document.getElementById('alerteApi');
+    const texteAlerteApi = document.getElementById('texteAlerteApi');
     alerteApi.classList.add('d-none');
 
-    if(res.ok && res.lignes && res.lignes.length > 0){
-      zone.innerHTML = res.lignes.map(x => rendreLigneSeance(x)).join('');
-      sauvegarderEdtLocal(res.lignes);
-    } else {
-      zone.innerHTML = `<div class="text-center py-4 text-muted">
-        <span class="txt-fr">${MSG.fr.aucune}</span>
-        <span class="txt-en">${MSG.en.aucune}</span>
-        <span class="txt-ar">${MSG.ar.aucune}</span>
-      </div>`;
-      sauvegarderEdtLocal([]);
-    }
-  } catch {
-    console.warn("🔌 Mode local EDT actif");
-    texteAlerteApi.textContent = m('serveurIndispo');
-    alerteApi.classList.remove('d-none');
-    const locale = obtenirEdtLocal();
-    if(locale.length === 0){
-      zone.innerHTML = `<div class="text-center py-4 text-muted">
-        <span class="txt-fr">${MSG.fr.aucune}</span>
-        <span class="txt-en">${MSG.en.aucune}</span>
-        <span class="txt-ar">${MSG.ar.aucune}</span>
-      </div>`;
-      return;
-    }
-    zone.innerHTML = locale.map(x => rendreLigneSeance(x)).join('');
-  }
-}
+    try {
+      const res = await requeteAPI('/emploi/tout');
 
-// 💾 ENREGISTRER UNE SÉANCE
-document.getElementById('formEdt').addEventListener('submit', async e => {
-  e.preventDefault();
-  const d = Object.fromEntries(new FormData(e.target));
-  try {
-    const r = await fetch(`${API_URL}/emploi/ajouter`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-      body: JSON.stringify(d)
-    });
-    const res = await r.json();
-    if(res.ok){
+      if (res.ok && res.lignes && res.lignes.length > 0) {
+        zone.innerHTML = res.lignes.map(x => rendreLigneSeance(x)).join('');
+        sauvegarderEdtLocal(res.lignes);
+      } else {
+        zone.innerHTML = `<div class="text-center py-4 text-muted">
+          <span class="txt-fr">${MSG.fr.aucune}</span>
+          <span class="txt-en">${MSG.en.aucune}</span>
+          <span class="txt-ar">${MSG.ar.aucune}</span>
+        </div>`;
+        sauvegarderEdtLocal([]);
+      }
+    } catch {
+      console.warn("🔌 Mode local EDT actif");
+      texteAlerteApi.textContent = m('serveurIndispo');
+      alerteApi.classList.remove('d-none');
+
+      const locale = obtenirEdtLocal();
+      if (locale.length === 0) {
+        zone.innerHTML = `<div class="text-center py-4 text-muted">
+          <span class="txt-fr">${MSG.fr.aucune}</span>
+          <span class="txt-en">${MSG.en.aucune}</span>
+          <span class="txt-ar">${MSG.ar.aucune}</span>
+        </div>`;
+        return;
+      }
+      zone.innerHTML = locale.map(x => rendreLigneSeance(x)).join('');
+    }
+  }
+
+  // 💾 ENREGISTRER UNE SÉANCE
+  document.getElementById('formEdt').addEventListener('submit', async e => {
+    e.preventDefault();
+    const d = Object.fromEntries(new FormData(e.target));
+
+    try {
+      const res = await requeteAPI('/emploi/ajouter', {
+        method: 'POST',
+        body: JSON.stringify(d)
+      });
+
+      if (res.ok) {
+        alert(m('enregOk'));
+        e.target.reset();
+        chargerEdt();
+      } else {
+        alert("❌ " + (res.erreur || m('erreurChargement')));
+      }
+    } catch {
+      // Mode local
+      const locale = obtenirEdtLocal();
+      d.id = Date.now();
+      d.id_emploi = d.id;
+      d.classe = document.querySelector(`#sel-cl option[value="${d.id_classe}"]`)?.textContent || '';
+      d.matiere = document.querySelector(`#sel-mat option[value="${d.id_matiere}"]`)?.textContent || '';
+      d.prof = document.querySelector(`#sel-pr option[value="${d.id_prof}"]`)?.textContent || '';
+      locale.push(d);
+      sauvegarderEdtLocal(locale);
       alert(m('enregOk'));
       e.target.reset();
       chargerEdt();
-    } else {
-      alert("❌ " + (res.erreur || "Erreur"));
     }
-  } catch {
-    const locale = obtenirEdtLocal();
-    d.id = Date.now();
-    d.id_emploi = d.id;
-    d.classe = document.querySelector(`#sel-cl option[value="${d.id_classe}"]`)?.textContent || '';
-    d.matiere = document.querySelector(`#sel-mat option[value="${d.id_matiere}"]`)?.textContent || '';
-    d.prof = document.querySelector(`#sel-pr option[value="${d.id_prof}"]`)?.textContent || '';
-    locale.push(d);
-    sauvegarderEdtLocal(locale);
-    alert(m('enregOk'));
-    e.target.reset();
+  });
+
+  // ❌ SUPPRIMER UNE SÉANCE
+  async function supprimer(id) {
+    if (!confirm(m('confSuppr'))) return;
+
+    try {
+      await requeteAPI(`/emploi/${id}`, { method: 'DELETE' });
+      alert(m('supprOk'));
+    } catch {
+      // Mode local
+      const locale = obtenirEdtLocal().filter(x => (x.id_emploi || x.id) !== id);
+      sauvegarderEdtLocal(locale);
+      alert(m('supprOk'));
+    }
     chargerEdt();
   }
-});
 
-// ❌ SUPPRIMER UNE SÉANCE
-async function supprimer(id){
-  if(!confirm(m('confSuppr'))) return;
-  try {
-    await fetch(`${API_URL}/emploi/${id}`, {
-      method: 'DELETE',
-      headers: {'Authorization':`Bearer ${token}`}
-    });
-    alert(m('supprOk'));
-  } catch {
-    const locale = obtenirEdtLocal().filter(x => (x.id_emploi||x.id) !== id);
-    sauvegarderEdtLocal(locale);
-    alert(m('supprOk'));
-  }
+  // 🚀 AU CHARGEMENT
+  chargerListes();
   chargerEdt();
-}
-
-// 🚀 AU CHARGEMENT
-chargerListes();
-chargerEdt();
 </script>
 </body>
 </html>

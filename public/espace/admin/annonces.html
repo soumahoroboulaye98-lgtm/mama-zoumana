@@ -20,8 +20,6 @@
       --bord-radius: 16px; --ombre: 0 4px 20px rgba(0,0,0,0.07);
       --ombre-hover: 0 12px 40px rgba(0,0,0,0.12);
     }
-
-    /* ===== 🌐 LANGUE ===== */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
@@ -31,11 +29,8 @@
     body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
     body.lang-ar .titre-page,
     body.lang-ar .menu-titre { text-align: right; }
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: var(--fond-page); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-
-    /* ===== ✨ ANIMATIONS ===== */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(25px); }
       to { opacity: 1; transform: translateY(0); }
@@ -47,8 +42,6 @@
     .fade-in-up { animation: fadeInUp 0.6s ease-out forwards; opacity: 0; }
     .delay-1 { animation-delay: 0.1s; }
     .delay-2 { animation-delay: 0.2s; }
-
-    /* ===== 🎞️ BANDEAU DÉFILANT ===== */
     .bandeau-defilant {
       background: linear-gradient(90deg, var(--primaire), var(--accent), var(--primaire));
       background-size: 200% 100%;
@@ -77,8 +70,6 @@
       0% { transform: translateX(-100%); }
       100% { transform: translateX(100%); }
     }
-
-    /* ===== 🧭 MENU LATÉRAL ===== */
     .sidebar {
       background: linear-gradient(180deg, var(--sombre), var(--sombre-clair));
       min-height: 100vh; width: 270px; position: fixed; left: 0; top: 0;
@@ -111,10 +102,8 @@
     .menu-item:hover { background: rgba(245,158,11,0.12); color: var(--accent); transform: translateX(5px); }
     body.lang-ar .menu-item:hover { transform: translateX(-5px); }
     .menu-item i { font-size: 1.15rem; width: 20px; text-align: center; flex-shrink: 0; }
-
     .contenu { margin-left: 270px; padding: 2rem; min-height: 100vh; }
     body.lang-ar .contenu { margin-left: 0; margin-right: 270px; }
-
     .entete-superieur { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
     .btn-accueil-page, .btn-deconnexion-page {
       padding: 0.6rem 1.2rem; border-radius: 12px; display: flex; align-items: center; gap: 0.5rem;
@@ -141,8 +130,6 @@
     }
     .form-control, .form-select { border-radius: 10px; border: 1px solid #cbd5e1; padding: 0.75rem 1rem; transition: all 0.2s ease; }
     .form-control:focus, .form-select:focus { box-shadow: 0 0 0 3px rgba(12,74,110,0.15); border-color: var(--primaire); }
-
-    /* 📦 BLOC PAR LANGUE */
     .bloc-langue {
       border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.15rem;
       margin-bottom: 1rem; background: #fafafa; transition: all 0.3s ease;
@@ -155,8 +142,6 @@
     .bloc-en h6 { color: #10b981; border-bottom-color: #10b981; }
     .bloc-ar h6 { color: #f59e0b; border-bottom-color: #f59e0b; direction: rtl; text-align: right; }
     .etoile-rouge { color: #ef4444; font-weight: bold; }
-
-    /* 📢 CARTE ANNONCE */
     .annonce-card {
       border-left: 4px solid; transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
       position: relative; overflow: hidden; opacity: 0; transform: translateY(20px);
@@ -171,11 +156,9 @@
     body.lang-ar .annonce-card.info { border-right-color: var(--info); }
     .annonce-card.normal { border-left-color: var(--succes); }
     body.lang-ar .annonce-card.normal { border-right-color: var(--succes); }
-
     .statut-public { font-size: 0.8rem; padding: 2px 10px; border-radius: 20px; font-weight: 500; }
     .statut-visible { background: #dcfce7; color: #166534; }
     .alerte-api { border-left: 4px solid var(--alerte); background: rgba(239,68,68,0.1); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
-
     @media (max-width: 991px) {
       .sidebar { position: relative; width: 100%; min-height: auto; }
       .contenu { margin: 0 !important; padding: 1rem; }
@@ -183,70 +166,88 @@
   </style>
 </head>
 <body>
-
 <script>
-  // 🔗 URL adaptative
-  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/api'
-    : 'https://mama-zoumana-api.onrender.com/api';
+const API_URL = "https://mama-zoumana-api.onrender.com/api";
 
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
-  const nomUtilisateur = localStorage.getItem('nom') || 'Utilisateur';
-  const prenomUtilisateur = localStorage.getItem('prenoms') || '';
-  const nomComplet = (nomUtilisateur + ' ' + prenomUtilisateur).trim();
-  let langueActuelle = localStorage.getItem('langue') || 'fr';
+function getToken() {
+  return localStorage.getItem('token');
+}
 
-  // 💾 Stockage local
-  function obtenirAnnoncesLocales() { return JSON.parse(localStorage.getItem('annonces') || '[]'); }
-  function sauvegarderAnnoncesLocales(liste) { localStorage.setItem('annonces', JSON.stringify(liste)); }
-
-  // 🗣️ Messages
-  const MSG = {
-    fr: {
-      accesReserve: "⛔ Accès réservé à l'Administrateur",
-      serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
-      annoncePubliee: "✅ Annonce publiée ! Visible en permanence jusqu'à suppression.",
-      annonceSupprimee: "✅ Annonce supprimée !",
-      erreurChamps: "⚠️ Remplissez TOUS les champs (Français, Anglais et Arabe)",
-      erreurReseau: "❌ Erreur de connexion",
-      confSuppression: "⚠️ Supprimer définitivement cette annonce ? Irréversible.",
-      aucuneAnnonce: "🔔 Aucune annonce pour l'instant",
-      chargement: "Chargement..."
-    },
-    en: {
-      accesReserve: "⛔ Access restricted to Administrator",
-      serveurIndispo: "⚠️ Server offline — Local mode active",
-      annoncePubliee: "✅ Published! Visible forever until deleted.",
-      annonceSupprimee: "✅ Announcement deleted!",
-      erreurChamps: "⚠️ Fill in ALL fields (French, English and Arabic)",
-      erreurReseau: "❌ Connection error",
-      confSuppression: "⚠️ Delete permanently? Cannot be undone.",
-      aucuneAnnonce: "🔔 No announcements yet",
-      chargement: "Loading..."
-    },
-    ar: {
-      accesReserve: "⛔ الوصول مقصور على المدير",
-      serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
-      annoncePubliee: "✅ تم النشر! تظهر دائمًا حتى الحذف.",
-      annonceSupprimee: "✅ تم حذف الإعلان!",
-      erreurChamps: "⚠️ املأ جميع الحقول (الفرنسية والإنجليزية والعربية)",
-      erreurReseau: "❌ خطأ في الاتصال",
-      confSuppression: "⚠️ حذف نهائيًا؟ لا يمكن التراجع.",
-      aucuneAnnonce: "🔔 لا توجد إعلانات",
-      chargement: "جار التحميل..."
+async function requeteAPI(chemin, options = {}) {
+  const reponse = await fetch(`${API_URL}${chemin}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+      ...options.headers
     }
-  };
-  function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
-
-  // 🔒 SÉCURITÉ
-  if (!token || !['admin','super_admin'].includes(role)) {
-    alert(m('accesReserve'));
-    localStorage.clear();
-    location.href = 'connexion.html';
+  });
+  const donnees = await reponse.json();
+  if (reponse.status === 401) {
+    alert("⛔ Session expirée — Veuillez vous reconnecter");
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    window.location.href = 'connexion.html';
+    return;
   }
+  return donnees;
+}
 
-  document.body.classList.add('lang-' + langueActuelle);
+const token = getToken();
+const role = localStorage.getItem('role');
+const nomUtilisateur = localStorage.getItem('nom') || 'Utilisateur';
+const prenomUtilisateur = localStorage.getItem('prenoms') || '';
+const nomComplet = (nomUtilisateur + ' ' + prenomUtilisateur).trim();
+let langueActuelle = localStorage.getItem('langue') || 'fr';
+
+function obtenirAnnoncesLocales() { return JSON.parse(localStorage.getItem('annonces') || '[]'); }
+function sauvegarderAnnoncesLocales(liste) { localStorage.setItem('annonces', JSON.stringify(liste)); }
+
+const MSG = {
+  fr: {
+    accesReserve: "⛔ Accès réservé à l'Administrateur",
+    serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
+    annoncePubliee: "✅ Annonce publiée ! Visible en permanence jusqu'à suppression.",
+    annonceSupprimee: "✅ Annonce supprimée !",
+    erreurChamps: "⚠️ Remplissez TOUS les champs (Français, Anglais et Arabe)",
+    erreurReseau: "❌ Erreur de connexion",
+    confSuppression: "⚠️ Supprimer définitivement cette annonce ? Irréversible.",
+    aucuneAnnonce: "🔔 Aucune annonce pour l'instant",
+    chargement: "Chargement..."
+  },
+  en: {
+    accesReserve: "⛔ Access restricted to Administrator",
+    serveurIndispo: "⚠️ Server offline — Local mode active",
+    annoncePubliee: "✅ Published! Visible forever until deleted.",
+    annonceSupprimee: "✅ Announcement deleted!",
+    erreurChamps: "⚠️ Fill in ALL fields (French, English and Arabic)",
+    erreurReseau: "❌ Connection error",
+    confSuppression: "⚠️ Delete permanently? Cannot be undone.",
+    aucuneAnnonce: "🔔 No announcements yet",
+    chargement: "Loading..."
+  },
+  ar: {
+    accesReserve: "⛔ الوصول مقصور على المدير",
+    serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
+    annoncePubliee: "✅ تم النشر! تظهر دائمًا حتى الحذف.",
+    annonceSupprimee: "✅ تم حذف الإعلان!",
+    erreurChamps: "⚠️ املأ جميع الحقول (الفرنسية والإنجليزية والعربية)",
+    erreurReseau: "❌ خطأ في الاتصال",
+    confSuppression: "⚠️ حذف نهائيًا؟ لا يمكن التراجع.",
+    aucuneAnnonce: "🔔 لا توجد إعلانات",
+    chargement: "جار التحميل..."
+  }
+};
+function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
+
+// 🔒 SÉCURITÉ
+if (!token || !['admin','super_admin'].includes((role||'').toLowerCase())) {
+  alert(m('accesReserve'));
+  localStorage.clear();
+  location.href = 'connexion.html';
+}
+
+document.body.classList.add('lang-' + langueActuelle);
 </script>
 
 <div class="sidebar">
@@ -292,13 +293,11 @@
     </div>
   </div>
 
-  <!-- ⚠️ ALERTE API -->
   <div id="alerteApi" class="alerte-api d-none">
     <i class="bi bi-wifi-off me-2"></i>
     <span id="texteAlerteApi"></span>
   </div>
 
-  <!-- 🎞️ BANDEAU DÉFILANT -->
   <div class="bandeau-defilant">
     <span class="texte-defilant" id="texte-bandeau">🔔 <span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جار التحميل...</span></span>
   </div>
@@ -306,7 +305,6 @@
   <h2 class="titre-page fade-in-up">📢 <span class="txt-fr">Gestion des Annonces</span><span class="txt-en">Announcements Management</span><span class="txt-ar">إدارة الإعلانات</span></h2>
 
   <div class="row g-4">
-    <!-- ✏️ FORMULAIRE DE PUBLICATION -->
     <div class="col-lg-4 fade-in-up delay-1">
       <div class="carte p-4">
         <h5 class="mb-3"><i class="bi bi-pencil-square text-primary me-2"></i> <span class="txt-fr">Publier une Annonce</span><span class="txt-en">Publish an Announcement</span><span class="txt-ar">نشر إعلان</span></h5>
@@ -363,7 +361,6 @@
       </div>
     </div>
 
-    <!-- 📋 LISTE DES ANNONCES -->
     <div class="col-lg-8 fade-in-up delay-2">
       <div class="carte p-4">
         <h5 class="mb-3"><i class="bi bi-list-check text-success me-2"></i> <span class="txt-fr">Toutes les Annonces</span><span class="txt-en">All Announcements</span><span class="txt-ar">جميع الإعلانات</span></h5>
@@ -379,162 +376,183 @@
 </div>
 
 <script>
-  // 🗣️ CHANGEMENT DE LANGUE
-  function changerLangue(lang) {
-    langueActuelle = lang;
-    localStorage.setItem('langue', lang);
-    document.body.classList.remove('lang-fr','lang-en','lang-ar');
-    document.body.classList.add('lang-' + lang);
-    document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('actif'));
-    document.getElementById('btn-' + lang)?.classList.add('actif');
-    chargerAnnonces();
+function basculerModeLocal(actif) {
+  modeLocal = actif;
+  const alerte = document.getElementById('alerteApi');
+  const texte = document.getElementById('texteAlerteApi');
+  if (actif) {
+    texte.textContent = m('serveurIndispo');
+    alerte.classList.remove('d-none');
+  } else {
+    alerte.classList.add('d-none');
+  }
+}
+
+// 🗣️ CHANGEMENT DE LANGUE
+function changerLangue(lang) {
+  langueActuelle = lang;
+  localStorage.setItem('langue', lang);
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + lang);
+  document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('actif'));
+  document.getElementById('btn-' + lang)?.classList.add('actif');
+  chargerAnnonces();
+}
+
+// 🔐 DÉCONNEXION
+window.deconnecter = function() {
+  const msg = { ar: 'هل تريد تسجيل الخروج ؟', en: 'Are you sure you want to log out?', fr: 'Êtes-vous sûr de vouloir vous déconnecter ?' }[langueActuelle];
+  if (confirm(msg)) { localStorage.clear(); location.href = 'connexion.html'; }
+};
+
+// 📤 SOUMISSION FORMULAIRE
+document.getElementById('form-annonce').addEventListener('submit', async e => {
+  e.preventDefault();
+  const titre_fr = document.getElementById('titre_fr').value.trim();
+  const titre_en = document.getElementById('titre_en').value.trim();
+  const titre_ar = document.getElementById('titre_ar').value.trim();
+  const contenu_fr = document.getElementById('contenu_fr').value.trim();
+  const contenu_en = document.getElementById('contenu_en').value.trim();
+  const contenu_ar = document.getElementById('contenu_ar').value.trim();
+  const priorite = document.getElementById('priorite').value;
+  const cible = document.getElementById('cible').value;
+
+  if (!titre_fr || !titre_en || !titre_ar || !contenu_fr || !contenu_en || !contenu_ar) {
+    alert(m('erreurChamps'));
+    return;
   }
 
-  // 🔐 DÉCONNEXION
-  window.deconnecter = function() {
-    const msg = { ar: 'هل تريد تسجيل الخروج ؟', en: 'Are you sure you want to log out?', fr: 'Êtes-vous sûr de vouloir vous déconnecter ?' }[langueActuelle];
-    if (confirm(msg)) { localStorage.clear(); location.href = 'connexion.html'; }
+  const nouvelleAnnonce = {
+    titre_fr, titre_en, titre_ar,
+    contenu_fr, contenu_en, contenu_ar,
+    priorite, cible
   };
 
-  // 📤 SOUMISSION FORMULAIRE
-  document.getElementById('form-annonce').addEventListener('submit', async e => {
-    e.preventDefault();
-    const titre_fr = document.getElementById('titre_fr').value.trim();
-    const titre_en = document.getElementById('titre_en').value.trim();
-    const titre_ar = document.getElementById('titre_ar').value.trim();
-    const contenu_fr = document.getElementById('contenu_fr').value.trim();
-    const contenu_en = document.getElementById('contenu_en').value.trim();
-    const contenu_ar = document.getElementById('contenu_ar').value.trim();
-    const priorite = document.getElementById('priorite').value;
-    const cible = document.getElementById('cible').value;
-
-    if (!titre_fr || !titre_en || !titre_ar || !contenu_fr || !contenu_en || !contenu_ar) {
-      alert(m('erreurChamps'));
-      return;
-    }
-
-    const nouvelleAnnonce = {
-      id_annonce: Date.now(),
-      titre_fr, titre_en, titre_ar,
-      contenu_fr, contenu_en, contenu_ar,
-      priorite, cible,
-      date_publication: new Date().toISOString()
-    };
-
-    let liste = obtenirAnnoncesLocales();
-
-    try {
-      const r = await fetch(`${API_URL}/annonces`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(nouvelleAnnonce)
-      });
-      if (!r.ok) throw new Error();
+  let liste = obtenirAnnoncesLocales();
+  try {
+    const res = await requeteAPI('/annonces', {
+      method: 'POST',
+      body: JSON.stringify(nouvelleAnnonce)
+    });
+    if (res.ok) {
+      nouvelleAnnonce.id = res.id || Date.now();
+      nouvelleAnnonce.date_publication = new Date().toISOString();
       liste.unshift(nouvelleAnnonce);
       sauvegarderAnnoncesLocales(liste);
       alert(m('annoncePubliee'));
       e.target.reset();
       chargerAnnonces();
-    } catch {
-      liste.unshift(nouvelleAnnonce);
-      sauvegarderAnnoncesLocales(liste);
-      alert(m('annoncePubliee') + " (local)");
-      e.target.reset();
-      chargerAnnonces(true);
+    } else {
+      throw new Error();
     }
-  });
+  } catch {
+    nouvelleAnnonce.id = Date.now();
+    nouvelleAnnonce.date_publication = new Date().toISOString();
+    liste.unshift(nouvelleAnnonce);
+    sauvegarderAnnoncesLocales(liste);
+    alert(m('annoncePubliee') + " (local)");
+    e.target.reset();
+    chargerAnnonces(true);
+  }
+});
 
-  // 📋 CHARGER ANNONCES
-  async function chargerAnnonces(forcerLocal = false) {
-    const zone = document.getElementById('liste-annonces');
-    const bandeau = document.getElementById('texte-bandeau');
-    const alerteApi = document.getElementById('alerteApi');
-    const texteAlerteApi = document.getElementById('texteAlerteApi');
+// 📋 CHARGER ANNONCES
+async function chargerAnnonces(forcerLocal = false) {
+  const zone = document.getElementById('liste-annonces');
+  const bandeau = document.getElementById('texte-bandeau');
+  const alerteApi = document.getElementById('alerteApi');
+  const texteAlerteApi = document.getElementById('texteAlerteApi');
+  let annonces = [];
 
-    let annonces = [];
-
-    if (!forcerLocal) {
-      try {
-        const r = await fetch(`${API_URL}/annonces`, { headers: { 'Authorization': `Bearer ${token}` } });
-        if (!r.ok) throw new Error();
-        const res = await r.json();
-        annonces = res.annonces || [];
+  if (!forcerLocal) {
+    try {
+      const res = await requeteAPI('/annonces');
+      if (res.ok) {
+        annonces = res.annonces || res.lignes || [];
         sauvegarderAnnoncesLocales(annonces);
         alerteApi.classList.add('d-none');
-      } catch {
-        forcerLocal = true;
+      } else {
+        throw new Error();
       }
+    } catch {
+      forcerLocal = true;
     }
-
-    if (forcerLocal) {
-      texteAlerteApi.textContent = m('serveurIndispo');
-      alerteApi.classList.remove('d-none');
-      annonces = obtenirAnnoncesLocales();
-    }
-
-    // Bandeau défilant
-    if (annonces.length > 0) {
-      bandeau.textContent = annonces.map(a => a[`titre_${langueActuelle}`] || a.titre_fr).join(' — ');
-    } else {
-      bandeau.textContent = m('aucuneAnnonce');
-    }
-
-    // Liste affichage
-    if (annonces.length === 0) {
-      zone.innerHTML = `<p class="text-muted text-center py-4">${m('aucuneAnnonce')}</p>`;
-      return;
-    }
-
-    zone.innerHTML = annonces.map((a, idx) => {
-      const titre = a[`titre_${langueActuelle}`] || a.titre_fr || '';
-      const contenu = a[`contenu_${langueActuelle}`] || a.contenu_fr || '';
-      const datePub = a.date_publication ? new Date(a.date_publication).toLocaleString('fr-FR') : '';
-      const badgePriorite = a.priorite === 'importante' ? 'danger' : a.priorite === 'info' ? 'info' : 'success';
-      return `
-        <div class="annonce-card ${a.priorite} p-3 mb-3 rounded-2" style="animation-delay: ${idx * 0.1}s">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <h6 class="mb-1 fw-bold">${titre}</h6>
-            <div class="d-flex gap-2 align-items-center">
-              <span class="badge bg-${badgePriorite}">${a.priorite}</span>
-              <span class="statut-public statut-visible">♾️ <span class="txt-fr">Active</span><span class="txt-en">Active</span><span class="txt-ar">نشطة</span></span>
-            </div>
-          </div>
-          <p class="mb-2 text-dark">${contenu}</p>
-          <div class="d-flex flex-wrap justify-content-between align-items-center small text-muted pt-2 border-top">
-            <div><i class="bi bi-calendar3 me-1"></i> <span class="txt-fr">Publié le</span><span class="txt-en">Published on</span><span class="txt-ar">نشر في</span> : ${datePub} | ♾️ <span class="txt-fr">Permanente</span><span class="txt-en">Permanent</span><span class="txt-ar">دائمة</span></span></div>
-            <div class="d-flex gap-1 mt-1">
-              <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="supprimerAnnonce(${a.id_annonce})" title="Supprimer">
-                <i class="bi bi-trash"></i>
-              </button>
-            </div>
-          </div>
-        </div>`;
-    }).join('');
   }
 
-  // ❌ SUPPRIMER ANNONCE
-  window.supprimerAnnonce = async function(id) {
-    if (!confirm(m('confSuppression'))) return;
-    let liste = obtenirAnnoncesLocales().filter(a => String(a.id_annonce) !== String(id));
+  if (forcerLocal) {
+    texteAlerteApi.textContent = m('serveurIndispo');
+    alerteApi.classList.remove('d-none');
+    annonces = obtenirAnnoncesLocales();
+  }
 
-    try {
-      await fetch(`${API_URL}/annonces/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+  // Bandeau défilant
+  if (annonces.length > 0) {
+    bandeau.textContent = annonces.map(a => a[`titre_${langueActuelle}`] || a.titre_fr).join(' — ');
+  } else {
+    bandeau.textContent = m('aucuneAnnonce');
+  }
+
+  // Liste affichage
+  if (annonces.length === 0) {
+    zone.innerHTML = `<p class="text-muted text-center py-4">${m('aucuneAnnonce')}</p>`;
+    return;
+  }
+
+  zone.innerHTML = annonces.map((a, idx) => {
+    const titre = a[`titre_${langueActuelle}`] || a.titre_fr || '';
+    const contenu = a[`contenu_${langueActuelle}`] || a.contenu_fr || '';
+    const datePub = a.date_publication ? new Date(a.date_publication).toLocaleString('fr-FR') : '';
+    const badgePriorite = a.priorite === 'importante' ? 'danger' : a.priorite === 'info' ? 'info' : 'success';
+    return `
+      <div class="annonce-card ${a.priorite || 'normal'} p-3 mb-3 rounded-2" style="animation-delay: ${idx * 0.1}s">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h6 class="mb-1 fw-bold">${titre}</h6>
+          <div class="d-flex gap-2 align-items-center">
+            <span class="badge bg-${badgePriorite}">${a.priorite || 'normal'}</span>
+            <span class="statut-public statut-visible">♾️ <span class="txt-fr">Active</span><span class="txt-en">Active</span><span class="txt-ar">نشطة</span></span>
+          </div>
+        </div>
+        <p class="mb-2 text-dark">${contenu}</p>
+        <div class="d-flex flex-wrap justify-content-between align-items-center small text-muted pt-2 border-top">
+          <div><i class="bi bi-calendar3 me-1"></i> <span class="txt-fr">Publié le</span><span class="txt-en">Published on</span><span class="txt-ar">نشر في</span> : ${datePub} | ♾️ <span class="txt-fr">Permanente</span><span class="txt-en">Permanent</span><span class="txt-ar">دائمة</span></span></div>
+          <div class="d-flex gap-1 mt-1">
+            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="supprimerAnnonce(${a.id})">
+              <i class="bi bi-trash3"></i>
+            </button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ❌ SUPPRIMER ANNONCE
+window.supprimerAnnonce = async function(id) {
+  if (!confirm(m('confSuppression'))) return;
+  let liste = obtenirAnnoncesLocales().filter(a => String(a.id) !== String(id));
+  try {
+    const res = await requeteAPI(`/annonces/${id}`, { method: 'DELETE' });
+    if (res.ok) {
       sauvegarderAnnoncesLocales(liste);
       alert(m('annonceSupprimee'));
       chargerAnnonces();
-    } catch {
-      sauvegarderAnnoncesLocales(liste);
-      alert(m('annonceSupprimee') + " (local)");
-      chargerAnnonces(true);
+    } else {
+      throw new Error();
     }
-  };
+  } catch {
+    sauvegarderAnnoncesLocales(liste);
+    alert(m('annonceSupprimee') + " (local)");
+    chargerAnnonces(true);
+  }
+};
 
-  // 🚀 AU CHARGEMENT
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('actif', b.dataset.lang === langueActuelle));
-    document.getElementById('nom-affiche').textContent = nomComplet;
-    chargerAnnonces();
+// 🚀 AU CHARGEMENT
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.btn-langue').forEach(b => {
+    b.classList.toggle('actif', b.dataset.lang === langueActuelle);
   });
+  document.getElementById('nom-affiche').textContent = nomComplet;
+  chargerAnnonces();
+});
 </script>
 </body>
 </html>

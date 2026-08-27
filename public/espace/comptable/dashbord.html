@@ -205,7 +205,25 @@ if(!localStorage.getItem('token') || localStorage.getItem('role')!=='comptable')
 // ==================================================
 // 🔧 CONFIGURATION
 // ==================================================
-const API_URL = "http://localhost:8000/api";
+const API_URL = "https://mama-zoumana-api.onrender.com/api";
+function getToken() { return localStorage.getItem('token'); }
+async function requeteAPI(chemin, options = {}) {
+  const reponse = await fetch(`${API_URL}${chemin}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+      ...options.headers
+    }
+  });
+  const donnees = await reponse.json();
+  if (reponse.status === 401) {
+    alert("⛔ Session expirée — Reconnectez-vous");
+    localStorage.clear();
+    window.location.href = 'connexion.html';
+  }
+  return donnees;
+}
 let paiements = [];
 
 function formatMontant(m) {
