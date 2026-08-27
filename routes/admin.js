@@ -7,7 +7,6 @@ const verifadmin = require('../middleware/verifadmin');
 // ✅ Protection groupée uniforme
 const protegerAdmin = [veriftoken, verifadmin];
 
-
 // ==================================================
 // 📊 STATISTIQUES GLOBALES
 // ==================================================
@@ -15,14 +14,16 @@ router.get('/statistiques', protegerAdmin, async (req, res) => {
   try {
     const classes = await pool.query(`SELECT COUNT(*) FROM classes`);
     const eleves = await pool.query(`SELECT COUNT(*) FROM utilisateurs WHERE role = 'eleve'`);
-    const profs = await pool.query(`SELECT COUNT(*) FROM utilisateurs WHERE role = 'prof'`);
+    const professeurs = await pool.query(`SELECT COUNT(*) FROM utilisateurs WHERE role = 'professeur'`);
 
+    // ✅ Correction : table = preinscriptions / statut = 'en_attente'
     let attente = 0;
     try {
       const r = await pool.query(`SELECT COUNT(*) FROM preinscriptions WHERE statut = 'en_attente'`);
       attente = parseInt(r.rows[0].count, 10);
     } catch { attente = 0; }
 
+    // ✅ Correction : noms de tables et colonnes harmonisés
     let totalPaiements = 0, paiementsEnAttente = 0;
     try {
       const paye = await pool.query(`SELECT COALESCE(SUM(montant_paye), 0) AS total FROM paiements`);
@@ -37,7 +38,7 @@ router.get('/statistiques', protegerAdmin, async (req, res) => {
       stats: {
         classes: parseInt(classes.rows[0].count, 10),
         eleves: parseInt(eleves.rows[0].count, 10),
-        profs: parseInt(profs.rows[0].count, 10),
+        professeurs: parseInt(professeurs.rows[0].count, 10),
         attente,
         totalPaiements,
         paiementsEnAttente
@@ -48,11 +49,10 @@ router.get('/statistiques', protegerAdmin, async (req, res) => {
     res.json({
       ok: false,
       erreur: "Erreur serveur : " + e.message,
-      stats: { classes: 0, eleves: 0, profs: 0, attente: 0, totalPaiements: 0, paiementsEnAttente: 0 }
+      stats: { classes: 0, eleves: 0, professeurs: 0, attente: 0, totalPaiements: 0, paiementsEnAttente: 0 }
     });
   }
 });
-
 
 // ==================================================
 // 📋 DERNIÈRES INSCRIPTIONS
@@ -73,7 +73,6 @@ router.get('/dernieres-inscriptions', protegerAdmin, async (req, res) => {
     res.json({ ok: false, inscriptions: [] });
   }
 });
-
 
 // ==================================================
 // ⚠️ ALERTES DU SYSTÈME
@@ -97,12 +96,13 @@ router.get('/alertes', protegerAdmin, async (req, res) => {
     }
   } catch {}
 
+  // ✅ Correction : rôle 'professeur' et clé étrangère harmonisée
   try {
     const sansAffectation = await pool.query(`
-      SELECT COUNT(DISTINCT u.id) 
+      SELECT COUNT(DISTINCT u.id_utilisateur) 
       FROM utilisateurs u
-      LEFT JOIN affectations_ens a ON u.id = a.id_prof
-      WHERE u.role = 'prof' AND a.id_prof IS NULL
+      LEFT JOIN affectations_ens a ON u.id_utilisateur = a.id_prof
+      WHERE u.role = 'professeur' AND a.id_prof IS NULL
     `);
     const nbSansAff = parseInt(sansAffectation.rows[0].count, 10);
     if (nbSansAff > 0) {
@@ -120,14 +120,13 @@ router.get('/alertes', protegerAdmin, async (req, res) => {
   res.json({ ok: true, alertes });
 });
 
-
 // ==================================================
 // 📈 RÉPARTITION DES ÉLÈVES PAR CLASSE
 // ==================================================
 router.get('/repartition-eleves', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
-      SELECT c.libelle_classe, COUNT(u.id) AS nombre
+      SELECT c.libelle_classe, COUNT(u.id_utilisateur) AS nombre
       FROM classes c
       LEFT JOIN utilisateurs u ON c.id_classe = u.id_classe AND u.role = 'eleve'
       GROUP BY c.id_classe, c.libelle_classe
@@ -142,7 +141,6 @@ router.get('/repartition-eleves', protegerAdmin, async (req, res) => {
   }
 });
 
-
 // ==================================================
 // 📄 ÉTAT DES NOTES & BULLETINS
 // ==================================================
@@ -153,12 +151,10 @@ router.get('/etat-bulletins', protegerAdmin, async (req, res) => {
       const notes = await pool.query(`SELECT COUNT(*) AS total FROM notes`);
       notesSaisies = parseInt(notes.rows[0].total, 10);
     } catch { notesSaisies = 0; }
-
     try {
       const bulletins = await pool.query(`SELECT COUNT(*) AS total FROM bulletins`);
       bulletinsGeneres = parseInt(bulletins.rows[0].total, 10);
     } catch { bulletinsGeneres = 0; }
-
     console.log("✅ État bulletins consulté");
     res.json({ ok: true, notesSaisies, bulletinsGeneres });
   } catch (e) {
@@ -166,7 +162,6 @@ router.get('/etat-bulletins', protegerAdmin, async (req, res) => {
     res.json({ ok: false, notesSaisies: 0, bulletinsGeneres: 0 });
   }
 });
-
 
 // ==================================================
 // 🕐 ACTIVITÉ RÉCENTE
@@ -181,15 +176,22 @@ router.get('/activite-recente', protegerAdmin, async (req, res) => {
       LIMIT 5
     `);
     r.rows.forEach(u => {
+      // ✅ Correction : rôle harmonisé 'professeur'
       const roleLabel = {
         admin: 'Administrateur',
-        prof: 'Enseignant',
-        eleve: 'Élève'
+        professeur: 'Enseignant',
+        eleve: 'Élève',
+        parent: 'Parent',
+        comptable: 'Comptable',
+        secretaire: 'Secrétaire',
+        directeur: 'Directeur'
       }[u.role] || u.role;
 
       activite.push({
-        icone: u.role === 'eleve' ? 'bi-person' : u.role === 'prof' ? 'bi-person-badge' : 'bi-shield-lock',
-        texte: `${roleLabel} : ${u.nom} ${u.prenom}`,
+        icone: u.role === 'eleve' ? 'bi-person' 
+             : u.role === 'professeur' ? 'bi-person-badge' 
+             : 'bi-shield-lock',
+        texte: `${roleLabel} : ${u.nom} ${u.prenoms}`, // ✅ Correction : prenoms
         date: u.date_creation
       });
     });
@@ -198,13 +200,10 @@ router.get('/activite-recente', protegerAdmin, async (req, res) => {
   res.json({ ok: true, activite });
 });
 
-
 // ==================================================
 // ⚙️ CONFIGURATION DU SITE
 // ==================================================
-
-// Lire la configuration (Admin)
-router.get('/config-site', protegerAdmin, async (req, res) => {
+router.get('/config', async (req, res) => {
   try {
     const r = await pool.query(`SELECT cle, valeur FROM configuration_site ORDER BY cle`);
     const config = {};
@@ -213,24 +212,22 @@ router.get('/config-site', protegerAdmin, async (req, res) => {
     res.json({ ok: true, config });
   } catch (e) {
     console.error("❌ ERREUR LECTURE CONFIG :", e.message);
-    res.json({ ok: false, config: {} });
-  }
-});
-
-// ✅ Lire la configuration PUBLIQUE
-router.get('/site/config', async (req, res) => {
-  try {
-    const r = await pool.query(`SELECT cle, valeur FROM configuration_site`);
-    const config = {};
-    r.rows.forEach(row => { config[row.cle] = row.valeur; });
-    res.json({ ok: true, config });
-  } catch (e) {
-    console.error("❌ ERREUR CONFIG PUBLIQUE :", e.message);
     res.json({ ok: true, config: {} });
   }
 });
 
-// ✅ Mettre à jour la configuration
+router.get('/config-site', protegerAdmin, async (req, res) => {
+  try {
+    const r = await pool.query(`SELECT cle, valeur FROM configuration_site ORDER BY cle`);
+    const config = {};
+    r.rows.forEach(row => { config[row.cle] = row.valeur; });
+    res.json({ ok: true, config });
+  } catch (e) {
+    console.error("❌ ERREUR LECTURE CONFIG :", e.message);
+    res.json({ ok: false, config: {} });
+  }
+});
+
 router.post('/config-site', protegerAdmin, async (req, res) => {
   try {
     const { config } = req.body;
@@ -253,25 +250,10 @@ router.post('/config-site', protegerAdmin, async (req, res) => {
   }
 });
 
-
 // ==================================================
-// 📢 ANNONCES (Routes tableau de bord)
+// 📢 ANNONCES
 // ==================================================
-
-// Lire toutes les annonces (Admin)
-router.get('/annonces', protegerAdmin, async (req, res) => {
-  try {
-    const r = await pool.query(`SELECT * FROM annonces ORDER BY ordre ASC, date_creation DESC`);
-    console.log(`✅ Liste annonces (admin) consultée — ${r.rows.length} annonce(s)`);
-    res.json({ ok: true, annonces: r.rows });
-  } catch (e) {
-    console.error("❌ ERREUR LECTURE ANNONCES :", e.message);
-    res.json({ ok: false, annonces: [] });
-  }
-});
-
-// ✅ Lire annonces PUBLIQUES
-router.get('/site/annonces', async (req, res) => {
+router.get('/annonces/liste', async (req, res) => {
   try {
     const aujourdHui = new Date().toISOString().slice(0, 10);
     const r = await pool.query(`
@@ -288,18 +270,26 @@ router.get('/site/annonces', async (req, res) => {
   }
 });
 
-// Ajouter une annonce
+router.get('/annonces', protegerAdmin, async (req, res) => {
+  try {
+    const r = await pool.query(`SELECT * FROM annonces ORDER BY ordre ASC, date_creation DESC`);
+    console.log(`✅ Liste annonces (admin) consultée — ${r.rows.length} annonce(s)`);
+    res.json({ ok: true, annonces: r.rows });
+  } catch (e) {
+    console.error("❌ ERREUR LECTURE ANNONCES :", e.message);
+    res.json({ ok: false, annonces: [] });
+  }
+});
+
 router.post('/annonces', protegerAdmin, async (req, res) => {
   try {
     const {
       titre_fr, titre_en, titre_ar, contenu_fr, contenu_en, contenu_ar,
       date_publication, date_expiration, ordre, est_actif, est_publie
     } = req.body;
-
     if (!titre_fr || !titre_fr.trim() || !contenu_fr || !contenu_fr.trim()) {
       return res.json({ ok: false, erreur: "⚠️ Le titre et le contenu en français sont obligatoires" });
     }
-
     const r = await pool.query(`
       INSERT INTO annonces (
         titre_fr, titre_en, titre_ar, contenu_fr, contenu_en, contenu_ar,
@@ -313,8 +303,7 @@ router.post('/annonces', protegerAdmin, async (req, res) => {
       date_publication || new Date(), date_expiration || null,
       ordre || 1, est_actif !== false, est_publie !== false
     ]);
-
-    console.log(`✅ Annonce créée (tableau de bord) — "${titre_fr}"`);
+    console.log(`✅ Annonce créée — "${titre_fr}"`);
     res.json({ ok: true, annonce: r.rows[0], message: "✅ Annonce ajoutée" });
   } catch (e) {
     console.error("❌ ERREUR CRÉATION ANNONCE :", e.message);
@@ -322,23 +311,18 @@ router.post('/annonces', protegerAdmin, async (req, res) => {
   }
 });
 
-// Modifier une annonce
 router.put('/annonces/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
-    }
+    if (isNaN(id)) return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
 
     const {
       titre_fr, titre_en, titre_ar, contenu_fr, contenu_en, contenu_ar,
       date_expiration, ordre, est_actif, est_publie
     } = req.body;
-
     if (!titre_fr || !titre_fr.trim() || !contenu_fr || !contenu_fr.trim()) {
       return res.json({ ok: false, erreur: "⚠️ Le titre et le contenu en français sont obligatoires" });
     }
-
     const r = await pool.query(`
       UPDATE annonces
       SET titre_fr = $1, titre_en = $2, titre_ar = $3,
@@ -351,11 +335,8 @@ router.put('/annonces/:id', protegerAdmin, async (req, res) => {
       contenu_fr.trim(), contenu_en?.trim() || null, contenu_ar?.trim() || null,
       date_expiration || null, ordre || 1, est_actif !== false, est_publie !== false, id
     ]);
-
-    if (r.rows.length === 0) {
-      return res.json({ ok: false, erreur: "⚠️ Annonce introuvable" });
-    }
-    console.log(`✅ Annonce mise à jour (tableau de bord) — ID: ${id}`);
+    if (r.rows.length === 0) return res.json({ ok: false, erreur: "⚠️ Annonce introuvable" });
+    console.log(`✅ Annonce mise à jour — ID: ${id}`);
     res.json({ ok: true, annonce: r.rows[0], message: "✅ Annonce mise à jour" });
   } catch (e) {
     console.error("❌ ERREUR MODIFICATION ANNONCE :", e.message);
@@ -363,29 +344,20 @@ router.put('/annonces/:id', protegerAdmin, async (req, res) => {
   }
 });
 
-// Supprimer une annonce
 router.delete('/annonces/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
-    }
+    if (isNaN(id)) return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
 
-    const r = await pool.query(
-      'DELETE FROM annonces WHERE id_annonce = $1 RETURNING titre_fr',
-      [id]
-    );
+    const r = await pool.query('DELETE FROM annonces WHERE id_annonce = $1 RETURNING titre_fr', [id]);
+    if (r.rows.length === 0) return res.json({ ok: false, erreur: "⚠️ Annonce introuvable" });
 
-    if (r.rows.length === 0) {
-      return res.json({ ok: false, erreur: "⚠️ Annonce introuvable" });
-    }
-    console.log(`✅ Annonce supprimée (tableau de bord) — ID: ${id}, "${r.rows[0].titre_fr}"`);
+    console.log(`✅ Annonce supprimée — ID: ${id}, "${r.rows[0].titre_fr}"`);
     res.json({ ok: true, message: "✅ Annonce supprimée" });
   } catch (e) {
     console.error("❌ ERREUR SUPPRESSION ANNONCE :", e.message);
     res.json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
-
 
 module.exports = router;

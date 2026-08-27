@@ -33,11 +33,14 @@ const stockage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, dossierUpload),
   filename: (req, file, cb) => {
     const nomNettoye = file.originalname.replace(/[^a-zA-Z0-9.]/g, '_');
-    cb(null, Date.now() + '-' + nomNettoye);
+    cb(null, `${Date.now()}-${nomNettoye}`);
   }
 });
 
-const upload = multer({ storage: stockage, limits: { fileSize: 10 * 1024 * 1024 } });
+const upload = multer({
+  storage: stockage,
+  limits: { fileSize: 10 * 1024 * 1024 } // 10 Mo
+});
 
 // ==================================================
 // 📧 CONFIGURATION EMAIL
@@ -79,7 +82,7 @@ async function genererMatricule(profil, id_classe = null) {
     "SELECT COUNT(*) FROM utilisateurs WHERE matricule LIKE $1",
     [`${codeEcole}-${annee}-${codeClasse}-%`]
   );
-  const numero = String(parseInt(compte.rows[0].count) + 1).padStart(4, '0');
+  const numero = String(parseInt(compte.rows[0].count, 10) + 1).padStart(4, '0');
   return `${codeEcole}-${annee}-${codeClasse}-${numero}`;
 }
 
@@ -103,25 +106,25 @@ router.post('/connexion', async (req, res) => {
     let r;
     if (role === 'eleve') {
       r = await pool.query(
-        `SELECT id, nom, prenom, email, matricule, role, mot_de_passe,
+        `SELECT id_utilisateur, nom, prenoms, email, matricule, role, mot_de_passe,
           COALESCE(statut_compte, 'valide') AS statut_compte,
           COALESCE(compte_verrouille, false) AS compte_verrouille,
           COALESCE(tentatives_connexion, 0) AS tentatives_connexion,
           date_deverrouillage, derniere_connexion
          FROM utilisateurs
          WHERE UPPER(matricule) = UPPER($1) AND role = $2`,
-        [matricule ? matricule.trim() : '', role]
+        [matricule?.trim() || '', role]
       );
     } else {
       r = await pool.query(
-        `SELECT id, nom, prenom, email, matricule, role, mot_de_passe,
+        `SELECT id_utilisateur, nom, prenoms, email, matricule, role, mot_de_passe,
           COALESCE(statut_compte, 'valide') AS statut_compte,
           COALESCE(compte_verrouille, false) AS compte_verrouille,
           COALESCE(tentatives_connexion, 0) AS tentatives_connexion,
           date_deverrouillage, derniere_connexion
          FROM utilisateurs
          WHERE LOWER(email) = LOWER($1) AND role = $2`,
-        [email ? email.trim() : '', role]
+        [email?.trim() || '', role]
       );
     }
 
@@ -140,19 +143,20 @@ router.post('/connexion', async (req, res) => {
       return res.json({ ok: false, erreur: "⚠️ Compte en attente de validation par l'administration" });
     }
 
+    // Déverrouillage automatique si délai passé
     if (u.compte_verrouille) {
       const maintenant = new Date();
       if (maintenant < new Date(u.date_deverrouillage)) {
-        const min = Math.ceil((new Date(u.date_deverrouillage) - maintenant) / 60000);
-        return res.json({ ok: false, erreur: `⚠️ Compte verrouillé — Réessayez dans ${min} min` });
-      } else {
-        await pool.query(
-          'UPDATE utilisateurs SET compte_verrouille = false, tentatives_connexion = 0 WHERE id = $1',
-          [u.id]
-        );
+        const minutes = Math.ceil((new Date(u.date_deverrouillage) - maintenant) / 60000);
+        return res.json({ ok: false, erreur: `⚠️ Compte verrouillé — Réessayez dans ${minutes} min` });
       }
+      await pool.query(
+        'UPDATE utilisateurs SET compte_verrouille = false, tentatives_connexion = 0 WHERE id_utilisateur = $1',
+        [u.id_utilisateur]
+      );
     }
 
+    // Vérification mot de passe (clair ou haché)
     let mdpValide = false;
     if (u.mot_de_passe && !u.mot_de_passe.startsWith('$2b$')) {
       mdpValide = (mot_de_passe === u.mot_de_passe);
@@ -163,27 +167,35 @@ router.post('/connexion', async (req, res) => {
     if (!mdpValide) {
       const essais = (u.tentatives_connexion || 0) + 1;
       if (essais >= 5) {
-        const fin = new Date(Date.now() + 30 * 60000);
+        const dateDeverrouillage = new Date(Date.now() + 30 * 60000);
         await pool.query(
-          'UPDATE utilisateurs SET tentatives_connexion = $1, compte_verrouille = true, date_deverrouillage = $2 WHERE id = $3',
-          [essais, fin, u.id]
+          'UPDATE utilisateurs SET tentatives_connexion = $1, compte_verrouille = true, date_deverrouillage = $2 WHERE id_utilisateur = $3',
+          [essais, dateDeverrouillage, u.id_utilisateur]
         );
         return res.json({ ok: false, erreur: "⚠️ 5 essais échoués — Compte verrouillé 30 min" });
       }
       await pool.query(
-        'UPDATE utilisateurs SET tentatives_connexion = $1 WHERE id = $2',
-        [essais, u.id]
+        'UPDATE utilisateurs SET tentatives_connexion = $1 WHERE id_utilisateur = $2',
+        [essais, u.id_utilisateur]
       );
       return res.json({ ok: false, erreur: `⚠️ Mot de passe incorrect — ${5 - essais} essai(s) restant(s)` });
     }
 
+    // Réinitialiser tentatives et mettre à jour dernière connexion
     await pool.query(
-      'UPDATE utilisateurs SET tentatives_connexion = 0, derniere_connexion = NOW() WHERE id = $1',
-      [u.id]
+      'UPDATE utilisateurs SET tentatives_connexion = 0, derniere_connexion = NOW() WHERE id_utilisateur = $1',
+      [u.id_utilisateur]
     );
 
+    // Générer token
     const token = jwt.sign(
-      { id: u.id, nom: u.nom, prenom: u.prenom, role: u.role, email: u.email },
+      {
+        id_utilisateur: u.id_utilisateur,
+        nom: u.nom,
+        prenoms: u.prenoms,
+        role: u.role,
+        email: u.email
+      },
       CLE_JWT,
       { expiresIn: '8h' }
     );
@@ -192,9 +204,9 @@ router.post('/connexion', async (req, res) => {
     res.json({
       ok: true,
       token,
-      id: u.id,
+      id_utilisateur: u.id_utilisateur,
       nom: u.nom,
-      prenom: u.prenom,
+      prenoms: u.prenoms,
       email: u.email,
       matricule: u.matricule,
       role: u.role
@@ -220,7 +232,7 @@ router.post('/preinscription/parent-matricule', async (req, res) => {
     }
 
     const eleve = await pool.query(
-      `SELECT id, nom, prenom, email, telephone, matricule, id_parent
+      `SELECT id_utilisateur, nom, prenoms, email, telephone, matricule, id_parent
        FROM utilisateurs
        WHERE UPPER(matricule) = UPPER($1) AND role = 'eleve' AND COALESCE(statut_compte, 'valide') = 'valide'`,
       [matricule.trim()]
@@ -232,11 +244,12 @@ router.post('/preinscription/parent-matricule', async (req, res) => {
 
     const enfant = eleve.rows[0];
 
+    // Cas 1 : Parent associé dans la base
     if (enfant.id_parent) {
       const parent = await pool.query(
-        `SELECT id, nom, prenom, email, telephone, role
+        `SELECT id_utilisateur, nom, prenoms, email, telephone, role
          FROM utilisateurs
-         WHERE id = $1 AND role = 'parent'`,
+         WHERE id_utilisateur = $1 AND role = 'parent'`,
         [enfant.id_parent]
       );
 
@@ -247,7 +260,7 @@ router.post('/preinscription/parent-matricule', async (req, res) => {
 
         if (correspondEmail || correspondTel) {
           const token = jwt.sign(
-            { id: p.id, nom: p.nom, prenom: p.prenom, role: 'parent', email: p.email },
+            { id_utilisateur: p.id_utilisateur, nom: p.nom, prenoms: p.prenoms, role: 'parent', email: p.email },
             CLE_JWT,
             { expiresIn: '8h' }
           );
@@ -257,19 +270,25 @@ router.post('/preinscription/parent-matricule', async (req, res) => {
             token,
             role: 'parent',
             nom: p.nom,
-            prenom: p.prenom,
-            enfants: [{ id: enfant.id, nom: enfant.nom, prenom: enfant.prenom, matricule: enfant.matricule }]
+            prenoms: p.prenoms,
+            enfants: [{
+              id_utilisateur: enfant.id_utilisateur,
+              nom: enfant.nom,
+              prenoms: enfant.prenoms,
+              matricule: enfant.matricule
+            }]
           });
         }
       }
     }
 
+    // Cas 2 : Vérifier coordonnées directement sur l'élève
     const correspondEmail = !email_parent || enfant.email?.toLowerCase().trim() === email_parent?.toLowerCase().trim();
     const correspondTel = !telephone_parent || enfant.telephone?.trim() === telephone_parent?.trim();
 
     if (correspondEmail || correspondTel) {
       const token = jwt.sign(
-        { id: enfant.id, nom: enfant.nom, prenom: enfant.prenom, role: 'parent', email: enfant.email },
+        { id_utilisateur: enfant.id_utilisateur, nom: enfant.nom, prenoms: enfant.prenoms, role: 'parent', email: enfant.email },
         CLE_JWT,
         { expiresIn: '8h' }
       );
@@ -279,8 +298,13 @@ router.post('/preinscription/parent-matricule', async (req, res) => {
         token,
         role: 'parent',
         nom: 'Parent',
-        prenom: '',
-        enfants: [{ id: enfant.id, nom: enfant.nom, prenom: enfant.prenom, matricule: enfant.matricule }]
+        prenoms: '',
+        enfants: [{
+          id_utilisateur: enfant.id_utilisateur,
+          nom: enfant.nom,
+          prenoms: enfant.prenoms,
+          matricule: enfant.matricule
+        }]
       });
     }
 
@@ -306,15 +330,17 @@ router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }
     }
 
     const emailNettoye = email.toLowerCase().trim();
-    const exist = await pool.query('SELECT * FROM preinscriptions WHERE email = $1', [emailNettoye]);
+    const exist = await pool.query('SELECT * FROM preinscriptions WHERE LOWER(email) = $1', [emailNettoye]);
     if (exist.rows.length > 0) {
       return res.json({ ok: false, erreur: "⚠️ Cet email est déjà utilisé pour une préinscription" });
     }
 
     const matricule = await genererMatricule(profil || role, id_classe);
     const hashMdp = await bcrypt.hash(mot_de_passe, 10);
-    const photo = req.files?.photo_identite ? `uploads/${req.files.photo_identite[0].filename}` : null;
-    const docs = req.files?.documents ? req.files.documents.map(f => `uploads/${f.filename}`).join('|') : null;
+    const photo = req.files?.photo_identite?.[0] ? `uploads/${req.files.photo_identite[0].filename}` : null;
+    const docs = req.files?.documents
+      ? req.files.documents.map(f => `uploads/${f.filename}`).join('|')
+      : null;
 
     await pool.query(
       `INSERT INTO preinscriptions(
@@ -329,7 +355,11 @@ router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }
     );
 
     console.log(`✅ Préinscription enregistrée — ${matricule}, ${nom} ${prenoms}`);
-    res.json({ ok: true, message: "✅ Demande enregistrée. Nous vous répondrons dans un délai de 24h.", matricule });
+    res.json({
+      ok: true,
+      message: "✅ Demande enregistrée. Nous vous répondrons dans un délai de 24h.",
+      matricule
+    });
   } catch (e) {
     console.error("❌ ERREUR PRÉINSCRIPTION :", e.message);
     res.json({ ok: false, erreur: "Erreur serveur : " + e.message });
@@ -347,7 +377,7 @@ router.post('/mot-de-passe-oublie', async (req, res) => {
     }
 
     const utilisateur = await pool.query(
-      `SELECT id, nom, prenom, email
+      `SELECT id_utilisateur, nom, prenoms, email
        FROM utilisateurs
        WHERE LOWER(email) = LOWER($1) AND COALESCE(statut_compte, 'valide') = 'valide'`,
       [email.trim()]
@@ -358,12 +388,12 @@ router.post('/mot-de-passe-oublie', async (req, res) => {
     }
 
     const user = utilisateur.rows[0];
-    const motDePasseTemp = "MZ" + Math.floor(100000 + Math.random() * 900000);
+    const motDePasseTemp = `MZ${Math.floor(100000 + Math.random() * 900000)}`;
     const motDePasseCrypte = await bcrypt.hash(motDePasseTemp, 10);
 
     await pool.query(
-      'UPDATE utilisateurs SET mot_de_passe = $1 WHERE id = $2',
-      [motDePasseCrypte, user.id]
+      'UPDATE utilisateurs SET mot_de_passe = $1 WHERE id_utilisateur = $2',
+      [motDePasseCrypte, user.id_utilisateur]
     );
 
     await transport.sendMail({
@@ -371,7 +401,7 @@ router.post('/mot-de-passe-oublie', async (req, res) => {
       to: user.email,
       subject: '🔑 Récupération — MAMA-ZOUMANA',
       html: `
-        <h2>Bonjour ${user.nom} ${user.prenom},</h2>
+        <h2>Bonjour ${user.nom} ${user.prenoms},</h2>
         <p>Nous avons reçu une demande de réinitialisation de mot de passe.</p>
         <p>Votre nouveau mot de passe temporaire est :</p>
         <h3 style="background:#f59e0b; padding:12px; border-radius:6px; font-size:20px; text-align:center;">${motDePasseTemp}</h3>
@@ -392,9 +422,9 @@ router.post('/mot-de-passe-oublie', async (req, res) => {
 // ==================================================
 router.post('/changer-mot-de-passe', veriftoken, async (req, res) => {
   try {
-    const { id, ancien_mot_de_passe, nouveau_mot_de_passe } = req.body;
+    const { id_utilisateur, ancien_mot_de_passe, nouveau_mot_de_passe } = req.body;
 
-    if (!id || !ancien_mot_de_passe || !nouveau_mot_de_passe) {
+    if (!id_utilisateur || !ancien_mot_de_passe || !nouveau_mot_de_passe) {
       return res.json({ ok: false, erreur: "⚠️ Tous les champs sont obligatoires" });
     }
     if (nouveau_mot_de_passe.length < 6) {
@@ -402,8 +432,8 @@ router.post('/changer-mot-de-passe', veriftoken, async (req, res) => {
     }
 
     const userResult = await pool.query(
-      'SELECT mot_de_passe, nom, prenom FROM utilisateurs WHERE id = $1',
-      [id]
+      'SELECT mot_de_passe, nom, prenoms FROM utilisateurs WHERE id_utilisateur = $1',
+      [id_utilisateur]
     );
 
     if (userResult.rows.length === 0) {
@@ -412,18 +442,17 @@ router.post('/changer-mot-de-passe', veriftoken, async (req, res) => {
 
     const utilisateur = userResult.rows[0];
     const estValide = await bcrypt.compare(ancien_mot_de_passe, utilisateur.mot_de_passe);
-
     if (!estValide) {
       return res.json({ ok: false, erreur: "⚠️ L'ancien mot de passe est incorrect" });
     }
 
     const nouveauCrypte = await bcrypt.hash(nouveau_mot_de_passe, 10);
     await pool.query(
-      'UPDATE utilisateurs SET mot_de_passe = $1 WHERE id = $2',
-      [nouveauCrypte, id]
+      'UPDATE utilisateurs SET mot_de_passe = $1 WHERE id_utilisateur = $2',
+      [nouveauCrypte, id_utilisateur]
     );
 
-    console.log(`✅ Mot de passe modifié — ${utilisateur.nom} ${utilisateur.prenom}`);
+    console.log(`✅ Mot de passe modifié — ${utilisateur.nom} ${utilisateur.prenoms}`);
     res.json({ ok: true, message: "✅ Mot de passe modifié avec succès !" });
   } catch (e) {
     console.error("❌ ERREUR CHANGEMENT MDP :", e.message);
@@ -436,7 +465,7 @@ router.post('/changer-mot-de-passe', veriftoken, async (req, res) => {
 // ==================================================
 router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
       return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
     }
@@ -455,19 +484,19 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
     }
 
     const existeDeja = await pool.query(
-      'SELECT id FROM utilisateurs WHERE LOWER(email) = LOWER($1)',
+      'SELECT id_utilisateur FROM utilisateurs WHERE LOWER(email) = LOWER($1)',
       [demande.email]
     );
     if (existeDeja.rows.length > 0) {
       return res.json({ ok: false, erreur: "⚠️ Un compte avec cet email existe déjà" });
     }
 
-    const motDePasseTemp = "MZ" + Math.floor(100000 + Math.random() * 900000);
+    const motDePasseTemp = `MZ${Math.floor(100000 + Math.random() * 900000)}`;
     const hashMdp = await bcrypt.hash(motDePasseTemp, 10);
 
     await pool.query(
       `INSERT INTO utilisateurs(
-        nom, prenom, email, telephone, role, matricule,
+        nom, prenoms, email, telephone, role, matricule,
         mot_de_passe, statut_compte, date_creation
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'valide', NOW())`,
       [demande.nom, demande.prenoms, demande.email, demande.telephone, demande.profil, demande.matricule, hashMdp]
@@ -508,7 +537,7 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
 // ==================================================
 router.put('/preinscription/refuser/:id', protegerAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
       return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
     }
@@ -517,7 +546,6 @@ router.put('/preinscription/refuser/:id', protegerAdmin, async (req, res) => {
       "UPDATE preinscriptions SET statut = 'annulee' WHERE id_preinscription = $1 RETURNING nom, prenoms",
       [id]
     );
-
     if (resultat.rows.length === 0) {
       return res.json({ ok: false, erreur: "⚠️ Demande introuvable" });
     }
@@ -543,7 +571,6 @@ router.get('/preinscription/liste', protegerAdmin, async (req, res) => {
        WHERE statut = 'en_attente'
        ORDER BY date_preinscription DESC`
     );
-
     console.log(`✅ Liste préinscriptions consultée — ${r.rows.length} demande(s) en attente`);
     res.json({ ok: true, liste: r.rows });
   } catch (e) {
@@ -558,11 +585,11 @@ router.get('/preinscription/liste', protegerAdmin, async (req, res) => {
 router.get('/utilisateurs', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(
-      `SELECT id, nom, prenom, email, matricule, telephone, role, COALESCE(statut_compte, 'valide') AS statut_compte, date_creation
+      `SELECT id_utilisateur, nom, prenoms, email, matricule, telephone, role,
+              COALESCE(statut_compte, 'valide') AS statut_compte, date_creation
        FROM utilisateurs
-       ORDER BY nom, prenom`
+       ORDER BY nom, prenoms`
     );
-
     console.log(`✅ Liste utilisateurs consultée — ${r.rows.length} utilisateur(s)`);
     res.json({ ok: true, lignes: r.rows });
   } catch (e) {
@@ -576,15 +603,16 @@ router.get('/utilisateurs', protegerAdmin, async (req, res) => {
 // ==================================================
 router.get('/utilisateur/:id', protegerAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
       return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
     }
 
     const r = await pool.query(
-      `SELECT id, nom, prenom, email, matricule, telephone, role, COALESCE(statut_compte, 'valide') AS statut_compte
+      `SELECT id_utilisateur, nom, prenoms, email, matricule, telephone, role,
+              COALESCE(statut_compte, 'valide') AS statut_compte
        FROM utilisateurs
-       WHERE id = $1`,
+       WHERE id_utilisateur = $1`,
       [id]
     );
 
@@ -605,7 +633,7 @@ router.get('/utilisateur/:id', protegerAdmin, async (req, res) => {
 // ==================================================
 router.put('/utilisateur/:id', protegerAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
       return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
     }
@@ -618,7 +646,7 @@ router.put('/utilisateur/:id', protegerAdmin, async (req, res) => {
 
     const emailNettoye = email.toLowerCase().trim();
     const exist = await pool.query(
-      'SELECT id FROM utilisateurs WHERE LOWER(email) = $1 AND id != $2',
+      'SELECT id_utilisateur FROM utilisateurs WHERE LOWER(email) = $1 AND id_utilisateur != $2',
       [emailNettoye, id]
     );
     if (exist.rows.length > 0) {
@@ -632,15 +660,17 @@ router.put('/utilisateur/:id', protegerAdmin, async (req, res) => {
       const hash = await bcrypt.hash(mot_de_passe, 10);
       await pool.query(
         `UPDATE utilisateurs
-         SET nom = $1, prenom = $2, email = $3, telephone = $4, role = $5, matricule = $6, statut_compte = $7, mot_de_passe = $8
-         WHERE id = $9`,
+         SET nom = $1, prenoms = $2, email = $3, telephone = $4, role = $5,
+             matricule = $6, statut_compte = $7, mot_de_passe = $8
+         WHERE id_utilisateur = $9`,
         [nom.trim(), prenoms.trim(), emailNettoye, telephone || null, role, matricule, statut_compte, hash, id]
       );
     } else {
       await pool.query(
         `UPDATE utilisateurs
-         SET nom = $1, prenom = $2, email = $3, telephone = $4, role = $5, matricule = $6, statut_compte = $7
-         WHERE id = $8`,
+         SET nom = $1, prenoms = $2, email = $3, telephone = $4, role = $5,
+             matricule = $6, statut_compte = $7
+         WHERE id_utilisateur = $8`,
         [nom.trim(), prenoms.trim(), emailNettoye, telephone || null, role, matricule, statut_compte, id]
       );
     }
@@ -658,13 +688,13 @@ router.put('/utilisateur/:id', protegerAdmin, async (req, res) => {
 // ==================================================
 router.delete('/utilisateur/:id', protegerAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
       return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
     }
 
     const r = await pool.query(
-      'DELETE FROM utilisateurs WHERE id = $1 RETURNING nom, prenom, matricule',
+      'DELETE FROM utilisateurs WHERE id_utilisateur = $1 RETURNING nom, prenoms, matricule',
       [id]
     );
 
@@ -691,10 +721,6 @@ router.post('/preinscription', upload.none(), async (req, res) => {
   try {
     const donnees = req.body;
     console.log("📥 Données reçues préinscription :", donnees);
-
-    // Ici : insérer dans la table preinscriptions
-    // À adapter selon tes champs
-
     res.json({
       ok: true,
       message: "✅ Demande enregistrée ! Nous vous contacterons rapidement."

@@ -7,16 +7,14 @@ const verifadmin = require('../middleware/verifadmin');
 // ✅ Protection groupée uniforme
 const protegerAdmin = [veriftoken, verifadmin];
 
-
 // ==================================================
 // 📋 LISTER LES ANNONCES — Publiques ou complètes (Admin)
 // ==================================================
 router.get('/liste', async (req, res) => {
   try {
     const { tout, type_annonce, rentree, annee_scolaire } = req.query;
-
-    let conditions = [];
-    let valeurs = [];
+    const conditions = [];
+    const valeurs = [];
 
     // Si tout=1 → renvoie toutes, sinon seulement publiées, actives et non expirées
     if (tout !== '1') {
@@ -25,7 +23,7 @@ router.get('/liste', async (req, res) => {
       conditions.push('(date_expiration IS NULL OR date_expiration >= CURRENT_DATE)');
     }
 
-    // Filtre par type d'annonce si précisé
+    // Filtre par type d'annonce
     if (type_annonce) {
       valeurs.push(type_annonce);
       conditions.push(`type_annonce = $${valeurs.length}`);
@@ -54,7 +52,8 @@ router.get('/liste', async (req, res) => {
           WHEN 'basse' THEN 3 
           ELSE 4 
         END ASC,
-        date_publication DESC, date_creation DESC
+        date_publication DESC NULLS LAST,
+        date_creation DESC
     `, valeurs);
 
     console.log(`✅ Liste annonces consultée — ${r.rows.length} annonce(s)`);
@@ -65,13 +64,18 @@ router.get('/liste', async (req, res) => {
   }
 });
 
+// ✅ Route publique compatible avec le frontend (accueil)
+router.get('/', async (req, res) => {
+  req.query.tout = '0'; // Force annonces publiques seulement
+  return router.handle(req, res);
+});
 
 // ==================================================
 // ➕ AJOUTER UNE ANNONCE — Admin seul
 // ==================================================
 router.post('/ajouter', protegerAdmin, async (req, res) => {
   try {
-    const id_utilisateur = req.user?.id;
+    const id_utilisateur = req.user?.id_utilisateur || req.user?.id; // ✅ Compatible deux formats
     const {
       titre_fr, titre_en, titre_ar,
       contenu_fr, contenu_en, contenu_ar,
@@ -80,7 +84,7 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
       rentree, annee_scolaire
     } = req.body;
 
-    // ✅ Validation
+    // ✅ Validation renforcée
     if (!titre_fr || !titre_fr.trim()) {
       return res.json({ ok: false, erreur: "⚠️ Le titre en français est obligatoire" });
     }
@@ -115,13 +119,12 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
   }
 });
 
-
 // ==================================================
 // ✏️ MODIFIER UNE ANNONCE — Admin seul
 // ==================================================
 router.put('/:id_annonce', protegerAdmin, async (req, res) => {
   try {
-    const id_annonce = parseInt(req.params.id_annonce);
+    const id_annonce = parseInt(req.params.id_annonce, 10);
     if (isNaN(id_annonce)) {
       return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
     }
@@ -148,7 +151,8 @@ router.put('/:id_annonce', protegerAdmin, async (req, res) => {
         type_annonce = $8, priorite = $9, date_publication = $10, date_expiration = $11,
         cible = $12, url_image = $13, est_actif = $14, est_publie = $15,
         rentree = $16, annee_scolaire = $17, date_mise_a_jour = NOW()
-      WHERE id_annonce = $1 RETURNING *
+      WHERE id_annonce = $1
+      RETURNING *
     `, [
       id_annonce,
       titre_fr.trim(), titre_en?.trim() || null, titre_ar?.trim() || null,
@@ -172,13 +176,12 @@ router.put('/:id_annonce', protegerAdmin, async (req, res) => {
   }
 });
 
-
 // ==================================================
 // ❌ SUPPRIMER UNE ANNONCE — Admin seul
 // ==================================================
 router.delete('/:id_annonce', protegerAdmin, async (req, res) => {
   try {
-    const id_annonce = parseInt(req.params.id_annonce);
+    const id_annonce = parseInt(req.params.id_annonce, 10);
     if (isNaN(id_annonce)) {
       return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
     }
@@ -199,6 +202,5 @@ router.delete('/:id_annonce', protegerAdmin, async (req, res) => {
     res.json({ ok: false, erreur: "Erreur serveur : " + e.message });
   }
 });
-
 
 module.exports = router;
