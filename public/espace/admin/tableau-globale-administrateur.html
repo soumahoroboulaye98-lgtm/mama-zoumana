@@ -27,7 +27,6 @@
       --bordure: rgba(245,158,11,.25); --carte: rgba(30,41,59,.85); --ombre: rgba(0,0,0,.3);
       --input-fond: rgba(15,23,42,.6); --dore: #9a6f22; --dore-clair: #b78628;
     }
-
     /* ===== 🗣️ TRILINGUE ===== */
     .txt-en,.txt-ar{display:none}
     body.lang-fr .txt-fr{display:inline}
@@ -37,7 +36,6 @@
     body.lang-fr .txt-en,body.lang-fr .txt-ar{display:none}
     body.lang-ar .txt-fr,body.lang-ar .txt-en{display:none}
     body.lang-ar { direction: rtl; }
-
     /* ===== GÉNÉRAL ===== */
     body {
       background: linear-gradient(160deg, var(--dore), var(--dore-clair));
@@ -64,7 +62,8 @@
     .barre-langue { display: flex; gap: .75rem; justify-content: center; margin-bottom: 2rem; }
     .lang-btn.active { background:var(--alerte); border-color:var(--alerte); color:#000; }
     .theme-btn { width:38px; height:38px; border-radius:50%; border:2px solid; padding:0; display:flex; align-items:center; justify-content:center; }
-
+    .no-print { display: none !important; }
+    @media print { .no-print { display: none !important; } }
     /* ===== CARTES COMPTEURS ===== */
     .carte-compteur {
       border-radius: 12px;
@@ -77,14 +76,12 @@
       display: block;
     }
     .carte-compteur:hover { transform: scale(1.04); color: white; }
-
     /* ===== GRAPHIQUES ===== */
     .conteneur-graphique {
       position: relative;
       height: 260px;
       width: 100%;
     }
-
     /* ===== LIENS RAPIDES ===== */
     .lien-module {
       display: block;
@@ -108,37 +105,48 @@
 <body>
 
 <script>
-  // 🔗 Configuration
- const API_URL = "https://mama-zoumana-api.onrender.com/api";
-function getToken() { return localStorage.getItem('token'); }
-async function requeteAPI(chemin, options = {}) {
-  const reponse = await fetch(`${API_URL}${chemin}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
-      ...options.headers
+  // ==================================================
+  // 🔗 CONFIGURATION GLOBALE
+  // ==================================================
+  const API_URL = "https://mama-zoumana-api.onrender.com/api";
+
+  // ✅ Fonctions locales sécurisées
+  function getToken() { return localStorage.getItem('token'); }
+  function getItem(cle) { return localStorage.getItem(cle); }
+
+  // ✅ Requête API standardisée
+  async function requeteAPI(chemin, options = {}) {
+    const reponse = await fetch(`${API_URL}${chemin}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken() || ''}`,
+        ...options.headers
+      }
+    });
+    const donnees = await reponse.json();
+    if (reponse.status === 401) {
+      alert("⛔ Session expirée — Reconnectez-vous");
+      localStorage.clear();
+      window.location.href = 'connexion.html';
     }
-  });
-  const donnees = await reponse.json();
-  if (reponse.status === 401) {
-    alert("⛔ Session expirée — Reconnectez-vous");
-    localStorage.clear();
-    window.location.href = 'connexion.html';
+    return donnees;
   }
-  return donnees;
-}
+
+  // ✅ Récupération des paramètres utilisateur
   const token = getItem('token');
-  const role = localStorage.getItem('role');
-  const nomUtilisateur = localStorage.getItem('nom') || 'Administrateur';
-  const langueActuelle = localStorage.getItem('langue') || 'fr';
-  const themeActuel = localStorage.getItem('theme') || 'light';
+  const role = getItem('role');
+  const nomUtilisateur = getItem('nom') || 'Administrateur';
+  const langueActuelle = getItem('langue') || 'fr';
+  const themeActuel = getItem('theme') || 'light';
 
   // ✅ Appliquer au chargement
   document.documentElement.setAttribute('data-bs-theme', themeActuel);
   document.body.classList.add('lang-' + langueActuelle);
 
-  // 🗣️ Messages
+  // ==================================================
+  // 🗣️ TRADUCTIONS MULTILINGUES
+  // ==================================================
   const MSG = {
     fr: {
       accesReserve: "⛔ Accès réservé à l'Administrateur",
@@ -146,16 +154,13 @@ async function requeteAPI(chemin, options = {}) {
       titre: "🏛️ Tableau de Bord Administrateur",
       sousTitre: "Vue d'ensemble complète de l'établissement",
       aujourdhui: "Données à jour du",
-      // Cartes compteurs
       totalEleves: "Élèves Inscrits",
       totalProfs: "Enseignants",
       totalDocuments: "Documents Délivrés",
       fraisPayes: "Frais Encaissés",
-      // Graphiques
       parClasse: "Répartition par Classe",
       parParcours: "Répartition par Filière",
       tendanceInscriptions: "Évolution des Inscriptions",
-      // Modules
       titreInscriptions: "Gestion des Inscriptions",
       descInscriptions: "Enregistrer, consulter et gérer les élèves",
       titrePersonnel: "Gestion du Personnel",
@@ -234,18 +239,24 @@ async function requeteAPI(chemin, options = {}) {
       charger: "جار التحميل..."
     }
   };
+
   function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
 
-  // 🎨 Palette de couleurs harmonisée
+  // ==================================================
+  // 🎨 COULEURS GRAPHIQUES
+  // ==================================================
   const COULEURS = [
-    '#0c4a6e', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1'
+    '#0c4a6e', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+    '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1'
   ];
 
-  // 🔒 Sécurité
-  if(!token || role !== 'admin'){
+  // ==================================================
+  // 🔒 SÉCURITÉ — VÉRIFICATION ACCÈS
+  // ==================================================
+  if (!token || role !== 'admin') {
     alert(m('accesReserve'));
     localStorage.clear();
-    location.href='dashboard.html';
+    location.href = 'connexion.html';
   }
 </script>
 
@@ -259,7 +270,8 @@ async function requeteAPI(chemin, options = {}) {
         <span class="txt-ar">لوحة تحكم المدير</span>
       </h3>
       <p class="mb-0 opacity-75 small">
-        <span id="bonjourTxt"></span> <strong>${nomUtilisateur}</strong> — ${m('aujourdhui')} ${new Date().toLocaleDateString('fr-FR',{dateStyle:'long'})}
+        <span id="bonjourTxt"></span> <strong id="nomUtilisateurAffiche"></strong> —
+        <span id="dateJour"></span>
       </p>
     </div>
     <div class="d-flex gap-2 align-items-center">
@@ -277,7 +289,7 @@ async function requeteAPI(chemin, options = {}) {
 </div>
 
 <div class="container py-4">
-  <!-- 🌐 Langues -->
+  <!-- 🌐 Sélecteur de langue -->
   <div class="barre-langue no-print">
     <button class="btn lang-btn btn-outline-warning" data-lang="fr">🇫🇷 FR</button>
     <button class="btn lang-btn btn-outline-warning" data-lang="en">🇬🇧 EN</button>
@@ -290,58 +302,53 @@ async function requeteAPI(chemin, options = {}) {
       <a href="eleves.html" class="carte-compteur bg-primary">
         <h5 class="mb-1"><i class="bi bi-mortarboard"></i></h5>
         <h3 class="mb-0" id="c-eleves">—</h3>
-        <p class="mb-0 opacity-75 small">${m('totalEleves')}</p>
+        <p class="mb-0 opacity-75 small" id="lbl-eleves"></p>
       </a>
     </div>
     <div class="col-sm-6 col-md-3">
       <a href="personnel.html" class="carte-compteur bg-success">
         <h5 class="mb-1"><i class="bi bi-person-workspace"></i></h5>
         <h3 class="mb-0" id="c-profs">—</h3>
-        <p class="mb-0 opacity-75 small">${m('totalProfs')}</p>
+        <p class="mb-0 opacity-75 small" id="lbl-profs"></p>
       </a>
     </div>
     <div class="col-sm-6 col-md-3">
       <a href="documents-liste.html" class="carte-compteur" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">
         <h5 class="mb-1"><i class="bi bi-file-earmark-text"></i></h5>
         <h3 class="mb-0" id="c-documents">—</h3>
-        <p class="mb-0 opacity-75 small">${m('totalDocuments')}</p>
+        <p class="mb-0 opacity-75 small" id="lbl-documents"></p>
       </a>
     </div>
     <div class="col-sm-6 col-md-3">
       <a href="paiements.html" class="carte-compteur" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
         <h5 class="mb-1"><i class="bi bi-cash-coin"></i></h5>
         <h3 class="mb-0" id="c-frais">— F CFA</h3>
-        <p class="mb-0 opacity-75 small">${m('fraisPayes')}</p>
+        <p class="mb-0 opacity-75 small" id="lbl-frais"></p>
       </a>
     </div>
   </div>
 
   <!-- 📈 GRAPHIQUES -->
   <div class="row g-4">
-    <!-- Répartition par Classe -->
     <div class="col-md-6">
       <div class="carte">
-        <h5 class="mb-3">📚 ${m('parClasse')}</h5>
+        <h5 class="mb-3">📚 <span id="lbl-parClasse"></span></h5>
         <div class="conteneur-graphique">
           <canvas id="graphiqueClasse"></canvas>
         </div>
       </div>
     </div>
-
-    <!-- Répartition par Filière -->
     <div class="col-md-6">
       <div class="carte">
-        <h5 class="mb-3">🎓 ${m('parParcours')}</h5>
+        <h5 class="mb-3">🎓 <span id="lbl-parFiliere"></span></h5>
         <div class="conteneur-graphique">
           <canvas id="graphiqueFiliere"></canvas>
         </div>
       </div>
     </div>
-
-    <!-- Tendance des Inscriptions -->
     <div class="col-md-12">
       <div class="carte">
-        <h5 class="mb-3">📈 ${m('tendanceInscriptions')}</h5>
+        <h5 class="mb-3">📈 <span id="lbl-tendance"></span></h5>
         <div class="conteneur-graphique" style="height:280px">
           <canvas id="graphiqueTendance"></canvas>
         </div>
@@ -349,61 +356,17 @@ async function requeteAPI(chemin, options = {}) {
     </div>
   </div>
 
-  <!-- 🔗 LIENS RAPIDES VERS MODULES -->
+  <!-- 🔗 LIENS RAPIDES -->
   <div class="row mt-4">
     <div class="col-12">
       <div class="carte">
-        <h5 class="mb-3">🔗 <span class="txt-fr">Accès Rapide aux Modules</span><span class="txt-en">Quick Module Access</span><span class="txt-ar">وصول سريع للوحدات</span></h5>
-        <div class="row g-3">
-          <div class="col-md-4 col-sm-6">
-            <a href="eleves.html" class="lien-module">
-              <i class="bi bi-mortarboard fs-4 me-2 align-middle"></i>
-              <span class="titre-module d-block">${m('titreInscriptions')}</span>
-              <span class="resume-module">${m('descInscriptions')}</span>
-            </a>
-          </div>
-          <div class="col-md-4 col-sm-6">
-            <a href="personnel.html" class="lien-module">
-              <i class="bi bi-people fs-4 me-2 align-middle"></i>
-              <span class="titre-module d-block">${m('titrePersonnel')}</span>
-              <span class="resume-module">${m('descPersonnel')}</span>
-            </a>
-          </div>
-          <div class="col-md-4 col-sm-6">
-            <a href="documents.html" class="lien-module">
-              <i class="bi bi-file-earmark-text fs-4 me-2 align-middle"></i>
-              <span class="titre-module d-block">${m('titreDocuments')}</span>
-              <span class="resume-module">${m('descDocuments')}</span>
-            </a>
-          </div>
-          <div class="col-md-4 col-sm-6">
-            <a href="paiements.html" class="lien-module">
-              <i class="bi bi-cash-stack fs-4 me-2 align-middle"></i>
-              <span class="titre-module d-block">${m('titrePaiements')}</span>
-              <span class="resume-module">${m('descPaiements')}</span>
-            </a>
-          </div>
-          <div class="col-md-4 col-sm-6">
-            <a href="notes.html" class="lien-module">
-              <i class="bi bi-journal-check fs-4 me-2 align-middle"></i>
-              <span class="titre-module d-block">${m('titreNotes')}</span>
-              <span class="resume-module">${m('descNotes')}</span>
-            </a>
-          </div>
-          <div class="col-md-4 col-sm-6">
-            <a href="presence.html" class="lien-module">
-              <i class="bi bi-calendar-check fs-4 me-2 align-middle"></i>
-              <span class="titre-module d-block">${m('titrePresence')}</span>
-              <span class="resume-module">${m('descPresence')}</span>
-            </a>
-          </div>
-          <div class="col-md-4 col-sm-6">
-            <a href="statistiques.html" class="lien-module">
-              <i class="bi bi-bar-chart fs-4 me-2 align-middle"></i>
-              <span class="titre-module d-block">${m('titreStats')}</span>
-              <span class="resume-module">${m('descStats')}</span>
-            </a>
-          </div>
+        <h5 class="mb-3">🔗
+          <span class="txt-fr">Accès Rapide aux Modules</span>
+          <span class="txt-en">Quick Module Access</span>
+          <span class="txt-ar">وصول سريع للوحدات</span>
+        </h5>
+        <div class="row g-3" id="liensModules">
+          <!-- Rempli dynamiquement -->
         </div>
       </div>
     </div>
@@ -412,85 +375,121 @@ async function requeteAPI(chemin, options = {}) {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+  // ==================================================
+  // 📊 VARIABLES GRAPHIQUES
+  // ==================================================
   let graphClasse = null, graphFiliere = null, graphTendance = null;
 
-  // 🌙 Mode clair/sombre
+  // ==================================================
+  // 🎨 MODE CLAIR/SOMBRE
+  // ==================================================
   document.getElementById('btnTheme').addEventListener('click', () => {
-    const actuel = document.documentElement.getAttribute('data-bs-theme');
+    const actuel = document.documentElement.getAttribute('data-bs-theme') || 'light';
     const nouveau = actuel === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-bs-theme', nouveau);
     localStorage.setItem('theme', nouveau);
-    majIcone(nouveau);
-    majCouleursGraphiques();
+    majIconeTheme(nouveau);
+    setTimeout(majCouleursGraphiques, 100);
   });
-  function majIcone(t) {
-    document.getElementById('iconeTheme').className = t === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
-  }
-  majIcone(themeActuel);
 
-  // 🗣️ Changement de langue
-  document.querySelectorAll('.lang-btn').forEach(b => {
-    b.addEventListener('click', () => {
-      const lang = b.dataset.lang;
-      document.querySelectorAll('.lang-btn').forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
+  function majIconeTheme(theme) {
+    const icone = document.getElementById('iconeTheme');
+    icone.className = theme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+  }
+  majIconeTheme(themeActuel);
+
+  // ==================================================
+  // 🗣️ CHANGEMENT DE LANGUE
+  // ==================================================
+  document.querySelectorAll('.lang-btn').forEach(bouton => {
+    bouton.addEventListener('click', () => {
+      const lang = bouton.dataset.lang;
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+      bouton.classList.add('active');
       document.body.className = `lang-${lang}`;
       localStorage.setItem('langue', lang);
-      document.getElementById('bonjourTxt').textContent = lang === 'fr' ? 'Bonjour,' : lang === 'ar' ? 'مرحباً،' : 'Hello,';
+      chargerTextesStatiques();
       chargerDonnees();
     });
   });
   document.querySelector(`[data-lang="${langueActuelle}"]`)?.classList.add('active');
-  document.getElementById('bonjourTxt').textContent = langueActuelle === 'fr' ? 'Bonjour,' : langueActuelle === 'ar' ? 'مرحباً،' : 'Hello,';
 
-  // 🚪 Déconnexion
+  // ==================================================
+  // 🚪 DÉCONNEXION
+  // ==================================================
   function deconnexion() {
     localStorage.clear();
     location.href = 'index.html';
   }
 
-  // 📥 Charger toutes les données depuis l'API
+  // ==================================================
+  // 🔠 CHARGER TEXTES TRADUITS
+  // ==================================================
+  function chargerTextesStatiques() {
+    document.getElementById('bonjourTxt').textContent =
+      langueActuelle === 'fr' ? 'Bonjour,' :
+      langueActuelle === 'ar' ? 'مرحباً،' : 'Hello,';
+    document.getElementById('nomUtilisateurAffiche').textContent = nomUtilisateur;
+    document.getElementById('dateJour').textContent =
+      `${m('aujourdhui')} ${new Date().toLocaleDateString(
+        langueActuelle==='fr'?'fr-FR':langueActuelle==='ar'?'ar-SA':'en-GB',
+        {dateStyle:'long'}
+      )}`;
+
+    document.getElementById('lbl-eleves').textContent = m('totalEleves');
+    document.getElementById('lbl-profs').textContent = m('totalProfs');
+    document.getElementById('lbl-documents').textContent = m('totalDocuments');
+    document.getElementById('lbl-frais').textContent = m('fraisPayes');
+    document.getElementById('lbl-parClasse').textContent = m('parClasse');
+    document.getElementById('lbl-parFiliere').textContent = m('parParcours');
+    document.getElementById('lbl-tendance').textContent = m('tendanceInscriptions');
+  }
+
+  // ==================================================
+  // 📥 CHARGER DONNÉES DEPUIS L'API
+  // ==================================================
   async function chargerDonnees() {
     try {
-      // 🔄 Charger en parallèle
+      const enTetes = { Authorization: `Bearer ${token}` };
+
+      // 🔄 Chargement en parallèle
       const [resEleves, resPersonnel, resDocs, resPaiments] = await Promise.allSettled([
-        fetch(`${API_URL}/eleves/liste`, {headers:{Authorization:`Bearer ${token}`}}),
-        fetch(`${API_URL}/personnel/liste`, {headers:{Authorization:`Bearer ${token}`}}),
-        fetch(`${API_URL}/documents/tous`, {headers:{Authorization:`Bearer ${token}`}}),
-        fetch(`${API_URL}/paiements/tous`, {headers:{Authorization:`Bearer ${token}`}})
+        fetch(`${API_URL}/eleves/tous`, { headers: enTetes }),
+        fetch(`${API_URL}/personnel/tous`, { headers: enTetes }),
+        fetch(`${API_URL}/documents/tous`, { headers: enTetes }),
+        fetch(`${API_URL}/paiements/tous`, { headers: enTetes })
       ]);
 
       // 📊 Élèves
       let eleves = [];
-      if(resEleves.status === 'fulfilled') {
+      if (resEleves.status === 'fulfilled') {
         const d = await resEleves.value.json();
-        eleves = d.ok ? d.lignes || d : [];
+        eleves = d.ok ? (d.lignes || d.eleves || []) : [];
       }
       document.getElementById('c-eleves').textContent = eleves.length || '0';
 
       // 👨‍🏫 Personnel
       let personnel = [];
-      if(resPersonnel.status === 'fulfilled') {
+      if (resPersonnel.status === 'fulfilled') {
         const d = await resPersonnel.value.json();
-        personnel = d.ok ? d.lignes || d : [];
+        personnel = d.ok ? (d.lignes || d.personnel || []) : [];
       }
       document.getElementById('c-profs').textContent = personnel.length || '0';
 
       // 📄 Documents
       let documents = [];
-      if(resDocs.status === 'fulfilled') {
+      if (resDocs.status === 'fulfilled') {
         const d = await resDocs.value.json();
-        documents = d.ok ? d.lignes || d : [];
+        documents = d.ok ? (d.lignes || d.documents || []) : [];
       }
       document.getElementById('c-documents').textContent = documents.length || '0';
 
       // 💰 Paiements
-      let paiements = [];
       let totalFrais = 0;
-      if(resPaiments.status === 'fulfilled') {
+      if (resPaiments.status === 'fulfilled') {
         const d = await resPaiments.value.json();
-        paiements = d.ok ? d.lignes || d : [];
-        totalFrais = paiements.reduce((somme,p) => somme + (Number(p.montant)||0), 0);
+        const paiements = d.ok ? (d.lignes || d.paiements || []) : [];
+        totalFrais = paiements.reduce((somme, p) => somme + (Number(p.montant) || 0), 0);
       }
       document.getElementById('c-frais').textContent = totalFrais.toLocaleString('fr-FR') + ' F CFA';
 
@@ -498,7 +497,7 @@ async function requeteAPI(chemin, options = {}) {
       const parClasse = {};
       eleves.forEach(e => {
         const c = e.classe || e.nom_classe || '—';
-        parClasse[c] = (parClasse[c]||0)+1;
+        parClasse[c] = (parClasse[c] || 0) + 1;
       });
       creerGraphiqueClasse(parClasse);
 
@@ -506,104 +505,153 @@ async function requeteAPI(chemin, options = {}) {
       const parFiliere = {};
       eleves.forEach(e => {
         const f = e.filiere || e.parcours || 'Générale';
-        parFiliere[f] = (parFiliere[f]||0)+1;
+        parFiliere[f] = (parFiliere[f] || 0) + 1;
       });
       creerGraphiqueFiliere(parFiliere);
 
       // 📈 Tendance inscriptions (6 derniers mois)
       const parMois = {};
-      for(let i=5; i>=0; i--) {
-        const dt = new Date(); dt.setMonth(dt.getMonth()-i);
-        const cle = dt.toLocaleDateString(langueActuelle==='fr'?'fr-FR':langueActuelle==='ar'?'ar-SA':'en-GB',{month:'short'});
-        parMois[cle]=0;
+      for (let i = 5; i >= 0; i--) {
+        const dt = new Date(); dt.setMonth(dt.getMonth() - i);
+        const cle = dt.toLocaleDateString(
+          langueActuelle==='fr'?'fr-FR':langueActuelle==='ar'?'ar-SA':'en-GB',
+          { month: 'short' }
+        );
+        parMois[cle] = 0;
       }
       eleves.forEach(e => {
-        if(!e.date_inscription) return;
-        const dt = new Date(e.date_inscription);
-        const cle = dt.toLocaleDateString(langueActuelle==='fr'?'fr-FR':langueActuelle==='ar'?'ar-SA':'en-GB',{month:'short'});
-        if(parMois.hasOwnProperty(cle)) parMois[cle]++;
+        if (!e.date_creation && !e.date_inscription) return;
+        const dt = new Date(e.date_creation || e.date_inscription);
+        if (isNaN(dt.getTime())) return;
+        const cle = dt.toLocaleDateString(
+          langueActuelle==='fr'?'fr-FR':langueActuelle==='ar'?'ar-SA':'en-GB',
+          { month: 'short' }
+        );
+        if (parMois.hasOwnProperty(cle)) parMois[cle]++;
       });
       creerGraphiqueTendance(parMois);
 
-    } catch(err) {
-      console.warn("⚠️ Mode données locales activé", err.message);
-      document.getElementById('c-eleves').textContent = localStorage.getItem('nb_eleves') || '—';
-      document.getElementById('c-profs').textContent = localStorage.getItem('nb_personnel') || '—';
-      document.getElementById('c-documents').textContent = (JSON.parse(localStorage.getItem('documents_crees')||'[]')).length;
+    } catch (err) {
+      console.warn("⚠️ Mode données locales activé :", err.message);
+      document.getElementById('c-eleves').textContent = getItem('nb_eleves') || '—';
+      document.getElementById('c-profs').textContent = getItem('nb_personnel') || '—';
+      const docsLocaux = JSON.parse(getItem('documents_crees') || '[]');
+      document.getElementById('c-documents').textContent = docsLocaux.length;
       document.getElementById('c-frais').textContent = '— F CFA';
     }
   }
 
-  // 📊 Graphique par Classe (barres)
+  // ==================================================
+  // 📊 GRAPHIQUE PAR CLASSE (BARRES)
+  // ==================================================
   function creerGraphiqueClasse(donnees) {
     const etiquettes = Object.keys(donnees);
     const valeurs = Object.values(donnees);
     const ctx = document.getElementById('graphiqueClasse').getContext('2d');
-    if(graphClasse) graphClasse.destroy();
-    const couleurTexte = themeActuel==='dark'?'#cbd5e1':'#475569';
-    const couleurGrille = themeActuel==='dark'?'rgba(255,255,255,.05)':'rgba(0,0,0,.05)';
+    if (graphClasse) graphClasse.destroy();
+    const couleurTexte = themeActuel === 'dark' ? '#cbd5e1' : '#475569';
+    const couleurGrille = themeActuel === 'dark' ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.05)';
+
     graphClasse = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: etiquettes,
-        datasets: [{ data: valeurs, backgroundColor: COULEURS.slice(0,etiquettes.length), borderRadius:8 }]
+        datasets: [{
+          data: valeurs,
+          backgroundColor: COULEURS.slice(0, etiquettes.length),
+          borderRadius: 8
+        }]
       },
       options: {
-        responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-        scales:{y:{beginAtZero:true, ticks:{color:couleurTexte}, grid:{color:couleurGrille}},
-                 x:{ticks:{color:couleurTexte}, grid:{display:false}}}
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { color: couleurTexte }, grid: { color: couleurGrille } },
+          x: { ticks: { color: couleurTexte }, grid: { display: false } }
+        }
       }
     });
   }
 
-  // 🎓 Graphique par Filière (camembert)
+  // ==================================================
+  // 🎓 GRAPHIQUE PAR FILIÈRE (CAMEMBERT)
+  // ==================================================
   function creerGraphiqueFiliere(donnees) {
     const etiquettes = Object.keys(donnees);
     const valeurs = Object.values(donnees);
     const ctx = document.getElementById('graphiqueFiliere').getContext('2d');
-    if(graphFiliere) graphFiliere.destroy();
-    const couleurTexte = themeActuel==='dark'?'#cbd5e1':'#475569';
+    if (graphFiliere) graphFiliere.destroy();
+    const couleurTexte = themeActuel === 'dark' ? '#cbd5e1' : '#475569';
+    const couleurBordure = themeActuel === 'dark' ? '#1e293b' : '#fff';
+
     graphFiliere = new Chart(ctx, {
       type: 'doughnut',
       data: {
         labels: etiquettes,
-        datasets: [{ data: valeurs, backgroundColor: COULEURS.slice(0,etiquettes.length), borderWidth:2, borderColor:themeActuel==='dark'?'#1e293b':'#fff' }]
+        datasets: [{
+          data: valeurs,
+          backgroundColor: COULEURS.slice(0, etiquettes.length),
+          borderWidth: 2,
+          borderColor: couleurBordure
+        }]
       },
       options: {
-        responsive:true, maintainAspectRatio:false,
-        plugins:{legend:{position:'bottom', labels:{color:couleurTexte, padding:15}}}
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { color: couleurTexte, padding: 15 } }
+        }
       }
     });
   }
 
-  // 📈 Graphique Tendance (courbe)
+  // ==================================================
+  // 📈 GRAPHIQUE TENDANCE INSCRIPTIONS (COURBE)
+  // ==================================================
   function creerGraphiqueTendance(donnees) {
     const etiquettes = Object.keys(donnees);
     const valeurs = Object.values(donnees);
     const ctx = document.getElementById('graphiqueTendance').getContext('2d');
-    if(graphTendance) graphTendance.destroy();
-    const couleurTexte = themeActuel==='dark'?'#cbd5e1':'#475569';
-    const couleurGrille = themeActuel==='dark'?'rgba(255,255,255,.05)':'rgba(0,0,0,.05)';
+    if (graphTendance) graphTendance.destroy();
+    const couleurTexte = themeActuel === 'dark' ? '#cbd5e1' : '#475569';
+    const couleurGrille = themeActuel === 'dark' ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.05)';
+
     graphTendance = new Chart(ctx, {
       type: 'line',
       data: {
         labels: etiquettes,
-        datasets:[{ label:'Inscriptions', data:valeurs, borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,.15)', fill:true, tension:.4, pointBackgroundColor:'#f59e0b', pointRadius:5 }]
+        datasets: [{
+          label: m('totalEleves'),
+          data: valeurs,
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245,158,11,.15)',
+          fill: true,
+          tension: .4,
+          pointBackgroundColor: '#f59e0b',
+          pointRadius: 5
+        }]
       },
-      options:{
-        responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-        scales:{y:{beginAtZero:true, ticks:{color:couleurTexte}, grid:{color:couleurGrille}},
-                 x:{ticks:{color:couleurTexte}, grid:{display:false}}}
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { color: couleurTexte }, grid: { color: couleurGrille } },
+          x: { ticks: { color: couleurTexte }, grid: { display: false } }
+        }
       }
     });
   }
 
-  // 🎨 Réactualiser les graphiques au changement de thème
+  // ==================================================
+  // 🎨 RAFRAÎCHIR GRAPHIQUES AU CHANGEMENT DE THÈME
+  // ==================================================
   function majCouleursGraphiques() {
-    setTimeout(chargerDonnees, 150);
+    chargerDonnees();
   }
 
-  // 🚀 Lancement
+  // ==================================================
+  // 🚀 LANCEMENT AU CHARGEMENT
+  // ==================================================
+  chargerTextesStatiques();
   chargerDonnees();
 </script>
 </body>

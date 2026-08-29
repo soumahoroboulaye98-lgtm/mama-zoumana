@@ -15,19 +15,16 @@ function validerMethode(methode) {
   const valides = ['especes','cheque','virement','wave','carte','orange','mtn','moov','caisse'];
   return valides.includes(methode?.toLowerCase());
 }
-
 function validerStatut(statut) {
   const valides = ['en_attente','partiel','paye','annule','refuse'];
   return valides.includes(statut?.toLowerCase());
 }
-
 function calculerStatut(montantTotal, montantPaye) {
   const du = parseFloat(montantTotal) || 0;
   const verse = parseFloat(montantPaye) || 0;
   const reste = Math.max(0, du - verse);
   let statut = 'en_attente';
   let pourcentage = 0;
-
   if (du > 0) {
     pourcentage = Math.round((verse / du) * 100 * 10) / 10;
     if (verse >= du) statut = 'paye';
@@ -37,7 +34,36 @@ function calculerStatut(montantTotal, montantPaye) {
 }
 
 // ==================================================
-// 📋 LISTE DES PAIEMENTS + RÉSUMÉ + FILTRES — Admin
+// 📊 ROUTE /TOUS — Pour Tableau de Bord Admin ✅ AJOUTÉE
+// → Retourne la liste simple + total des montants
+// ==================================================
+router.get('/tous', protegerAdmin, async (req, res) => {
+  try {
+    const { rows: paiements } = await pool.query(`
+      SELECT p.id_paiement, p.libelle, p.montant_total, p.montant_paye, 
+             p.statut, p.date_paiement, p.reference_externe
+      FROM paiements p ORDER BY p.date_paiement DESC
+    `);
+
+    const { rows: [resume] } = await pool.query(`
+      SELECT 
+        COUNT(*) AS total_enregistrements,
+        COALESCE(SUM(p.montant_total),0)::NUMERIC AS somme_totale,
+        COALESCE(SUM(p.montant_paye),0)::NUMERIC AS somme_recue,
+        COALESCE(SUM(p.montant_restant),0)::NUMERIC AS somme_restante
+      FROM paiements p
+    `);
+
+    console.log(`✅ Paiements consultés — ${paiements.length} enregistrement(s) | Total encaissé: ${resume.somme_recue} F CFA`);
+    res.json({ ok: true, lignes: paiements, resume, total: resume.somme_recue });
+  } catch (e) {
+    console.error("❌ ERREUR /TOUS PAIEMENTS :", e.code, e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
+});
+
+// ==================================================
+// 📋 LISTE COMPLÈTE + FILTRES — Admin
 // ==================================================
 router.get('/liste', protegerAdmin, async (req, res) => {
   try {
@@ -79,7 +105,7 @@ router.get('/liste', protegerAdmin, async (req, res) => {
     `, params);
 
     console.log(`✅ Liste paiements — ${paiements.length} enregistrement(s)`);
-    res.json({ ok: true, paiements, resume });
+    res.json({ ok: true, lignes: paiements, resume });
   } catch (e) {
     console.error("❌ ERREUR LISTE PAIEMENTS :", e.code, e.message);
     res.json({ ok: false, erreur: e.message });
@@ -126,7 +152,7 @@ router.post('/enregistrer', protegerAdmin, async (req, res) => {
       commentaire || null, categorie || 'frais_scolaires'
     ]);
 
-    console.log(`✅ Paiement enregistré — Réf: ${ref} | ${statut} | ${montantVerse}/${montantDu} XOF`);
+    console.log(`✅ Paiement enregistré — Réf: ${ref} | ${statut} | ${montantVerse}/${montantDu} F CFA`);
     res.json({ ok: true, message: "✅ Paiement enregistré", paiement: nouveau });
   } catch (e) {
     console.error("❌ ERREUR ENREGISTREMENT :", e.code, e.message);
@@ -154,7 +180,7 @@ router.put('/ajouter-versement/:id', protegerAdmin, async (req, res) => {
     if (ancien.statut === 'paye') return res.json({ ok: false, erreur: "⚠️ Paiement déjà soldé" });
 
     const { montantDu, montantVerse, montantRestant, statut, pourcentage } = calculerStatut(ancien.montant_total, ancien.montant_paye + ajoute);
-    const nouvelleNote = `\n— Versement du ${new Date().toLocaleDateString('fr-FR')} : ${ajoute} XOF${commentaire ? ` | ${commentaire}` : ''}`;
+    const nouvelleNote = `\n— Versement du ${new Date().toLocaleDateString('fr-FR')} : ${ajoute} F CFA${commentaire ? ` | ${commentaire}` : ''}`;
 
     const { rows: [maj] } = await pool.query(`
       UPDATE paiements SET
@@ -164,7 +190,7 @@ router.put('/ajouter-versement/:id', protegerAdmin, async (req, res) => {
       WHERE id_paiement = $7 RETURNING *
     `, [montantVerse, montantRestant, statut, pourcentage, nouvelleNote, numero_transaction || null, id]);
 
-    console.log(`✅ Versement ajouté — ID: ${id} | ${ajoute} XOF | Nouveau statut: ${statut}`);
+    console.log(`✅ Versement ajouté — ID: ${id} | ${ajoute} F CFA | Nouveau statut: ${statut}`);
     res.json({ ok: true, message: "✅ Versement enregistré", paiement: maj });
   } catch (e) {
     console.error("❌ ERREUR VERSEMENT :", e.code, e.message);
@@ -253,13 +279,11 @@ router.get('/mes-paiements', protegerAuth, async (req, res) => {
 
     const { statut, annee, categorie } = req.query;
     let conditions = ['p.id_utilisateur = $1'], params = [id_utilisateur], idx = 2;
-
     if (statut && validerStatut(statut)) { conditions.push(`p.statut = $${idx++}`); params.push(statut); }
     if (annee) { conditions.push(`EXTRACT(YEAR FROM p.date_paiement) = $${idx++}`); params.push(parseInt(annee)); }
     if (categorie) { conditions.push(`p.categorie = $${idx++}`); params.push(categorie); }
 
     const where = `WHERE ${conditions.join(' AND ')}`;
-
     const { rows: paiements } = await pool.query(`
       SELECT p.*,
         CASE WHEN p.montant_total > 0 THEN ROUND((p.montant_paye / p.montant_total) * 100, 1) ELSE 0 END AS pourcentage_calcule
@@ -275,7 +299,7 @@ router.get('/mes-paiements', protegerAuth, async (req, res) => {
     `, params);
 
     console.log(`✅ Mes paiements — Utilisateur ID: ${id_utilisateur}`);
-    res.json({ ok: true, paiements, resume });
+    res.json({ ok: true, lignes: paiements, resume });
   } catch (e) {
     console.error("❌ ERREUR MES PAIEMENTS :", e.code, e.message);
     res.json({ ok: false, erreur: e.message });
