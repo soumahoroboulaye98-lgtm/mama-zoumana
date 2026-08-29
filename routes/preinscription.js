@@ -7,12 +7,14 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 require('dotenv').config();
 
 // ==================================================
 // 🔑 CONFIGURATION GLOBALE
 // ==================================================
 const CLE_JWT = process.env.JWT_SECRET || 'ma_cle_secrete_pour_le_site_2026';
+const ANNEE_SCOLAIRE_DEFAUT = '2025-2026';
 const dossierUpload = path.join(__dirname, '../public/uploads/');
 if (!fs.existsSync(dossierUpload)) fs.mkdirSync(dossierUpload, { recursive: true });
 
@@ -73,7 +75,7 @@ const stockage = multer.diskStorage({
     cb(null, `${Date.now()}-${nomNettoye}`);
   }
 });
-const upload = multer({ storage: stockage });
+const upload = require('../config/multer-config');
 
 // ==================================================
 // 📧 SERVICE EMAIL
@@ -107,7 +109,6 @@ async function envoyerEmail(destinataire, sujet, messageHtml) {
 // ==================================================
 // 🔧 UTILITAIRES
 // ==================================================
-// ✅ Déterminer profil
 function determinerProfil(d) {
   if (d.profil) return d.profil;
   if (d.id_classe) return 'eleve';
@@ -115,10 +116,9 @@ function determinerProfil(d) {
   return 'visiteur';
 }
 
-// ✅ Générer matricule élève
 async function genererMatricule(dateNaissance, anneeScolaire) {
-  const anneeDebut = String(anneeScolaire || '2025-2026').slice(0, 4);
-  const anneeFin = String(anneeScolaire || '2025-2026').slice(-4);
+  const anneeDebut = String(anneeScolaire || ANNEE_SCOLAIRE_DEFAUT).slice(0, 4);
+  const anneeFin = String(anneeScolaire || ANNEE_SCOLAIRE_DEFAUT).slice(-4);
   const dateRef = new Date(`${anneeDebut}-10-01`);
   const naissance = new Date(dateNaissance);
   let age = dateRef.getFullYear() - naissance.getFullYear();
@@ -134,10 +134,17 @@ async function genererMatricule(dateNaissance, anneeScolaire) {
   return `${prefixe}${String(numero).padStart(3, '0')}`;
 }
 
+function validerEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function genererMotDePasse(longueur = 10) {
+  return crypto.randomBytes(longueur).toString('base64').slice(0, longueur).replace(/[+/]/g, '@') + 'aA1';
+}
+
 // ==================================================
 // 📋 ROUTES PUBLIQUES
 // ==================================================
-// ➕ SOUMETTRE UNE PRÉINSCRIPTION
 router.post('/', upload.fields([
   { name: 'photo_identite', maxCount: 1 },
   { name: 'extrait_naissance', maxCount: 1 },
@@ -158,24 +165,20 @@ router.post('/', upload.fields([
       mode_paiement, annee_scolaire, observations
     } = req.body;
 
-    // ==================================================
-    // ✅ VALIDATION DES CHAMPS OBLIGATOIRES
-    // ==================================================
     const erreurs = [];
-
-    // 🔴 OBLIGATOIRES pour TOUS
     if (!nom?.trim()) erreurs.push("• Nom est obligatoire");
     if (!prenoms?.trim()) erreurs.push("• Prénoms sont obligatoires");
     if (!profil?.trim()) erreurs.push("• Profil est obligatoire");
 
-    // ⚠️ Au moins un moyen de contact
     const telNettoye = telephone?.replace(/\s/g, '') || '';
     const emailNettoye = email?.trim() || '';
     if (!telNettoye && !emailNettoye) {
       erreurs.push("• Au moins un moyen de contact est requis : Téléphone OU Email");
     }
+    if (emailNettoye && !validerEmail(emailNettoye)) {
+      erreurs.push("• Format email invalide");
+    }
 
-    // 🔴 OBLIGATOIRE si ÉLÈVE
     const profilNettoye = profil?.trim();
     if (profilNettoye === 'eleve') {
       if (!id_classe && !libelle_classe_fr?.trim()) {
@@ -185,26 +188,18 @@ router.post('/', upload.fields([
         erreurs.push("• Date de naissance est obligatoire pour un élève");
       }
     }
-
-    // 🔴 OBLIGATOIRE si PROFESSEUR
     if (profilNettoye === 'professeur') {
       if (!specialite?.trim()) {
         erreurs.push("• Spécialité est obligatoire pour un enseignant");
       }
     }
 
-    // ✅ Valeur par défaut pour l'année scolaire
-    const anneeScolaire = annee_scolaire?.trim() || '2025-2026';
+    const anneeScolaire = annee_scolaire?.trim() || ANNEE_SCOLAIRE_DEFAUT;
 
-    // ❌ Afficher toutes les erreurs
     if (erreurs.length > 0) {
-      return res.json({
-        ok: false,
-        erreur: `⚠️ Veuillez compléter les champs suivants :\n${erreurs.join('\n')}`
-      });
+      return res.json({ ok: false, erreur: `⚠️ Veuillez compléter les champs suivants :\n${erreurs.join('\n')}` });
     }
 
-    // ✅ Vérification doublon
     if (emailNettoye) {
       const { rows: existe } = await pool.query(
         `SELECT id_preinscription FROM preinscriptions WHERE LOWER(email) = LOWER($1) AND statut <> 'refusée' AND statut <> 'annulée'`,
@@ -220,7 +215,6 @@ router.post('/', upload.fields([
       if (existe.length) return res.json({ ok: false, erreur: "⚠️ Ce téléphone est déjà utilisé pour une préinscription en cours" });
     }
 
-    // ✅ Vérification classe et places
     let placesRestantes = null, libelleClasse = null;
     if (id_classe && !isNaN(Number(id_classe))) {
       const { rows: [classe] } = await pool.query(
@@ -234,13 +228,11 @@ router.post('/', upload.fields([
         return res.json({ ok: false, erreur: `❌ Classe ${libelleClasse} complète ! Plus de place disponible.` });
     }
 
-    // ✅ Fichiers uploadés
     const photo_identite = req.files?.photo_identite?.[0] ? `uploads/${req.files.photo_identite[0].filename}` : null;
     const extrait_naissance = req.files?.extrait_naissance?.[0] ? `uploads/${req.files.extrait_naissance[0].filename}` : null;
     const bulletin = req.files?.bulletin?.[0] ? `uploads/${req.files.bulletin[0].filename}` : null;
     const cv = req.files?.cv?.[0] ? `uploads/${req.files.cv[0].filename}` : null;
 
-    // ✅ Insertion conforme à la table → VARIABLE RENOMMÉE
     const { rows: [nouvellePreinscription] } = await pool.query(`
       INSERT INTO preinscriptions (
         profil, nom, prenoms, sexe, date_naissance, lieu_naissance, nationalite, adresse,
@@ -272,7 +264,6 @@ router.post('/', upload.fields([
       'en attente'
     ]);
 
-    // ✅ Incrémenter places occupées
     if (id_classe && !isNaN(Number(id_classe))) {
       await pool.query(
         `UPDATE classes SET places_occupees = places_occupees + 1 WHERE id_classe = $1`,
@@ -281,7 +272,6 @@ router.post('/', upload.fields([
       placesRestantes = Math.max(0, placesRestantes - 1);
     }
 
-    // ✅ Email accusé réception
     const destEmail = emailNettoye || email_parent?.trim();
     if (destEmail) {
       await envoyerEmail(destEmail, '✅ Préinscription enregistrée — MAMA-ZOUMANA', `
@@ -300,7 +290,6 @@ router.post('/', upload.fields([
       message: `✅ Demande enregistrée !${libelleClasse ? `\n🏫 Classe: ${libelleClasse}\n📊 Places restantes: ${placesRestantes}` : ''}`,
       id: nouvellePreinscription.id_preinscription
     });
-
   } catch (e) {
     console.error("❌ ERREUR soumission :", e.code, e.message);
     res.json({
@@ -333,7 +322,6 @@ router.post('/parent-matricule', async (req, res) => {
     if (!okEmail && !okTel)
       return res.json({ ok: false, erreur: "⚠️ Email ou téléphone non concordant" });
 
-    // Récupérer tous les enfants du parent
     const { rows: enfants } = await pool.query(`
       SELECT id_utilisateur AS id, nom, prenoms, matricule, id_classe, statut
       FROM utilisateurs WHERE role = 'eleve'
@@ -357,7 +345,6 @@ router.post('/parent-matricule', async (req, res) => {
 // 🔐 ROUTES ADMINISTRATION
 // ==================================================
 if (protegerAdmin.length) {
-  // 📋 LISTE EN ATTENTE
   router.get('/en-attente', protegerAdmin, async (req, res) => {
     try {
       const { rows } = await pool.query(`
@@ -369,7 +356,6 @@ if (protegerAdmin.length) {
     }
   });
 
-  // 📋 TOUTES LES PRÉINSCRIPTIONS
   router.get('/', protegerAdmin, async (req, res) => {
     try {
       const { rows } = await pool.query(`
@@ -381,7 +367,6 @@ if (protegerAdmin.length) {
     }
   });
 
-  // ✅ VALIDER → CRÉER COMPTE UTILISATEUR
   router.post('/valider/:id', protegerAdmin, async (req, res) => {
     const client = await pool.connect();
     try {
@@ -390,7 +375,6 @@ if (protegerAdmin.length) {
       if (isNaN(id_preinscription))
         return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
 
-      // 🔍 Lire la demande
       const { rows: [demande] } = await client.query(
         `SELECT * FROM preinscriptions WHERE id_preinscription = $1`, [id_preinscription]
       );
@@ -399,7 +383,6 @@ if (protegerAdmin.length) {
 
       const profil = determinerProfil(demande);
 
-      // ✅ Définir la classe
       let id_classe_final = demande.id_classe;
       if (!id_classe_final && demande.libelle_classe_fr) {
         const { rows: [c] } = await client.query(
@@ -408,7 +391,17 @@ if (protegerAdmin.length) {
         if (c) id_classe_final = c.id_classe;
       }
 
-      // ✅ Générer matricule
+      if (id_classe_final) {
+        const { rows: [classe] } = await client.query(
+          `SELECT capacite_max, places_occupees FROM classes WHERE id_classe = $1 FOR UPDATE`,
+          [id_classe_final]
+        );
+        if (classe && (classe.places_occupees || 0) >= classe.capacite_max) {
+          await client.query('ROLLBACK');
+          return res.json({ ok: false, erreur: "❌ Classe complète pendant la validation" });
+        }
+      }
+
       let matricule;
       if (profil === 'eleve' && demande.date_naissance) {
         matricule = await genererMatricule(demande.date_naissance, demande.annee_scolaire);
@@ -417,9 +410,9 @@ if (protegerAdmin.length) {
         matricule = `${prefixes[profil] || 'VIS'}-${String(id_preinscription).padStart(5, '0')}`;
       }
 
-      // ✅ Créer compte utilisateur
-      const mdpProvisoire = Math.random().toString(36).substring(2, 10).toUpperCase() + '@1A';
+      const mdpProvisoire = genererMotDePasse();
       const hashMdp = await bcrypt.hash(mdpProvisoire, 10);
+
       const { rows: [nouvelUtilisateur] } = await client.query(`
         INSERT INTO utilisateurs (
           nom, prenoms, email, telephone, date_naissance, lieu_naissance, nationalite, sexe, adresse,
@@ -439,7 +432,6 @@ if (protegerAdmin.length) {
         id_classe_final, matricule, profil, hashMdp
       ]);
 
-      // ✅ Mise à jour statut préinscription
       await client.query(`
         UPDATE preinscriptions
         SET statut = 'validée', date_traitement = NOW(), id_utilisateur_valideur = $1, date_mise_a_jour = NOW()
@@ -448,7 +440,6 @@ if (protegerAdmin.length) {
 
       await client.query('COMMIT');
 
-      // ✅ Email identifiants
       const destEmail = demande.email || demande.email_parent;
       if (destEmail) {
         await envoyerEmail(destEmail, '✅ INSCRIPTION VALIDÉE — MAMA-ZOUMANA', `
@@ -476,35 +467,43 @@ if (protegerAdmin.length) {
     }
   });
 
-  // ❌ REFUSER UNE DEMANDE
   router.patch('/:id/refuser', protegerAdmin, async (req, res) => {
+    const client = await pool.connect();
     try {
+      await client.query('BEGIN');
       const id_preinscription = parseInt(req.params.id);
-      const { rows: [demande] } = await pool.query(
+
+      const { rows: [demande] } = await client.query(
         `SELECT id_classe, statut FROM preinscriptions WHERE id_preinscription = $1`, [id_preinscription]
       );
-      if (!demande) return res.json({ ok: false, erreur: "❌ Introuvable" });
+      if (!demande) {
+        await client.query('ROLLBACK');
+        return res.json({ ok: false, erreur: "❌ Introuvable" });
+      }
 
-      // ✅ Libérer place si classe réservée
       if (demande.id_classe && demande.statut === 'en attente') {
-        await pool.query(
+        await client.query(
           `UPDATE classes SET places_occupees = GREATEST(0, places_occupees - 1) WHERE id_classe = $1`,
           [demande.id_classe]
         );
       }
 
-      await pool.query(`
+      await client.query(`
         UPDATE preinscriptions SET statut = 'refusée', date_traitement = NOW(), date_mise_a_jour = NOW()
         WHERE id_preinscription = $1
       `, [id_preinscription]);
 
+      await client.query('COMMIT');
       res.json({ ok: true, message: "✅ Demande refusée" });
     } catch (e) {
+      await client.query('ROLLBACK');
+      console.error("❌ ERREUR refus :", e.message);
       res.json({ ok: false, erreur: e.message });
+    } finally {
+      client.release();
     }
   });
 
-  // ✏️ MODIFIER STATUT
   router.patch('/:id/statut', protegerAdmin, async (req, res) => {
     try {
       const id_preinscription = parseInt(req.params.id);
@@ -524,7 +523,6 @@ if (protegerAdmin.length) {
     }
   });
 
-  // 🔍 DÉTAILS
   router.get('/:id', protegerAdmin, async (req, res) => {
     try {
       const { rows: [demande] } = await pool.query(
@@ -542,7 +540,6 @@ if (protegerAdmin.length) {
 // 👨‍👩‍👧 ESPACE PARENT
 // ==================================================
 if (protegerParent.length) {
-  // 📋 MES ENFANTS
   router.get('/mes-enfants', protegerParent, async (req, res) => {
     try {
       const { email_parent, telephone_parent } = req.filtreParent;

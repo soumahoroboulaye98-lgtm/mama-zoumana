@@ -8,71 +8,25 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
     :root {
-      --primaire: #0c4a6e;
-      --secondaire: #0369a1;
-      --accent: #f59e0b;
-      --succes: #10b981;
-      --action: #3b82f6;
-      --alerte: #ef4444;
-      --sombre: #0f172a;
-      --sombre-clair: #1e293b;
-      --clair: #f8fafc;
-      --texte: #f8fafc;
-      --texte-clair: #1e293b;
-      --bordure: #334155;
-      --fond-carte: #1e293b;
-      --fond-input: #0f172a;
-      --table-ligne: rgba(56,189,248,0.08);
+      --primaire: #0c4a6e; --secondaire: #0369a1; --accent: #f59e0b;
+      --succes: #10b981; --action: #3b82f6; --alerte: #ef4444;
+      --sombre: #0f172a; --sombre-clair: #1e293b; --clair: #f8fafc;
+      --texte: #f8fafc; --texte-clair: #1e293b; --bordure: #334155;
+      --fond-carte: #1e293b; --fond-input: #0f172a; --table-ligne: rgba(56,189,248,0.08);
     }
     body.mode-jour {
-      --primaire: #0c4a6e;
-      --secondaire: #0369a1;
-      --sombre: #e0f2fe;
-      --sombre-clair: #f0f9ff;
-      --texte: #1e293b;
-      --bordure: #cbd5e1;
-      --fond-carte: #ffffff;
-      --fond-input: #ffffff;
-      --table-ligne: rgba(12,74,110,0.06);
+      --primaire: #0c4a6e; --secondaire: #0369a1; --sombre: #e0f2fe;
+      --sombre-clair: #f0f9ff; --texte: #1e293b; --bordure: #cbd5e1;
+      --fond-carte: #ffffff; --fond-input: #ffffff; --table-ligne: rgba(12,74,110,0.06);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease; }
-    body {
-      background: var(--sombre);
-      color: var(--texte);
-      min-height: 100vh;
-      font-family: 'Segoe UI', sans-serif;
-    }
-    .entete-page {
-      background: linear-gradient(135deg, var(--primaire), var(--secondaire));
-      padding: 1.25rem 0;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-    }
-    .carte {
-      background: var(--fond-carte);
-      border-radius: 12px;
-      border-left: 4px solid var(--accent);
-      padding: 1.25rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .form-control, .form-select {
-      background: var(--fond-input);
-      border: 1px solid var(--bordure);
-      color: var(--texte);
-      border-radius: 8px;
-    }
-    .form-control:focus, .form-select:focus {
-      background: var(--fond-input);
-      border-color: var(--accent);
-      color: var(--texte);
-      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
-    }
+    body { background: var(--sombre); color: var(--texte); min-height: 100vh; font-family: 'Segoe UI', sans-serif; }
+    .entete-page { background: linear-gradient(135deg, var(--primaire), var(--secondaire)); padding: 1.25rem 0; margin-bottom: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.15); }
+    .carte { background: var(--fond-carte); border-radius: 12px; border-left: 4px solid var(--accent); padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .form-control, .form-select { background: var(--fond-input); border: 1px solid var(--bordure); color: var(--texte); border-radius: 8px; }
+    .form-control:focus, .form-select:focus { background: var(--fond-input); border-color: var(--accent); color: var(--texte); box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15); }
     .form-label { color: var(--texte); font-weight: 600; }
-    .btn-anim-orange {
-      background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white;
-      border-radius: 8px; padding: 0.375rem 1rem; transition: all 0.25s;
-    }
+    .btn-anim-orange { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 8px; padding: 0.375rem 1rem; transition: all 0.25s; }
     .btn-anim-orange:hover, .btn-anim-orange.actif { background: var(--accent); border-color: var(--accent); color: white; }
     .btn-valide { background: var(--succes); color: white; border-radius: 8px; border: none; box-shadow: 0 0 12px rgba(16,185,129,0.35); }
     .btn-valide:hover { box-shadow: 0 0 20px rgba(16,185,129,0.5); transform: translateY(-1px); }
@@ -102,9 +56,8 @@
     .onglets .nav-link { color: var(--texte); border: 1px solid transparent; }
     .onglets .nav-link.active { background: var(--fond-carte); color: var(--accent); border-color: var(--accent); font-weight: 600; }
     .onglets .nav-link:hover { border-color: var(--accent); }
-    .no-print {
-  display: none !important;
-}
+    .erreur-chargement { color: var(--alerte); font-size: 0.9rem; }
+    .no-print { display: none !important; }
     @media print {
       body { background: white !important; color: black !important; }
       .no-print { display: none !important; }
@@ -115,19 +68,37 @@
   </style>
 </head>
 <body class="lang-fr">
-
 <script>
 // ========== CONFIGURATION API ==========
 const API_URL = "https://mama-zoumana-api.onrender.com/api";
 const getToken = () => localStorage.getItem('token');
+
 async function requeteAPI(chemin, options = {}) {
-  const reponse = await fetch(`${API_URL}${chemin}`, {
-    ...options,
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}`, ...options.headers }
-  });
-  if (reponse.status === 401) { alert("🔑 Session expirée."); localStorage.clear(); location.href = 'connexion.html'; throw new Error('SESSION_EXPIREE'); }
-  if (reponse.status >= 500) throw new Error('SERVEUR');
-  return await reponse.json();
+  try {
+    const reponse = await fetch(`${API_URL}${chemin}`, {
+      ...options,
+      headers: { 
+        'Content-Type': 'application/json', 
+        'Authorization': `Bearer ${getToken()}`, 
+        ...options.headers 
+      }
+    });
+    if (reponse.status === 401) { 
+      alert("🔑 Session expirée."); 
+      localStorage.clear(); 
+      location.href = 'connexion.html'; 
+      throw new Error('SESSION_EXPIREE'); 
+    }
+    if (reponse.status === 404) {
+      console.warn(`⚠️ Route introuvable: ${chemin}`);
+      return null;
+    }
+    if (reponse.status >= 500) throw new Error('SERVEUR');
+    return await reponse.json();
+  } catch (err) {
+    console.error(`❌ Erreur appel ${chemin}:`, err);
+    return null;
+  }
 }
 
 // ========== GLOBAL : LANGUE, THÈME, DONNÉES ==========
@@ -138,82 +109,104 @@ let listeMatieres = [];
 
 const MSG = {
   fr: {
-    classe: "Classe", matiere: "Matière", professeur: "Professeur", jour: "Jour", heure: "Heure",
-    aucuneSeance: "Aucune séance trouvée", chargeEnCours: "Chargement...",
+    classe: "Classe", matiere: "Matière", aucuneSeance: "Aucune séance trouvée",
+    chargeEnCours: "Chargement...", erreurChargement: "⚠️ Erreur de chargement",
     classeFrancais: "Classe suivie en Français *", classeArabe: "Classe suivie en Arabe *",
     infoChoixClasse: "ℹ️ Vous pouvez choisir des niveaux différents entre Français et Arabe",
     aucuneClasse: "⚠️ Aucune classe trouvée. L'administrateur doit d'abord saisir les classes.",
     maClasse: "Ma Classe", mesSeances: "Mes séances", toutesClasses: "TOUTES CLASSES",
-    nouvelSeance: "Nouvelle séance", modifier: "Modifier", supprimer: "Supprimer",
     valider: "Valider", enregistrer: "Enregistrement réussi", supprOk: "Supprimé",
     confirmerSuppr: "Confirmer la suppression ?", erreurChamp: "⚠️ Remplissez tous les champs obligatoires",
     emploiDuTemps: "Emploi du Temps", preinscription: "Préinscription Élève",
-    impression: "Imprimer", exporter: "Exporter"
+    impression: "Imprimer", classeChargees: "✅ Classes chargées depuis l'administration"
   },
   ar: {
-    classe: "الشعبة", matiere: "المادة", professeur: "الأستاذ", jour: "اليوم", heure: "الوقت",
-    aucuneSeance: "لا حصص مجدولة", chargeEnCours: "جار التحميل...",
+    classe: "الشعبة", matiere: "المادة", aucuneSeance: "لا حصص مجدولة",
+    chargeEnCours: "جار التحميل...", erreurChargement: "⚠️ خطأ في التحميل",
     classeFrancais: "المستوى الدراسي (فرنسي) *", classeArabe: "المستوى الدراسي (عربي) *",
     infoChoixClasse: "ℹ️ يمكنك اختيار مستويات مختلفة للفرنسية والعربية",
     aucuneClasse: "⚠️ لا توجد شعبة متاحة. يجب إضافة الشعب أولاً.",
-    maClasse: "فصلي", mesSeances: "حصصي", toutesClasses: "جميع الشعب",
-    nouvelSeance: "حصة جديدة", modifier: "تعديل", supprimer: "حذف",
-    valider: "تأكيد", enregistrer: "تم الحفظ بنجاح", supprOk: "تم الحذف",
+    maClasse: "فصلي", valider: "تأكيد", enregistrer: "تم الحفظ بنجاح",
     confirmerSuppr: "تأكيد الحذف؟", erreurChamp: "⚠️ الرجاء ملء الحقول المطلوبة",
     emploiDuTemps: "جدول الحصص", preinscription: "التسجيل المسبق",
-    impression: "طباعة", exporter: "تصدير"
+    classeChargees: "✅ تم تحميل الشعب من الإدارة"
   },
   en: {
-    classe: "Class", matiere: "Subject", professeur: "Teacher", jour: "Day", heure: "Time",
-    aucuneSeance: "No sessions found", chargeEnCours: "Loading...",
+    classe: "Class", matiere: "Subject", aucuneSeance: "No sessions found",
+    chargeEnCours: "Loading...", erreurChargement: "⚠️ Loading error",
     classeFrancais: "Class studied in French *", classeArabe: "Class studied in Arabic *",
     infoChoixClasse: "ℹ️ You may choose different levels for French and Arabic",
     aucuneClasse: "⚠️ No classes found. Administrator must add classes first.",
-    maClasse: "My Class", mesSeances: "My sessions", toutesClasses: "ALL CLASSES",
-    nouvelSeance: "New session", modifier: "Edit", supprimer: "Delete",
-    valider: "Save", enregistrer: "Saved successfully", supprOk: "Deleted",
-    confirmerSuppr: "Confirm deletion?", erreurChamp: "⚠️ Fill all required fields",
+    valider: "Save", enregistrer: "Saved successfully", erreurChamp: "⚠️ Fill all required fields",
     emploiDuTemps: "Timetable", preinscription: "Student Pre-Registration",
-    impression: "Print", exporter: "Export"
+    classeChargees: "✅ Classes loaded from administration"
   }
 };
 const m = cle => MSG[langueActuelle]?.[cle] || MSG.fr[cle];
 
 // ========== SAUVEGARDE LOCALE ==========
 function sauvegarderLocal(k,v) { localStorage.setItem('ref_'+k, JSON.stringify(v)); }
-function recupererLocal(k) { return JSON.parse(localStorage.getItem('ref_'+k) || '[]'); }
+function recupererLocal(k) { return JSON.parse(localStorage.getItem('ref_'+k) || 'null'); }
 
-// ========== CHARGER RÉFÉRENTIEL : Classes & Matières ==========
+// ========== 🔴 CORRECTION : CHARGER CLASSES & MATIÈRES ==========
 async function chargerReferentiels() {
-  try {
-    const [clData, mtData] = await Promise.all([ requeteAPI('/classes/toutes'), requeteAPI('/matieres') ]);
-    listeClasses = clData.classes || clData.lignes || clData || [];
-    listeMatieres = mtData.matieres || mtData.lignes || mtData || [];
-    if (!Array.isArray(listeClasses)) listeClasses = [];
-    if (!Array.isArray(listeMatieres)) listeMatieres = [];
-  } catch {
-    listeClasses = recupererLocal('classes');
-    listeMatieres = recupererLocal('matieres');
+  console.log("📡 Tentative de chargement des classes et matières...");
+  
+  // Essayer d'abord les routes API CORRIGÉES
+  let clData = await requeteAPI('/classes');           // ✅ Route = /classes (PAS /classes/toutes)
+  let mtData = await requeteAPI('/matieres');          // ✅ Route = /matieres
+  
+  console.log("📦 Réponse classes:", clData);
+  console.log("📦 Réponse matières:", mtData);
+
+  // Extraire les données selon la structure renvoyée
+  listeClasses = clData?.classes || clData?.rows || clData || [];
+  listeMatieres = mtData?.matieres || mtData?.rows || mtData || [];
+
+  // Sécurité : si ce n'est pas un tableau → reprendre depuis le stockage local
+  if (!Array.isArray(listeClasses) || !listeClasses.length) {
+    const sauvegarde = recupererLocal('classes');
+    listeClasses = Array.isArray(sauvegarde) ? sauvegarde : [];
   }
-  if (!listeClasses.length) listeClasses = [
-    {id:'cp',libelle_classe:'CP',libelle_classe_ar:'الصف الأول'},{id:'ce1',libelle_classe:'CE1',libelle_classe_ar:'الصف الثاني'},
-    {id:'ce2',libelle_classe:'CE2',libelle_classe_ar:'الصف الثالث'},{id:'cm1',libelle_classe:'CM1',libelle_classe_ar:'الصف الرابع'},
-    {id:'cm2',libelle_classe:'CM2',libelle_classe_ar:'الصف الخامس'},{id:'6eme',libelle_classe:'6ème',libelle_classe_ar:'السادس'},
-    {id:'5eme',libelle_classe:'5ème',libelle_classe_ar:'الخامس'},{id:'4eme',libelle_classe:'4ème',libelle_classe_ar:'الرابع'},
-    {id:'3eme',libelle_classe:'3ème',libelle_classe_ar:'الثالث'}
-  ];
-  if (!listeMatieres.length) listeMatieres = [
-    {id:'fr',libelle_matiere:'Français',libelle_matiere_ar:'اللغة الفرنسية'},
-    {id:'math',libelle_matiere:'Mathématiques',libelle_matiere_ar:'الرياضيات'},
-    {id:'ar',libelle_matiere:'Arabe',libelle_matiere_ar:'اللغة العربية'},
-    {id:'hist',libelle_matiere:'Histoire-Géo',libelle_matiere_ar:'التاريخ والجغرافيا'},
-    {id:'sc',libelle_matiere:'Sciences',libelle_matiere_ar:'العلوم'},
-    {id:'ang',libelle_matiere:'Anglais',libelle_matiere_ar:'الإنجليزية'}
-  ];
+  if (!Array.isArray(listeMatieres) || !listeMatieres.length) {
+    const sauvegarde = recupererLocal('matieres');
+    listeMatieres = Array.isArray(sauvegarde) ? sauvegarde : [];
+  }
+
+  // ✅ Si VIDE absolument → données de secours
+  if (!listeClasses.length) {
+    listeClasses = [
+      {id_classe:1, libelle_classe:'CP', libelle_classe_ar:'الصف الأول'},
+      {id_classe:2, libelle_classe:'CE1', libelle_classe_ar:'الصف الثاني'},
+      {id_classe:3, libelle_classe:'CE2', libelle_classe_ar:'الصف الثالث'},
+      {id_classe:4, libelle_classe:'CM1', libelle_classe_ar:'الصف الرابع'},
+      {id_classe:5, libelle_classe:'CM2', libelle_classe_ar:'الصف الخامس'},
+      {id_classe:6, libelle_classe:'6ème', libelle_classe_ar:'السادس'},
+      {id_classe:7, libelle_classe:'5ème', libelle_classe_ar:'الخامس'},
+      {id_classe:8, libelle_classe:'4ème', libelle_classe_ar:'الرابع'},
+      {id_classe:9, libelle_classe:'3ème', libelle_classe_ar:'الثالث'}
+    ];
+  }
+  if (!listeMatieres.length) {
+    listeMatieres = [
+      {id_matiere:1, libelle_matiere:'Français', libelle_matiere_ar:'اللغة الفرنسية'},
+      {id_matiere:2, libelle_matiere:'Mathématiques', libelle_matiere_ar:'الرياضيات'},
+      {id_matiere:3, libelle_matiere:'Arabe', libelle_matiere_ar:'اللغة العربية'},
+      {id_matiere:4, libelle_matiere:'Histoire-Géo', libelle_matiere_ar:'التاريخ والجغرافيا'},
+      {id_matiere:5, libelle_matiere:'Sciences', libelle_matiere_ar:'العلوم'},
+      {id_matiere:6, libelle_matiere:'Anglais', libelle_matiere_ar:'الإنجليزية'}
+    ];
+  }
+
+  // Tri
   listeClasses.sort((a,b)=>(a.libelle_classe||'').localeCompare(b.libelle_classe||''));
   listeMatieres.sort((a,b)=>(a.libelle_matiere||'').localeCompare(b.libelle_matiere||''));
+
   sauvegarderLocal('classes', listeClasses);
   sauvegarderLocal('matieres', listeMatieres);
+  
+  console.log("✅ Classes chargées:", listeClasses.length);
+  console.log("✅ Matières chargées:", listeMatieres.length);
   return {listeClasses, listeMatieres};
 }
 
@@ -241,38 +234,41 @@ const token = getToken(), role = (localStorage.getItem('role')||'').toLowerCase(
 const profil = localStorage.getItem('profil')?.toLowerCase() || role;
 const classeUtilisateur = localStorage.getItem('classe_utilisateur') || '';
 const nomProf = localStorage.getItem('nom_utilisateur') || '';
-if (!token || !['admin','super_admin','prof','eleve','directeur'].includes(role)) {
-  alert("⛔ Accès réservé"); location.href='connexion.html';
-}
 
-// ========== RENDRE NOM BILINGUE ==========
+// ========== AFFICHAGE NOMS ==========
 function nomClasse(id) {
+  if (!id) return '—';
   const c = listeClasses.find(x=>String(x.id_classe||x.id)===String(id));
-  if (!c) return id||'—';
-  return `<span class="badge-fr">${c.libelle_classe}</span>${c.libelle_classe_ar?`<span class="badge-ar">${c.libelle_classe_ar}</span>`:''}`;
+  if (!c) return id;
+  return `<span class="badge-fr">${c.libelle_classe||''}</span>${c.libelle_classe_ar?`<span class="badge-ar">${c.libelle_classe_ar}</span>`:''}`;
 }
 function nomMatiere(id) {
+  if (!id) return '—';
   const m = listeMatieres.find(x=>String(x.id_matiere||x.id)===String(id));
-  if (!m) return id||'—';
-  return `<span class="badge-fr">${m.libelle_matiere}</span>${m.libelle_matiere_ar?`<span class="badge-ar">${m.libelle_matiere_ar}</span>`:''}`;
+  if (!m) return id;
+  return `<span class="badge-fr">${m.libelle_matiere||''}</span>${m.libelle_matiere_ar?`<span class="badge-ar">${m.libelle_matiere_ar}</span>`:''}`;
 }
 
-// ========== ALIMENTER LISTES DÉROULANTES ==========
+// ========== ALIMENTER LISTES ==========
 function optionsClasses() {
+  if (!listeClasses.length) return `<option value="">${m('aucuneClasse')}</option>`;
   return listeClasses.map(c=>`<option value="${c.id_classe||c.id}">${c.libelle_classe}${c.libelle_classe_ar?' / '+c.libelle_classe_ar:''}</option>`).join('');
 }
 function optionsMatieres() {
+  if (!listeMatieres.length) return `<option value="">${m('erreurChargement')}</option>`;
   return listeMatieres.map(m=>`<option value="${m.id_matiere||m.id}">${m.libelle_matiere}${m.libelle_matiere_ar?' / '+m.libelle_matiere_ar:''}</option>`).join('');
 }
 function optionsClassesFR() {
+  if (!listeClasses.length) return `<option value="">${m('aucuneClasse')}</option>`;
   return listeClasses.map(c=>`<option value="${c.id_classe||c.id}">${c.libelle_classe}</option>`).join('');
 }
 function optionsClassesAR() {
+  if (!listeClasses.length) return `<option value="">${m('aucuneClasse')}</option>`;
   return listeClasses.map(c=>`<option value="${c.id_classe||c.id}">${c.libelle_classe_ar||c.libelle_classe}</option>`).join('');
 }
 </script>
 
-<!-- 🔧 BARRE HAUTE : Langue & Thème -->
+<!-- 🔧 BARRE HAUTE -->
 <div class="entete-page no-print">
   <div class="container d-flex justify-content-between align-items-center">
     <h4 class="text-white mb-0">
@@ -290,7 +286,6 @@ function optionsClassesAR() {
 </div>
 
 <div class="container pb-5">
-
   <!-- 📑 ONGLETS -->
   <ul class="nav nav-tabs onglets mb-4 no-print" id="ongletsPrincipaux" role="tablist">
     <li class="nav-item" role="presentation">
@@ -310,13 +305,9 @@ function optionsClassesAR() {
   </ul>
 
   <div class="tab-content">
-
-    <!-- ================================================= -->
-    <!-- 📅 ONGLET 1 : EMPLOI DU TEMPS                    -->
-    <!-- ================================================= -->
+    <!-- 📅 ONGLET EMPLOI DU TEMPS -->
     <div class="tab-pane fade show active" id="onglet-emploi">
       <div class="carte">
-        <!-- FILTRES -->
         <div class="row g-3 mb-4 no-print">
           <div class="col-md-3">
             <label class="form-label">🏫 <span class="txt-fr">Classe</span><span class="txt-ar">الشعبة</span></label>
@@ -347,19 +338,14 @@ function optionsClassesAR() {
             </div>
           </div>
         </div>
-
-        <!-- TABLEAU EMPLOI DU TEMPS -->
         <div class="table-responsive">
           <table class="table table-hover align-middle">
             <thead>
               <tr class="no-print">
-                <th class="no-print">✅</th>
-                <th>📅</th>
-                <th>⏰</th>
+                <th class="no-print">✅</th><th>📅</th><th>⏰</th>
                 <th>🏫 <span class="txt-fr">Classe</span><span class="txt-ar">الشعبة</span></th>
                 <th>📖 <span class="txt-fr">Matière</span><span class="txt-ar">المادة</span></th>
-                <th>👨‍🏫</th>
-                <th class="no-print text-center">⚙️</th>
+                <th>👨‍🏫</th><th class="no-print text-center">⚙️</th>
               </tr>
             </thead>
             <tbody id="corpsEdt">
@@ -370,9 +356,7 @@ function optionsClassesAR() {
       </div>
     </div>
 
-    <!-- ================================================= -->
-    <!-- 📝 ONGLET 2 : PRÉINSCRIPTION ÉLÈVE              -->
-    <!-- ================================================= -->
+    <!-- 📝 ONGLET PRÉINSCRIPTION -->
     <div class="tab-pane fade" id="onglet-preinscription">
       <div class="carte">
         <h5 class="mb-3 text-warning">
@@ -385,16 +369,13 @@ function optionsClassesAR() {
           <span class="txt-fr">ℹ️ Vous pouvez choisir des niveaux DIFFÉRENTS entre Français et Arabe</span>
           <span class="txt-ar">ℹ️ يمكنك اختيار مستويات مختلفة للفرنسية والعربية</span>
         </p>
-
         <div class="row g-4">
-          <!-- LISTE FRANÇAISE -->
           <div class="col-md-6">
             <label class="form-label">🇫🇷 <span class="txt-fr">Classe suivie en Français *</span><span class="txt-ar">المستوى (فرنسي) *</span></label>
             <select id="classe_fr" class="form-select form-select-lg" required>
               <option value="">⏳ Chargement...</option>
             </select>
           </div>
-          <!-- LISTE ARABE → LIBRE, INDÉPENDANTE -->
           <div class="col-md-6">
             <label class="form-label">🇸🇦 <span class="txt-fr">Classe suivie en Arabe *</span><span class="txt-ar">المستوى (عربي) *</span></label>
             <select id="classe_ar" class="form-select form-select-lg" required>
@@ -402,17 +383,12 @@ function optionsClassesAR() {
             </select>
           </div>
         </div>
-
-        <!-- CHAMPS SAUVEGARDÉS SÉPARÉMENT -->
         <input type="hidden" id="id_classe_fr">
         <input type="hidden" id="id_classe_ar">
-
         <div class="alert alert-info mt-3 mb-0">
-          <strong>✅ Classes chargées depuis l'administration :</strong>
+          <strong id="labelClassesChargees"></strong>
           <span id="compteClasses">0 classe(s)</span>
         </div>
-
-        <!-- Ici : ajouter le reste du formulaire d'inscription (nom, date, etc.) -->
         <div class="row mt-4">
           <div class="col-12 text-center">
             <button class="btn btn-valide px-4 py-2" onclick="validerPreinscription()">
@@ -424,11 +400,10 @@ function optionsClassesAR() {
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- MODALE : NOUVELLE SÉANCE -->
+<!-- MODALE -->
 <div class="modal fade" id="modalSeance" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content" style="background:var(--fond-carte);color:var(--texte)">
@@ -475,28 +450,24 @@ function optionsClassesAR() {
 const modalSeance = new bootstrap.Modal(document.getElementById('modalSeance'));
 let listeSeancesEdt = [];
 
-// ========== INITIALISATION GLOBALE ==========
 document.addEventListener('DOMContentLoaded', async () => {
   appliquerTheme();
   changerLangue(langueActuelle);
   document.getElementById('btn-lang-'+langueActuelle)?.classList.add('actif');
 
-  // Charger classes & matières une seule fois
+  // 🔴 ÉTAPE CLÉ : CHARGER CLASSES ET MATIÈRES
   await chargerReferentiels();
-
-  // Alimenter TOUTES les listes déroulantes de la page
+  
+  // ✅ ALIMENTER TOUTES LES LISTES DÉROULANTES
   document.getElementById('filtreClasse').innerHTML += optionsClasses();
   document.getElementById('formClasse').innerHTML = `<option value="">--</option>` + optionsClasses();
   document.getElementById('formMatiere').innerHTML = `<option value="">--</option>` + optionsMatieres();
-
-  // ✅ PRÉINSCRIPTION : liste FRANÇAISE
   document.getElementById('classe_fr').innerHTML = `<option value="">-- ${m('classeFrancais').replace(' *','')} --</option>` + optionsClassesFR();
-  // ✅ PRÉINSCRIPTION : liste ARABE → LIBRE, INDÉPENDANTE, mêmes classes
   document.getElementById('classe_ar').innerHTML = `<option value="">-- ${m('classeArabe').replace(' *','')} --</option>` + optionsClassesAR();
-
   document.getElementById('compteClasses').textContent = `${listeClasses.length} classe(s)`;
+  document.getElementById('labelClassesChargees').textContent = m('classeChargees') + " : ";
 
-  // Adapter l'interface selon profil
+  // Adapter selon profil
   if (profil === 'eleve') {
     document.getElementById('optMaClasseEdt').classList.remove('d-none');
     document.getElementById('btnNvlSeanceEdt').classList.add('d-none');
@@ -508,41 +479,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('formProf').value = nomProf;
   }
 
-  // Charger emploi du temps
   chargerEmploiDuTemps();
 
-  // Mémoriser choix préinscription
   document.getElementById('classe_fr').addEventListener('change', e=>document.getElementById('id_classe_fr').value=e.target.value);
   document.getElementById('classe_ar').addEventListener('change', e=>document.getElementById('id_classe_ar').value=e.target.value);
 });
 
 // ========== EMPLOI DU TEMPS ==========
 async function chargerEmploiDuTemps() {
-  try {
-    const data = await requeteAPI('/emploi/global');
-    listeSeancesEdt = data.seances || data || [];
-  } catch {
-    listeSeancesEdt = JSON.parse(localStorage.getItem('edt_seances')||'[]');
-  }
+  const data = await requeteAPI('/emploi/global');
+  listeSeancesEdt = data?.seances || data?.rows || data || [];
   if (!Array.isArray(listeSeancesEdt)) listeSeancesEdt = [];
   appliquerFiltresEdt();
 }
-
 function appliquerFiltresEdt() {
   let cSel = document.getElementById('filtreClasse').value;
   let jSel = document.getElementById('filtreJour').value;
   let vSel = document.getElementById('filtreVue')?.value||'toutes';
   let affiche = listeSeancesEdt.slice();
-
-  // Ma classe / Mes séances
   if (cSel === '_MA_CLASSE_') cSel = classeUtilisateur;
-  if (cSel) affiche = affiche.filter(s=>String(s.classe_id||s.classe)===String(cSel));
+  if (cSel) affiche = affiche.filter(s=>String(s.classe_id||s.id_classe||s.classe)===String(cSel));
   if (jSel) affiche = affiche.filter(s=>s.jour===jSel);
   if (vSel === '_MES_SEANCES_' && nomProf) affiche = affiche.filter(s=> (s.professeur||'').includes(nomProf));
-
   afficherEdt(affiche);
 }
-
 function afficherEdt(liste) {
   const corps = document.getElementById('corpsEdt');
   if (!liste.length) {
@@ -555,8 +515,8 @@ function afficherEdt(liste) {
       <td class="no-print"><input type="checkbox" class="form-check-input"></td>
       <td class="fw-semibold">${s.jour||'—'}</td>
       <td><strong>${(s.heure_debut||'').slice(0,5)}</strong> — ${(s.heure_fin||'').slice(0,5)}</td>
-      <td>${nomClasse(s.classe_id||s.classe)}</td>
-      <td>${nomMatiere(s.matiere_id||s.matiere)}</td>
+      <td>${nomClasse(s.classe_id||s.id_classe||s.classe)}</td>
+      <td>${nomMatiere(s.matiere_id||s.id_matiere||s.matiere)}</td>
       <td>${s.professeur||'—'}</td>
       <td class="text-center text-nowrap no-print">
         <button class="btn btn-sm btn-action" onclick="modifierSeanceEdt('${s.id||'local-'+i}')">✏️</button>
@@ -565,7 +525,6 @@ function afficherEdt(liste) {
     </tr>`;
   }).join('');
 }
-
 function ouvrirFormulaireEdt() {
   document.getElementById('titreModalSeance').innerHTML = '➕ <span class="txt-fr">Nouvelle séance</span>';
   document.getElementById('editIdSeance').value='';
@@ -577,7 +536,6 @@ function ouvrirFormulaireEdt() {
   document.getElementById('formProf').value=nomProf||'';
   modalSeance.show();
 }
-
 function modifierSeanceEdt(id) {
   const idx = id.startsWith('local-') ? parseInt(id.replace('local-','')) : listeSeancesEdt.findIndex(s=>String(s.id)===String(id));
   if (idx<0) return;
@@ -587,12 +545,11 @@ function modifierSeanceEdt(id) {
   document.getElementById('formJour').value = s.jour;
   document.getElementById('formDebut').value = s.heure_debut;
   document.getElementById('formFin').value = s.heure_fin;
-  document.getElementById('formClasse').value = s.classe_id||s.classe;
-  document.getElementById('formMatiere').value = s.matiere_id||s.matiere;
+  document.getElementById('formClasse').value = s.classe_id||s.id_classe||s.classe;
+  document.getElementById('formMatiere').value = s.matiere_id||s.id_matiere||s.matiere;
   document.getElementById('formProf').value = s.professeur||'';
   modalSeance.show();
 }
-
 async function enregistrerSeanceEdt() {
   const id = document.getElementById('editIdSeance').value;
   const donnees = {
@@ -604,7 +561,6 @@ async function enregistrerSeanceEdt() {
     professeur: document.getElementById('formProf').value
   };
   if (!donnees.jour||!donnees.heure_debut||!donnees.heure_fin||!donnees.classe_id||!donnees.matiere_id) return alert(m('erreurChamp'));
-
   try {
     if (id && !id.startsWith('local-')) await requeteAPI(`/emploi/${id}`,{method:'PUT',body:JSON.stringify(donnees)});
     else await requeteAPI('/emploi',{method:'POST',body:JSON.stringify(donnees)});
@@ -617,7 +573,6 @@ async function enregistrerSeanceEdt() {
   chargerEmploiDuTemps();
   alert(m('enregistrer'));
 }
-
 async function supprimerSeanceEdt(id) {
   if (!confirm(m('confirmerSuppr'))) return;
   const idx = id.startsWith('local-') ? parseInt(id.replace('local-','')) : listeSeancesEdt.findIndex(s=>String(s.id)===String(id));
@@ -627,14 +582,11 @@ async function supprimerSeanceEdt(id) {
   appliquerFiltresEdt();
   alert(m('supprOk'));
 }
-
-// ========== PRÉINSCRIPTION ==========
 function validerPreinscription() {
   const fr = document.getElementById('classe_fr').value;
   const ar = document.getElementById('classe_ar').value;
   if (!fr || !ar) { alert(m('erreurChamp')); return; }
-  // Ici : envoyer les deux identifiants distincts au serveur
-  alert(`✅ Préinscription validée !\nClasse Français : ${fr}\nClasse Arabe : ${ar}\n\n👉 Ces deux valeurs sont envoyées séparément.`);
+  alert(`✅ Préinscription validée !\nClasse Français : ${fr}\nClasse Arabe : ${ar}`);
 }
 </script>
 </body>

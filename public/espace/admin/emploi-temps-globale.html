@@ -8,88 +8,54 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
     :root {
-      --primaire: #0c4a6e;
-      --secondaire: #f59e0b;
-      --accent: #10b981;
-      --rouge: #ef4444;
-      --bleu-clair: #3b82f6;
-      --violet: #8b5cf6;
-      --gris-fond: #f8fafc;
-      --texte-principal: #1f2937;
-      --texte-secondaire: #4b5563;
+      --primaire: #0c4a6e; --secondaire: #f59e0b; --accent: #10b981;
+      --rouge: #ef4444; --bleu-clair: #3b82f6; --violet: #8b5cf6;
+      --gris-fond: #f8fafc; --texte-principal: #1f2937; --texte-secondaire: #4b5563;
       --ombre: 0 10px 40px rgba(12, 74, 110, 0.12);
       --ombre-hover: 0 15px 50px rgba(12, 74, 110, 0.18);
-      --fond-gradient-1: #e0f2fe;
-      --fond-gradient-2: #fef3c7;
-      --fond-gradient-3: #f0fdf4;
-      --carte-fond: rgba(255,255,255,0.9);
-      --carte-bord: rgba(255,255,255,0.9);
-      --table-ligne: rgba(12,74,110,0.06);
-      --bordure: #e2e8f0;
+      --fond-gradient-1: #e0f2fe; --fond-gradient-2: #fef3c7; --fond-gradient-3: #f0fdf4;
+      --carte-fond: rgba(255,255,255,0.9); --carte-bord: rgba(255,255,255,0.9);
+      --table-ligne: rgba(12,74,110,0.06); --bordure: #e2e8f0;
       --info-fond: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
     }
     [data-theme="dark"] {
-      --primaire: #38bdf8;
-      --secondaire: #fbbf24;
-      --accent: #34d399;
-      --rouge: #f87171;
-      --bleu-clair: #60a5fa;
-      --violet: #a78bfa;
-      --gris-fond: #0f172a;
-      --texte-principal: #e2e8f0;
-      --texte-secondaire: #94a3b8;
+      --primaire: #38bdf8; --secondaire: #fbbf24; --accent: #34d399;
+      --rouge: #f87171; --bleu-clair: #60a5fa; --violet: #a78bfa;
+      --gris-fond: #0f172a; --texte-principal: #e2e8f0; --texte-secondaire: #94a3b8;
       --ombre: 0 10px 40px rgba(0, 0, 0, 0.4);
       --ombre-hover: 0 15px 50px rgba(0, 0, 0, 0.5);
-      --fond-gradient-1: #0f172a;
-      --fond-gradient-2: #1e293b;
-      --fond-gradient-3: #111827;
-      --carte-fond: rgba(30, 41, 59, 0.85);
-      --carte-bord: rgba(51, 65, 85, 0.6);
-      --table-ligne: rgba(56, 189, 248, 0.08);
-      --bordure: #334155;
+      --fond-gradient-1: #0f172a; --fond-gradient-2: #1e293b; --fond-gradient-3: #111827;
+      --carte-fond: rgba(30, 41, 59, 0.85); --carte-bord: rgba(51, 65, 85, 0.6);
+      --table-ligne: rgba(56, 189, 248, 0.08); --bordure: #334155;
       --info-fond: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     }
     body {
       background: linear-gradient(135deg, var(--fond-gradient-1) 0%, var(--fond-gradient-2) 50%, var(--fond-gradient-3) 100%);
-      min-height: 100vh;
-      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-      color: var(--texte-principal);
-      transition: background 0.4s ease, color 0.4s ease;
+      min-height: 100vh; font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--texte-principal); transition: background 0.4s ease, color 0.4s ease;
     }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     .fade-in-up { animation: fadeInUp 0.7s ease-out forwards; opacity: 0; }
     .delay-1 { animation-delay: 0.1s; }
     .delay-2 { animation-delay: 0.2s; }
     .delay-3 { animation-delay: 0.3s; }
     .delay-4 { animation-delay: 0.4s; }
     .card-glass {
-      background: var(--carte-fond);
-      backdrop-filter: blur(12px);
-      border-radius: 20px;
-      border: 1px solid var(--carte-bord);
-      box-shadow: var(--ombre);
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      overflow: hidden;
+      background: var(--carte-fond); backdrop-filter: blur(12px); border-radius: 20px;
+      border: 1px solid var(--carte-bord); box-shadow: var(--ombre);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden;
     }
     .card-glass:hover { transform: translateY(-4px); box-shadow: var(--ombre-hover); }
     .card-header-grad {
       background: linear-gradient(90deg, var(--primaire) 0%, #0369a1 100%);
-      color: white; font-weight: 700;
-      border-radius: 20px 20px 0 0 !important;
-      padding: 1rem 1.5rem;
+      color: white; font-weight: 700; border-radius: 20px 20px 0 0 !important; padding: 1rem 1.5rem;
     }
     [data-theme="dark"] .card-header-grad {
       background: linear-gradient(90deg, #0369a1 0%, #075985 100%);
     }
     .info-bar {
-      background: var(--info-fond);
-      border-left: 5px solid var(--secondaire);
-      border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(245,158,11,0.15);
-      transition: all 0.4s ease;
+      background: var(--info-fond); border-left: 5px solid var(--secondaire); border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(245,158,11,0.15); transition: all 0.4s ease;
     }
     .info-bar.alerte { border-left-color: var(--rouge); background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(254,243,199,0.1)); }
     .table-responsive { border-radius: 16px; overflow: hidden; }
@@ -115,32 +81,20 @@
     .btn-excel { background: #217346; color: white; }
     .btn-excel:hover { background: #185c38; color: white; }
     .form-control, .form-select {
-      border-radius: 10px;
-      background: var(--carte-fond);
-      border-color: var(--bordure);
-      color: var(--texte-principal);
+      border-radius: 10px; background: var(--carte-fond); border-color: var(--bordure); color: var(--texte-principal);
     }
     .form-control:focus, .form-select:focus {
-      background: var(--carte-fond);
-      color: var(--texte-principal);
-      border-color: var(--primaire);
+      background: var(--carte-fond); color: var(--texte-principal); border-color: var(--primaire);
       box-shadow: 0 0 0 0.25rem rgba(12,74,110,0.15);
     }
     .modal-content { border-radius: 20px; border: none; background: var(--carte-fond); color: var(--texte-principal); }
     .modal-header {
-      background: linear-gradient(90deg, var(--primaire), #0369a1);
-      color: white; border-radius: 20px 20px 0 0;
+      background: linear-gradient(90deg, var(--primaire), #0369a1); color: white; border-radius: 20px 20px 0 0;
     }
     .modal-header .btn-close { filter: brightness(10); }
     .toggle-theme {
-      position: fixed;
-      top: 15px;
-      right: 15px;
-      z-index: 1050;
-      border-radius: 50px;
-      padding: 0.4rem 1rem;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-      transition: all 0.3s ease;
+      position: fixed; top: 15px; right: 15px; z-index: 1050; border-radius: 50px;
+      padding: 0.4rem 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: all 0.3s ease;
     }
     .toggle-theme:hover { transform: scale(1.05); }
     a { color: var(--primaire); }
@@ -161,18 +115,15 @@
   </style>
 </head>
 <body>
-
 <button class="btn btn-primary toggle-theme no-print" id="btnTheme" title="Basculer Jour/Nuit">
   <i id="iconeTheme" class="bi bi-moon-stars"></i>
   <span id="texteTheme" class="ms-1">Nuit</span>
 </button>
-
 <script>
   const html = document.documentElement;
   const btnTheme = document.getElementById('btnTheme');
   const iconeTheme = document.getElementById('iconeTheme');
   const texteTheme = document.getElementById('texteTheme');
-
   function getSystemTheme() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
@@ -199,23 +150,35 @@
 
   const API_URL = "https://mama-zoumana-api.onrender.com/api";
   function getToken() { return localStorage.getItem('token'); }
+
+  // ✅ REQUÊTE API AVEC GESTION D'ERREUR
   async function requeteAPI(chemin, options = {}) {
-    const res = await fetch(`${API_URL}${chemin}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getToken()}`,
-        ...options.headers
+    try {
+      const res = await fetch(`${API_URL}${chemin}`, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+          ...options.headers
+        }
+      });
+      if (res.status === 401) {
+        alert("⛔ Session expirée — Reconnectez-vous");
+        localStorage.clear();
+        location.href = 'connexion.html';
+        throw new Error('SESSION_EXPIREE');
       }
-    });
-    if (res.status === 401) {
-      alert("⛔ Session expirée — Reconnectez-vous");
-      localStorage.clear();
-      location.href = 'connexion.html';
-      throw new Error('SESSION_EXPIREE');
+      // ✅ Route introuvable → retourne null sans planter
+      if (res.status === 404) {
+        console.warn(`⚠️ Route introuvable: ${chemin}`);
+        return null;
+      }
+      if (res.status >= 500) throw new Error('SERVEUR');
+      return await res.json();
+    } catch (err) {
+      console.error(`❌ Erreur appel ${chemin}:`, err);
+      return null;
     }
-    if (res.status >= 500) throw new Error('SERVEUR');
-    return await res.json();
   }
 
   const token = getToken();
@@ -240,7 +203,7 @@
     listeMatieres = JSON.parse(localStorage.getItem('ref_matieres') || '[]');
   }
 
-  // ✅ RENDRE LES NOMS BILINGUES (identique à la page admin)
+  // ✅ NOMS BILINGUES — avec id_classe/id_matiere
   function nomClasse(id) {
     if (!id) return '—';
     const c = listeClasses.find(x => String(x.id_classe || x.id || x._id) === String(id));
@@ -254,14 +217,15 @@
     return `<span class="badge-matiere">${m.libelle_matiere}</span>${m.libelle_matiere_ar ? `<span class="badge-ar">${m.libelle_matiere_ar}</span>` : ''}`;
   }
 
-  // ✅ ALIMENTER LES LISTES DÉROULANTES
   function optionsClasses() {
+    if (!listeClasses.length) return `<option value="">Aucune classe</option>`;
     return listeClasses.map(c => {
       const id = c.id_classe || c.id || c._id;
       return `<option value="${id}">${c.libelle_classe}${c.libelle_classe_ar ? ' / ' + c.libelle_classe_ar : ''}</option>`;
     }).join('');
   }
   function optionsMatieres() {
+    if (!listeMatieres.length) return `<option value="">Aucune matière</option>`;
     return listeMatieres.map(m => {
       const id = m.id_matiere || m.id || m._id;
       return `<option value="${id}">${m.libelle_matiere}${m.libelle_matiere_ar ? ' / ' + m.libelle_matiere_ar : ''}</option>`;
@@ -287,7 +251,6 @@
       <i class="bi bi-arrow-left-circle me-2"></i>Retour au Tableau de Bord
     </a>
   </div>
-
   <div id="barreInfo" class="info-bar p-4 mb-4 fade-in-up delay-2">
     <div class="row align-items-center g-3">
       <div class="col-md-6">
@@ -295,7 +258,7 @@
         <div id="dateDuJour" class="fs-5 fw-bold"></div>
       </div>
       <div class="col-md-6 text-md-end">
-        <h5 class="mb-2"><i class="bi bi-clock text-primary me-2"></i>Heure</h5>
+        <h5 class="mb-2><i class="bi bi-clock text-primary me-2"></i>Heure</h5>
         <div id="heureUTC" class="fw-bold"></div>
       </div>
     </div>
@@ -414,59 +377,70 @@
 <script>
   const modal = new bootstrap.Modal(document.getElementById('modalForm'));
 
-  // ✅ CHARGER RÉFÉRENTIELS AVEC LES BONNES ROUTES
+  // ✅ CHARGER CLASSES ET MATIÈRES — BONNES ROUTES
   async function chargerReferentiels() {
+    console.log("📡 Chargement référentiels...");
     try {
+      // 🔴 CORRECTION : Utiliser /classes et /matieres (PAS /classes/toutes)
       const [clData, mtData] = await Promise.all([
-        requeteAPI('/classes/toutes'),  // ✅ BONNE ROUTE
-        requeteAPI('/matieres')           // ✅ BONNE ROUTE
+        requeteAPI('/classes'),           // ✅ BONNE ROUTE
+        requeteAPI('/matieres')            // ✅ BONNE ROUTE
       ]);
-      listeClasses = clData.classes || clData.lignes || clData || [];
-      listeMatieres = mtData.matieres || mtData.lignes || mtData || [];
-      if (!Array.isArray(listeClasses)) listeClasses = [];
-      if (!Array.isArray(listeMatieres)) listeMatieres = [];
-    } catch {
+      listeClasses = clData?.classes || clData?.rows || clData || [];
+      listeMatieres = mtData?.matieres || mtData?.rows || mtData || [];
+      if (!Array.isArray(listeClasses) || !listeClasses.length) throw new Error("Classes vides");
+      if (!Array.isArray(listeMatieres) || !listeMatieres.length) throw new Error("Matieres vides");
+      console.log(`✅ ${listeClasses.length} classes chargées`);
+      console.log(`✅ ${listeMatieres.length} matières chargées`);
+    } catch (err) {
+      console.warn("⚠️ API indisponible, reprise stockage local :", err.message);
       recupererLocal();
+      // ✅ Données de secours
       if (!listeClasses.length) {
         listeClasses = [
-          {id_classe:'cp', libelle_classe:'CP', libelle_classe_ar:'الصف الأول'},
-          {id_classe:'ce1', libelle_classe:'CE1', libelle_classe_ar:'الصف الثاني'},
-          {id_classe:'ce2', libelle_classe:'CE2', libelle_classe_ar:'الصف الثالث'},
-          {id_classe:'cm1', libelle_classe:'CM1', libelle_classe_ar:'الصف الرابع'},
-          {id_classe:'cm2', libelle_classe:'CM2', libelle_classe_ar:'الصف الخامس'},
-          {id_classe:'6eme', libelle_classe:'6ème', libelle_classe_ar:'السادس'},
-          {id_classe:'5eme', libelle_classe:'5ème', libelle_classe_ar:'الخامس'},
-          {id_classe:'4eme', libelle_classe:'4ème', libelle_classe_ar:'الرابع'},
-          {id_classe:'3eme', libelle_classe:'3ème', libelle_classe_ar:'الثالث'}
+          {id_classe:1, libelle_classe:'CP', libelle_classe_ar:'الصف الأول'},
+          {id_classe:2, libelle_classe:'CE1', libelle_classe_ar:'الصف الثاني'},
+          {id_classe:3, libelle_classe:'CE2', libelle_classe_ar:'الصف الثالث'},
+          {id_classe:4, libelle_classe:'CM1', libelle_classe_ar:'الصف الرابع'},
+          {id_classe:5, libelle_classe:'CM2', libelle_classe_ar:'الصف الخامس'},
+          {id_classe:6, libelle_classe:'6ème', libelle_classe_ar:'السادس'},
+          {id_classe:7, libelle_classe:'5ème', libelle_classe_ar:'الخامس'},
+          {id_classe:8, libelle_classe:'4ème', libelle_classe_ar:'الرابع'},
+          {id_classe:9, libelle_classe:'3ème', libelle_classe_ar:'الثالث'}
         ];
       }
       if (!listeMatieres.length) {
         listeMatieres = [
-          {id_matiere:'fr', libelle_matiere:'Français', libelle_matiere_ar:'اللغة الفرنسية'},
-          {id_matiere:'math', libelle_matiere:'Mathématiques', libelle_matiere_ar:'الرياضيات'},
-          {id_matiere:'ar', libelle_matiere:'Arabe', libelle_matiere_ar:'اللغة العربية'},
-          {id_matiere:'hist', libelle_matiere:'Histoire-Géo', libelle_matiere_ar:'التاريخ والجغرافيا'},
-          {id_matiere:'sc', libelle_matiere:'Sciences', libelle_matiere_ar:'العلوم'},
-          {id_matiere:'ang', libelle_matiere:'Anglais', libelle_matiere_ar:'الإنجليزية'}
+          {id_matiere:1, libelle_matiere:'Français', libelle_matiere_ar:'اللغة الفرنسية'},
+          {id_matiere:2, libelle_matiere:'Mathématiques', libelle_matiere_ar:'الرياضيات'},
+          {id_matiere:3, libelle_matiere:'Arabe', libelle_matiere_ar:'اللغة العربية'},
+          {id_matiere:4, libelle_matiere:'Histoire-Géo', libelle_matiere_ar:'التاريخ والجغرافيا'},
+          {id_matiere:5, libelle_matiere:'Sciences', libelle_matiere_ar:'العلوم'},
+          {id_matiere:6, libelle_matiere:'Anglais', libelle_matiere_ar:'الإنجليزية'}
         ];
       }
     }
     listeClasses.sort((a,b)=>(a.libelle_classe||'').localeCompare(b.libelle_classe||''));
     listeMatieres.sort((a,b)=>(a.libelle_matiere||'').localeCompare(b.libelle_matiere||''));
     sauvegarderLocal();
-
-    // Alimenter TOUTES les listes déroulantes
+    // Alimenter les listes
     document.getElementById('filtreClasse').innerHTML += optionsClasses();
     document.getElementById('formClasse').innerHTML = `<option value="">Choisir une classe</option>` + optionsClasses();
     document.getElementById('formMatiere').innerHTML = `<option value="">Choisir une matière</option>` + optionsMatieres();
   }
 
+  // ✅ CHARGER EMPLOI DU TEMPS — tester plusieurs routes
   async function chargerEmploiTemps() {
     const corps = document.getElementById('corpsEmploi');
     corps.innerHTML = `<tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-primary"></div><br>Chargement...</td></tr>`;
+    
+    let data = null;
     try {
-      const data = await requeteAPI('/emploi/global');  // ✅ BONNE ROUTE
-      listeSeances = data.seances || data || [];
+      // 🔴 CORRECTION : essayer /emploi d'abord (PAS /emploi/global)
+      data = await requeteAPI('/emploi');
+      if (!data) data = await requeteAPI('/emploi/toutes'); // alternative
+      
+      listeSeances = data?.seances || data?.rows || data || [];
       if (!Array.isArray(listeSeances)) listeSeances = [];
       sauvegarderLocal();
     } catch {
@@ -485,10 +459,9 @@
     const jourSel = document.getElementById('filtreJour').value;
     const titre = document.getElementById('titreFiltre');
     let listeAffichee = listeSeances.slice();
-
     if (classeSel) {
       titre.textContent = nomClasse(classeSel).replace(/<[^>]*>/g, '');
-      listeAffichee = listeAffichee.filter(s=> String(s.classe_id||s.classe) === String(classeSel));
+      listeAffichee = listeAffichee.filter(s=> String(s.classe_id||s.id_classe||s.classe) === String(classeSel));
     } else {
       titre.textContent = 'TOUTES CLASSES';
     }
@@ -513,8 +486,8 @@
         <td class="no-print"><input type="checkbox" class="form-check-input ligne-checkbox"></td>
         <td data-label="Jour" class="fw-semibold">${s.jour||'—'}</td>
         <td data-label="Heure"><span class="badge-heure">${(s.heure_debut||s.debut||'').slice(0,5)} — ${(s.heure_fin||s.fin||'').slice(0,5)}</span></td>
-        <td data-label="Classe">${nomClasse(s.classe_id||s.classe)}</td>
-        <td data-label="Matière">${nomMatiere(s.matiere_id||s.matiere)}</td>
+        <td data-label="Classe">${nomClasse(s.classe_id||s.id_classe||s.classe)}</td>
+        <td data-label="Matière">${nomMatiere(s.matiere_id||s.id_matiere||s.matiere)}</td>
         <td data-label="Professeur"><span class="badge-prof">${s.professeur||s.prof||'—'}</span></td>
         <td data-label="Actions" class="text-center text-nowrap no-print">
           <button class="btn btn-sm btn-outline-secondary" onclick="modifierSeance('${s.id||s._id||'local-'+idx}')" title="Modifier">✏️</button>
@@ -544,8 +517,8 @@
     document.getElementById('formJour').value = s.jour||'';
     document.getElementById('formDebut').value = s.heure_debut||s.debut||'';
     document.getElementById('formFin').value = s.heure_fin||s.fin||'';
-    document.getElementById('formClasse').value = s.classe_id||s.classe||'';
-    document.getElementById('formMatiere').value = s.matiere_id||s.matiere||'';
+    document.getElementById('formClasse').value = s.classe_id||s.id_classe||s.classe||'';
+    document.getElementById('formMatiere').value = s.matiere_id||s.id_matiere||s.matiere||'';
     document.getElementById('formProf').value = s.professeur||s.prof||'';
     modal.show();
   }
@@ -630,8 +603,8 @@
 
   document.addEventListener('DOMContentLoaded', async ()=>{
     mettreAJourDate(); setInterval(mettreAJourDate,60000);
-    await chargerReferentiels();  // ✅ Charge Classes + Matières
-    await chargerEmploiTemps();    // ✅ Charge séances
+    await chargerReferentiels();
+    await chargerEmploiTemps();
   });
 </script>
 </body>

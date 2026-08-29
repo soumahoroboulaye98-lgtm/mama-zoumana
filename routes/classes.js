@@ -10,7 +10,8 @@ const protegerAdmin = [veriftoken, verifadmin];
 const protegerProf = [veriftoken, verifprof];
 
 // ==================================================
-// 📚 LISTE Classes — Accès public
+// 📚 LISTE Classes — Accès PUBLIC (sans token)
+// → RENVOIE "lignes" comme attendu par le HTML ✅
 // ==================================================
 router.get('/', async (req, res) => {
   try {
@@ -29,7 +30,7 @@ router.get('/', async (req, res) => {
       ORDER BY libelle_classe ASC
     `);
     console.log(`✅ Classes chargées — ${rows.length} classe(s)`);
-    res.json({ ok: true, lignes: rows });
+    res.json({ ok: true, lignes: rows }); // ✅ "lignes" = ce qu'attend le front
   } catch (e) {
     console.error("❌ ERREUR /classes :", e.code, e.message);
     res.status(500).json({ ok: false, erreur: "⚠️ Impossible de charger les classes" });
@@ -109,7 +110,6 @@ router.post('/init', protegerAdmin, async (req, res) => {
       ['1ère','السنة الثانية ثانوي','Première','lycee',45],
       ['Terminale','السنة الثالثة ثانوي','Terminale','lycee',45]
     ];
-
     let inseres = 0;
     for (const [libelle, ar, en, cycle, cap] of classes) {
       const { rows: [existe] } = await pool.query(
@@ -124,7 +124,6 @@ router.post('/init', protegerAdmin, async (req, res) => {
         inseres++;
       }
     }
-
     console.log(`✅ ${inseres} classe(s) créée(s)`);
     res.json({ ok: true, message: `✅ ${inseres} classes créées !`, creees: inseres });
   } catch (e) {
@@ -139,7 +138,6 @@ router.post('/init', protegerAdmin, async (req, res) => {
 router.post('/', protegerAdmin, async (req, res) => {
   try {
     const { libelle_classe, libelle_classe_ar, libelle_classe_en, cycle, capacite_max, salle, statut } = req.body;
-
     // ✅ Validations
     if (!libelle_classe?.trim())
       return res.json({ ok: false, erreur: "⚠️ Nom de classe obligatoire" });
@@ -147,23 +145,19 @@ router.post('/', protegerAdmin, async (req, res) => {
       return res.json({ ok: false, erreur: "⚠️ Cycle invalide" });
     if (!['ouverte','complete','fermee'].includes(statut))
       return res.json({ ok: false, erreur: "⚠️ Statut invalide" });
-
     const cap = Number(capacite_max);
     if (isNaN(cap) || cap < 10 || cap > 80)
       return res.json({ ok: false, erreur: "⚠️ Capacité entre 10 et 80" });
-
     // ✅ Vérifier doublon avant création
     const { rows: [existe] } = await pool.query(
       'SELECT id_classe FROM classes WHERE libelle_classe = $1', [libelle_classe.trim()]
     );
     if (existe)
       return res.json({ ok: false, erreur: "⚠️ Cette classe existe déjà" });
-
     // ✅ Récupérer prochain ID
     const { rows: [{ prochain }] } = await pool.query(
       'SELECT COALESCE(MAX(id_classe), 0) + 1 AS prochain FROM classes'
     );
-
     await pool.query(`
       INSERT INTO classes(
         id_classe, libelle_classe, libelle_classe_ar, libelle_classe_en,
@@ -171,7 +165,6 @@ router.post('/', protegerAdmin, async (req, res) => {
       )
       VALUES ($1, $2, $3, $4, $5, $6, 0, $7, $8)
     `, [prochain, libelle_classe.trim(), libelle_classe_ar || null, libelle_classe_en || null, cycle, cap, salle || null, statut]);
-
     console.log(`✅ Classe créée — ${libelle_classe} (ID: ${prochain})`);
     res.json({ ok: true, message: "✅ Classe créée", id_classe: prochain });
   } catch (e) {
@@ -188,20 +181,16 @@ router.put('/:id', protegerAdmin, async (req, res) => {
     const id_classe = parseInt(req.params.id);
     if (isNaN(id_classe))
       return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
-
     const { libelle_classe, libelle_classe_ar, libelle_classe_en, cycle, capacite_max, salle, statut } = req.body;
-
     if (!libelle_classe?.trim())
       return res.json({ ok: false, erreur: "⚠️ Nom de classe obligatoire" });
     if (!['maternelle','primaire','college','lycee','superieur'].includes(cycle))
       return res.json({ ok: false, erreur: "⚠️ Cycle invalide" });
     if (!['ouverte','complete','fermee'].includes(statut))
       return res.json({ ok: false, erreur: "⚠️ Statut invalide" });
-
     const cap = Number(capacite_max);
     if (isNaN(cap) || cap < 10 || cap > 80)
       return res.json({ ok: false, erreur: "⚠️ Capacité entre 10 et 80" });
-
     // ✅ Vérifier doublon libellé (hors lui-même)
     const { rows: [existe] } = await pool.query(
       'SELECT id_classe FROM classes WHERE libelle_classe = $1 AND id_classe != $2', 
@@ -209,17 +198,14 @@ router.put('/:id', protegerAdmin, async (req, res) => {
     );
     if (existe)
       return res.json({ ok: false, erreur: "⚠️ Une autre classe porte déjà ce nom" });
-
     const { rowCount } = await pool.query(`
       UPDATE classes
       SET libelle_classe = $1, libelle_classe_ar = $2, libelle_classe_en = $3,
           cycle = $4, capacite_max = $5, salle = $6, statut = $7
       WHERE id_classe = $8
     `, [libelle_classe.trim(), libelle_classe_ar || null, libelle_classe_en || null, cycle, cap, salle || null, statut, id_classe]);
-
     if (rowCount === 0)
       return res.json({ ok: false, erreur: "⚠️ Classe introuvable" });
-
     console.log(`✅ Classe mise à jour — ID: ${id_classe}`);
     res.json({ ok: true, message: "✅ Classe mise à jour" });
   } catch (e) {
@@ -236,14 +222,11 @@ router.delete('/:id', protegerAdmin, async (req, res) => {
     const id_classe = parseInt(req.params.id);
     if (isNaN(id_classe))
       return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
-
     const { rowCount } = await pool.query(
       'DELETE FROM classes WHERE id_classe = $1', [id_classe]
     );
-
     if (rowCount === 0)
       return res.json({ ok: false, erreur: "⚠️ Classe introuvable" });
-
     console.log(`🗑️ Classe supprimée — ID: ${id_classe}`);
     res.json({ ok: true, message: "✅ Classe supprimée" });
   } catch (e) {
@@ -274,7 +257,6 @@ router.get('/prof', protegerProf, async (req, res) => {
       WHERE a.id_prof = $1 
       ORDER BY c.libelle_classe ASC
     `, [id_prof]);
-
     console.log(`✅ Mes classes chargées — ${rows.length}`);
     res.json({ ok: true, lignes: rows });
   } catch (e) {

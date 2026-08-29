@@ -22,11 +22,11 @@ function ajouterMentions(liste) {
     const moy = parseFloat(ligne.moyenne);
     let mention = "—", appreciation = "Aucune note", couleur = "light";
     if (ligne.nb_matiere > 0) {
-      if (moy >= 16)       { mention = "Très Bien 🎖️"; appreciation = "Excellent !"; couleur = "success"; }
-      else if (moy >= 14)  { mention = "Bien 🎉"; appreciation = "Très bon niveau."; couleur = "primary"; }
-      else if (moy >= 12)  { mention = "Assez Bien ✅"; appreciation = "Bon travail."; couleur = "info"; }
-      else if (moy >= 10)  { mention = "Passable"; appreciation = "Convenable."; couleur = "warning"; }
-      else                  { mention = "Insuffisant ⚠️"; appreciation = "Efforts nécessaires."; couleur = "danger"; }
+      if (moy >= 16)        { mention = "Très Bien 🎖️"; appreciation = "Excellent !"; couleur = "success"; }
+      else if (moy >= 14)   { mention = "Bien 🎉"; appreciation = "Très bon niveau."; couleur = "primary"; }
+      else if (moy >= 12)   { mention = "Assez Bien ✅"; appreciation = "Bon travail."; couleur = "info"; }
+      else if (moy >= 10)   { mention = "Passable"; appreciation = "Convenable."; couleur = "warning"; }
+      else                    { mention = "Insuffisant ⚠️"; appreciation = "Efforts nécessaires."; couleur = "danger"; }
     }
     return { ...ligne, mention, appreciation, couleur };
   });
@@ -61,7 +61,7 @@ router.get('/classement/:id_classe', protegerTous, async (req, res) => {
 });
 
 // ==================================================
-// 📋 EMPLOI DU TEMPS PAR CLASSE
+// 📋 EMPLOI DU TEMPS PAR CLASSE — COMPATIBLE TABLE "emploi"
 // ==================================================
 router.get('/emploi-temps/:id_classe', protegerTous, async (req, res) => {
   try {
@@ -69,18 +69,20 @@ router.get('/emploi-temps/:id_classe', protegerTous, async (req, res) => {
     if (isNaN(id_classe))
       return res.json({ ok: false, erreur: "⚠️ Identifiant de classe invalide" });
 
+    // ✅ Utilise la TABLE "emploi" (existante dans ta base)
     const { rows: emploi } = await pool.query(`
-      SELECT et.id_emploi, et.jour, et.heure_debut, et.heure_fin, et.matiere,
-             u.nom || ' ' || u.prenoms AS professeur, c.libelle_classe
-      FROM emploi_temps et
-      JOIN utilisateurs u ON et.id_professeur = u.id_utilisateur
-      JOIN classes c ON et.id_classe = c.id_classe
-      WHERE et.id_classe = $1
+      SELECT e.id_emploi, e.jour, e.heure_debut, e.heure_fin, 
+             e.matiere, c.libelle_classe,
+             CONCAT(u.nom, ' ', u.prenoms) AS professeur
+      FROM emploi e
+      JOIN classes c ON e.id_classe = c.id_classe
+      LEFT JOIN utilisateurs u ON e.id_prof = u.id_utilisateur
+      WHERE e.id_classe = $1
       ORDER BY 
-        CASE et.jour 
+        CASE e.jour 
           WHEN 'Lundi' THEN 1 WHEN 'Mardi' THEN 2 WHEN 'Mercredi' THEN 3
           WHEN 'Jeudi' THEN 4 WHEN 'Vendredi' THEN 5 WHEN 'Samedi' THEN 6 ELSE 7 END,
-        et.heure_debut ASC
+        e.heure_debut ASC
     `, [id_classe]);
 
     const { rows: [classe] } = await pool.query(
@@ -110,9 +112,8 @@ router.get('/liste-classes', protegerTous, async (req, res) => {
         END,
         libelle_classe ASC
     `);
-
     console.log(`✅ Liste des classes chargée — ${rows.length} classe(s)`);
-    return res.json({ ok: true, classes: rows });
+    return res.json({ ok: true, lignes: rows });
   } catch (e) {
     console.error("❌ ERREUR LISTE CLASSES :", e.code, e.message);
     return res.json({ ok: false, erreur: "⚠️ Impossible de charger les classes" });
@@ -124,16 +125,15 @@ router.get('/liste-classes', protegerTous, async (req, res) => {
 // ==================================================
 router.post('/cours/ajouter', protegerAdmin, async (req, res) => {
   try {
-    const { id_classe, id_professeur, jour, heure_debut, heure_fin, matiere } = req.body;
-
-    if (!id_classe || !id_professeur || !jour?.trim() || !heure_debut?.trim() || !heure_fin?.trim() || !matiere?.trim())
+    const { id_classe, id_prof, jour, heure_debut, heure_fin, matiere } = req.body;
+    if (!id_classe || !id_prof || !jour?.trim() || !heure_debut?.trim() || !heure_fin?.trim() || !matiere?.trim())
       return res.json({ ok: false, erreur: "⚠️ Tous les champs sont obligatoires" });
 
     const { rows: [{ id_emploi }] } = await pool.query(`
-      INSERT INTO emploi_temps(id_classe, id_professeur, jour, heure_debut, heure_fin, matiere)
+      INSERT INTO emploi(id_classe, id_prof, jour, heure_debut, heure_fin, matiere)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING id_emploi
-    `, [id_classe, id_professeur, jour.trim(), heure_debut.trim(), heure_fin.trim(), matiere.trim()]);
+    `, [id_classe, id_prof, jour.trim(), heure_debut.trim(), heure_fin.trim(), matiere.trim()]);
 
     console.log(`✅ Cours ajouté — ID: ${id_emploi}`);
     return res.json({ ok: true, message: "✅ Cours ajouté avec succès", id_emploi });
@@ -154,16 +154,15 @@ router.put('/cours/modifier/:id', protegerAdmin, async (req, res) => {
     if (isNaN(id_emploi))
       return res.json({ ok: false, erreur: "⚠️ Identifiant du cours invalide" });
 
-    const { id_classe, id_professeur, jour, heure_debut, heure_fin, matiere } = req.body;
-
-    if (!id_classe || !id_professeur || !jour?.trim() || !heure_debut?.trim() || !heure_fin?.trim() || !matiere?.trim())
+    const { id_classe, id_prof, jour, heure_debut, heure_fin, matiere } = req.body;
+    if (!id_classe || !id_prof || !jour?.trim() || !heure_debut?.trim() || !heure_fin?.trim() || !matiere?.trim())
       return res.json({ ok: false, erreur: "⚠️ Tous les champs sont obligatoires" });
 
     const { rowCount } = await pool.query(`
-      UPDATE emploi_temps 
-      SET id_classe = $1, id_professeur = $2, jour = $3, heure_debut = $4, heure_fin = $5, matiere = $6
+      UPDATE emploi 
+      SET id_classe = $1, id_prof = $2, jour = $3, heure_debut = $4, heure_fin = $5, matiere = $6
       WHERE id_emploi = $7
-    `, [id_classe, id_professeur, jour.trim(), heure_debut.trim(), heure_fin.trim(), matiere.trim(), id_emploi]);
+    `, [id_classe, id_prof, jour.trim(), heure_debut.trim(), heure_fin.trim(), matiere.trim(), id_emploi]);
 
     if (rowCount === 0)
       return res.json({ ok: false, erreur: "⚠️ Cours introuvable" });
@@ -188,7 +187,7 @@ router.delete('/cours/supprimer/:id', protegerAdmin, async (req, res) => {
       return res.json({ ok: false, erreur: "⚠️ Identifiant du cours invalide" });
 
     const { rowCount } = await pool.query(
-      'DELETE FROM emploi_temps WHERE id_emploi = $1', [id_emploi]
+      'DELETE FROM emploi WHERE id_emploi = $1', [id_emploi]
     );
 
     if (rowCount === 0)
@@ -213,9 +212,8 @@ router.get('/liste-professeurs', protegerAdmin, async (req, res) => {
       WHERE role = 'prof' AND statut_compte = 'valide' 
       ORDER BY nom ASC, prenoms ASC
     `);
-
     console.log(`✅ Liste des professeurs chargée — ${rows.length} enregistrement(s)`);
-    return res.json({ ok: true, professeurs: rows });
+    return res.json({ ok: true, lignes: rows });
   } catch (e) {
     console.error("❌ ERREUR LISTE PROFESSEURS :", e.code, e.message);
     return res.json({ ok: false, erreur: "⚠️ Impossible de charger les professeurs" });

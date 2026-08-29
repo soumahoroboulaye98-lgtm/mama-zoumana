@@ -361,6 +361,8 @@ const rParent = chargerRoute('./routes/parent');
 const rCalendrier = chargerRoute('./routes/calendrier');
 const rReglement = chargerRoute('./routes/reglement');
 const rEquipe = chargerRoute('./routes/equipe');
+ 
+const dashboardRoutes =chargerRoute ('./routes/dashboard');
 // ==============================================
 // 🔗 DÉCLARATION DES ROUTES
 // ==============================================
@@ -401,10 +403,13 @@ app.get('/api', (req, res) => {
   const liste = [];
   liste.push("/api/frais-scolaires/tarifs"); // ✅ Nouvelle route ajoutée dans la liste
   if (rAuth) liste.push("/api/auth");
+  if (rStatistiques) liste.push("/api/statistiques");
   if (rAdmin) liste.push("/api/admin");
   if (rUtilisateurs) liste.push("/api/utilisateurs");
   if (rPreinscription) liste.push("/api/preinscription");
   if (rReferences) liste.push("/api/references");
+ 
+if (dashboardRoutes)liste.push('/api', dashboardRoutes);
   if (rClasses) liste.push("/api/classes");
   if (rMatieres) liste.push("/api/matieres");
   if (rAffectations) liste.push("/api/affectations");

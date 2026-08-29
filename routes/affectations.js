@@ -11,8 +11,10 @@ try {
   verifadmin = require('../middleware/verifadmin');
   protegerAdmin = [veriftoken, verifadmin];
 } catch {
-  protegerAdmin = []; // Mode développement sans middleware
+  protegerAdmin = [];
 }
+
+const ANNEE_SCOLAIRE_DEFAUT = '2026-2027';
 
 // ==================================================
 // 📋 LISTE DES AFFECTATIONS — Admin
@@ -75,11 +77,9 @@ router.post('/', protegerAdmin, async (req, res) => {
   try {
     const { id_prof, id_classe, id_matiere, annee_scolaire } = req.body;
 
-    // ✅ Validation champs obligatoires
     if (!id_prof || !id_classe || !id_matiere)
       return res.status(400).json({ ok: false, erreur: "⚠️ Enseignant, Classe et Matière sont obligatoires" });
 
-    // ✅ Conversion et validation des identifiants
     const profId = parseInt(id_prof);
     const classeId = parseInt(id_classe);
     const matiereId = parseInt(id_matiere);
@@ -87,10 +87,8 @@ router.post('/', protegerAdmin, async (req, res) => {
     if ([profId, classeId, matiereId].some(isNaN))
       return res.status(400).json({ ok: false, erreur: "⚠️ Un ou plusieurs identifiants sont invalides" });
 
-    // ✅ Valeur par défaut année scolaire
-    const annee = annee_scolaire?.trim() || '2026-2027';
+    const annee = annee_scolaire?.trim() || ANNEE_SCOLAIRE_DEFAUT;
 
-    // ✅ Insertion
     const { rows: [nouvelleAffectation] } = await pool.query(`
       INSERT INTO affectations_ens (id_prof, id_classe, id_matiere, annee_scolaire)
       VALUES ($1, $2, $3, $4)
@@ -101,9 +99,9 @@ router.post('/', protegerAdmin, async (req, res) => {
     return res.status(201).json({ ok: true, message: "✅ Affectation enregistrée avec succès", affectation: nouvelleAffectation });
   } catch (e) {
     console.error("❌ ERREUR création affectation :", e.code, e.message);
-    if (e.code === '23505') // Erreur clé unique
+    if (e.code === '23505')
       return res.status(409).json({ ok: false, erreur: "⚠️ Cette affectation existe déjà pour cette année !" });
-    if (e.code === '23503') // Erreur clé étrangère
+    if (e.code === '23503')
       return res.status(400).json({ ok: false, erreur: "⚠️ L'enseignant, la classe ou la matière n'existe pas" });
     return res.status(500).json({ ok: false, erreur: "⚠️ Impossible de créer l'affectation" });
   }
@@ -130,9 +128,8 @@ router.put('/:id', protegerAdmin, async (req, res) => {
     if ([profId, classeId, matiereId].some(isNaN))
       return res.status(400).json({ ok: false, erreur: "⚠️ Un ou plusieurs identifiants sont invalides" });
 
-    const annee = annee_scolaire?.trim() || '2026-2027';
+    const annee = annee_scolaire?.trim() || ANNEE_SCOLAIRE_DEFAUT;
 
-    // ✅ Mise à jour
     const { rowCount } = await pool.query(`
       UPDATE affectations_ens
       SET id_prof = $1, id_classe = $2, id_matiere = $3, annee_scolaire = $4

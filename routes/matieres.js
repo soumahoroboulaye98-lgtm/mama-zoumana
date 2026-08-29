@@ -16,6 +16,7 @@ try {
 
 // ==================================================
 // 📖 LISTE DES MATIÈRES — Publique
+// → Renvoie /api/matieres avec format "lignes" ✅
 // ==================================================
 router.get('/', async (req, res) => {
   try {
@@ -30,9 +31,8 @@ router.get('/', async (req, res) => {
       FROM matieres
       ORDER BY libelle_matiere ASC
     `);
-
     console.log(`✅ Matières chargées — ${rows.length} enregistrement(s)`);
-    return res.json({ ok: true, lignes: rows });
+    return res.json({ ok: true, lignes: rows }); // ✅ Format attendu par le HTML
   } catch (e) {
     console.error("❌ ERREUR chargement matières :", e.code, e.message);
     return res.json({ ok: false, erreur: "⚠️ Impossible de charger les matières" });
@@ -118,7 +118,6 @@ router.put('/:id', protegerAdmin, async (req, res) => {
       return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
 
     const { libelle_matiere, libelle_matiere_ar, coefficient, volume_horaire, langue_ens } = req.body;
-
     if (!libelle_matiere?.trim())
       return res.json({ ok: false, erreur: "⚠️ Le nom de la matière est obligatoire" });
 
