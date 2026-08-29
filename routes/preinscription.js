@@ -557,4 +557,58 @@ if (protegerParent.length) {
   });
 }
 
+// ==================================================
+// 📊 RÉCUPÉRER RÉSULTATS PAR MATRICULE (PUBLIC)
+// ==================================================
+router.get('/eleves/:matricule/resultats', async (req, res) => {
+  try {
+    const { matricule } = req.params;
+
+    if (!matricule?.trim()) {
+      return res.json({ ok: false, erreur: "⚠️ Matricule requis" });
+    }
+
+    // 🔒 Le matricule est unique et à vie — jamais modifiable
+    const { rows: [eleve] } = await pool.query(`
+      SELECT 
+        u.id_utilisateur,
+        u.nom,
+        u.prenoms,
+        u.matricule,
+        u.date_naissance,
+        u.moyenne_annee_precedente AS moyenne,
+        u.rang_annee_precedente AS rang,
+        u.mention_annee_precedente AS mention,
+        u.conduite AS note_conduite,
+        c.libelle_classe
+      FROM utilisateurs u
+      LEFT JOIN classes c ON u.id_classe = c.id_classe
+      WHERE UPPER(TRIM(u.matricule)) = UPPER(TRIM($1))
+        AND u.role = 'eleve'
+      LIMIT 1
+    `, [matricule.trim()]);
+
+    if (!eleve) {
+      return res.json({ ok: false, erreur: "❌ Élève introuvable avec ce matricule" });
+    }
+
+    // ✅ Retourne les résultats — valeurs par défaut si non renseignées
+    res.json({
+      ok: true,
+      matricule: eleve.matricule,
+      nom: eleve.nom,
+      prenoms: eleve.prenoms,
+      moyenne: eleve.moyenne || '—',
+      rang: eleve.rang || '—',
+      mention: eleve.mention || '—',
+      note_conduite: eleve.note_conduite || '—',
+      classe: eleve.libelle_classe || '—'
+    });
+
+  } catch (e) {
+    console.error("❌ ERREUR résultats élève :", e.message);
+    res.json({ ok: false, erreur: "❌ Erreur serveur" });
+  }
+});
+
 module.exports = router;
