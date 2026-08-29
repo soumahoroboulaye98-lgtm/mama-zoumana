@@ -62,6 +62,7 @@
     .note-auto{background:rgba(59,130,246,0.1);border:1px solid #3b82f6;border-radius:6px;padding:0.3rem 0.5rem;font-size:0.9rem;color:#1e40af;}
     .erreur-token{background:rgba(239,68,68,0.1);border:1px solid #ef4444;color:#b91c1c;padding:0.75rem;border-radius:8px;margin-bottom:1rem;}
     .avertissement{color:#f59e0b;font-size:0.85rem;}
+    .d-none{display:none !important;}
   </style>
 </head>
 <body>
@@ -69,17 +70,19 @@
 <script>
 const API_BASE = "https://mama-zoumana-api.onrender.com/api";
 const token = localStorage.getItem('token');
-const roleUser = localStorage.getItem('role');
+const roleUser = (localStorage.getItem('role') || '').toLowerCase();
 
 // ✅ Vérification session — Accepte admin ET Admin
-if (!token || !['admin','Admin','super_admin'].includes(roleUser)) {
+if (!token || !['admin','super_admin'].includes(roleUser)) {
   alert("⛔ Accès réservé à l'administrateur — Connexion requise");
+  localStorage.clear();
   location.href='connexion.html';
 }
 
 // ✅ Gestion langue
 const langueSauvegardee = localStorage.getItem('langue') || 'fr';
 document.body.classList.add('lang-' + langueSauvegardee);
+
 function appliquerLangue(lang){
   localStorage.setItem('langue', lang);
   document.body.classList.remove('lang-fr','lang-en','lang-ar');
@@ -183,6 +186,7 @@ function headersAuth(){
         <div class="alert alert-info py-2 mb-3">
           <i class="bi bi-shield-lock"></i> Matricule et mot de passe générés automatiquement.
         </div>
+
         <!-- 📋 CHAMPS COMMUNS -->
         <div class="row g-3 mb-3">
           <div class="col-md-6">
@@ -228,19 +232,20 @@ function headersAuth(){
             </select>
           </div>
         </div>
-        <!-- 🎓 ÉLÈVE -->
+
+        <!-- 🎓 ÉLÈVE — SEUL FORMULAIRE AVEC LA CLASSE -->
         <div id="form-eleve" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10">
           <h6 class="text-warning fw-bold"><i class="bi bi-mortarboard"></i> Informations Élève</h6>
           <div class="col-md-4">
             <label class="form-label fw-bold">Date de naissance *</label>
-            <input type="date" id="eleve-date-naissance" class="form-control" required>
+            <input type="date" id="eleve-date-naissance" class="form-control">
           </div>
           <div class="col-md-4">
             <label class="form-label fw-bold">Lieu de naissance</label>
             <input type="text" id="eleve-lieu-naissance" class="form-control">
           </div>
           <div class="col-md-4">
-            <label class="form-label fw-bold">Classe</label>
+            <label class="form-label fw-bold">Classe *</label>
             <select id="eleve-classe" class="form-select">
               <option value="">-- Chargement... --</option>
             </select>
@@ -264,6 +269,7 @@ function headersAuth(){
             <input type="tel" id="eleve-tel-mere" class="form-control">
           </div>
         </div>
+
         <!-- 👨‍🏫 ENSEIGNANT -->
         <div id="form-professeur" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
           <h6 class="text-primary fw-bold"><i class="bi bi-person-workspace"></i> Informations Enseignant</h6>
@@ -276,6 +282,7 @@ function headersAuth(){
             <input type="text" id="prof-diplome" class="form-control">
           </div>
         </div>
+
         <!-- 💰 COMPTABLE -->
         <div id="form-comptable" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
           <h6 class="text-success fw-bold"><i class="bi bi-cash-coin"></i> Informations Comptable</h6>
@@ -288,6 +295,7 @@ function headersAuth(){
             <input type="text" id="comptable-horaires" class="form-control" value="Lundi-Vendredi 08h-16h">
           </div>
         </div>
+
         <!-- 🏫 DIRECTEUR -->
         <div id="form-directeur" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
           <h6 class="text-info fw-bold"><i class="bi bi-building"></i> Informations Directeur</h6>
@@ -300,6 +308,7 @@ function headersAuth(){
             <input type="date" id="directeur-date-fonction" class="form-control">
           </div>
         </div>
+
         <!-- 🔧 ADMIN -->
         <div id="form-admin" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
           <h6 class="text-danger fw-bold"><i class="bi bi-shield-check"></i> Informations Administrateur</h6>
@@ -311,6 +320,7 @@ function headersAuth(){
             </select>
           </div>
         </div>
+
         <!-- 👨‍👩‍👧 PARENT -->
         <div id="form-parent" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
           <h6 class="text-warning fw-bold"><i class="bi bi-people"></i> Informations Parent</h6>
@@ -319,6 +329,7 @@ function headersAuth(){
             <input type="text" id="parent-enfants" class="form-control" placeholder="MZ2026-6EME-0001, ...">
           </div>
         </div>
+
         <!-- 🧑‍💼 VISITEUR -->
         <div id="form-visiteur" class="bloc-profil row g-3 border rounded p-3 mb-3 bg-light bg-opacity-10 d-none">
           <h6 class="text-secondary fw-bold"><i class="bi bi-person-lines-fill"></i> Informations Visiteur</h6>
@@ -338,6 +349,7 @@ function headersAuth(){
             </select>
           </div>
         </div>
+
         <!-- ✅ INFOS GÉNÉRÉES -->
         <div id="bloc-resultat" class="carte-info-generee d-none">
           <h6 class="text-success fw-bold">✅ Identifiants générés</h6>
@@ -392,24 +404,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   chargerUtilisateurs();
 });
 
-// 📚 Charger classes pour le select élève — avec fallback
+// 📚 CHARGER LA LISTE DES CLASSES — UNE SEULE FOIS AU CHARGEMENT
 async function chargerClasses(){
   const sel = document.getElementById('eleve-classe');
   const zoneErreur = document.getElementById('classe-erreur');
   sel.innerHTML = '<option value="">-- Chargement... --</option>';
+  sel.disabled = false;
+
   try {
     const res = await fetch(`${API_BASE}/classes`, { headers: headersAuth() });
+    if (res.status === 401 || res.status === 403) throw new Error('Non autorisé');
     if (!res.ok) throw new Error(`Erreur ${res.status}`);
+
     const data = await res.json();
-    // ✅ Format corrigé : data.lignes
-    if(data.ok && data.lignes && Array.isArray(data.lignes) && data.lignes.length > 0) {
+    // ✅ Format corrigé : data.lignes OU data.classes OU tableau direct
+    const listeClasses = data.lignes || data.classes || (Array.isArray(data) ? data : []);
+
+    if (data.ok && Array.isArray(listeClasses) && listeClasses.length > 0) {
       sel.innerHTML = '<option value="">-- Choisir une classe --</option>';
-      data.lignes.forEach(c => {
-        sel.innerHTML += `<option value="${c.id_classe || c.id}">${c.libelle_classe}</option>`;
+      listeClasses.forEach(c => {
+        sel.innerHTML += `<option value="${c.id_classe || c.id || c.libelle_classe}">${c.libelle_classe}</option>`;
       });
       zoneErreur.textContent = '';
     } else {
-      throw new Error(data.erreur || "Format API invalide");
+      throw new Error("Aucune classe trouvée");
     }
   } catch(e) {
     console.warn("🔌 Mode local classes :", e.message);
@@ -422,16 +440,23 @@ async function chargerClasses(){
   }
 }
 
-// 🔄 Afficher bon formulaire
+// 🔄 AFFICHER LE BON FORMULAIRE SELON LE PROFIL
+// ✅ SEUL LE FORMULAIRE ÉLÈVE CONTIENT LA CLASSE
 function afficherFormulaireProfil(){
   const profil = document.getElementById('utilisateur-profil').value;
-  document.querySelectorAll('.bloc-profil[id^="form-"]').forEach(f=>f.classList.add('d-none'));
+
+  // ✅ Masquer TOUS les formulaires spécifiques
+  document.querySelectorAll('.bloc-profil[id^="form-"]').forEach(f => f.classList.add('d-none'));
+
+  // ✅ Afficher SEULEMENT le formulaire correspondant
   const form = document.getElementById(`form-${profil}`);
   if(form) form.classList.remove('d-none');
+
+  // ✅ Masquer le bloc identifiants générés
   document.getElementById('bloc-resultat').classList.add('d-none');
 }
 
-// 📥 Charger liste utilisateurs — ✅ URL CORRIGÉE (sans /auth/)
+// 📥 CHARGER LA LISTE DES UTILISATEURS
 async function chargerUtilisateurs(){
   const recherche = document.getElementById('recherche').value.toLowerCase();
   const profil = document.getElementById('filtre-profil').value;
@@ -440,10 +465,9 @@ async function chargerUtilisateurs(){
   liste.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-warning"></div></td></tr>';
   
   try {
-    // ✅ URL corrigée : /utilisateurs et non /auth/utilisateurs
     const res = await fetch(`${API_BASE}/utilisateurs`, { headers: headersAuth() });
     
-    // ✅ Gestion erreur Token / Session
+    // ⚠️ Session expirée
     if(res.status === 401 || res.status === 403) {
       liste.innerHTML = `<tr><td colspan="6" class="text-center erreur-token py-4">
         ⛔ Session expirée ou accès refusé. Veuillez vous reconnecter.
@@ -453,28 +477,30 @@ async function chargerUtilisateurs(){
     }
     if(res.status === 404) {
       liste.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">
-        ❌ Route introuvable. Vérifiez que l'URL est correcte.
+        ❌ Route introuvable : vérifiez l'API /utilisateurs
       </td></tr>`;
       return;
     }
     
     const data = await res.json();
-    if(!data.ok || !data.lignes || !data.lignes.length){
+    const utilisateurs = data.lignes || data.utilisateurs || (Array.isArray(data) ? data : []);
+
+    if(!data.ok || !Array.isArray(utilisateurs) || !utilisateurs.length){
       liste.innerHTML = `<tr><td colspan="6" class="text-center py-5 opacity-75">Aucun utilisateur trouvé</td></tr>`;
       return;
     }
-    let utilisateurs = data.lignes;
     
-    // Filtres
-    if(recherche) utilisateurs = utilisateurs.filter(u =>
+    // 🔍 Appliquer les filtres
+    let resultat = utilisateurs;
+    if(recherche) resultat = resultat.filter(u =>
       (u.matricule||'').toLowerCase().includes(recherche) ||
       ((u.nom+' '+u.prenom).toLowerCase().includes(recherche))
     );
-    if(profil) utilisateurs = utilisateurs.filter(u => u.role === profil);
-    if(statut) utilisateurs = utilisateurs.filter(u => u.statut_compte === statut);
+    if(profil) resultat = resultat.filter(u => u.role === profil);
+    if(statut) resultat = resultat.filter(u => u.statut_compte === statut);
     
-    // Affichage
-    liste.innerHTML = utilisateurs.map(u => {
+    // 🖥️ Affichage du tableau
+    liste.innerHTML = resultat.map(u => {
       const cls = u.statut_compte==='valide'?'statut-actif':'statut-attente';
       const libStatut = u.statut_compte==='valide'?'✅ Actif':'⏳ En attente';
       return `<tr>
@@ -496,7 +522,7 @@ async function chargerUtilisateurs(){
   }
 }
 
-// ➕ Ouvrir modal ajout
+// ➕ OUVRIR MODAL AJOUT
 function ouvrirModalAjout(){
   document.getElementById('utilisateur-id').value='';
   document.getElementById('utilisateur-nom').value='';
@@ -505,20 +531,32 @@ function ouvrirModalAjout(){
   document.getElementById('utilisateur-telephone').value='';
   document.getElementById('utilisateur-profil').value='eleve';
   document.getElementById('utilisateur-statut').value='valide';
+
+  // ✅ Réinitialiser champs élève
   document.getElementById('eleve-date-naissance').value='';
+  document.getElementById('eleve-lieu-naissance').value='';
+  document.getElementById('eleve-classe').value='';
+  document.getElementById('eleve-nom-pere').value='';
+  document.getElementById('eleve-nom-mere').value='';
+  document.getElementById('eleve-tel-pere').value='';
+  document.getElementById('eleve-tel-mere').value='';
+
   document.getElementById('bloc-resultat').classList.add('d-none');
   afficherFormulaireProfil();
   modal.show();
 }
 
-// ✏️ Modifier utilisateur — ✅ URL corrigée
+// ✏️ CHARGER UN UTILISATEUR POUR MODIFICATION
 async function modifierUtilisateur(id){
   try {
     const res = await fetch(`${API_BASE}/utilisateurs/${id}`, { headers: headersAuth() });
     if(res.status === 404) throw new Error("Utilisateur introuvable");
+
     const data = await res.json();
     if(!data.ok) return alert("⚠️ Utilisateur introuvable");
     const u = data.utilisateur;
+
+    // ✅ Remplir champs communs
     document.getElementById('utilisateur-id').value = u.id;
     document.getElementById('utilisateur-nom').value = u.nom || '';
     document.getElementById('utilisateur-prenom').value = u.prenom || '';
@@ -526,16 +564,25 @@ async function modifierUtilisateur(id){
     document.getElementById('utilisateur-telephone').value = u.telephone || '';
     document.getElementById('utilisateur-profil').value = u.role || 'eleve';
     document.getElementById('utilisateur-statut').value = u.statut_compte || 'valide';
-    document.getElementById('bloc-resultat').classList.add('d-none');
+
+    // ✅ Réinitialiser TOUS les champs spécifiques d'abord
+    ['eleve-date-naissance','eleve-lieu-naissance','eleve-classe',
+     'eleve-nom-pere','eleve-nom-mere','eleve-tel-pere','eleve-tel-mere'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+
+    // ✅ Remplir UNIQUEMENT les champs du profil concerné
     if(u.role === 'eleve') {
       document.getElementById('eleve-date-naissance').value = u.date_naissance || '';
       document.getElementById('eleve-lieu-naissance').value = u.lieu_naissance || '';
-      document.getElementById('eleve-classe').value = u.id_classe || '';
+      document.getElementById('eleve-classe').value = u.id_classe || u.classe || '';
       document.getElementById('eleve-nom-pere').value = u.nom_pere || '';
       document.getElementById('eleve-nom-mere').value = u.nom_mere || '';
       document.getElementById('eleve-tel-pere').value = u.telephone_pere || '';
       document.getElementById('eleve-tel-mere').value = u.telephone_mere || '';
     }
+
+    document.getElementById('bloc-resultat').classList.add('d-none');
     afficherFormulaireProfil();
     modal.show();
   } catch(e) {
@@ -543,7 +590,7 @@ async function modifierUtilisateur(id){
   }
 }
 
-// 💾 ENREGISTRER — ✅ URL corrigée (/utilisateurs/creer-admin)
+// 💾 ENREGISTRER UN UTILISATEUR
 async function enregistrerUtilisateur(){
   const id = document.getElementById('utilisateur-id').value;
   const estNouveau = !id;
@@ -552,12 +599,18 @@ async function enregistrerUtilisateur(){
   const prenom = document.getElementById('utilisateur-prenom').value.trim();
   const email = document.getElementById('utilisateur-email').value.trim();
   
+  // ✅ Validation champs obligatoires communs
   if(!nom || !prenom || !email) return alert("⚠️ Remplissez Nom, Prénom et Email !");
-  if (profil === 'eleve' && !document.getElementById('eleve-date-naissance').value) {
-    return alert("⚠️ Date de naissance obligatoire pour un élève !");
+
+  // ✅ Validation SPÉCIFIQUE à l'ÉLÈVE SEULEMENT
+  if (profil === 'eleve') {
+    const dateNaissance = document.getElementById('eleve-date-naissance').value;
+    const classe = document.getElementById('eleve-classe').value;
+    if (!dateNaissance) return alert("⚠️ Date de naissance OBLIGATOIRE pour un élève !");
+    if (!classe) return alert("⚠️ Classe OBLIGATOIRE pour un élève !");
   }
   
-  // 📦 Données
+  // 📦 Construire l'objet utilisateur
   const utilisateur = {
     nom, prenom, email,
     telephone: document.getElementById('utilisateur-telephone').value.trim(),
@@ -566,11 +619,11 @@ async function enregistrerUtilisateur(){
     annee_scolaire: document.getElementById('utilisateur-annee').value
   };
   
-  // 🎓 Élève
+  // ✅ AJOUTER LES CHAMPS ÉLÈVE UNIQUEMENT SI PROFIL ÉLÈVE
   if (profil === 'eleve') {
     utilisateur.date_naissance = document.getElementById('eleve-date-naissance').value;
-    utilisateur.lieu_naissance = document.getElementById('eleve-lieu-naissance').value;
-    utilisateur.id_classe_souhaitee = document.getElementById('eleve-classe').value;
+    utilisateur.lieu_naissance = document.getElementById('eleve-lieu-naissance').value || null;
+    utilisateur.id_classe = document.getElementById('eleve-classe').value;
     utilisateur.nom_pere = document.getElementById('eleve-nom-pere').value.trim() || null;
     utilisateur.nom_mere = document.getElementById('eleve-nom-mere').value.trim() || null;
     utilisateur.telephone_pere = document.getElementById('eleve-tel-pere').value.trim() || null;
@@ -580,7 +633,6 @@ async function enregistrerUtilisateur(){
   try {
     let res;
     if (estNouveau) {
-      // ✅ URL corrigée
       res = await fetch(`${API_BASE}/utilisateurs/creer-admin`, {
         method: 'POST',
         headers: headersAuth(),
@@ -616,7 +668,7 @@ async function enregistrerUtilisateur(){
   }
 }
 
-// 🗑️ SUPPRIMER — ✅ URL corrigée
+// 🗑️ SUPPRIMER UN UTILISATEUR
 async function supprimerUtilisateur(id, nomComplet) {
   if (!confirm(`⚠️ Supprimer ${nomComplet} ?`)) return;
   try {

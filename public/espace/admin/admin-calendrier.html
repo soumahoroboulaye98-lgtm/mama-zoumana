@@ -62,47 +62,45 @@
   </style>
 </head>
 <body class="lang-fr">
-
-<!-- 🔗 CONFIGURATION API & SÉCURITÉ -->
+<!-- 🔗 CONFIGURATION API & VARIABLES GLOBALES CORRIGÉES -->
 <script>
- // ✅ NOUVELLE VERSION — TOUJOURS ÇA, DANS TOUTES LES PAGES
-const API_URL = "https://mama-zoumana-api.onrender.com/api";
+  // ✅ CONFIGURATION API
+  const API_URL = "https://mama-zoumana-api.onrender.com/api/calendrier";
 
-// Récupérer le token stocké après connexion
-function getToken() {
-  return localStorage.getItem('token');
-}
+  // ✅ RÉCUPÉRATION SÉCURISÉE DES VARIABLES
+  function getToken() { return localStorage.getItem('token') || ''; }
+  function getRole() { return localStorage.getItem('role') || ''; }
+  let langue = localStorage.getItem('langue') || 'fr';
+  let modeLocal = false; // ✅ Déclaré
 
-// Fonction pour envoyer les requêtes AVEC le token
-async function requeteAPI(chemin, options = {}) {
-  const reponse = await fetch(`${API_URL}${chemin}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`, // ✅ ENVOIE LE TOKEN AUTOMATIQUEMENT
-      ...options.headers
+  // ✅ Fonction requeteAPI centralisée
+  async function requeteAPI(chemin, options = {}) {
+    const token = getToken();
+    const reponse = await fetch(`${API_URL}${chemin}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : '',
+        ...options.headers
+      }
+    });
+
+    // ⚠️ Session expirée
+    if (reponse.status === 401) {
+      alert("⛔ Session expirée — Veuillez vous reconnecter");
+      localStorage.clear();
+      window.location.href = 'connexion.html';
+      return { ok: false, erreur: 'Session expirée', _deconnexion: true };
     }
-  });
 
-  const donnees = await reponse.json();
-
-  // ⚠️ Si token expiré → rediriger vers connexion
-  if (reponse.status === 401) {
-    alert("⛔ Session expirée — Veuillez vous reconnecter");
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    window.location.href = 'connexion.html'; // ← adapte le nom de ta page
-    return;
+    return await reponse.json();
   }
-
-  return donnees;
-}
 
   // 💾 STOCKAGE LOCAL
   function obtenirPeriodesLocales() { return JSON.parse(localStorage.getItem('calendrier_periodes') || '[]'); }
   function sauvegarderPeriodesLocales(liste) { localStorage.setItem('calendrier_periodes', JSON.stringify(liste)); }
 
-  // 🗣️ TRADUCTIONS — TOUJOURS EN PREMIER
+  // 🗣️ TRADUCTIONS
   const MSG = {
     fr: {
       accesReserve: "⛔ Accès réservé à l'Administrateur",
@@ -115,36 +113,23 @@ async function requeteAPI(chemin, options = {}) {
       dateFin: "Date de fin *",
       typePeriode: "Type de période *",
       choisirType: "— Choisir le type —",
-      cours: "🟢 Cours",
-      vacances: "🟠 Vacances",
-      ferie: "🔴 Jour férié",
+      cours: "🟢 Cours", vacances: "🟠 Vacances", ferie: "🔴 Jour férié",
       anneeScolaire: "Année scolaire",
-      descFR: "Description (FR)",
-      descEN: "Description (EN)",
-      descAR: "Description (AR)",
+      descFR: "Description (FR)", descEN: "Description (EN)", descAR: "Description (AR)",
       du: "Du", au: "au", annuler: "Annuler", enregistrer: "Enregistrer",
-      ajouterOk: "✅ Période ajoutée !",
-      modifierOk: "✅ Période modifiée !",
-      confirmerSuppr: "Confirmer la suppression ?",
-      supprOk: "✅ Période supprimée !",
-      ajouterBtn: "➕ Ajouter une période",
-      modifierBtn: "✏️ Modifier",
-      supprimerBtn: "🗑️ Supprimer",
-      retour: "Retour",
-      aucunePeriode: "Aucune période enregistrée",
+      ajouterOk: "✅ Période ajoutée !", modifierOk: "✅ Période modifiée !",
+      confirmerSuppr: "Confirmer la suppression ?", supprOk: "✅ Période supprimée !",
+      ajouterBtn: "➕ Ajouter une période", modifierBtn: "✏️ Modifier", supprimerBtn: "🗑️ Supprimer",
+      retour: "Retour", aucunePeriode: "Aucune période enregistrée",
       erreurToken: "⛔ Session expirée. Veuillez vous reconnecter."
     },
     en: {
       accesReserve: "⛔ Access restricted to Administrator",
       serveurIndispo: "⚠️ Server offline — Local mode active",
       compteur: "period(s)",
-      ajouterTitre: "Add a period",
-      modifierTitre: "Edit period",
-      nomPeriode: "Period name *",
-      dateDebut: "Start date *",
-      dateFin: "End date *",
-      typePeriode: "Period type *",
-      choisirType: "— Choose type —",
+      ajouterTitre: "Add a period", modifierTitre: "Edit period",
+      nomPeriode: "Period name *", dateDebut: "Start date *", dateFin: "End date *",
+      typePeriode: "Period type *", choisirType: "— Choose type —",
       cours: "🟢 Classes", vacances: "🟠 Holidays", ferie: "🔴 Public holiday",
       anneeScolaire: "School year",
       descFR: "Description (FR)", descEN: "Description (EN)", descAR: "Description (AR)",
@@ -173,16 +158,19 @@ async function requeteAPI(chemin, options = {}) {
       erreurToken: "⛔ انتهت الجلسة. الرجاء تسجيل الدخول مرة أخرى."
     }
   };
+
   function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
 
-  // 🔒 SÉCURITÉ — Vérifie token ET rôle
+  // 🔒 SÉCURITÉ — Vérification avant affichage
+  const token = getToken();
+  const role = getRole();
   if(!token || !['admin','Admin','super_admin'].includes(role)){
     alert(!token ? m('erreurToken') : m('accesReserve'));
     localStorage.clear();
     location.href = 'connexion.html';
   }
 
-  // Appliquer la langue au plus tôt
+  // ✅ Appliquer la langue immédiatement
   document.body.classList.remove('lang-fr','lang-en','lang-ar');
   document.body.classList.add('lang-' + langue);
 </script>
@@ -299,7 +287,7 @@ function changerLangue(nouvelleLangue) {
   afficherListe();
 }
 
-// 🎨 Classe CSS selon le type
+// 🎨 Classes d'affichage
 function classeType(t) {
   if (t === 'Cours') return 'cours';
   if (t === 'Vacances') return 'vacances';
@@ -311,7 +299,7 @@ function badgeType(t) {
   return 'badge-ferie';
 }
 
-// 📅 Formatage de la date
+// 📅 Formatage date
 function formatDate(d) {
   return new Date(d).toLocaleDateString(langue === 'ar' ? 'ar-MA' : 'fr-FR', { day:'2-digit', month:'long', year:'numeric' });
 }
@@ -319,17 +307,23 @@ function formatDate(d) {
 // 📋 CHARGER LA LISTE
 async function chargerListe(forcerLocal = false) {
   let liste = [];
+  const token = getToken();
+
   if (!forcerLocal) {
     try {
-      const res = await fetch(`${API_URL}/liste`, { headers:{'Authorization':`Bearer ${token}`} });
-      if (res.status === 401) throw new Error('401'); // Token expiré → déconnexion
-      if (!res.ok) throw new Error();
+      const res = await fetch(`${API_URL}/liste`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.status === 401) throw Object.assign(new Error('401'), { statut: 401 });
+      if (!res.ok) throw new Error('Erreur serveur');
+
       const data = await res.json();
-      liste = data.calendrier || data || [];
+      liste = data.calendrier || data.liste || data || [];
       sauvegarderPeriodesLocales(liste);
       basculerModeLocal(false);
+
     } catch (err) {
-      if (err.message === '401') {
+      if (err.statut === 401 || err.message === '401') {
         alert(m('erreurToken'));
         localStorage.clear();
         location.href = 'connexion.html';
@@ -338,16 +332,18 @@ async function chargerListe(forcerLocal = false) {
       forcerLocal = true;
     }
   }
+
   if (forcerLocal) {
     basculerModeLocal(true);
     liste = obtenirPeriodesLocales();
   }
+
   listeCalendrier = liste;
   document.getElementById('compteur').textContent = liste.length;
   afficherListe();
 }
 
-// 🖥️ AFFICHER LA LISTE
+// 🖥️ AFFICHAGE
 function afficherListe() {
   const conteneur = document.getElementById('liste');
   if (!listeCalendrier.length) {
@@ -371,7 +367,7 @@ function afficherListe() {
   });
 }
 
-// 📝 OUVRIR FORMULAIRE
+// 📝 FORMULAIRE
 function ouvrirFormulaire() {
   document.getElementById('formPeriode').reset();
   document.getElementById('id').value = '';
@@ -379,8 +375,6 @@ function ouvrirFormulaire() {
   document.getElementById('annee_scolaire').value = '2026-2027';
   document.getElementById('formModal').classList.add('active');
 }
-
-// ✏️ MODIFIER PÉRIODE
 function modifier(id) {
   const p = listeCalendrier.find(x => Number(x.id) === Number(id));
   if(!p) return;
@@ -391,18 +385,17 @@ function modifier(id) {
   document.getElementById('titreForm').textContent = m('modifierTitre');
   document.getElementById('formModal').classList.add('active');
 }
-
-// ❌ FERMER FORMULAIRE
 function fermerFormulaire() {
   document.getElementById('formModal').classList.remove('active');
   document.getElementById('message').className = 'message';
   document.getElementById('message').textContent = '';
 }
 
-// 💾 ENREGISTRER PÉRIODE
+// 💾 ENREGISTREMENT
 document.getElementById('formPeriode').addEventListener('submit', async e => {
   e.preventDefault();
   const id = document.getElementById('id').value;
+  const token = getToken();
   const donnees = {
     periode: document.getElementById('periode').value,
     date_debut: document.getElementById('date_debut').value,
@@ -414,32 +407,26 @@ document.getElementById('formPeriode').addEventListener('submit', async e => {
     description_ar: document.getElementById('description_ar').value
   };
   const msg = document.getElementById('message');
+
   try {
-    const url = id ? `${API_URL}/${id}` : `${API_URL}/ajouter`;
+    const url = id ? `/${id}` : '/ajouter';
     const methode = id ? 'PUT' : 'POST';
-    const res = await fetch(url, {
+    const res = await requeteAPI(url, {
       method: methode,
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(donnees)
     });
-    if (res.status === 401) throw new Error('401');
-    const rep = await res.json();
-    if (rep.ok) {
+
+    if (res._deconnexion) return;
+    if (res.ok) {
       msg.className = 'message succes';
       msg.textContent = id ? m('modifierOk') : m('ajouterOk');
       await chargerListe();
       setTimeout(fermerFormulaire, 1200);
     } else {
-      throw new Error(rep.erreur || 'Erreur serveur');
+      throw new Error(res.erreur || 'Erreur serveur');
     }
+
   } catch (err) {
-    // 🚪 Token expiré
-    if (err.message === '401') {
-      alert(m('erreurToken'));
-      localStorage.clear();
-      location.href = 'connexion.html';
-      return;
-    }
     // 📴 Mode local
     let liste = obtenirPeriodesLocales();
     donnees.id = id ? Number(id) : Date.now();
@@ -458,12 +445,17 @@ document.getElementById('formPeriode').addEventListener('submit', async e => {
   }
 });
 
-// 🗑️ SUPPRIMER PÉRIODE
+// 🗑️ SUPPRESSION
 async function supprimer(id) {
   if (!confirm(m('confirmerSuppr'))) return;
+  const token = getToken();
   try {
-    const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers:{'Authorization':`Bearer ${token}`} });
-    if (res.status === 401) throw new Error('401');
+    const res = await fetch(`${API_URL}/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.status === 401) throw Object.assign(new Error('401'), { statut: 401 });
+
     const rep = await res.json();
     if (rep.ok) {
       await chargerListe();
@@ -472,13 +464,13 @@ async function supprimer(id) {
       throw new Error(rep.erreur);
     }
   } catch (err) {
-    if (err.message === '401') {
+    if (err.statut === 401 || err.message === '401') {
       alert(m('erreurToken'));
       localStorage.clear();
       location.href = 'connexion.html';
       return;
     }
-    // 📴 Mode local
+    // Mode local
     let liste = obtenirPeriodesLocales().filter(p => Number(p.id) !== Number(id));
     sauvegarderPeriodesLocales(liste);
     listeCalendrier = liste;

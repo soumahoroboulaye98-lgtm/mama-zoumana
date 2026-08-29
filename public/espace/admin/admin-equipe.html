@@ -69,7 +69,7 @@
     .message.erreur { background: rgba(239,68,68,0.1); color: var(--danger); display: block; }
     .alerte-api { border-left: 3px solid var(--danger); background: rgba(239,68,68,0.1); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
     .info-ligne { color: var(--texte-secondaire); font-size: 14px; margin: 4px 0; }
-    .photo-mini { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); margin-right: 12px; }
+    .photo-mini { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); margin-right: 12px; flex-shrink: 0; }
     .btn-mode { border-radius: 20px; padding: 4px 12px; font-size: 14px; border: 1px solid var(--bord); background: var(--surface); color: var(--texte); }
     .btn-mode:hover { border-color: var(--accent); }
     .lang-en, .lang-ar { display: none; }
@@ -87,173 +87,175 @@
 </head>
 <body class="lang-fr" data-theme="clair">
 
-<!-- 🔗 CONFIGURATION API — PLUS  -->
+<!-- 🔗 CONFIGURATION API & VARIABLES GLOBALES -->
 <script>
-// ✅ UNE SEULE ADRESSE POUR TOUT
-const API_URL = "https://mama-zoumana-api.onrender.com/api";
+  // ✅ Adresse API centralisée
+  const API_URL = "https://mama-zoumana-api.onrender.com/api";
 
-// 🪙 Récupère le token sauvegardé après connexion
-function getToken() {
-  return localStorage.getItem('token');
-}
+  // ✅ Récupération sécurisée
+  function getToken() { return localStorage.getItem('token') || ''; }
+  function getRole() { return (localStorage.getItem('role') || '').toLowerCase(); }
+  let langue = localStorage.getItem('langue') || 'fr';
+  let theme = localStorage.getItem('theme') || 'clair';
+  let modeLocal = false;
 
-// 🚀 Requête automatique avec token + déconnexion si expiré
-async function requeteAPI(chemin, options = {}) {
-  const reponse = await fetch(`${API_URL}${chemin}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
-      ...options.headers
+  // ✅ Requête API UNIFIÉE avec gestion 401
+  async function requeteAPI(chemin, options = {}) {
+    const token = getToken();
+    const reponse = await fetch(`${API_URL}${chemin}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : '',
+        ...options.headers
+      }
+    });
+
+    // ⚠️ Session expirée → déconnexion
+    if (reponse.status === 401) {
+      alert("⛔ Session expirée — Veuillez vous reconnecter");
+      localStorage.clear();
+      window.location.href = 'connexion.html';
+      return { ok: false, _deconnexion: true };
     }
-  });
 
-  const donnees = await reponse.json();
-
-  // ⚠️ Token expiré → déconnexion automatique
-  if (reponse.status === 401) {
-    alert("⛔ Session expirée — Veuillez vous reconnecter");
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    window.location.href = 'connexion.html';
-    return;
+    return await reponse.json();
   }
 
-  return donnees;
-}
+  // 🗣️ TRADUCTIONS
+  const MSG = {
+    fr: {
+      accesReserve: "⛔ Accès réservé à l'Administrateur",
+      serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
+      compteur: "membre(s)",
+      ajouterTitre: "Ajouter un membre",
+      modifierTitre: "Modifier un membre",
+      nom: "Nom *",
+      prenoms: "Prénoms *",
+      posteFR: "Poste (FR) *",
+      posteEN: "Poste (EN)",
+      posteAR: "Poste (AR)",
+      matiereFR: "Matière (FR)",
+      matiereEN: "Matière (EN)",
+      matiereAR: "Matière (AR)",
+      presFR: "Présentation (FR)",
+      presEN: "Présentation (EN)",
+      presAR: "Présentation (AR)",
+      photo: "URL Photo",
+      email: "Adresse Email",
+      ordre: "Ordre d'affichage",
+      actif: "Membre actif",
+      oui: "✅ Actif",
+      non: "❌ Inactif",
+      annuler: "Annuler",
+      enregistrer: "Enregistrer",
+      ajouterOk: "✅ Membre ajouté !",
+      modifierOk: "✅ Membre modifié !",
+      confirmerSuppr: "Confirmer la suppression ?",
+      supprOk: "✅ Membre supprimé !",
+      ajouterBtn: "➕ Ajouter un membre",
+      modifierBtn: "✏️ Modifier",
+      supprimerBtn: "🗑️ Supprimer",
+      retour: "Retour",
+      aucunMembre: "Aucun membre enregistré",
+      poste: "Poste",
+      matiere: "Matière"
+    },
+    en: {
+      accesReserve: "⛔ Access restricted to Administrator",
+      serveurIndispo: "⚠️ Server offline — Local mode active",
+      compteur: "member(s)",
+      ajouterTitre: "Add a member",
+      modifierTitre: "Edit member",
+      nom: "Last name *",
+      prenoms: "First name(s) *",
+      posteFR: "Position (FR) *",
+      posteEN: "Position (EN)",
+      posteAR: "Position (AR)",
+      matiereFR: "Subject (FR)",
+      matiereEN: "Subject (EN)",
+      matiereAR: "Subject (AR)",
+      presFR: "Presentation (FR)",
+      presEN: "Presentation (EN)",
+      presAR: "Presentation (AR)",
+      photo: "Photo URL",
+      email: "Email address",
+      ordre: "Display order",
+      actif: "Active member",
+      oui: "✅ Active",
+      non: "❌ Inactive",
+      annuler: "Cancel",
+      enregistrer: "Save",
+      ajouterOk: "✅ Member added!",
+      modifierOk: "✅ Member updated!",
+      confirmerSuppr: "Confirm deletion?",
+      supprOk: "✅ Member deleted!",
+      ajouterBtn: "➕ Add member",
+      modifierBtn: "✏️ Edit",
+      supprimerBtn: "🗑️ Delete",
+      retour: "Back",
+      aucunMembre: "No member registered",
+      poste: "Position",
+      matiere: "Subject"
+    },
+    ar: {
+      accesReserve: "⛔ الوصول مقصور على المدير",
+      serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
+      compteur: "عضو",
+      ajouterTitre: "إضافة عضو",
+      modifierTitre: "تعديل بيانات العضو",
+      nom: "اللقب *",
+      prenoms: "الاسم *",
+      posteFR: "المنصب (فرنسي) *",
+      posteEN: "المنصب (إنجليزي)",
+      posteAR: "المنصب (عربي)",
+      matiereFR: "المادة (فرنسي)",
+      matiereEN: "المادة (إنجليزي)",
+      matiereAR: "المادة (عربي)",
+      presFR: "نبذة تعريفية (فرنسي)",
+      presEN: "نبذة تعريفية (إنجليزي)",
+      presAR: "نبذة تعريفية (عربي)",
+      photo: "رابط الصورة",
+      email: "البريد الإلكتروني",
+      ordre: "ترتيب العرض",
+      actif: "عضو نشط",
+      oui: "✅ نشط",
+      non: "❌ غير نشط",
+      annuler: "إلغاء",
+      enregistrer: "حفظ",
+      ajouterOk: "✅ تمت إضافة العضو!",
+      modifierOk: "✅ تم تعديل بيانات العضو!",
+      confirmerSuppr: "تأكيد الحذف؟",
+      supprOk: "✅ تم حذف العضو!",
+      ajouterBtn: "➕ إضافة عضو",
+      modifierBtn: "✏️ تعديل",
+      supprimerBtn: "🗑️ حذف",
+      retour: "عودة",
+      aucunMembre: "لا يوجد أعضاء مسجلين",
+      poste: "المنصب",
+      matiere: "المادة"
+    }
+  };
 
-const token = getToken();
-const role = localStorage.getItem('role');
-let langue = localStorage.getItem('langue') || 'fr';
-let theme = localStorage.getItem('theme') || 'clair';
-let modeLocal = false;
+  function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
 
-// 💾 TRADUCTIONS
-const MSG = {
-  fr: {
-    accesReserve: "⛔ Accès réservé à l'Administrateur",
-    serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
-    compteur: "membre(s)",
-    ajouterTitre: "Ajouter un membre",
-    modifierTitre: "Modifier un membre",
-    nom: "Nom *",
-    prenoms: "Prénoms *",
-    posteFR: "Poste (FR) *",
-    posteEN: "Poste (EN)",
-    posteAR: "Poste (AR)",
-    matiereFR: "Matière (FR)",
-    matiereEN: "Matière (EN)",
-    matiereAR: "Matière (AR)",
-    presFR: "Présentation (FR)",
-    presEN: "Présentation (EN)",
-    presAR: "Présentation (AR)",
-    photo: "URL Photo",
-    email: "Adresse Email",
-    ordre: "Ordre d'affichage",
-    actif: "Membre actif",
-    oui: "✅ Actif",
-    non: "❌ Inactif",
-    annuler: "Annuler",
-    enregistrer: "Enregistrer",
-    ajouterOk: "✅ Membre ajouté !",
-    modifierOk: "✅ Membre modifié !",
-    confirmerSuppr: "Confirmer la suppression ?",
-    supprOk: "✅ Membre supprimé !",
-    ajouterBtn: "➕ Ajouter un membre",
-    modifierBtn: "✏️ Modifier",
-    supprimerBtn: "🗑️ Supprimer",
-    retour: "Retour",
-    aucunMembre: "Aucun membre enregistré",
-    poste: "Poste",
-    matiere: "Matière"
-  },
-  en: {
-    accesReserve: "⛔ Access restricted to Administrator",
-    serveurIndispo: "⚠️ Server offline — Local mode active",
-    compteur: "member(s)",
-    ajouterTitre: "Add a member",
-    modifierTitre: "Edit member",
-    nom: "Last name *",
-    prenoms: "First name(s) *",
-    posteFR: "Position (FR) *",
-    posteEN: "Position (EN)",
-    posteAR: "Position (AR)",
-    matiereFR: "Subject (FR)",
-    matiereEN: "Subject (EN)",
-    matiereAR: "Subject (AR)",
-    presFR: "Presentation (FR)",
-    presEN: "Presentation (EN)",
-    presAR: "Presentation (AR)",
-    photo: "Photo URL",
-    email: "Email address",
-    ordre: "Display order",
-    actif: "Active member",
-    oui: "✅ Active",
-    non: "❌ Inactive",
-    annuler: "Cancel",
-    enregistrer: "Save",
-    ajouterOk: "✅ Member added!",
-    modifierOk: "✅ Member updated!",
-    confirmerSuppr: "Confirm deletion?",
-    supprOk: "✅ Member deleted!",
-    ajouterBtn: "➕ Add member",
-    modifierBtn: "✏️ Edit",
-    supprimerBtn: "🗑️ Delete",
-    retour: "Back",
-    aucunMembre: "No member registered",
-    poste: "Position",
-    matiere: "Subject"
-  },
-  ar: {
-    accesReserve: "⛔ الوصول مقصور على المدير",
-    serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
-    compteur: "عضو",
-    ajouterTitre: "إضافة عضو",
-    modifierTitre: "تعديل بيانات العضو",
-    nom: "اللقب *",
-    prenoms: "الاسم *",
-    posteFR: "المنصب (فرنسي) *",
-    posteEN: "المنصب (إنجليزي)",
-    posteAR: "المنصب (عربي)",
-    matiereFR: "المادة (فرنسي)",
-    matiereEN: "المادة (إنجليزي)",
-    matiereAR: "المادة (عربي)",
-    presFR: "نبذة تعريفية (فرنسي)",
-    presEN: "نبذة تعريفية (إنجليزي)",
-    presAR: "نبذة تعريفية (عربي)",
-    photo: "رابط الصورة",
-    email: "البريد الإلكتروني",
-    ordre: "ترتيب العرض",
-    actif: "عضو نشط",
-    oui: "✅ نشط",
-    non: "❌ غير نشط",
-    annuler: "إلغاء",
-    enregistrer: "حفظ",
-    ajouterOk: "✅ تمت إضافة العضو!",
-    modifierOk: "✅ تم تعديل بيانات العضو!",
-    confirmerSuppr: "تأكيد الحذف؟",
-    supprOk: "✅ تم حذف العضو!",
-    ajouterBtn: "➕ إضافة عضو",
-    modifierBtn: "✏️ تعديل",
-    supprimerBtn: "🗑️ حذف",
-    retour: "عودة",
-    aucunMembre: "لا يوجد أعضاء مسجلين",
-    poste: "المنصب",
-    matiere: "المادة"
+  // 🔒 SÉCURITÉ — Vérification avant tout affichage
+  const token = getToken();
+  const role = getRole();
+  if (!token || !['admin','super_admin','directeur'].includes(role)) {
+    alert(m('accesReserve'));
+    localStorage.clear();
+    location.href = 'connexion.html';
   }
-};
-function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
 
-// 🔒 SÉCURITÉ
-if(!token || !['admin','super_admin','directeur'].includes((role||'').toLowerCase())){
-  alert(m('accesReserve'));
-  localStorage.clear();
-  location.href = 'connexion.html';
-}
+  // 💾 STOCKAGE LOCAL
+  function obtenirMembresLocaux() { return JSON.parse(localStorage.getItem('equipe_membres') || '[]'); }
+  function sauvegarderMembresLocaux(liste) { localStorage.setItem('equipe_membres', JSON.stringify(liste)); }
 
-// 💾 STOCKAGE LOCAL
-function obtenirMembresLocaux() { return JSON.parse(localStorage.getItem('equipe_membres') || '[]'); }
-function sauvegarderMembresLocaux(liste) { localStorage.setItem('equipe_membres', JSON.stringify(liste)); }
+  // ✅ Appliquer langue et thème IMMÉDIATEMENT
+  document.body.classList.remove('lang-fr','lang-en','lang-ar');
+  document.body.classList.add('lang-' + langue);
+  document.documentElement.setAttribute('data-theme', theme);
 </script>
 
 <!-- 📌 EN-TÊTE -->
@@ -308,6 +310,7 @@ function sauvegarderMembresLocaux(liste) { localStorage.setItem('equipe_membres'
   <div id="liste"></div>
 </div>
 
+<!-- 📝 MODAL FORMULAIRE -->
 <div class="modal" id="formModal">
   <div class="modal-contenu">
     <h2 id="titreForm">...</h2>
@@ -335,7 +338,7 @@ function sauvegarderMembresLocaux(liste) { localStorage.setItem('equipe_membres'
         <input type="email" id="email" class="form-control" placeholder="Email">
       </div>
       <div class="ligne align-items-center">
-        <input type="number" id="ordre" class="form-control" placeholder="Ordre" value="1">
+        <input type="number" id="ordre" class="form-control" placeholder="Ordre" value="1" min="0">
         <label style="display:flex;align-items:center;gap:8px;margin-bottom:0;color:var(--texte)">
           <input type="checkbox" id="est_actif" checked>
           <span class="lang-fr"> Actif</span>
@@ -363,6 +366,7 @@ function sauvegarderMembresLocaux(liste) { localStorage.setItem('equipe_membres'
 <script>
 let listeMembres = [];
 
+// 📡 ALERTE MODE LOCAL
 function basculerModeLocal(actif) {
   modeLocal = actif;
   const alerte = document.getElementById('alerteApi');
@@ -370,16 +374,20 @@ function basculerModeLocal(actif) {
   alerte.classList.toggle('d-none', !actif);
 }
 
-// 🌙 THÈME
+// 🌙 GESTION THÈME
 function appliquerTheme(t) {
   theme = t;
   document.documentElement.setAttribute('data-theme', t);
   localStorage.setItem('theme', t);
-  document.getElementById('btn-theme').innerHTML = t === 'clair' ? '<i class="bi bi-moon"></i>' : '<i class="bi bi-sun"></i>';
+  document.getElementById('btn-theme').innerHTML = t === 'clair' 
+    ? '<i class="bi bi-moon"></i>' 
+    : '<i class="bi bi-sun"></i>';
 }
-function basculerTheme() { appliquerTheme(theme === 'clair' ? 'sombre' : 'clair'); }
+function basculerTheme() { 
+  appliquerTheme(theme === 'clair' ? 'sombre' : 'clair'); 
+}
 
-// 🗣️ LANGUE
+// 🗣️ GESTION LANGUE
 function appliquerLangue(lg) {
   langue = lg;
   localStorage.setItem('langue', lg);
@@ -387,6 +395,7 @@ function appliquerLangue(lg) {
   document.body.classList.add('lang-' + lg);
   document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('btn-outline-warning', 'bg-warning', 'text-dark', 'fw-bold'));
   document.getElementById('btn-' + lg)?.classList.add('btn-outline-warning', 'bg-warning', 'text-dark', 'fw-bold');
+  afficherListe();
 }
 
 // 📋 CHARGER LA LISTE
@@ -394,16 +403,17 @@ async function chargerListe(forcerLocal = false) {
   let liste = [];
   if (!forcerLocal) {
     try {
-      // ✅ UTILISE requeteAPI AU LIEU DE fetch DIRECT
       const data = await requeteAPI('/equipe/liste?tout=1');
+      if (data._deconnexion) return;
       if (data.ok) {
-        liste = data.membres || [];
+        liste = Array.isArray(data.membres) ? data.membres : [];
         sauvegarderMembresLocaux(liste);
         basculerModeLocal(false);
       } else {
-        throw new Error();
+        throw new Error('Erreur serveur');
       }
-    } catch {
+    } catch (err) {
+      console.warn('Mode local activé :', err.message);
       forcerLocal = true;
     }
   }
@@ -416,32 +426,60 @@ async function chargerListe(forcerLocal = false) {
   afficherListe();
 }
 
-// 🖥️ AFFICHER LA LISTE
+// 🖥️ AFFICHAGE SÉCURISÉ
 function afficherListe() {
   const conteneur = document.getElementById('liste');
   if (!listeMembres.length) {
     conteneur.innerHTML = `<div class="carte text-center py-4 text-muted">${m('aucunMembre')}</div>`;
     return;
   }
+
   conteneur.innerHTML = '';
-  listeMembres.sort((a,b) => a.ordre - b.ordre).forEach(m => {
-    const photo = m.photo_url ? `<img src="${m.photo_url}" alt="" class="photo-mini" onerror="this.style.display='none'">` : '';
-    const statut = m.est_actif ? `<span class="badge-actif">${m('oui')}</span>` : `<span class="badge-inactif">${m('non')}</span>`;
+
+  // ✅ TRI SÉCURISÉ — évite l'erreur si ordre est undefined
+  listeMembres.sort((a, b) => {
+    const ordreA = typeof a.ordre === 'number' ? a.ordre : 999;
+    const ordreB = typeof b.ordre === 'number' ? b.ordre : 999;
+    return ordreA - ordreB;
+  }).forEach(membre => {
+    // ✅ Valeurs PAR DÉFAUT pour TOUS les champs
+    const id = membre.id || '';
+    const nom = membre.nom || '';
+    const prenoms = membre.prenoms || '';
+    const poste = membre.poste_fr || '';
+    const matiere = membre.matiere_fr || '';
+    const email = membre.email || '';
+    const ordre = membre.ordre || 1;
+    const estActif = Boolean(membre.est_actif ?? true);
+
+    // ✅ Photo sécurisée
+    const photo = membre.photo_url 
+      ? `<img src="${membre.photo_url}" alt="" class="photo-mini" onerror="this.style.display='none'">` 
+      : '';
+
+    // ✅ Statut sécurisé — ERREUR CORRIGÉE : ne plus appeler m() dans le HTML
+    const texteOui = m('oui');
+    const texteNon = m('non');
+    const statut = estActif 
+      ? `<span class="badge-actif">${texteOui}</span>` 
+      : `<span class="badge-inactif">${texteNon}</span>`;
+
+    // ✅ Génération HTML
     conteneur.innerHTML += `
       <div class="carte">
         <div class="d-flex align-items-start">
           ${photo}
           <div style="flex:1">
-            <h5 class="fw-bold mb-1">${m.prenoms || ''} ${m.nom || ''} ${statut}</h5>
-            <div class="info-ligne"><strong>${m('poste')} :</strong> ${m.poste_fr || ''}</div>
-            ${m.matiere_fr ? `<div class="info-ligne"><strong>${m('matiere')} :</strong> ${m.matiere_fr}</div>` : ''}
-            ${m.email ? `<div class="info-ligne"><i class="bi bi-envelope me-1"></i> ${m.email}</div>` : ''}
-            <div class="info-ligne text-muted small">Ordre : ${m.ordre || 1}</div>
+            <h5 class="fw-bold mb-2">${prenoms} ${nom} ${statut}</h5>
+            <div class="info-ligne"><strong>${m('poste')} :</strong> ${poste}</div>
+            ${matiere ? `<div class="info-ligne"><strong>${m('matiere')} :</strong> ${matiere}</div>` : ''}
+            ${email ? `<div class="info-ligne"><i class="bi bi-envelope me-1"></i> ${email}</div>` : ''}
+            <div class="info-ligne text-muted small">Ordre : ${ordre}</div>
           </div>
         </div>
-        <div class="mt-3">
-          <button class="btn-modif" onclick="modifier(${m.id})">✏️ ${m('modifierBtn')}</button>
-          <button class="btn-suppr" onclick="supprimer(${m.id})">🗑️ ${m('supprBtn')}</button>
+        <div class="mt-3 d-flex gap-2">
+          <button class="btn-modif" onclick="modifier(${id})">✏️ ${m('modifierBtn')}</button>
+          <button class="btn-suppr" onclick="supprimer(${id})">🗑️ ${m('supprBtn')}</button>
         </div>
       </div>`;
   });
@@ -453,34 +491,48 @@ function ouvrirFormulaire() {
   document.getElementById('id').value = '';
   document.getElementById('titreForm').textContent = m('ajouterTitre');
   document.getElementById('est_actif').checked = true;
+  document.getElementById('ordre').value = '1';
   document.getElementById('formModal').classList.add('active');
 }
 
-// ✏️ MODIFIER
+// ✏️ MODIFIER UN MEMBRE
 function modifier(id) {
-  const m = listeMembres.find(x => Number(x.id) === Number(id));
-  if(!m) return;
+  const membre = listeMembres.find(x => Number(x.id) === Number(id));
+  if (!membre) return;
+
   ['id','nom','prenoms','poste_fr','poste_en','poste_ar','matiere_fr','matiere_en','matiere_ar','presentation_fr','presentation_en','presentation_ar','photo_url','email','ordre'].forEach(k => {
     const el = document.getElementById(k);
-    if(el) el.value = m[k] || '';
+    if (el) el.value = membre[k] || '';
   });
-  document.getElementById('est_actif').checked = Boolean(m.est_actif);
+
+  document.getElementById('est_actif').checked = Boolean(membre.est_actif ?? true);
   document.getElementById('titreForm').textContent = m('modifierTitre');
   document.getElementById('formModal').classList.add('active');
 }
 
-// ❌ FERMER
+// ❌ FERMER FORMULAIRE
 function fermerFormulaire() {
   document.getElementById('formModal').classList.remove('active');
   document.getElementById('message').className = 'message';
   document.getElementById('message').textContent = '';
 }
 
+// 💅🏽 NETTOYER LES CHAMPS avant envoi
+function nettoyerChamps(obj) {
+  const nettoye = {};
+  for (const k in obj) {
+    nettoye[k] = typeof obj[k] === 'string' ? obj[k].trim() : obj[k];
+  }
+  return nettoye;
+}
+
 // 💾 ENREGISTRER
 document.getElementById('formMembre').addEventListener('submit', async e => {
   e.preventDefault();
-  const id = document.getElementById('id').value;
-  const donnees = {
+  const id = document.getElementById('id').value.trim();
+  const msg = document.getElementById('message');
+
+  const donnees = nettoyerChamps({
     nom: document.getElementById('nom').value,
     prenoms: document.getElementById('prenoms').value,
     poste_fr: document.getElementById('poste_fr').value,
@@ -496,29 +548,33 @@ document.getElementById('formMembre').addEventListener('submit', async e => {
     email: document.getElementById('email').value,
     ordre: parseInt(document.getElementById('ordre').value) || 1,
     est_actif: document.getElementById('est_actif').checked
-  };
-  const msg = document.getElementById('message');
+  });
+
   try {
-    const url = id ? `/equipe/${id}` : `/equipe/ajouter`;
+    const url = id ? `/equipe/${id}` : '/equipe/ajouter';
     const methode = id ? 'PUT' : 'POST';
     const rep = await requeteAPI(url, {
       method: methode,
       body: JSON.stringify(donnees)
     });
-    if (rep.ok) {
+
+    if (rep?._deconnexion) return;
+
+    if (rep?.ok) {
       msg.className = 'message succes';
       msg.textContent = id ? m('modifierOk') : m('ajouterOk');
       await chargerListe();
       setTimeout(fermerFormulaire, 1200);
     } else {
-      throw new Error(rep.erreur || 'Erreur serveur');
+      throw new Error(rep?.erreur || 'Erreur serveur');
     }
   } catch (err) {
-    // Mode local
+    console.warn('Enregistrement en mode local :', err.message);
+    // 📴 Mode local de secours
     let liste = obtenirMembresLocaux();
     donnees.id = id ? Number(id) : Date.now();
     if (id) {
-      liste = liste.map(m => Number(m.id) === Number(id) ? {...m, ...donnees} : m);
+      liste = liste.map(m => Number(m.id) === Number(id) ? { ...m, ...donnees } : m);
     } else {
       liste.push(donnees);
     }
@@ -526,33 +582,38 @@ document.getElementById('formMembre').addEventListener('submit', async e => {
     listeMembres = liste;
     basculerModeLocal(true);
     msg.className = 'message succes';
-    msg.textContent = (id ? m('modifierOk') : m('ajouterOk')) + " (local)";
+    msg.textContent = (id ? m('modifierOk') : m('ajouterOk')) + " (mode local)";
     afficherListe();
     setTimeout(fermerFormulaire, 1200);
   }
 });
 
-// 🗑️ SUPPRIMER
+// 🗑️ SUPPRIMER UN MEMBRE
 async function supprimer(id) {
   if (!confirm(m('confirmerSuppr'))) return;
   try {
     const rep = await requeteAPI(`/equipe/${id}`, { method: 'DELETE' });
-    if (rep.ok) {
+    if (rep?._deconnexion) return;
+
+    if (rep?.ok) {
       await chargerListe();
       alert(m('supprOk'));
     } else {
-      throw new Error(rep.erreur);
+      throw new Error(rep?.erreur || 'Erreur suppression');
     }
-  } catch {
+  } catch (err) {
+    console.warn('Suppression en mode local :', err.message);
+    // 📴 Mode local de secours
     let liste = obtenirMembresLocaux().filter(m => Number(m.id) !== Number(id));
     sauvegarderMembresLocaux(liste);
     listeMembres = liste;
     basculerModeLocal(true);
     afficherListe();
-    alert(m('supprOk') + " (local)");
+    alert(m('supprOk') + " (mode local)");
   }
 }
 
+// 🚀 INITIALISATION
 window.onload = async function() {
   appliquerTheme(theme);
   appliquerLangue(langue);
