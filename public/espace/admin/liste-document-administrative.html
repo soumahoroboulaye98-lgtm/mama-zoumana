@@ -25,6 +25,8 @@
       --bordure: rgba(245,158,11,.25); --carte: rgba(30,41,59,.85); --ombre: rgba(0,0,0,.3);
       --input-fond: rgba(15,23,42,.6); --dore: #9a6f22; --dore-clair: #b78628;
     }
+
+    /* Trilingue */
     .txt-en,.txt-ar{display:none}
     body.lang-fr .txt-fr{display:inline}
     body.lang-en .txt-en{display:inline}
@@ -33,6 +35,7 @@
     body.lang-fr .txt-en,body.lang-fr .txt-ar{display:none}
     body.lang-ar .txt-fr,body.lang-ar .txt-en{display:none}
     body.lang-ar { direction: rtl; }
+
     * { transition: background .3s ease, color .3s ease, border-color .3s ease; }
     body {
       background: linear-gradient(160deg, var(--dore), var(--dore-clair));
@@ -95,6 +98,7 @@
     .modal-header, .modal-footer { border-color: var(--bordure); }
     .btn-close { filter: invert(0); }
     [data-bs-theme="dark"] .btn-close { filter: invert(1); }
+
     @media print {
       body { background: white !important; color: black !important; }
       .entete, .barre-langue, .no-print, .theme-btn, .alerte-api, .modal-header, .modal-footer, .pagination { display: none !important; }
@@ -107,96 +111,113 @@
 </head>
 <body>
 <script>
-  // ===== ✅ CONFIGURATION CENTRALISÉE =====
-  const API_URL = "https://mama-zoumana-api.onrender.com/api";
+// ===== ✅ CONFIGURATION CENTRALISÉE =====
+const API_URL = "https://mama-zoumana-api.onrender.com/api";
 
-  // ✅ RÉCUPÉRATION TOKEN UNE SEULE FOIS — CORRIGÉ getItem → localStorage.getItem
-  function getToken() { return localStorage.getItem('token'); }
-  const token = getToken();
-  const role = localStorage.getItem('role');
-  const langueActuelle = localStorage.getItem('langue') || 'fr';
-  const themeActuel = localStorage.getItem('theme') || 'light';
+// ✅ Récupération sécurisée
+function getToken() { return localStorage.getItem('token') || ''; }
+const token = getToken();
+const role = (localStorage.getItem('role') || '').toLowerCase().trim();
+const langueActuelle = localStorage.getItem('langue') || 'fr';
+const themeActuel = localStorage.getItem('theme') || 'light';
 
-  // ✅ FONCTION API CENTRALISÉE — Token systématique + 401 géré
-  async function requeteAPI(chemin, options = {}) {
-    const reponse = await fetch(`${API_URL}${chemin}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getToken()}`,
-        ...options.headers
-      }
-    });
-    const donnees = await reponse.json();
-    if (reponse.status === 401) {
-      alert("⛔ Session expirée — Veuillez vous reconnecter");
-      localStorage.clear();
-      window.location.href = 'connexion.html';
+// ✅ Requête API centralisée avec gestion 401
+async function requeteAPI(chemin, options = {}) {
+  const reponse = await fetch(`${API_URL}${chemin}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+      ...(options.headers || {})
     }
-    return donnees;
-  }
+  });
 
-  // ===== ✅ TRADUCTIONS =====
-  const MSG = {
-    fr: {
-      accesReserve: "⛔ Accès réservé à l'Administrateur",
-      serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
-      charger: "Chargement...", aucun: "Aucun document trouvé",
-      confirmerSuppr: "Confirmez-vous la suppression du document N° {num} ?",
-      supprimeOk: "✅ Document supprimé avec succès",
-      annuler: "Annuler", confirmer: "Confirmer la suppression",
-      voir: "Voir", reimprimer: "Réimprimer", supprimer: "Supprimer",
-      total: "Total des documents", page: "Page", sur: "sur"
-    },
-    en: {
-      accesReserve: "⛔ Access restricted to Administrator",
-      serveurIndispo: "⚠️ Server offline — Local mode active",
-      charger: "Loading...", aucun: "No document found",
-      confirmerSuppr: "Are you sure you want to delete document No. {num} ?",
-      supprimeOk: "✅ Document deleted successfully",
-      annuler: "Cancel", confirmer: "Confirm deletion",
-      voir: "View", reimprimer: "Reprint", supprimer: "Delete",
-      total: "Total documents", page: "Page", sur: "of"
-    },
-    ar: {
-      accesReserve: "⛔ الوصول مقصور على المدير",
-      serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
-      charger: "جار التحميل...", aucun: "لم يتم العثور على وثائق",
-      confirmerSuppr: "هل أنت متأكد من حذف الوثيقة رقم {num} ؟",
-      supprimeOk: "✅ تم حذف الوثيقة بنجاح",
-      annuler: "إلغاء", confirmer: "تأكيد الحذف",
-      voir: "عرض", reimprimer: "إعادة طباعة", supprimer: "حذف",
-      total: "إجمالي الوثائق", page: "صفحة", sur: "من"
-    }
-  };
-  function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
-
-  // ===== FONCTIONS UTILITAIRES =====
-  function obtenirDocumentsLocaux() { return JSON.parse(localStorage.getItem('documents_crees') || '[]'); }
-  function sauvegarderDocumentsLocaux(liste) { localStorage.setItem('documents_crees', JSON.stringify(liste)); }
-  function libelleDoc(code) {
-    const L = {
-      fr: { carte_scolaire:"Carte Scolaire", attestation_scolarite:"Attestation Scolaire", certificat_scolarite:"Certificat Scolaire", bulletin_notes:"Bulletin Notes", facture_frais:"Facture/Frais", attestation_travail:"Attestation Travail", certificat_travail:"Certificat Travail" },
-      en: { carte_scolaire:"School Card", attestation_scolarite:"School Attestation", certificat_scolarite:"School Certificate", bulletin_notes:"Report Card", facture_frais:"Invoice/Fees", attestation_travail:"Work Certificate", certificat_travail:"Empl. Certificate" },
-      ar: { carte_scolaire:"بطاقة مدرسية", attestation_scolarite:"شهادة دراسية", certificat_scolarite:"إفادة دراسية", bulletin_notes:"كشف نقاط", facture_frais:"فاتورة رسوم", attestation_travail:"شهادة عمل", certificat_travail:"شهادة ممارسة" }
-    };
-    return L[langueActuelle]?.[code] || L.fr[code] || code.replace('_',' ');
-  }
-  function couleurBadge(code) {
-    const c = { carte_scolaire:'bg-primary', attestation_scolarite:'bg-success', certificat_scolarite:'bg-info', bulletin_notes:'bg-warning text-dark', facture_frais:'bg-danger', attestation_travail:'bg-primary', certificat_travail:'bg-secondary' };
-    return c[code] || 'bg-dark';
-  }
-
-  // ===== 🔒 SÉCURITÉ IMMÉDIATE =====
-  if(!token || !['admin','Admin','super_admin'].includes((role||'').trim())){
-    alert(m('accesReserve'));
+  // Session expirée
+  if (reponse.status === 401 || reponse.status === 403) {
+    alert("⛔ Session expirée — Veuillez vous reconnecter");
     localStorage.clear();
-    location.href='connexion.html';
+    window.location.href = 'connexion.html';
+    throw new Error("Session expirée");
   }
 
-  // ===== ✅ APPLIQUER THÈME & LANGUE AU DÉMARRAGE =====
-  document.documentElement.setAttribute('data-bs-theme', themeActuel);
-  document.body.classList.add('lang-' + langueActuelle);
+  const donnees = await reponse.json();
+  return donnees;
+}
+
+// ===== ✅ TRADUCTIONS =====
+const MSG = {
+  fr: {
+    accesReserve: "⛔ Accès réservé à l'Administrateur",
+    serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
+    charger: "Chargement...", aucun: "Aucun document trouvé",
+    confirmerSuppr: "Confirmez-vous la suppression du document N° {num} ?",
+    supprimeOk: "✅ Document supprimé avec succès",
+    annuler: "Annuler", confirmer: "Confirmer la suppression",
+    voir: "Voir", reimprimer: "Réimprimer", supprimer: "Supprimer",
+    total: "Total des documents", page: "Page", sur: "sur"
+  },
+  en: {
+    accesReserve: "⛔ Access restricted to Administrator",
+    serveurIndispo: "⚠️ Server offline — Local mode active",
+    charger: "Loading...", aucun: "No document found",
+    confirmerSuppr: "Are you sure you want to delete document No. {num} ?",
+    supprimeOk: "✅ Document deleted successfully",
+    annuler: "Cancel", confirmer: "Confirm deletion",
+    voir: "View", reimprimer: "Reprint", supprimer: "Delete",
+    total: "Total documents", page: "Page", sur: "of"
+  },
+  ar: {
+    accesReserve: "⛔ الوصول مقصور على المدير",
+    serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
+    charger: "جار التحميل...", aucun: "لم يتم العثور على وثائق",
+    confirmerSuppr: "هل أنت متأكد من حذف الوثيقة رقم {num} ؟",
+    supprimeOk: "✅ تم حذف الوثيقة بنجاح",
+    annuler: "إلغاء", confirmer: "تأكيد الحذف",
+    voir: "عرض", reimprimer: "إعادة طباعة", supprimer: "حذف",
+    total: "إجمالي الوثائق", page: "صفحة", sur: "من"
+  }
+};
+
+function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
+
+// ===== STOCKAGE LOCAL FALLBACK =====
+function obtenirDocumentsLocaux() { 
+  try { return JSON.parse(localStorage.getItem('documents_crees') || '[]'); } 
+  catch { return []; }
+}
+function sauvegarderDocumentsLocaux(liste) { 
+  localStorage.setItem('documents_crees', JSON.stringify(liste)); 
+}
+
+// ===== RÉFÉRENTIELS =====
+function libelleDoc(code) {
+  const L = {
+    fr: { carte_scolaire:"Carte Scolaire", attestation_scolarite:"Attestation Scolaire", certificat_scolarite:"Certificat Scolaire", bulletin_notes:"Bulletin Notes", facture_frais:"Facture/Frais", attestation_travail:"Attestation Travail", certificat_travail:"Certificat Travail" },
+    en: { carte_scolaire:"School Card", attestation_scolarite:"School Attestation", certificat_scolarite:"School Certificate", bulletin_notes:"Report Card", facture_frais:"Invoice/Fees", attestation_travail:"Work Certificate", certificat_travail:"Empl. Certificate" },
+    ar: { carte_scolaire:"بطاقة مدرسية", attestation_scolarite:"شهادة دراسية", certificat_scolarite:"إفادة دراسية", bulletin_notes:"كشف نقاط", facture_frais:"فاتورة رسوم", attestation_travail:"شهادة عمل", certificat_travail:"شهادة ممارسة" }
+  };
+  return L[langueActuelle]?.[code] || L.fr[code] || (code || '').replace('_',' ');
+}
+
+function couleurBadge(code) {
+  const c = { 
+    carte_scolaire:'bg-primary', attestation_scolarite:'bg-success', certificat_scolarite:'bg-info', 
+    bulletin_notes:'bg-warning text-dark', facture_frais:'bg-danger', attestation_travail:'bg-primary', 
+    certificat_travail:'bg-secondary' 
+  };
+  return c[code] || 'bg-dark';
+}
+
+// ===== 🔒 SÉCURITÉ IMMÉDIATE =====
+if(!token || !['admin','super_admin'].includes(role)){
+  alert(m('accesReserve'));
+  localStorage.clear();
+  location.href='connexion.html';
+}
+
+// ===== ✅ APPLIQUER THÈME & LANGUE AU DÉMARRAGE =====
+document.documentElement.setAttribute('data-bs-theme', themeActuel);
+document.body.classList.add('lang-' + langueActuelle);
 </script>
 
 <!-- 📌 EN-TÊTE -->
@@ -306,7 +327,7 @@
             <th><span class="txt-fr">Bénéficiaire</span><span class="txt-en">Recipient</span><span class="txt-ar">المستفيد</span></th>
             <th><span class="txt-fr">Type</span><span class="txt-en">Type</span><span class="txt-ar">النوع</span></th>
             <th><span class="txt-fr">Date</span><span class="txt-en">Date</span><span class="txt-ar">التاريخ</span></th>
-            <th class="no-print"><span class="txt-fr">Actions</span><span class="txt-en">Actions</span><span class="txt-ar">الإجراءات</span></th>
+            <th class="no-print text-center"><span class="txt-fr">Actions</span><span class="txt-en">Actions</span><span class="txt-ar">الإجراءات</span></th>
           </tr>
         </thead>
         <tbody id="corpsTableau">
@@ -362,198 +383,281 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  let tousDocuments = [], documentsFiltres = [], documentASupprimer = null;
-  let pageActuelle = 1;
-  let taillePageActuelle = 10;
-  const modaleDocument = new bootstrap.Modal(document.getElementById('modaleDocument'));
-  const modaleConfirmation = new bootstrap.Modal(document.getElementById('modaleConfirmation'));
+// ===== ÉTAT GLOBAL =====
+let tousDocuments = [];
+let documentsFiltres = [];
+let documentASupprimer = null;
+let pageActuelle = 1;
+let taillePageActuelle = 10;
 
-  // ===== ✅ MODE JOUR / NUIT COMPLET =====
-  document.getElementById('btnTheme').addEventListener('click', () => {
-    const actuel = document.documentElement.getAttribute('data-bs-theme') || 'light';
-    const nouveau = actuel === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-bs-theme', nouveau);
-    localStorage.setItem('theme', nouveau);
-    majIcone(nouveau);
-  });
-  function majIcone(t) {
-    document.getElementById('iconeTheme').className = t === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
-  }
-  // ✅ Icône appliquée immédiatement au chargement
-  majIcone(themeActuel);
+// ✅ Modales initialisées au démarrage
+const modaleDocument = new bootstrap.Modal(document.getElementById('modaleDocument'));
+const modaleConfirmation = new bootstrap.Modal(document.getElementById('modaleConfirmation'));
 
-  // ===== ✅ GESTION LANGUE =====
-  document.querySelectorAll('.lang-btn').forEach(b => {
-    b.addEventListener('click', () => {
-      const lang = b.dataset.lang;
-      document.querySelectorAll('.lang-btn').forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
-      document.body.className = `lang-${lang}`;
-      localStorage.setItem('langue', lang);
-      afficherTableau();
-    });
-  });
-  // ✅ Langue active mise en évidence au démarrage
-  document.querySelector(`[data-lang="${langueActuelle}"]`)?.classList.add('active');
-  document.getElementById('txtChargement').textContent = m('charger');
+// ===== ✅ MODE JOUR / NUIT =====
+document.getElementById('btnTheme').addEventListener('click', () => {
+  const actuel = document.documentElement.getAttribute('data-bs-theme') || 'light';
+  const nouveau = actuel === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-bs-theme', nouveau);
+  localStorage.setItem('theme', nouveau);
+  majIcone(nouveau);
+});
 
-  // ===== MODÈLE DOCUMENT =====
-  function genererModeleDoc(doc) {
-    const benef = doc.eleve || doc.personnel || { nom:'—', prenoms:'—', classe:'—', role:'—' };
-    const etab = "Établissement Scolaire MAMA-ZOUMANA — Centre Islamique";
-    const date = doc.date_delivrance ? new Date(doc.date_delivrance).toLocaleDateString('fr-FR', {dateStyle:'long'}) : '';
-    const modeles = {
-      carte_scolaire: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(doc.type_document||doc.type_doc)}</div></div><div class="doc-corps row"><div class="col-4 text-center"><div style="border:1px solid #ccc; border-radius:6px; padding:2rem .5rem; font-size:3rem; color:#999;">📷</div></div><div class="col-8"><p><strong>NOM :</strong> ${benef.nom}</p><p><strong>PRÉNOMS :</strong> ${benef.prenoms}</p><p><strong>MATRICULE :</strong> ${benef.matricule||'—'}</p><p><strong>CLASSE :</strong> ${benef.classe||benef.nom_classe||'—'}</p><p><strong>ANNÉE :</strong> ${doc.annee_scolaire||'—'}</p></div></div><p class="doc-num">N° ${doc.numero_unique}</p></div>`,
-      attestation_scolarite: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(doc.type_document||doc.type_doc)}</div></div><div class="doc-corps"><p>Nous soussignés, certifions que :</p><p class="text-center text-uppercase fw-bold my-3">${benef.nom} ${benef.prenoms}</p><p>est inscrit(e) en classe de <strong>${benef.classe||'—'}</strong> — <strong>${doc.annee_scolaire||'—'}</strong>.</p><p class="mt-4">En foi de quoi, délivrons la présente attestation.</p><p class="mt-5">Abidjan, le ${date}</p><div class="d-flex justify-content-between mt-5 pt-3"><span>Le Directeur</span><span class="doc-num">N° ${doc.numero_unique}</span></div></div></div>`,
-      certificat_scolarite: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(doc.type_document||doc.type_doc)}</div></div><div class="doc-corps"><p>Le Directeur certifie que :</p><p class="text-center text-uppercase fw-bold my-3">${benef.nom} ${benef.prenoms}</p><p>est régulièrement inscrit(e) pour l'année <strong>${doc.annee_scolaire||'—'}</strong>.</p><p class="mt-5">Abidjan, le ${date}</p><div class="d-flex justify-content-between mt-5 pt-3"><span>Le Directeur</span><span class="doc-num">N° ${doc.numero_unique}</span></div></div></div>`,
-      bulletin_notes: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(doc.type_document||doc.type_doc)} — ${doc.annee_scolaire||'—'}</div></div><div class="doc-corps"><p><strong>Élève :</strong> ${benef.nom} ${benef.prenoms} — <strong>Classe :</strong> ${benef.classe||'—'}</p><table class="table table-bordered mt-3"><thead class="table-light"><tr><th>Matière</th><th>Note</th><th>Coef.</th><th>Total</th></tr></thead><tbody><tr><td colspan="4" class="text-center text-muted">Notes à compléter</td></tr></tbody></table><p class="doc-num">N° ${doc.numero_unique}</p></div></div>`,
-      facture_frais: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(doc.type_document||doc.type_doc)}</div></div><div class="doc-corps"><p><strong>Élève :</strong> ${benef.nom} ${benef.prenoms}</p><p><strong>Classe :</strong> ${benef.classe||'—'} | <strong>Année :</strong> ${doc.annee_scolaire||'—'}</p><table class="table table-bordered mt-3"><thead class="table-light"><tr><th>Désignation</th><th class="text-end">Montant</th></tr></thead><tbody><tr><td>Frais de scolarité</td><td class="text-end">— F CFA</td></tr><tr class="table-dark fw-bold"><td>TOTAL</td><td class="text-end">— F CFA</td></tr></tbody></table><p class="doc-num">N° ${doc.numero_unique}</p></div></div>`,
-      attestation_travail: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(doc.type_document||doc.type_doc)}</div></div><div class="doc-corps"><p>Nous soussignés, certifions que :</p><p class="text-center text-uppercase fw-bold my-3">${benef.nom} ${benef.prenoms}</p><p>exerce la fonction de <strong>${(benef.role||'').toUpperCase()}</strong>.</p><p class="mt-5">Abidjan, le ${date}</p><div class="d-flex justify-content-between mt-5 pt-3"><span>Le Directeur</span><span class="doc-num">N° ${doc.numero_unique}</span></div></div></div>`,
-      certificat_travail: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(doc.type_document||doc.type_doc)}</div></div><div class="doc-corps"><p>Le Directeur certifie que :</p><p class="text-center text-uppercase fw-bold my-3">${benef.nom} ${benef.prenoms}</p><p>exerce les fonctions de <strong>${(benef.role||'').toUpperCase()}</strong>.</p><p class="mt-5">Abidjan, le ${date}</p><div class="d-flex justify-content-between mt-5 pt-3"><span>Le Directeur</span><span class="doc-num">N° ${doc.numero_unique}</span></div></div></div>`
-    };
-    return modeles[doc.type_document || doc.type_doc] || `<div class="document"><p>${doc.numero_unique}</p></div>`;
-  }
+function majIcone(t) {
+  document.getElementById('iconeTheme').className = t === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+}
+majIcone(themeActuel); // Icône appliquée immédiatement
 
-  // ===== ✅ CHARGER DOCUMENTS (avec token corrigé) =====
-  async function chargerDocuments() {
-    try {
-      // ✅ requeteAPI centralisée OU fetch avec bon token
-      const r = await fetch(`${API_URL}/documents/tous`, { 
-        headers: { Authorization: `Bearer ${getToken()}` } 
-      });
-      if (!r.ok) throw new Error(`Erreur ${r.status}`);
-      const d = await r.json();
-      tousDocuments = d.ok && d.lignes ? d.lignes : (d.documents || []);
-      document.getElementById('alerteApi').classList.add('d-none');
-    } catch (erreur) {
-      console.warn("🔌 Passage en mode local :", erreur.message);
-      tousDocuments = obtenirDocumentsLocaux();
-      document.getElementById('texteAlerteApi').textContent = m('serveurIndispo');
-      document.getElementById('alerteApi').classList.remove('d-none');
-    }
-    pageActuelle = 1;
+// ===== ✅ GESTION LANGUE =====
+document.querySelectorAll('.lang-btn').forEach(bouton => {
+  bouton.addEventListener('click', () => {
+    const lang = bouton.dataset.lang;
+    document.querySelectorAll('.lang-btn').forEach(x => x.classList.remove('active'));
+    bouton.classList.add('active');
+    document.body.className = `lang-${lang}`;
+    localStorage.setItem('langue', lang);
+    // Mise à jour globale
+    langueActuelle = lang;
     afficherTableau();
-  }
-
-  // ===== FILTRES =====
-  function filtrerDocuments() {
-    const recherche = (document.getElementById('recherche').value || '').toLowerCase().trim();
-    const typeFiltre = document.getElementById('filtreType').value;
-    const anneeFiltre = document.getElementById('filtreAnnee').value;
-    return tousDocuments.filter(doc => {
-      const benef = doc.beneficiaire || '';
-      const nomComplet = (typeof benef === 'object' ? `${benef.nom||''} ${benef.prenoms||''}` : benef).toLowerCase();
-      const type = doc.type_document || doc.type_doc || '';
-      const annee = doc.annee_scolaire || '';
-      return (!recherche || nomComplet.includes(recherche) || (doc.numero_unique||'').toLowerCase().includes(recherche))
-          && (!typeFiltre || type === typeFiltre)
-          && (!anneeFiltre || annee === anneeFiltre);
-    });
-  }
-
-  // ===== PAGINATION =====
-  function genererPagination(total, page, taille) {
-    const nbPages = Math.ceil(total / taille);
-    if(nbPages <= 1) { document.querySelector('#pagination ul').innerHTML = ''; return; }
-    let html = '';
-    html += `<li class="page-item ${page===1?'disabled':''}"><a class="page-link" href="#" data-page="${page-1}">&laquo;</a></li>`;
-    for(let i=1; i<=nbPages; i++){
-      if(i===1 || i===nbPages || (i>=page-2 && i<=page+2)) html += `<li class="page-item ${i===page?'active':''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
-      else if(i===page-3 || i===page+3) html += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
-    }
-    html += `<li class="page-item ${page===nbPages?'disabled':''}"><a class="page-link" href="#" data-page="${page+1}">&raquo;</a></li>`;
-    document.querySelector('#pagination ul').innerHTML = html;
-    document.querySelectorAll('#pagination a.page-link').forEach(lien => {
-      lien.addEventListener('click', e => {
-        e.preventDefault();
-        const p = parseInt(lien.dataset.page);
-        if(p>=1 && p<=nbPages){ pageActuelle=p; afficherTableau(); window.scrollTo({top:0,behavior:'smooth'}); }
-      });
-    });
-  }
-
-  // ===== AFFICHAGE TABLEAU =====
-  function afficherTableau() {
-    taillePageActuelle = parseInt(document.getElementById('taillePage').value);
-    documentsFiltres = filtrerDocuments();
-    document.getElementById('compteur').textContent = `${m('total')} : ${documentsFiltres.length}`;
-    const debut = (pageActuelle-1)*taillePageActuelle;
-    const fin = debut+taillePageActuelle;
-    const pageDonnees = documentsFiltres.slice(debut, fin);
-    const nbPages = Math.ceil(documentsFiltres.length/taillePageActuelle);
-    document.getElementById('infoPage').textContent = nbPages>0 ? `${m('page')} ${pageActuelle} ${m('sur')} ${nbPages}` : '';
-    if(pageDonnees.length===0){
-      document.getElementById('corpsTableau').innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">${m('aucun')}</td></tr>`;
-      genererPagination(0,1,taillePageActuelle); return;
-    }
-    document.getElementById('corpsTableau').innerHTML = pageDonnees.map(doc => {
-      const benef = doc.beneficiaire || { nom:'—', prenoms:'—' };
-      const nomAff = typeof benef === 'object' ? `${benef.nom||''} ${benef.prenoms||''}` : benef;
-      const type = doc.type_document || doc.type_doc || '';
-      const date = doc.date_delivrance ? new Date(doc.date_delivrance).toLocaleDateString('fr-FR') : '—';
-      return `<tr>
-        <td><code class="text-primary">${doc.numero_unique||'—'}</code></td>
-        <td><strong>${nomAff||'—'}</strong></td>
-        <td><span class="badge-type ${couleurBadge(type)}">${libelleDoc(type)}</span></td>
-        <td class="text-nowrap">${date}</td>
-        <td class="text-center text-nowrap no-print">
-          <button class="btn btn-sm btn-outline-info" onclick='voirDocument(${JSON.stringify(doc).replace(/'/g,"&#39;").replace(/"/g,'&quot;')})' title="${m('voir')}"><i class="bi bi-eye"></i></button>
-          <button class="btn btn-sm btn-outline-warning" onclick='imprimerDocument(${JSON.stringify(doc).replace(/'/g,"&#39;").replace(/"/g,'&quot;')})' title="${m('reimprimer')}"><i class="bi bi-printer"></i></button>
-          <button class="btn btn-sm btn-outline-danger" onclick='demanderSuppression(${JSON.stringify(doc).replace(/'/g,"&#39;").replace(/"/g,'&quot;')})' title="${m('supprimer')}"><i class="bi bi-trash3"></i></button>
-        </td>
-      </tr>`;
-    }).join('');
-    genererPagination(documentsFiltres.length, pageActuelle, taillePageActuelle);
-  }
-
-  // ===== ACTIONS =====
-  window.voirDocument = doc => { document.getElementById('contenuDocument').innerHTML = genererModeleDoc(doc); modaleDocument.show(); };
-  window.imprimerDocument = doc => { document.getElementById('contenuDocument').innerHTML = genererModeleDoc(doc); setTimeout(()=>window.print(),300); };
-  window.demanderSuppression = doc => {
-    documentASupprimer = doc;
-    document.getElementById('texteConfirmation').textContent = m('confirmerSuppr').replace('{num}', doc.numero_unique||'???');
-    document.getElementById('confirmerSuppr').checked = false;
-    document.getElementById('btnSupprConfirme').disabled = true;
-    modaleConfirmation.show();
-  };
-  document.getElementById('confirmerSuppr').addEventListener('change', e => {
-    document.getElementById('btnSupprConfirme').disabled = !e.target.checked;
   });
-  document.getElementById('btnSupprConfirme').addEventListener('click', async () => {
-    if(!documentASupprimer) return;
-    try {
-      // ✅ Suppression API avec bon token
-      const r = await fetch(`${API_URL}/documents/supprimer`, {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${getToken()}` },
-        body:JSON.stringify({ numero_unique: documentASupprimer.numero_unique })
-      });
-      const d = await r.json();
-      if(!d.ok) throw new Error(d.erreur||'Erreur');
-    } catch {
-      tousDocuments = tousDocuments.filter(x => (x.numero_unique||'') !== (documentASupprimer.numero_unique||''));
-      sauvegarderDocumentsLocaux(tousDocuments);
+});
+// Mise en évidence langue active
+document.querySelector(`[data-lang="${langueActuelle}"]`)?.classList.add('active');
+document.getElementById('txtChargement').textContent = m('charger');
+
+// ===== 📄 MODÈLE DOCUMENT =====
+function genererModeleDoc(doc) {
+  const benef = doc.beneficiaire || doc.eleve || doc.personnel || { nom:'—', prenoms:'—', classe:'—', role:'—' };
+  const etab = "Établissement Scolaire MAMA-ZOUMANA — Centre Islamique";
+  const date = doc.date_delivrance ? new Date(doc.date_delivrance).toLocaleDateString('fr-FR', {dateStyle:'long'}) : '';
+  const type = doc.type_document || doc.type_doc || '';
+
+  const modeles = {
+    carte_scolaire: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(type)}</div></div><div class="doc-corps row"><div class="col-4 text-center"><div style="border:1px solid #ccc; border-radius:6px; padding:2rem .5rem; font-size:3rem; color:#999;">📷</div></div><div class="col-8"><p><strong>NOM :</strong> ${benef.nom}</p><p><strong>PRÉNOMS :</strong> ${benef.prenoms}</p><p><strong>MATRICULE :</strong> ${benef.matricule||'—'}</p><p><strong>CLASSE :</strong> ${benef.classe||benef.nom_classe||'—'}</p><p><strong>ANNÉE :</strong> ${doc.annee_scolaire||'—'}</p></div></div><p class="doc-num">N° ${doc.numero_unique || '—'}</p></div>`,
+    attestation_scolarite: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(type)}</div></div><div class="doc-corps"><p>Nous soussignés, certifions que :</p><p class="text-center text-uppercase fw-bold my-3">${benef.nom} ${benef.prenoms}</p><p>est inscrit(e) en classe de <strong>${benef.classe||'—'}</strong> — <strong>${doc.annee_scolaire||'—'}</strong>.</p><p class="mt-4">En foi de quoi, délivrons la présente attestation.</p><p class="mt-5">Abidjan, le ${date}</p><div class="d-flex justify-content-between mt-5 pt-3"><span>Le Directeur</span><span class="doc-num">N° ${doc.numero_unique || '—'}</span></div></div></div>`,
+    certificat_scolarite: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(type)}</div></div><div class="doc-corps"><p>Le Directeur certifie que :</p><p class="text-center text-uppercase fw-bold my-3">${benef.nom} ${benef.prenoms}</p><p>est régulièrement inscrit(e) pour l'année <strong>${doc.annee_scolaire||'—'}</strong>.</p><p class="mt-5">Abidjan, le ${date}</p><div class="d-flex justify-content-between mt-5 pt-3"><span>Le Directeur</span><span class="doc-num">N° ${doc.numero_unique || '—'}</span></div></div></div>`,
+    bulletin_notes: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(type)} — ${doc.annee_scolaire||'—'}</div></div><div class="doc-corps"><p><strong>Élève :</strong> ${benef.nom} ${benef.prenoms} — <strong>Classe :</strong> ${benef.classe||'—'}</p><table class="table table-bordered mt-3"><thead class="table-light"><tr><th>Matière</th><th>Note</th><th>Coef.</th><th>Total</th></tr></thead><tbody><tr><td colspan="4" class="text-center text-muted">Notes à compléter</td></tr></tbody></table><p class="doc-num">N° ${doc.numero_unique || '—'}</p></div></div>`,
+    facture_frais: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(type)}</div></div><div class="doc-corps"><p><strong>Élève :</strong> ${benef.nom} ${benef.prenoms}</p><p><strong>Classe :</strong> ${benef.classe||'—'} | <strong>Année :</strong> ${doc.annee_scolaire||'—'}</p><table class="table table-bordered mt-3"><thead class="table-light"><tr><th>Désignation</th><th class="text-end">Montant</th></tr></thead><tbody><tr><td>Frais de scolarité</td><td class="text-end">— F CFA</td></tr><tr class="table-dark fw-bold"><td>TOTAL</td><td class="text-end">— F CFA</td></tr></tbody></table><p class="doc-num">N° ${doc.numero_unique || '—'}</p></div></div>`,
+    attestation_travail: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(type)}</div></div><div class="doc-corps"><p>Nous soussignés, certifions que :</p><p class="text-center text-uppercase fw-bold my-3">${benef.nom} ${benef.prenoms}</p><p>exerce la fonction de <strong>${(benef.role||'').toUpperCase()}</strong>.</p><p class="mt-5">Abidjan, le ${date}</p><div class="d-flex justify-content-between mt-5 pt-3"><span>Le Directeur</span><span class="doc-num">N° ${doc.numero_unique || '—'}</span></div></div></div>`,
+    certificat_travail: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(type)}</div></div><div class="doc-corps"><p>Le Directeur certifie que :</p><p class="text-center text-uppercase fw-bold my-3">${benef.nom} ${benef.prenoms}</p><p>exerce les fonctions de <strong>${(benef.role||'').toUpperCase()}</strong>.</p><p class="mt-5">Abidjan, le ${date}</p><div class="d-flex justify-content-between mt-5 pt-3"><span>Le Directeur</span><span class="doc-num">N° ${doc.numero_unique || '—'}</span></div></div></div>`
+  };
+  return modeles[type] || `<div class="document"><p class="text-center">${doc.numero_unique || '—'}</p></div>`;
+}
+
+// ===== ✅ CHARGER DOCUMENTS =====
+async function chargerDocuments() {
+  try {
+    const r = await fetch(`${API_URL}/documents/tous`, { 
+      headers: { Authorization: `Bearer ${getToken()}` } 
+    });
+    
+    if (r.status === 401 || r.status === 403) throw new Error("Non autorisé");
+    if (!r.ok) throw new Error(`Erreur ${r.status}`);
+
+    const d = await r.json();
+    tousDocuments = d.lignes || d.documents || [];
+    document.getElementById('alerteApi').classList.add('d-none');
+
+  } catch (erreur) {
+    console.warn("🔌 Passage en mode local :", erreur.message);
+    tousDocuments = obtenirDocumentsLocaux();
+    document.getElementById('texteAlerteApi').textContent = m('serveurIndispo');
+    document.getElementById('alerteApi').classList.remove('d-none');
+  }
+
+  pageActuelle = 1;
+  afficherTableau();
+}
+
+// ===== 🔍 FILTRES =====
+function filtrerDocuments() {
+  const recherche = (document.getElementById('recherche').value || '').toLowerCase().trim();
+  const typeFiltre = document.getElementById('filtreType').value;
+  const anneeFiltre = document.getElementById('filtreAnnee').value;
+
+  return tousDocuments.filter(doc => {
+    const benef = doc.beneficiaire || {};
+    const nomComplet = `${(benef.nom||'')} ${(benef.prenoms||'')}`.toLowerCase();
+    const type = doc.type_document || doc.type_doc || '';
+    const annee = doc.annee_scolaire || '';
+    const num = (doc.numero_unique || '').toLowerCase();
+
+    return (!recherche || nomComplet.includes(recherche) || num.includes(recherche))
+        && (!typeFiltre || type === typeFiltre)
+        && (!anneeFiltre || annee === anneeFiltre);
+  });
+}
+
+// ===== 📄 PAGINATION =====
+function genererPagination(total, page, taille) {
+  const nbPages = Math.ceil(total / taille);
+  const conteneur = document.querySelector('#pagination ul');
+
+  if (nbPages <= 1) { 
+    conteneur.innerHTML = ''; 
+    return; 
+  }
+
+  let html = '';
+  html += `<li class="page-item ${page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page - 1}">&laquo;</a></li>`;
+
+  for (let i = 1; i <= nbPages; i++) {
+    if (i === 1 || i === nbPages || (i >= page - 2 && i <= page + 2)) {
+      html += `<li class="page-item ${i === page ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+    } else if (i === page - 3 || i === page + 3) {
+      html += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
     }
+  }
+
+  html += `<li class="page-item ${page === nbPages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page + 1}">&raquo;</a></li>`;
+  conteneur.innerHTML = html;
+
+  // Liaison clics
+  conteneur.querySelectorAll('a.page-link').forEach(lien => {
+    lien.addEventListener('click', e => {
+      e.preventDefault();
+      const nouvellePage = parseInt(lien.dataset.page);
+      if (nouvellePage >= 1 && nouvellePage <= nbPages) {
+        pageActuelle = nouvellePage;
+        afficherTableau();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  });
+}
+
+// ===== 📊 AFFICHAGE TABLEAU =====
+function afficherTableau() {
+  taillePageActuelle = parseInt(document.getElementById('taillePage').value);
+  documentsFiltres = filtrerDocuments();
+
+  // Compteur
+  document.getElementById('compteur').textContent = `${m('total')} : ${documentsFiltres.length}`;
+
+  // Tranche paginée
+  const debut = (pageActuelle - 1) * taillePageActuelle;
+  const fin = debut + taillePageActuelle;
+  const pageDonnees = documentsFiltres.slice(debut, fin);
+  const nbPages = Math.ceil(documentsFiltres.length / taillePageActuelle);
+
+  // Info page
+  document.getElementById('infoPage').textContent = nbPages > 0 
+    ? `${m('page')} ${pageActuelle} ${m('sur')} ${nbPages}` 
+    : '';
+
+  // Corps du tableau
+  if (pageDonnees.length === 0) {
+    document.getElementById('corpsTableau').innerHTML = 
+      `<tr><td colspan="5" class="text-center text-muted py-4">${m('aucun')}</td></tr>`;
+    genererPagination(0, 1, taillePageActuelle);
+    return;
+  }
+
+  document.getElementById('corpsTableau').innerHTML = pageDonnees.map(doc => {
+    const benef = doc.beneficiaire || { nom:'—', prenoms:'—' };
+    const nomAff = `${benef.nom||''} ${benef.prenoms||''}`.trim() || '—';
+    const type = doc.type_document || doc.type_doc || '';
+    const date = doc.date_delivrance 
+      ? new Date(doc.date_delivrance).toLocaleDateString('fr-FR') 
+      : '—';
+
+    return `<tr>
+      <td><code class="text-primary">${doc.numero_unique || '—'}</code></td>
+      <td><strong>${nomAff}</strong></td>
+      <td><span class="badge-type ${couleurBadge(type)}">${libelleDoc(type)}</span></td>
+      <td class="text-nowrap">${date}</td>
+      <td class="text-center text-nowrap no-print">
+        <button class="btn btn-sm btn-outline-info" aria-label="${m('voir')}" onclick='voirDocument(${JSON.stringify(doc).replace(/'/g,"&#39;").replace(/"/g,'&quot;')})'><i class="bi bi-eye"></i></button>
+        <button class="btn btn-sm btn-outline-warning" aria-label="${m('reimprimer')}" onclick='imprimerDocument(${JSON.stringify(doc).replace(/'/g,"&#39;").replace(/"/g,'&quot;')})'><i class="bi bi-printer"></i></button>
+        <button class="btn btn-sm btn-outline-danger" aria-label="${m('supprimer')}" onclick='demanderSuppression(${JSON.stringify(doc).replace(/'/g,"&#39;").replace(/"/g,'&quot;')})'><i class="bi bi-trash3"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  genererPagination(documentsFiltres.length, pageActuelle, taillePageActuelle);
+}
+
+// ===== 🎬 ACTIONS =====
+window.voirDocument = function(doc) {
+  document.getElementById('contenuDocument').innerHTML = genererModeleDoc(doc);
+  modaleDocument.show();
+};
+
+window.imprimerDocument = function(doc) {
+  document.getElementById('contenuDocument').innerHTML = genererModeleDoc(doc);
+  setTimeout(() => window.print(), 300);
+};
+
+window.demanderSuppression = function(doc) {
+  documentASupprimer = doc;
+  document.getElementById('texteConfirmation').textContent = 
+    m('confirmerSuppr').replace('{num}', doc.numero_unique || '???');
+  document.getElementById('confirmerSuppr').checked = false;
+  document.getElementById('btnSupprConfirme').disabled = true;
+  modaleConfirmation.show();
+};
+
+// Validation case à cocher
+document.getElementById('confirmerSuppr').addEventListener('change', e => {
+  document.getElementById('btnSupprConfirme').disabled = !e.target.checked;
+});
+
+// Confirmation suppression
+document.getElementById('btnSupprConfirme').addEventListener('click', async () => {
+  if (!documentASupprimer) return;
+
+  const numCible = documentASupprimer.numero_unique;
+  let supprReussi = false;
+
+  try {
+    const r = await fetch(`${API_URL}/documents/supprimer`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json', 
+        'Authorization': `Bearer ${getToken()}` 
+      },
+      body: JSON.stringify({ numero_unique: numCible })
+    });
+
+    const d = await r.json();
+    if (d.ok) supprReussi = true;
+    else throw new Error(d.erreur || "Erreur serveur");
+
+  } catch {
+    // Fallback mode local
+    tousDocuments = tousDocuments.filter(x => (x.numero_unique || '') !== numCible);
+    sauvegarderDocumentsLocaux(tousDocuments);
+    supprReussi = true;
+  }
+
+  if (supprReussi) {
     alert(m('supprimeOk'));
     modaleConfirmation.hide();
     documentASupprimer = null;
-    const nbApres = Math.ceil((documentsFiltres.length-1)/taillePageActuelle)||1;
-    if(pageActuelle>nbApres) pageActuelle=nbApres;
+
+    // Ajuster page si besoin
+    const nbApres = Math.ceil(Math.max(1, documentsFiltres.length - 1) / taillePageActuelle) || 1;
+    if (pageActuelle > nbApres) pageActuelle = nbApres;
     afficherTableau();
-  });
+  }
+});
 
-  // ===== FILTRES ÉVÈNEMENTS =====
-  document.getElementById('btnReset').addEventListener('click', () => {
-    document.getElementById('recherche').value=''; document.getElementById('filtreType').value=''; document.getElementById('filtreAnnee').value='';
-    pageActuelle=1; afficherTableau();
-  });
-  document.getElementById('recherche').addEventListener('input', ()=>{ pageActuelle=1; afficherTableau(); });
-  document.getElementById('filtreType').addEventListener('change', ()=>{ pageActuelle=1; afficherTableau(); });
-  document.getElementById('filtreAnnee').addEventListener('change', ()=>{ pageActuelle=1; afficherTableau(); });
-  document.getElementById('taillePage').addEventListener('change', ()=>{ pageActuelle=1; afficherTableau(); });
+// ===== 🎛️ ÉVÈNEMENTS FILTRES =====
+document.getElementById('btnReset').addEventListener('click', () => {
+  document.getElementById('recherche').value = '';
+  document.getElementById('filtreType').value = '';
+  document.getElementById('filtreAnnee').value = '';
+  pageActuelle = 1;
+  afficherTableau();
+});
 
-  // 🚀 DÉMARRAGE
-  chargerDocuments();
+document.getElementById('recherche').addEventListener('input', () => { pageActuelle = 1; afficherTableau(); });
+document.getElementById('filtreType').addEventListener('change', () => { pageActuelle = 1; afficherTableau(); });
+document.getElementById('filtreAnnee').addEventListener('change', () => { pageActuelle = 1; afficherTableau(); });
+document.getElementById('taillePage').addEventListener('change', () => { pageActuelle = 1; afficherTableau(); });
+
+// 🚀 DÉMARRAGE
+chargerDocuments();
 </script>
 </body>
 </html>
