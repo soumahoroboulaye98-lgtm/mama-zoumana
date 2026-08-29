@@ -350,5 +350,43 @@ router.post('/budget/enregistrer', protegerEcriture, async (req, res) => {
   }
 });
 
+// ==================================================
+// 🔍 RECHERCHER / FILTRER OPÉRATIONS — Correspond au frontend
+// ✅ Accessible : Comptable OU Administrateur
+// ==================================================
+router.post('/operations', protegerLecture, async (req, res) => {
+  try {
+    const { type, categorie, mois, annee, recherche, mode_paiement, utilisateur } = req.body;
+    let conditions = [], params = [], idx = 1;
+
+    if (type)          { conditions.push(`o.type = $${idx++}`); params.push(type); }
+    if (categorie)     { conditions.push(`o.categorie = $${idx++}`); params.push(categorie); }
+    if (mois)          { conditions.push(`EXTRACT(MONTH FROM o.date_operation) = $${idx++}`); params.push(mois); }
+    if (annee)         { conditions.push(`EXTRACT(YEAR FROM o.date_operation) = $${idx++}`); params.push(annee); }
+    if (recherche)     { conditions.push(`(o.libelle ILIKE $${idx} OR o.commentaire ILIKE $${idx})`); params.push(`%${recherche}%`); idx++; }
+    if (mode_paiement) { conditions.push(`o.mode_paiement = $${idx++}`); params.push(mode_paiement); }
+    if (utilisateur)   { conditions.push(`o.id_utilisateur = $${idx++}`); params.push(utilisateur); }
+
+    const whereBase = conditions.length ? conditions.join(' AND ') : '1=1';
+    const whereComplet = `WHERE o.statut = 'valide' AND ${whereBase}`;
+
+    const { rows } = await pool.query(`
+      SELECT o.*, u.nom, u.prenom, u.email
+      FROM operations_financieres o
+      LEFT JOIN utilisateurs u ON o.id_utilisateur = u.id
+      ${whereComplet}
+      ORDER BY o.date_operation DESC, o.date_creation DESC
+      LIMIT 100
+    `, params);
+
+    res.json({ ok: true, liste: rows });
+    console.log(`✅ Recherche opérations — ${rows.length} résultat(s)`);
+
+  } catch (e) {
+    console.error("❌ ERREUR /finances/operations :", e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
+});
+
 
 module.exports = router;

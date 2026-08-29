@@ -760,24 +760,34 @@ async function charger(){
   const r = document.getElementById('recherche').value;
    const p = document.getElementById('filtrePaiement').value;
    const u = document.getElementById('filtreUtilisateur').value;
+try {
+  const donnees = await requeteAPI('/finances/operations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },  // ✅ Ajout important
+    body: JSON.stringify({ 
+      type: t, 
+      categorie: c, 
+      mois: m, 
+      annee: a, 
+      recherche: r, 
+      mode_paiement: p, 
+      utilisateur: u 
+    })
+  });
 
-   try {
-     const donnees = await requeteAPI('/finances/operations', {
-       method: 'POST',
-       body: JSON.stringify({ type: t, categorie: c, mois: m, annee: a, recherche: r, mode_paiement: p, utilisateur: u })
-     });
+  if (!donnees.ok) throw donnees.erreur || "Erreur sans détail";
+  traiterDonnees(donnees.liste || []);
 
-     if (!donnees.ok) throw donnees.erreur;
-     traiterDonnees(donnees.liste || []);
-
-   } catch (erreur) {
-     console.error('Erreur chargement :', erreur);
-     alert(m.erreurReseau);
-     cont.innerHTML = `<div class="col-12 text-center py-5 text-danger">
-       <i class="bi bi-wifi-off fs-1"></i>
-       <p>${m.erreurReseau}</p>
-     </div>`;
-   }
+} catch (erreur) {
+  console.error('Erreur chargement :', erreur);
+  const message = typeof erreur === 'string' ? erreur : m.erreurReseau;
+  alert(message);
+  cont.innerHTML = `<div class="col-12 text-center py-5 text-danger">
+    <i class="bi bi-wifi-off fs-1"></i>
+    <p>${message}</p>
+  </div>`;
+}
+  
 }
 
 // ✅ TRAITER ET AFFICHER LES DONNÉES
