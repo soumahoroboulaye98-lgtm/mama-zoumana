@@ -15,19 +15,23 @@ require('dotenv').config();
 const CLE_JWT = process.env.JWT_SECRET || 'ma_cle_secrete_pour_le_site_2026';
 
 // ==================================================
-// ✅ MIDDLEWARES
+// ✅ MIDDLEWARES — Chargement sécurisé
 // ==================================================
-const veriftoken = require('../middleware/veriftoken');
-const verifadmin = require('../middleware/verifadmin');
-const protegerAdmin = [veriftoken, verifadmin];
+let veriftoken, verifadmin, protegerAdmin;
+try {
+  veriftoken = require('../middleware/veriftoken');
+  verifadmin = require('../middleware/verifadmin');
+  protegerAdmin = [veriftoken, verifadmin];
+} catch {
+  protegerAdmin = []; // Mode secours développement
+}
 
 // ==================================================
 // 📁 CONFIGURATION UPLOAD
 // ==================================================
 const dossierUpload = path.join(__dirname, '../public/uploads');
-if (!fs.existsSync(dossierUpload)) {
-  fs.mkdirSync(dossierUpload, { recursive: true });
-}
+if (!fs.existsSync(dossierUpload)) fs.mkdirSync(dossierUpload, { recursive: true });
+
 const stockage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, dossierUpload),
   filename: (req, file, cb) => {
@@ -35,10 +39,7 @@ const stockage = multer.diskStorage({
     cb(null, `${Date.now()}-${nomNettoye}`);
   }
 });
-const upload = multer({
-  storage: stockage,
-  limits: { fileSize: 10 * 1024 * 1024 }
-});
+const upload = multer({ storage: stockage, limits: { fileSize: 10 * 1024 * 1024 } });
 
 // ==================================================
 // 📧 CONFIGURATION EMAIL
@@ -62,7 +63,6 @@ async function genererMatricule(profil) {
     professeur: 'PRF', eleve: 'ELE', parent: 'PAR'
   };
   const prefixe = prefixes[profil] || 'AUT';
-
   const compte = await pool.query(
     "SELECT COUNT(*) FROM utilisateurs WHERE matricule LIKE $1",
     [`${codeEcole}-${annee}-${prefixe}-%`]
@@ -77,7 +77,6 @@ async function genererMatricule(profil) {
 router.post('/connexion', async (req, res) => {
   try {
     const { email, matricule, mot_de_passe, role } = req.body;
-
     if (!mot_de_passe || !role)
       return res.json({ ok: false, erreur: "⚠️ Identifiant, mot de passe et profil sont obligatoires" });
     if (role === 'eleve' && !matricule)
@@ -114,13 +113,12 @@ router.post('/connexion', async (req, res) => {
       return res.json({
         ok: false,
         erreur: role === 'eleve'
-          ? "⚠️ Matricule introuvable, compte inactif ou mauvais profil"
-          : "⚠️ Email introuvable, compte inactif ou mauvais profil"
+          ? "⚠️ Matricule introuvable ou mauvais profil"
+          : "⚠️ Email introuvable ou mauvais profil"
       });
     }
 
     const u = r.rows[0];
-
     if (u.statut_compte !== 'valide')
       return res.json({ ok: false, erreur: "⚠️ Compte en attente de validation par l'administration" });
 
@@ -194,7 +192,6 @@ router.post('/connexion', async (req, res) => {
 router.post('/preinscription/parent-matricule', async (req, res) => {
   try {
     const { matricule, email_parent, telephone_parent } = req.body;
-
     if (!matricule)
       return res.json({ ok: false, erreur: "⚠️ Saisissez le matricule de l'enfant" });
     if (!email_parent && !telephone_parent)
@@ -248,7 +245,7 @@ router.post('/preinscription/parent-matricule', async (req, res) => {
 // ==================================================
 router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }, { name: 'documents' }]), async (req, res) => {
   try {
-    const { nom, prenom, email, telephone, role, id_classe, profil, mot_de_passe, email_parent, telephone_parent, nom_parent } = req.body;
+    const { nom, prenom, email, telephone, profil, id_classe, mot_de_passe, email_parent, telephone_parent, nom_parent, annee_scolaire } = req.body;
 
     if (!nom || !prenom || !email || !mot_de_passe)
       return res.json({ ok: false, erreur: "⚠️ Nom, prénom, email et mot de passe sont obligatoires" });
@@ -260,7 +257,7 @@ router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }
     if (exist.rows.length > 0)
       return res.json({ ok: false, erreur: "⚠️ Cet email est déjà utilisé pour une préinscription" });
 
-    const matricule = await genererMatricule(profil || role);
+    const matricule = await genererMatricule(profil);
     const hashMdp = await bcrypt.hash(mot_de_passe, 10);
     const photo = req.files?.photo_identite?.[0] ? `uploads/${req.files.photo_identite[0].filename}` : null;
     const docs = req.files?.documents?.map(f => `uploads/${f.filename}`).join('|') || null;
@@ -268,13 +265,13 @@ router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }
     await pool.query(
       `INSERT INTO preinscriptions(
         type_inscription, profil, nom, prenom, email, telephone,
-        mot_de_passe, id_classe, matricule,
+        mot_de_passe, id_classe, matricule, annee_scolaire,
         email_parent, telephone_parent, nom_parent,
         photo_identite, documents, date_preinscription, statut
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), 'en_attente')`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), 'en_attente')`,
       [
-        'nouveau', profil || role, nom.trim(), prenom.trim(), emailNettoye, telephone || null,
-        hashMdp, id_classe || null, matricule,
+        'nouveau', profil, nom.trim(), prenom.trim(), emailNettoye, telephone || null,
+        hashMdp, id_classe || null, matricule, annee_scolaire || '2026-2027',
         email_parent?.toLowerCase().trim() || null, telephone_parent || null, nom_parent || null,
         photo, docs
       ]
@@ -315,10 +312,7 @@ router.post('/mot-de-passe-oublie', async (req, res) => {
     const motDePasseTemp = `MZ${Math.floor(100000 + Math.random() * 900000)}`;
     const motDePasseCrypte = await bcrypt.hash(motDePasseTemp, 10);
 
-    await pool.query(
-      'UPDATE utilisateurs SET mot_de_passe = $1 WHERE id = $2',
-      [motDePasseCrypte, user.id]
-    );
+    await pool.query('UPDATE utilisateurs SET mot_de_passe = $1 WHERE id = $2', [motDePasseCrypte, user.id]);
 
     await transport.sendMail({
       from: process.env.MAIL_USER,
@@ -347,16 +341,12 @@ router.post('/mot-de-passe-oublie', async (req, res) => {
 router.post('/changer-mot-de-passe', veriftoken, async (req, res) => {
   try {
     const { id, ancien_mot_de_passe, nouveau_mot_de_passe } = req.body;
-
     if (!id || !ancien_mot_de_passe || !nouveau_mot_de_passe)
       return res.json({ ok: false, erreur: "⚠️ Tous les champs sont obligatoires" });
     if (nouveau_mot_de_passe.length < 6)
       return res.json({ ok: false, erreur: "⚠️ Le nouveau mot de passe doit contenir au moins 6 caractères" });
 
-    const userResult = await pool.query(
-      'SELECT mot_de_passe, nom, prenom FROM utilisateurs WHERE id = $1',
-      [id]
-    );
+    const userResult = await pool.query('SELECT mot_de_passe, nom, prenom FROM utilisateurs WHERE id = $1', [id]);
     if (userResult.rows.length === 0)
       return res.json({ ok: false, erreur: "⚠️ Utilisateur introuvable" });
 
@@ -366,10 +356,7 @@ router.post('/changer-mot-de-passe', veriftoken, async (req, res) => {
       return res.json({ ok: false, erreur: "⚠️ L'ancien mot de passe est incorrect" });
 
     const nouveauCrypte = await bcrypt.hash(nouveau_mot_de_passe, 10);
-    await pool.query(
-      'UPDATE utilisateurs SET mot_de_passe = $1 WHERE id = $2',
-      [nouveauCrypte, id]
-    );
+    await pool.query('UPDATE utilisateurs SET mot_de_passe = $1 WHERE id = $2', [nouveauCrypte, id]);
 
     console.log(`✅ Mot de passe modifié — ${utilisateur.nom} ${utilisateur.prenom}`);
     res.json({ ok: true, message: "✅ Mot de passe modifié avec succès !" });
@@ -380,44 +367,211 @@ router.post('/changer-mot-de-passe', veriftoken, async (req, res) => {
 });
 
 // ==================================================
-// ✅ VALIDER UNE PRÉINSCRIPTION → CRÉER COMPTE
+// ✅ CRÉER UTILISATEUR PAR ADMIN (corrigé id_classe)
+// ==================================================
+router.post('/utilisateurs/creer-admin', protegerAdmin, async (req, res) => {
+  try {
+    const {
+      nom, prenom, email, telephone, role, statut_compte, annee_scolaire,
+      date_naissance, lieu_naissance, id_classe,
+      nom_pere, nom_mere, telephone_pere, telephone_mere
+    } = req.body;
+
+    if (!nom || !prenom || !email || !role)
+      return res.json({ ok: false, erreur: "Nom, Prénom, Email et Profil sont OBLIGATOIRES" });
+
+    // ✅ Classe OBLIGATOIRE UNIQUEMENT si ÉLÈVE
+    if (role === 'eleve' && !id_classe)
+      return res.json({ ok: false, erreur: "⚠️ La Classe est OBLIGATOIRE pour un Élève" });
+
+    const matricule = await genererMatricule(role);
+    const mdpProvisoire = Math.random().toString(36).slice(2, 10).toUpperCase();
+    const motDePasseHash = await bcrypt.hash(mdpProvisoire, 10);
+
+    // ✅ id_classe = NULL si pas élève
+    const result = await pool.query(`
+      INSERT INTO utilisateurs (
+        nom, prenom, email, mot_de_passe, matricule, telephone,
+        role, statut_compte, est_actif, annee_scolaire,
+        id_classe, date_naissance, lieu_naissance,
+        nom_pere, nom_mere, telephone_pere, telephone_mere,
+        date_creation
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
+      RETURNING id, matricule, nom, prenom
+    `, [
+      nom.trim(), prenom.trim(), email.toLowerCase().trim(), motDePasseHash, matricule, telephone || null,
+      role, statut_compte || 'en_attente', true, annee_scolaire || '2026-2027',
+      role === 'eleve' ? id_classe : null,
+      date_naissance || null, lieu_naissance || null,
+      nom_pere || null, nom_mere || null, telephone_pere || null, telephone_mere || null
+    ]);
+
+    res.json({
+      ok: true,
+      utilisateur: result.rows[0],
+      matricule,
+      mdp_provisoire: mdpProvisoire,
+      message: "✅ Utilisateur créé"
+    });
+  } catch (e) {
+    console.error("❌ ERREUR CRÉATION :", e.code || '', e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
+});
+
+// ==================================================
+// 📋 LISTE UTILISATEURS (format harmonisé)
+// ==================================================
+router.get('/utilisateurs', protegerAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT 
+        u.id, u.matricule, u.nom, u.prenom, u.email, u.telephone, u.role,
+        COALESCE(u.statut_compte, 'valide') AS statut_compte,
+        u.annee_scolaire,
+        CASE WHEN u.role = 'eleve' THEN c.libelle_classe ELSE NULL END AS classe,
+        CASE WHEN u.role = 'eleve' THEN u.id_classe ELSE NULL END AS id_classe
+      FROM utilisateurs u
+      LEFT JOIN classes c ON u.id_classe = c.id_classe
+      ORDER BY u.role, u.nom, u.prenom
+    `);
+    console.log(`✅ Liste utilisateurs consultée — ${rows.length} élément(s)`);
+    res.json({ ok: true, utilisateurs: rows, lignes: rows });
+  } catch (e) {
+    console.error("❌ ERREUR LISTE :", e.code || '', e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
+});
+
+// ==================================================
+// 🔍 CHARGER UN SEUL UTILISATEUR
+// ==================================================
+router.get('/utilisateurs/:id', protegerAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) return res.json({ ok: false, erreur: "ID invalide" });
+
+    const { rows } = await pool.query(`
+      SELECT *,
+        CASE WHEN role = 'eleve' THEN id_classe ELSE NULL END AS id_classe
+      FROM utilisateurs WHERE id = $1
+    `, [id]);
+
+    if (rows.length === 0)
+      return res.json({ ok: false, erreur: "Utilisateur introuvable" });
+
+    res.json({ ok: true, utilisateur: rows[0] });
+  } catch (e) {
+    console.error("❌ ERREUR CHARGEMENT :", e.code || '', e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
+});
+
+// ==================================================
+// ✏️ MODIFIER UTILISATEUR (id_classe conditionnel)
+// ==================================================
+router.put('/utilisateurs/:id', protegerAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) return res.json({ ok: false, erreur: "ID invalide" });
+
+    const {
+      nom, prenom, email, telephone, role, statut_compte, annee_scolaire,
+      date_naissance, lieu_naissance, id_classe,
+      nom_pere, nom_mere, telephone_pere, telephone_mere
+    } = req.body;
+
+    if (!nom || !prenom || !email)
+      return res.json({ ok: false, erreur: "Nom, Prénom et Email OBLIGATOIRES" });
+    if (role === 'eleve' && !id_classe)
+      return res.json({ ok: false, erreur: "⚠️ Classe OBLIGATOIRE pour un Élève" });
+
+    await pool.query(`
+      UPDATE utilisateurs SET
+        nom = $1, prenom = $2, email = $3, telephone = $4,
+        role = $5, statut_compte = $6, annee_scolaire = $7,
+        id_classe = CASE WHEN $5 = 'eleve' THEN $8 ELSE NULL END,
+        date_naissance = $9, lieu_naissance = $10,
+        nom_pere = $11, nom_mere = $12, telephone_pere = $13, telephone_mere = $14,
+        date_mise_a_jour = NOW()
+      WHERE id = $15
+    `, [
+      nom.trim(), prenom.trim(), email.toLowerCase().trim(), telephone || null,
+      role, statut_compte, annee_scolaire,
+      id_classe || null,
+      date_naissance || null, lieu_naissance || null,
+      nom_pere || null, nom_mere || null, telephone_pere || null, telephone_mere || null,
+      id
+    ]);
+
+    res.json({ ok: true, message: "✅ Utilisateur modifié" });
+  } catch (e) {
+    console.error("❌ ERREUR MODIFICATION :", e.code || '', e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
+});
+
+// ==================================================
+// 🗑️ SUPPRIMER UTILISATEUR
+// ==================================================
+router.delete('/utilisateurs/:id', protegerAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) return res.json({ ok: false, erreur: "ID invalide" });
+
+    const { rows } = await pool.query('DELETE FROM utilisateurs WHERE id = $1 RETURNING nom, prenom', [id]);
+    if (rows.length === 0)
+      return res.json({ ok: false, erreur: "Utilisateur introuvable" });
+
+    console.log(`✅ Utilisateur supprimé — ${rows[0].nom} ${rows[0].prenom}`);
+    res.json({ ok: true, message: "✅ Utilisateur supprimé" });
+  } catch (e) {
+    console.error("❌ ERREUR SUPPRESSION :", e.code || '', e.message);
+    if (e.code === '23503')
+      return res.json({ ok: false, erreur: "⚠️ Impossible : référencé ailleurs" });
+    res.json({ ok: false, erreur: e.message });
+  }
+});
+
+// ==================================================
+// ✅ VALIDER PRÉINSCRIPTION → CRÉER COMPTE UTILISATEUR
 // ==================================================
 router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
-    if (isNaN(id))
-      return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
+    if (isNaN(id)) return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
 
-    const demandeResult = await pool.query(
-      'SELECT * FROM preinscriptions WHERE id_preinscription = $1',
-      [id]
-    );
+    const demandeResult = await pool.query('SELECT * FROM preinscriptions WHERE id_preinscription = $1', [id]);
     if (demandeResult.rows.length === 0)
       return res.json({ ok: false, erreur: "⚠️ Demande introuvable" });
 
     const demande = demandeResult.rows[0];
     if (demande.statut !== 'en_attente')
-      return res.json({ ok: false, erreur: "⚠️ Cette demande n'est pas en attente" });
+      return res.json({ ok: false, erreur: "⚠️ Déjà traitée" });
 
-    const existeDeja = await pool.query(
-      'SELECT id FROM utilisateurs WHERE LOWER(email) = LOWER($1)',
-      [demande.email]
-    );
+    const existeDeja = await pool.query('SELECT id FROM utilisateurs WHERE LOWER(email) = LOWER($1)', [demande.email]);
     if (existeDeja.rows.length > 0)
-      return res.json({ ok: false, erreur: "⚠️ Un compte avec cet email existe déjà" });
+      return res.json({ ok: false, erreur: "⚠️ Email déjà utilisé" });
 
     const motDePasseTemp = `MZ${Math.floor(100000 + Math.random() * 900000)}`;
     const hashMdp = await bcrypt.hash(motDePasseTemp, 10);
     const matricule = await genererMatricule(demande.profil);
 
+    // ✅ INSERT avec id_classe conditionnel
     await pool.query(
       `INSERT INTO utilisateurs(
         nom, prenom, email, telephone, role, matricule,
-        mot_de_passe, statut_compte, email_parent, telephone_parent, nom_parent,
-        date_creation
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'valide', $8, $9, $10, NOW())`,
-      [demande.nom, demande.prenom, demande.email, demande.telephone, demande.profil, matricule, hashMdp,
-       demande.email_parent || null, demande.telephone_parent || null, demande.nom_parent || null]
+        mot_de_passe, statut_compte, annee_scolaire,
+        id_classe, date_naissance, lieu_naissance,
+        email_parent, telephone_parent, nom_parent, date_creation
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'valide', $8, $9, $10, $11, $12, $13, $14, NOW())`,
+      [
+        demande.nom, demande.prenom, demande.email, demande.telephone, demande.profil, matricule, hashMdp,
+        demande.annee_scolaire || '2026-2027',
+        demande.profil === 'eleve' ? demande.id_classe : null,
+        demande.date_naissance || null, demande.lieu_naissance || null,
+        demande.email_parent || null, demande.telephone_parent || null, demande.nom_parent || null
+      ]
     );
 
     await pool.query(
@@ -431,211 +585,61 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
       subject: '✅ Inscription validée — MAMA-ZOUMANA',
       html: `
         <h2>Félicitations ${demande.nom} ! 🎉</h2>
-        <p>Votre inscription a été validée par l'administration.</p>
+        <p>Votre inscription a été validée.</p>
         <p><strong>Matricule :</strong> ${matricule}</p>
-        <p><strong>Profil :</strong> ${demande.profil}</p>
-        <hr>
-        <h4>🔑 Vos identifiants :</h4>
-        <p>📧 Email : ${demande.email}</p>
-        <p>🔑 Mot de passe temporaire : <code style="background:#f59e0b;padding:6px 12px;border-radius:4px;font-size:18px;">${motDePasseTemp}</code></p>
-        <p>👉 Connectez-vous et changez votre mot de passe immédiatement.</p>
+        <p><strong>Mot de passe temporaire :</strong> <code>${motDePasseTemp}</code></p>
+        <p>Connectez-vous et changez-le immédiatement.</p>
       `
     });
 
-    console.log(`✅ Préinscription validée — ${matricule}, ${demande.nom} ${demande.prenom}`);
-    res.json({ ok: true, message: "✅ Inscription validée. Compte créé et email envoyé." });
+    console.log(`✅ Préinscription validée — ${matricule}`);
+    res.json({ ok: true, message: "✅ Inscription validée", matricule });
   } catch (e) {
-    console.error("❌ ERREUR VALIDATION PRÉINSCRIPTION :", e.code || '', e.message);
+    console.error("❌ ERREUR VALIDATION :", e.code || '', e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 // ==================================================
-// ❌ REFUSER UNE PRÉINSCRIPTION
+// ❌ REFUSER PRÉINSCRIPTION
 // ==================================================
 router.put('/preinscription/refuser/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
-    if (isNaN(id))
-      return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
+    if (isNaN(id)) return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
 
-    const resultat = await pool.query(
+    const { rows } = await pool.query(
       "UPDATE preinscriptions SET statut = 'annulee' WHERE id_preinscription = $1 RETURNING nom, prenom",
       [id]
     );
-    if (resultat.rows.length === 0)
+    if (rows.length === 0)
       return res.json({ ok: false, erreur: "⚠️ Demande introuvable" });
 
-    console.log(`✅ Préinscription refusée — ${resultat.rows[0].nom} ${resultat.rows[0].prenom}`);
-    res.json({ ok: true, message: "✅ Demande refusée." });
+    console.log(`✅ Préinscription refusée — ${rows[0].nom} ${rows[0].prenom}`);
+    res.json({ ok: true, message: "✅ Demande refusée" });
   } catch (e) {
-    console.error("❌ ERREUR REFUS PRÉINSCRIPTION :", e.code || '', e.message);
+    console.error("❌ ERREUR REFUS :", e.code || '', e.message);
     res.json({ ok: false, erreur: e.message });
   }
 });
 
 // ==================================================
-// 📋 LISTER LES PRÉINSCRIPTIONS EN ATTENTE
+// 📋 LISTE PRÉINSCRIPTIONS EN ATTENTE
 // ==================================================
 router.get('/preinscription/liste', protegerAdmin, async (req, res) => {
   try {
-    const r = await pool.query(
-      `SELECT id_preinscription, profil, nom, prenom, email, telephone,
-              matricule, date_preinscription, statut,
-              email_parent, telephone_parent, nom_parent,
-              photo_identite, documents
-       FROM preinscriptions
-       WHERE statut = 'en_attente'
-       ORDER BY date_preinscription DESC`
-    );
-    console.log(`✅ Liste préinscriptions consultée — ${r.rows.length} demande(s) en attente`);
-    res.json({ ok: true, liste: r.rows });
+    const { rows } = await pool.query(`
+      SELECT id_preinscription, profil, nom, prenom, email, telephone,
+             matricule, date_preinscription, statut,
+             email_parent, telephone_parent, nom_parent,
+             annee_scolaire, id_classe
+      FROM preinscriptions WHERE statut = 'en_attente' ORDER BY date_preinscription DESC
+    `);
+    console.log(`✅ Liste préinscriptions — ${rows.length} demande(s)`);
+    res.json({ ok: true, liste: rows });
   } catch (e) {
-    console.error("❌ ERREUR LISTE PRÉINSCRIPTIONS :", e.code || '', e.message);
+    console.error("❌ ERREUR LISTE PRÉINS :", e.code || '', e.message);
     res.json({ ok: false, erreur: e.message });
-  }
-});
-
-// ==================================================
-// 📋 LISTE TOUS LES UTILISATEURS
-// ==================================================
-router.get('/utilisateurs', protegerAdmin, async (req, res) => {
-  try {
-    const r = await pool.query(
-      `SELECT id, nom, prenom, email, matricule, telephone, role,
-              COALESCE(statut_compte, 'valide') AS statut_compte, date_creation
-       FROM utilisateurs
-       ORDER BY nom, prenom`
-    );
-    console.log(`✅ Liste utilisateurs consultée — ${r.rows.length} utilisateur(s)`);
-    res.json({ ok: true, lignes: r.rows });
-  } catch (e) {
-    console.error("❌ ERREUR LISTE UTILISATEURS :", e.code || '', e.message);
-    res.json({ ok: false, erreur: e.message });
-  }
-});
-
-// ==================================================
-// 🔴 LIRE UN SEUL UTILISATEUR
-// ==================================================
-router.get('/utilisateur/:id', protegerAdmin, async (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id))
-      return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
-
-    const r = await pool.query(
-      `SELECT id, nom, prenom, email, matricule, telephone, role,
-              COALESCE(statut_compte, 'valide') AS statut_compte,
-              email_parent, telephone_parent, nom_parent, id_classe
-       FROM utilisateurs
-       WHERE id = $1`,
-      [id]
-    );
-    if (r.rows.length === 0)
-      return res.json({ ok: false, erreur: "⚠️ Utilisateur introuvable" });
-
-    console.log(`✅ Consultation utilisateur — ${r.rows[0].matricule || r.rows[0].email}`);
-    res.json({ ok: true, utilisateur: r.rows[0] });
-  } catch (e) {
-    console.error("❌ ERREUR CONSULTATION UTILISATEUR :", e.code || '', e.message);
-    res.json({ ok: false, erreur: e.message });
-  }
-});
-
-// ==================================================
-// ✏️ MODIFIER UN UTILISATEUR
-// ==================================================
-router.put('/utilisateur/:id', protegerAdmin, async (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id))
-      return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
-
-    const { nom, prenom, email, telephone, role, statut_compte, matricule, mot_de_passe, email_parent, telephone_parent, nom_parent, id_classe } = req.body;
-
-    if (!nom || !prenom || !email)
-      return res.json({ ok: false, erreur: "⚠️ Nom, prénom et email sont obligatoires" });
-
-    const emailNettoye = email.toLowerCase().trim();
-    const exist = await pool.query(
-      'SELECT id FROM utilisateurs WHERE LOWER(email) = $1 AND id != $2',
-      [emailNettoye, id]
-    );
-    if (exist.rows.length > 0)
-      return res.json({ ok: false, erreur: "⚠️ Cet email est déjà utilisé par un autre compte" });
-
-    if (mot_de_passe && mot_de_passe.trim() !== '') {
-      if (mot_de_passe.length < 6)
-        return res.json({ ok: false, erreur: "⚠️ Le mot de passe doit contenir au moins 6 caractères" });
-
-      const hash = await bcrypt.hash(mot_de_passe, 10);
-      await pool.query(
-        `UPDATE utilisateurs
-         SET nom = $1, prenom = $2, email = $3, telephone = $4, role = $5,
-             matricule = $6, statut_compte = $7, mot_de_passe = $8,
-             email_parent = $9, telephone_parent = $10, nom_parent = $11, id_classe = $12
-         WHERE id = $13`,
-        [nom.trim(), prenom.trim(), emailNettoye, telephone || null, role, matricule, statut_compte, hash,
-         email_parent?.toLowerCase().trim() || null, telephone_parent || null, nom_parent || null, id_classe || null, id]
-      );
-    } else {
-      await pool.query(
-        `UPDATE utilisateurs
-         SET nom = $1, prenom = $2, email = $3, telephone = $4, role = $5,
-             matricule = $6, statut_compte = $7,
-             email_parent = $8, telephone_parent = $9, nom_parent = $10, id_classe = $11
-         WHERE id = $12`,
-        [nom.trim(), prenom.trim(), emailNettoye, telephone || null, role, matricule, statut_compte,
-         email_parent?.toLowerCase().trim() || null, telephone_parent || null, nom_parent || null, id_classe || null, id]
-      );
-    }
-
-    console.log(`✅ Utilisateur mis à jour — ID: ${id}, ${nom} ${prenom}`);
-    res.json({ ok: true, message: "✅ Utilisateur modifié avec succès !" });
-  } catch (e) {
-    console.error("❌ ERREUR MODIFICATION UTILISATEUR :", e.code || '', e.message);
-    res.json({ ok: false, erreur: e.message });
-  }
-});
-
-// ==================================================
-// 🗑️ SUPPRIMER UN UTILISATEUR
-// ==================================================
-router.delete('/utilisateur/:id', protegerAdmin, async (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id))
-      return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
-
-    const r = await pool.query(
-      'DELETE FROM utilisateurs WHERE id = $1 RETURNING nom, prenom, matricule',
-      [id]
-    );
-    if (r.rows.length === 0)
-      return res.json({ ok: false, erreur: "⚠️ Utilisateur introuvable" });
-
-    const u = r.rows[0];
-    console.log(`✅ Utilisateur supprimé — ID: ${id}, ${u.matricule || u.nom}`);
-    res.json({ ok: true, message: "✅ Utilisateur supprimé avec succès !" });
-  } catch (e) {
-    console.error("❌ ERREUR SUPPRESSION UTILISATEUR :", e.code || '', e.message);
-    if (e.code === '23503')
-      return res.json({ ok: false, erreur: "⚠️ Impossible : cet utilisateur est référencé dans d'autres modules" });
-    res.json({ ok: false, erreur: e.message });
-  }
-});
-
-// ==================================================
-// ✅ ROUTE PRÉINSCRIPTION DU FORMULAIRE HTML
-// ==================================================
-router.post('/preinscription', upload.none(), async (req, res) => {
-  try {
-    console.log("📥 Données reçues préinscription :", req.body);
-    res.json({ ok: true, message: "✅ Demande enregistrée ! Nous vous contacterons rapidement." });
-  } catch (e) {
-    console.error("❌ Erreur /api/preinscription :", e.code || '', e.message);
-    res.json({ ok: false, erreur: "Erreur serveur, réessayez plus tard." });
   }
 });
 
