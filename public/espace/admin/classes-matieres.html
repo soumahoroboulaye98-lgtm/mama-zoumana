@@ -3,211 +3,228 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Emploi du Temps & Préinscription — MAMA-ZOUMANA</title>
+  <title>
+    <span class="txt-fr">Classes & Matières — Administration</span>
+    <span class="txt-en">Classes & Subjects — Administration</span>
+    <span class="txt-ar">المستويات والمواد — الإدارة</span>
+  </title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
     :root {
-      --primaire: #0c4a6e; --secondaire: #0369a1; --accent: #f59e0b;
-      --succes: #10b981; --action: #3b82f6; --alerte: #ef4444;
-      --sombre: #0f172a; --sombre-clair: #1e293b; --clair: #f8fafc;
-      --texte: #f8fafc; --texte-clair: #1e293b; --bordure: #334155;
-      --fond-carte: #1e293b; --fond-input: #0f172a; --table-ligne: rgba(56,189,248,0.08);
+      --primaire: #0c4a6e;
+      --secondaire: #0369a1;
+      --accent: #f59e0b;
+      --succes: #10b981;
+      --action: #3b82f6;
+      --alerte: #ef4444;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --clair: #f8fafc;
+      --texte: #f8fafc;
+      --texte-clair: #1e293b;
+      --bordure: #334155;
+      --fond-carte: #1e293b;
+      --fond-input: #0f172a;
     }
     body.mode-jour {
-      --primaire: #0c4a6e; --secondaire: #0369a1; --sombre: #e0f2fe;
-      --sombre-clair: #f0f9ff; --texte: #1e293b; --bordure: #cbd5e1;
-      --fond-carte: #ffffff; --fond-input: #ffffff; --table-ligne: rgba(12,74,110,0.06);
+      --primaire: #0c4a6e;
+      --secondaire: #0369a1;
+      --sombre: #e0f2fe;
+      --sombre-clair: #f0f9ff;
+      --texte: #1e293b;
+      --bordure: #cbd5e1;
+      --fond-carte: #ffffff;
+      --fond-input: #ffffff;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease; }
-    body { background: var(--sombre); color: var(--texte); min-height: 100vh; font-family: 'Segoe UI', sans-serif; }
-    .entete-page { background: linear-gradient(135deg, var(--primaire), var(--secondaire)); padding: 1.25rem 0; margin-bottom: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.15); }
-    .carte { background: var(--fond-carte); border-radius: 12px; border-left: 4px solid var(--accent); padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    .form-control, .form-select { background: var(--fond-input); border: 1px solid var(--bordure); color: var(--texte); border-radius: 8px; }
-    .form-control:focus, .form-select:focus { background: var(--fond-input); border-color: var(--accent); color: var(--texte); box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15); }
-    .form-label { color: var(--texte); font-weight: 600; }
-    .btn-anim-orange { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 8px; padding: 0.375rem 1rem; transition: all 0.25s; }
-    .btn-anim-orange:hover, .btn-anim-orange.actif { background: var(--accent); border-color: var(--accent); color: white; }
-    .btn-valide { background: var(--succes); color: white; border-radius: 8px; border: none; box-shadow: 0 0 12px rgba(16,185,129,0.35); }
-    .btn-valide:hover { box-shadow: 0 0 20px rgba(16,185,129,0.5); transform: translateY(-1px); }
-    .btn-action { background: var(--action); color: white; border-radius: 8px; border: none; }
-    .btn-dangereux { background: var(--alerte); color: white; border-radius: 8px; border: none; }
-    .table { --bs-table-bg: transparent; --bs-table-color: var(--texte); }
-    .table th { background: linear-gradient(90deg, var(--primaire), var(--secondaire)); color: white; border: none; }
-    .table tbody tr:hover { background-color: var(--table-ligne); }
-    .table td { border-color: var(--bordure); color: var(--texte); }
-    .badge-fr { background: linear-gradient(135deg, var(--primaire), var(--secondaire)); color: white; font-size: 0.8rem; padding: 0.25rem 0.5rem; border-radius: 6px; }
-    .badge-ar { opacity: 0.85; font-size: 0.75rem; margin-left: 0.35rem; font-weight: normal; }
-    .jour-lundi { border-left: 4px solid #3b82f6; }
-    .jour-mardi { border-left: 4px solid #10b981; }
-    .jour-mercredi { border-left: 4px solid #8b5cf6; }
-    .jour-jeudi { border-left: 4px solid #f59e0b; }
-    .jour-vendredi { border-left: 4px solid #0c4a6e; }
-    .jour-samedi { border-left: 4px solid #ef4444; }
+    body {
+      background: var(--sombre);
+      color: var(--texte);
+      min-height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .entete-page {
+      background: linear-gradient(135deg, var(--primaire), var(--secondaire));
+      padding: 1.5rem 0;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+    .carte-gestion {
+      background: var(--fond-carte);
+      border-radius: 12px;
+      border-left: 4px solid var(--accent);
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .form-control, .form-select {
+      background: var(--fond-input);
+      border: 1px solid var(--bordure);
+      color: var(--texte);
+      border-radius: 8px;
+    }
+    .form-control:focus, .form-select:focus {
+      background: var(--fond-input);
+      border-color: var(--accent);
+      color: var(--texte);
+      box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15);
+    }
+    .form-label { color: var(--texte); }
+    .btn-anim-orange {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      border-radius: 8px;
+      padding: 0.375rem 1rem;
+      transition: all 0.25s;
+    }
+    .btn-anim-orange:hover, .btn-anim-orange.actif {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+    .btn-valide-lumineux {
+      background: var(--succes); color: white; border-radius: 8px; border: none;
+      box-shadow: 0 0 12px rgba(16,185,129,0.35);
+    }
+    .btn-valide-lumineux:hover { box-shadow: 0 0 20px rgba(16,185,129,0.5); transform: translateY(-1px); }
+    .btn-action-lumineux {
+      background: var(--action); color: white; border-radius: 8px; border: none;
+      box-shadow: 0 0 10px rgba(59,130,246,0.25);
+    }
+    .btn-action-lumineux:hover { box-shadow: 0 0 18px rgba(59,130,246,0.4); }
+    .btn-suppr-lumineux {
+      background: var(--alerte); color: white; border-radius: 8px; border: none;
+      box-shadow: 0 0 10px rgba(239,68,68,0.25);
+    }
+    .btn-suppr-lumineux:hover { box-shadow: 0 0 18px rgba(239,68,68,0.4); }
+    .zone-liste { border-top: 2px solid rgba(245,158,11,0.3); margin-top: 2rem; padding-top: 2rem; }
+    .barre-outils { display: flex; gap: 0.5rem; align-items: center; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
+    .alerte-api { border-left: 4px solid var(--alerte); background: rgba(239,68,68,0.1); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
+    .menu-fixed { position: fixed; bottom: 2rem; right: 2rem; z-index: 999; }
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
     body.lang-en { direction: ltr; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
     body.lang-en .txt-en { display: inline; }
     body.lang-ar { direction: rtl; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
     body.lang-ar .txt-ar { display: inline; }
-    .info-choix { font-size: 0.85rem; color: var(--accent); margin-top: 0.25rem; }
-    select:required:invalid { color: #9ca3af; }
-    option { color: var(--texte-clair); }
-    .onglets .nav-link { color: var(--texte); border: 1px solid transparent; }
-    .onglets .nav-link.active { background: var(--fond-carte); color: var(--accent); border-color: var(--accent); font-weight: 600; }
-    .onglets .nav-link:hover { border-color: var(--accent); }
-    .erreur-chargement { color: var(--alerte); font-size: 0.9rem; }
-    .no-print { display: none !important; }
-    @media print {
-      body { background: white !important; color: black !important; }
-      .no-print { display: none !important; }
-      .carte { box-shadow: none; border: 1px solid #ccc; background: white !important; }
-      .table th { background: #0c4a6e !important; color: white !important; }
-      .table td { color: black !important; border-color: #ccc !important; }
-    }
+    .badge { font-size: 0.75rem; }
   </style>
 </head>
 <body class="lang-fr">
 <script>
-// ========== CONFIGURATION API ==========
+// ================================
+// ✅ CONFIGURATION & UTILITAIRES
+// ================================
 const API_URL = "https://mama-zoumana-api.onrender.com/api";
-const getToken = () => localStorage.getItem('token');
-async function requeteAPI(chemin, options = {}) {
-  try {
-    const reponse = await fetch(`${API_URL}${chemin}`, {
-      ...options,
-      headers: { 
-        'Content-Type': 'application/json', 
-        'Authorization': `Bearer ${getToken()}`, 
-        ...options.headers 
-      }
-    });
-    if (reponse.status === 401) { 
-      alert("🔑 Session expirée."); 
-      localStorage.clear(); 
-      location.href = 'connexion.html'; 
-      throw new Error('SESSION_EXPIREE'); 
-    }
-    if (reponse.status === 404) {
-      console.warn(`⚠️ Route introuvable: ${chemin}`);
-      return null;
-    }
-    if (reponse.status >= 500) throw new Error('SERVEUR');
-    return await reponse.json();
-  } catch (err) {
-    console.error(`❌ Erreur appel ${chemin}:`, err);
-    return null;
-  }
+
+function getToken() {
+  return localStorage.getItem('token');
 }
-// ========== GLOBAL : LANGUE, THÈME, DONNÉES ==========
+
+async function requeteAPI(chemin, options = {}) {
+  const reponse = await fetch(`${API_URL}${chemin}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+      ...options.headers
+    }
+  });
+
+  if (reponse.status === 401) {
+    alert("🔑 Session expirée. Veuillez vous reconnecter.");
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    location.href = 'connexion.html';
+    throw new Error('SESSION_EXPIREE');
+  }
+  if (reponse.status === 403) {
+    alert("🚫 Droits insuffisants. Compte Administrateur requis.");
+    throw new Error('DROITS_INSUFFISANTS');
+  }
+  if (reponse.status >= 500) {
+    alert("⚠️ Erreur serveur. Réessayez plus tard.");
+    throw new Error('ERREUR_SERVEUR');
+  }
+  return await reponse.json();
+}
+
+const token = getToken();
+const role = localStorage.getItem('role');
 let langueActuelle = localStorage.getItem('langue') || 'fr';
 let estModeJour = localStorage.getItem('theme') === 'clair';
-let listeClasses = [];
-let listeMatieres = [];
+
+// Messages multilingues
 const MSG = {
   fr: {
-    classe: "Classe", matiere: "Matière", aucuneSeance: "Aucune séance trouvée",
-    chargeEnCours: "Chargement...", erreurChargement: "⚠️ Erreur de chargement",
-    classeFrancais: "Classe suivie en Français *", classeArabe: "Classe suivie en Arabe *",
-    infoChoixClasse: "ℹ️ Vous pouvez choisir des niveaux différents entre Français et Arabe",
-    aucuneClasse: "⚠️ Aucune classe trouvée. L'administrateur doit d'abord saisir les classes.",
-    maClasse: "Ma Classe", mesSeances: "Mes séances", toutesClasses: "TOUTES CLASSES",
-    valider: "Valider", enregistrer: "Enregistrement réussi", supprOk: "Supprimé",
-    confirmerSuppr: "Confirmer la suppression ?", erreurChamp: "⚠️ Remplissez tous les champs obligatoires",
-    emploiDuTemps: "Emploi du Temps", preinscription: "Préinscription Élève",
-    impression: "Imprimer", classeChargees: "✅ Classes chargées depuis l'administration"
-  },
-  ar: {
-    classe: "الشعبة", matiere: "المادة", aucuneSeance: "لا حصص مجدولة",
-    chargeEnCours: "جار التحميل...", erreurChargement: "⚠️ خطأ في التحميل",
-    classeFrancais: "المستوى الدراسي (فرنسي) *", classeArabe: "المستوى الدراسي (عربي) *",
-    infoChoixClasse: "ℹ️ يمكنك اختيار مستويات مختلفة للفرنسية والعربية",
-    aucuneClasse: "⚠️ لا توجد شعبة متاحة. يجب إضافة الشعب أولاً.",
-    maClasse: "فصلي", valider: "تأكيد", enregistrer: "تم الحفظ بنجاح",
-    confirmerSuppr: "تأكيد الحذف؟", erreurChamp: "⚠️ الرجاء ملء الحقول المطلوبة",
-    emploiDuTemps: "جدول الحصص", preinscription: "التسجيل المسبق",
-    classeChargees: "✅ تم تحميل الشعب من الإدارة"
+    accesReserve: "⛔ Accès réservé à l'Administrateur",
+    serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
+    sauvegardeOk: "✅ Enregistré avec succès !",
+    modifOk: "✅ Modifié avec succès !",
+    supprConfirm: "⚠️ Supprimer cet élément ? Cette action est irréversible.",
+    supprOk: "✅ Supprimé avec succès !",
+    erreurReseau: "❌ Erreur réseau. Vérifiez votre connexion.",
+    aucuneDonnee: "Aucune donnée enregistrée.",
+    erreurCapacite: "⚠️ La capacité doit être comprise entre 10 et 80 élèves.",
+    erreurChamp: "⚠️ Veuillez remplir tous les champs obligatoires (*).",
+    classeLiee: "⚠️ Impossible de supprimer : cette classe est utilisée.",
+    erreurServeur: "❌ Erreur serveur"
   },
   en: {
-    classe: "Class", matiere: "Subject", aucuneSeance: "No sessions found",
-    chargeEnCours: "Loading...", erreurChargement: "⚠️ Loading error",
-    classeFrancais: "Class studied in French *", classeArabe: "Class studied in Arabic *",
-    infoChoixClasse: "ℹ️ You may choose different levels for French and Arabic",
-    aucuneClasse: "⚠️ No classes found. Administrator must add classes first.",
-    valider: "Save", enregistrer: "Saved successfully", erreurChamp: "⚠️ Fill all required fields",
-    emploiDuTemps: "Timetable", preinscription: "Student Pre-Registration",
-    classeChargees: "✅ Classes loaded from administration"
+    accesReserve: "⛔ Access restricted to Administrator",
+    serveurIndispo: "⚠️ Server unavailable — Local mode active",
+    sauvegardeOk: "✅ Saved successfully!",
+    modifOk: "✅ Updated successfully!",
+    supprConfirm: "⚠️ Delete this item? This cannot be undone.",
+    supprOk: "✅ Deleted successfully!",
+    erreurReseau: "❌ Network error. Check your connection.",
+    aucuneDonnee: "No data yet.",
+    erreurCapacite: "⚠️ Capacity must be between 10 and 80 students.",
+    erreurChamp: "⚠️ Please fill all required fields (*).",
+    classeLiee: "⚠️ Cannot delete: used in registrations.",
+    erreurServeur: "❌ Server error"
+  },
+  ar: {
+    accesReserve: "⛔ الوصول مقصور على المدير فقط",
+    serveurIndispo: "⚠️ الخادم غير متاح — العمل محليًا",
+    sauvegardeOk: "✅ تم الحفظ بنجاح !",
+    modifOk: "✅ تم التحديث بنجاح !",
+    supprConfirm: "⚠️ حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.",
+    supprOk: "✅ تم الحذف بنجاح !",
+    erreurReseau: "❌ خطأ في الشبكة. تحقق من اتصالك.",
+    aucuneDonnee: "لا توجد بيانات.",
+    erreurCapacite: "⚠️ السعة يجب أن تكون بين 10 و 80 تلميذًا.",
+    erreurChamp: "⚠️ الرجاء ملء جميع الحقول المطلوبة (*).",
+    classeLiee: "⚠️ لا يمكن الحذف: قيد الاستخدام.",
+    erreurServeur: "❌ خطأ في الخادم"
   }
 };
-const m = cle => MSG[langueActuelle]?.[cle] || MSG.fr[cle];
-// ========== SAUVEGARDE LOCALE ==========
-function sauvegarderLocal(k,v) { localStorage.setItem('ref_'+k, JSON.stringify(v)); }
-function recupererLocal(k) { return JSON.parse(localStorage.getItem('ref_'+k) || 'null'); }
-// ========== 🔴 CORRECTION : CHARGER CLASSES & MATIÈRES ==========
-async function chargerReferentiels() {
-  console.log("📡 Tentative de chargement des classes et matières...");
-  
-  // ✅ Routes API harmonisées
-  let clData = await requeteAPI('/classes');
-  let mtData = await requeteAPI('/matieres');
-  
-  console.log("📦 Réponse classes:", clData);
-  console.log("📦 Réponse matières:", mtData);
 
-  // ✅ Extraction depuis format harmonisé { ok: true, lignes: [...] }
-  listeClasses = clData?.lignes || clData?.classes || clData || [];
-  listeMatieres = mtData?.lignes || mtData?.matieres || mtData || [];
+function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
 
-  // Sécurité : si ce n'est pas un tableau → reprendre depuis stockage local
-  if (!Array.isArray(listeClasses) || !listeClasses.length) {
-    const sauvegarde = recupererLocal('classes');
-    listeClasses = Array.isArray(sauvegarde) ? sauvegarde : [];
-  }
-  if (!Array.isArray(listeMatieres) || !listeMatieres.length) {
-    const sauvegarde = recupererLocal('matieres');
-    listeMatieres = Array.isArray(sauvegarde) ? sauvegarde : [];
-  }
-
-  // ✅ Valeurs de secours basées sur tes classes existantes
-  if (!listeClasses.length) {
-    listeClasses = [
-      {id_classe:1, libelle_classe:'Petite Section', libelle_classe_ar:'القسم الصغير'},
-      {id_classe:2, libelle_classe:'Moyenne Section', libelle_classe_ar:'القسم المتوسط'},
-      {id_classe:3, libelle_classe:'Grande Section', libelle_classe_ar:'القسم الكبير'},
-      {id_classe:4, libelle_classe:'CI - Cours Préparatoire', libelle_classe_ar:'الصف التحضيري'},
-      {id_classe:5, libelle_classe:'CP2', libelle_classe_ar:'الصف الثاني الابتدائي'},
-      {id_classe:7, libelle_classe:'CE2', libelle_classe_ar:'الصف الثاني الأساسي'},
-      {id_classe:8, libelle_classe:'CM1', libelle_classe_ar:'الصف الأول المتوسط'},
-      {id_classe:9, libelle_classe:'CM2', libelle_classe_ar:'الصف الثاني المتوسط'},
-      {id_classe:12, libelle_classe:'CM2 H', libelle_classe_ar:'الصف الثاني المتوسط أ'},
-      {id_classe:10, libelle_classe:'مستوى متوسط', libelle_classe_ar:'مستوى متوسط'}
-    ];
-  }
-  if (!listeMatieres.length) {
-    listeMatieres = [
-      {id_matiere:1, libelle_matiere:'Français', libelle_matiere_ar:'اللغة الفرنسية'},
-      {id_matiere:2, libelle_matiere:'Mathématiques', libelle_matiere_ar:'الرياضيات'},
-      {id_matiere:3, libelle_matiere:'Arabe', libelle_matiere_ar:'اللغة العربية'},
-      {id_matiere:4, libelle_matiere:'Histoire-Géo', libelle_matiere_ar:'التاريخ والجغرافيا'},
-      {id_matiere:5, libelle_matiere:'Sciences', libelle_matiere_ar:'العلوم'},
-      {id_matiere:6, libelle_matiere:'Anglais', libelle_matiere_ar:'الإنجليزية'}
-    ];
-  }
-
-  // Tri
-  listeClasses.sort((a,b)=>(a.libelle_classe||'').localeCompare(b.libelle_classe||''));
-  listeMatieres.sort((a,b)=>(a.libelle_matiere||'').localeCompare(b.libelle_matiere||''));
-  sauvegarderLocal('classes', listeClasses);
-  sauvegarderLocal('matieres', listeMatieres);
-  
-  console.log("✅ Classes chargées:", listeClasses.length);
-  console.log("✅ Matières chargées:", listeMatieres.length);
-  return {listeClasses, listeMatieres};
+// 🔒 SÉCURITÉ
+if (!token || !['admin','super_admin','directeur'].includes((role||'').toLowerCase())) {
+  alert(m('accesReserve'));
+  localStorage.clear();
+  location.href = 'connexion.html';
 }
-// ========== THÈME & LANGUE ==========
+
+// Mode local secours
+function obtenirClassesLocales() { return JSON.parse(localStorage.getItem('liste_classes') || '[]'); }
+function sauvegarderClassesLocales(liste) { localStorage.setItem('liste_classes', JSON.stringify(liste)); }
+function obtenirMatieresLocales() { return JSON.parse(localStorage.getItem('liste_matieres') || '[]'); }
+function sauvegarderMatieresLocales(liste) { localStorage.setItem('liste_matieres', JSON.stringify(liste)); }
+
+// Thème & Langue
 function appliquerTheme() {
+  estModeJour = localStorage.getItem('theme') === 'clair';
   document.body.classList.toggle('mode-jour', estModeJour);
-  const btn = document.getElementById('btnThemeGlobal');
+  const btn = document.getElementById('btnJourNuit');
   if (btn) btn.textContent = estModeJour ? '🌙' : '☀️';
 }
 window.basculerTheme = function() {
@@ -219,372 +236,526 @@ window.changerLangue = function(lang) {
   langueActuelle = lang;
   localStorage.setItem('langue', lang);
   document.body.className = (estModeJour ? 'mode-jour ' : '') + 'lang-' + lang;
-  document.querySelectorAll('.barre-langue .btn').forEach(b=>b.classList.remove('actif'));
-  document.getElementById('btn-lang-'+lang)?.classList.add('actif');
+  document.querySelectorAll('.barre-outils .btn').forEach(b => b.classList.remove('actif'));
+  document.getElementById('btn-' + lang)?.classList.add('actif');
 };
-// ========== SÉCURITÉ & PROFIL ==========
-const token = getToken(), role = (localStorage.getItem('role')||'').toLowerCase();
-const profil = localStorage.getItem('profil')?.toLowerCase() || role;
-const classeUtilisateur = localStorage.getItem('classe_utilisateur') || '';
-const nomProf = localStorage.getItem('nom_utilisateur') || '';
-// ========== AFFICHAGE NOMS ==========
-function nomClasse(id) {
-  if (!id) return '—';
-  const c = listeClasses.find(x=>String(x.id_classe)===String(id));
-  if (!c) return id;
-  return `<span class="badge-fr">${c.libelle_classe||''}</span>${c.libelle_classe_ar?`<span class="badge-ar">${c.libelle_classe_ar}</span>`:''}`;
+
+// ================================
+// ✅ SOUMETTRE CLASSE
+// ================================
+async function soumettreClasse(e) {
+  e.preventDefault();
+  const d = Object.fromEntries(new FormData(e.target));
+  d.capacite_max = Number(d.capacite_max);
+
+  if (!d.libelle_classe || !d.cycle) return alert(m('erreurChamp'));
+  if (isNaN(d.capacite_max) || d.capacite_max < 10 || d.capacite_max > 80) return alert(m('erreurCapacite'));
+
+  const estModif = !!d.id_classe;
+  const donnees = {
+    libelle_classe: d.libelle_classe.trim(),
+    libelle_classe_en: (d.libelle_classe_en || '').trim(),
+    libelle_classe_ar: (d.libelle_classe_ar || '').trim(),
+    cycle: d.cycle,
+    niveau: d.niveau || null,
+    capacite_max: d.capacite_max,
+    salle: (d.salle || '').trim() || null,
+    statut: d.statut || 'ouverte'
+  };
+
+  try {
+    const url = estModif ? `/classes/${d.id_classe}` : '/classes';
+    const methode = estModif ? 'PUT' : 'POST';
+    const res = await requeteAPI(url, {
+      method: methode,
+      body: JSON.stringify(donnees)
+    });
+    if (res.ok || res.success) {
+      alert(estModif ? m('modifOk') : m('sauvegardeOk'));
+      reinitFormulaireClasse();
+      chargerListe();
+    } else {
+      alert("❌ " + (res.erreur || res.message || m('erreurServeur')));
+    }
+  } catch (err) {
+    console.warn("Mode local classe:", err.message);
+    let liste = obtenirClassesLocales();
+    if (estModif) {
+      const idx = liste.findIndex(c => String(c.id_classe) === String(d.id_classe));
+      if (idx !== -1) liste[idx] = { ...liste[idx], ...donnees };
+    } else {
+      liste.push({ id_classe: Date.now(), ...donnees, places_occupees: 0 });
+    }
+    sauvegarderClassesLocales(liste);
+    alert((estModif ? m('modifOk') : m('sauvegardeOk')) + " (mode local)");
+    reinitFormulaireClasse();
+    chargerListe(true);
+  }
 }
-function nomMatiere(id) {
-  if (!id) return '—';
-  const m = listeMatieres.find(x=>String(x.id_matiere)===String(id));
-  if (!m) return id;
-  return `<span class="badge-fr">${m.libelle_matiere||''}</span>${m.libelle_matiere_ar?`<span class="badge-ar">${m.libelle_matiere_ar}</span>`:''}`;
+
+// ================================
+// ✅ SOUMETTRE MATIÈRE
+// ================================
+async function soumettreMatiere(e) {
+  e.preventDefault();
+  const d = Object.fromEntries(new FormData(e.target));
+  d.coefficient = Number(d.coefficient);
+  d.volume_horaire = Number(d.volume_horaire);
+
+  if (!d.libelle_matiere) return alert(m('erreurChamp'));
+
+  const estModif = !!d.id_matiere;
+  const donnees = {
+    libelle_matiere: d.libelle_matiere.trim(),
+    libelle_matiere_ar: (d.libelle_matiere_ar || '').trim(),
+    coefficient: d.coefficient || 1,
+    volume_horaire: d.volume_horaire || 0,
+    langue_ens: d.langue_ens || 'fr'
+  };
+
+  try {
+    const url = estModif ? `/matieres/${d.id_matiere}` : '/matieres';
+    const methode = estModif ? 'PUT' : 'POST';
+    const res = await requeteAPI(url, {
+      method: methode,
+      body: JSON.stringify(donnees)
+    });
+    if (res.ok || res.success) {
+      alert(estModif ? m('modifOk') : m('sauvegardeOk'));
+      reinitFormulaireMatiere();
+      chargerListe();
+    } else {
+      alert("❌ " + (res.erreur || res.message || m('erreurServeur')));
+    }
+  } catch (err) {
+    console.warn("Mode local matière:", err.message);
+    let liste = obtenirMatieresLocales();
+    if (estModif) {
+      const idx = liste.findIndex(m => String(m.id_matiere) === String(d.id_matiere));
+      if (idx !== -1) liste[idx] = { ...liste[idx], ...donnees };
+    } else {
+      liste.push({ id_matiere: Date.now(), ...donnees });
+    }
+    sauvegarderMatieresLocales(liste);
+    alert((estModif ? m('modifOk') : m('sauvegardeOk')) + " (mode local)");
+    reinitFormulaireMatiere();
+    chargerListe(true);
+  }
 }
-// ========== ALIMENTER LISTES ==========
-function optionsClasses() {
-  if (!listeClasses.length) return `<option value="">${m('aucuneClasse')}</option>`;
-  return listeClasses.map(c=>`<option value="${c.id_classe}">${c.libelle_classe}${c.libelle_classe_ar?' / '+c.libelle_classe_ar:''}</option>`).join('');
+
+// ================================
+// ✅ CHARGER LISTE
+// ================================
+async function chargerListe(forcerLocal = false) {
+  const cont = document.getElementById('liste-complete');
+  const alerte = document.getElementById('alerteApi');
+  const txtAlerte = document.getElementById('texteAlerteApi');
+  let classes = [], matieres = [];
+
+  if (!forcerLocal) {
+    try {
+      const [clRes, mtRes] = await Promise.all([
+        requeteAPI('/classes/toutes'),
+        requeteAPI('/matieres')
+      ]);
+      classes = clRes.ok ? (clRes.classes || clRes.lignes || []) : [];
+      matieres = mtRes.ok ? (mtRes.matieres || mtRes.lignes || []) : [];
+      if (!Array.isArray(classes)) classes = [];
+      if (!Array.isArray(matieres)) matieres = [];
+      sauvegarderClassesLocales(classes);
+      sauvegarderMatieresLocales(matieres);
+      alerte.classList.add('d-none');
+    } catch {
+      forcerLocal = true;
+    }
+  }
+  if (forcerLocal) {
+    if (txtAlerte) txtAlerte.textContent = m('serveurIndispo');
+    alerte.classList.remove('d-none');
+    classes = obtenirClassesLocales();
+    matieres = obtenirMatieresLocales();
+  }
+
+  // Rendu HTML
+  let html = '';
+
+  // 📋 CLASSES
+  if (classes.length > 0) {
+    html += `<div class="col-md-6"><h5 class="mb-3 text-white"><i class="bi bi-building me-2 text-warning"></i>
+      <span class="txt-fr">Classes</span><span class="txt-en">Classes</span><span class="txt-ar">المستويات</span></h5>`;
+    html += classes.map(c => {
+      const statutBadge = {ouverte:'bg-success',complete:'bg-primary',fermee:'bg-secondary'}[c.statut] || 'bg-secondary';
+      const statutTexte = {ouverte:'Ouverte',complete:'Complète',fermee:'Fermée'}[c.statut] || 'Ouverte';
+      const places = typeof c.places_occupees === 'number' && c.capacite_max
+        ? `<span class="badge bg-info text-dark ms-1">${c.places_occupees}/${c.capacite_max}</span>`
+        : `<span class="badge bg-light text-dark ms-1">${c.capacite_max || '—'} pl</span>`;
+      return `<div class="carte-gestion d-flex justify-content-between align-items-center">
+        <div>
+          <strong>${c.libelle_classe}</strong>
+          ${c.libelle_classe_ar ? `<span class="text-muted ms-1">(${c.libelle_classe_ar})</span>` : ''}
+          <span class="opacity-75 ms-2 small">${c.cycle || '—'}</span>
+          ${places}
+          ${c.salle ? `<span class="badge bg-secondary ms-1">${c.salle}</span>` : ''}
+          <span class="badge ${statutBadge} ms-1">${statutTexte}</span>
+        </div>
+        <div class="d-flex gap-1">
+          <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierClasse(${JSON.stringify(c).replace(/'/g,"\\'")})'>✏️</button>
+          <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerClasse(${c.id_classe})">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
+    html += `</div>`;
+  }
+
+  // 📖 MATIÈRES
+  if (matieres.length > 0) {
+    html += `<div class="col-md-6"><h5 class="mb-3 text-white"><i class="bi bi-book me-2 text-warning"></i>
+      <span class="txt-fr">Matières</span><span class="txt-en">Subjects</span><span class="txt-ar">المواد</span></h5>`;
+    html += matieres.map(m => {
+      const drapeau = {fr:'🇫🇷',ar:'🇸🇦',en:'🇬🇧'}[m.langue_ens] || '🇫🇷';
+      return `<div class="carte-gestion d-flex justify-content-between align-items-center">
+        <div>
+          <strong>${m.libelle_matiere}</strong>
+          ${m.libelle_matiere_ar ? `<span class="text-muted ms-1">(${m.libelle_matiere_ar})</span>` : ''}
+          <span class="badge bg-info text-dark ms-1">Coef ${m.coefficient}</span>
+          <span class="badge bg-secondary ms-1">${m.volume_horaire || 0}h/sem</span>
+          <span class="badge bg-light text-dark ms-1">${drapeau}</span>
+        </div>
+        <div class="d-flex gap-1">
+          <button class="btn btn-action-lumineux btn-sm" title="Modifier" onclick='modifierMatiere(${JSON.stringify(m).replace(/'/g,"\\'")})'>✏️</button>
+          <button class="btn btn-suppr-lumineux btn-sm" title="Supprimer" onclick="supprimerMatiere(${m.id_matiere})">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
+    html += `</div>`;
+  }
+
+  cont.innerHTML = html || `<div class="col-12 text-center opacity-75 py-5">
+    <i class="bi bi-inbox fs-1 mb-2"></i><p>${m('aucuneDonnee')}</p>
+  </div>`;
 }
-function optionsMatieres() {
-  if (!listeMatieres.length) return `<option value="">${m('erreurChargement')}</option>`;
-  return listeMatieres.map(m=>`<option value="${m.id_matiere}">${m.libelle_matiere}${m.libelle_matiere_ar?' / '+m.libelle_matiere_ar:''}</option>`).join('');
+
+// ================================
+// ✅ MODIFIER / SUPPRIMER
+// ================================
+window.modifierClasse = function(c) {
+  document.getElementById('edit-id-classe').value = c.id_classe || '';
+  document.getElementById('edit-libelle').value = c.libelle_classe || '';
+  document.getElementById('edit-libelle-en').value = c.libelle_classe_en || '';
+  document.getElementById('edit-libelle-ar').value = c.libelle_classe_ar || '';
+  document.getElementById('edit-cycle').value = c.cycle || '';
+  document.getElementById('edit-niveau').value = c.niveau || '';
+  document.getElementById('edit-capacite').value = c.capacite_max || 30;
+  document.getElementById('edit-salle').value = c.salle || '';
+  document.getElementById('edit-statut').value = c.statut || 'ouverte';
+  document.getElementById('btn-classe').innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+window.modifierMatiere = function(m) {
+  document.getElementById('edit-id-mat').value = m.id_matiere || '';
+  document.getElementById('edit-nom-mat').value = m.libelle_matiere || '';
+  document.getElementById('edit-nom-mat-ar').value = m.libelle_matiere_ar || '';
+  document.getElementById('edit-coef').value = m.coefficient || 1;
+  document.getElementById('edit-vol').value = m.volume_horaire || 3;
+  document.getElementById('edit-langue').value = m.langue_ens || 'fr';
+  document.getElementById('btn-mat').innerHTML = '<i class="bi bi-pencil-square me-1"></i> <span class="txt-fr">Mettre à jour</span>';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+window.supprimerClasse = async function(id) {
+  if (!id) return;
+  if (!confirm(m('supprConfirm'))) return;
+  try {
+    const res = await requeteAPI(`/classes/${id}`, { method: 'DELETE' });
+    if (res.ok || res.success) {
+      alert(m('supprOk'));
+      chargerListe();
+    } else {
+      alert("❌ " + (res.erreur || m('erreurServeur')));
+    }
+  } catch {
+    sauvegarderClassesLocales(obtenirClassesLocales().filter(c => String(c.id_classe) !== String(id)));
+    alert(m('supprOk') + " (mode local)");
+    chargerListe(true);
+  }
+};
+
+window.supprimerMatiere = async function(id) {
+  if (!id) return;
+  if (!confirm(m('supprConfirm'))) return;
+  try {
+    const res = await requeteAPI(`/matieres/${id}`, { method: 'DELETE' });
+    if (res.ok || res.success) {
+      alert(m('supprOk'));
+      chargerListe();
+    } else {
+      alert("❌ " + (res.erreur || m('erreurServeur')));
+    }
+  } catch {
+    sauvegarderMatieresLocales(obtenirMatieresLocales().filter(m => String(m.id_matiere) !== String(id)));
+    alert(m('supprOk') + " (mode local)");
+    chargerListe(true);
+  }
+};
+
+function reinitFormulaireClasse() {
+  document.getElementById('formClasse')?.reset();
+  document.getElementById('edit-id-classe').value = '';
+  document.getElementById('btn-classe').innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
 }
-// ✅ Liste FRANÇAIS → libellé français
-function optionsClassesFR() {
-  if (!listeClasses.length) return `<option value="">${m('aucuneClasse')}</option>`;
-  return listeClasses.map(c=>`<option value="${c.id_classe}">${c.libelle_classe}</option>`).join('');
+function reinitFormulaireMatiere() {
+  document.getElementById('formMatiere')?.reset();
+  document.getElementById('edit-id-mat').value = '';
+  document.getElementById('btn-mat').innerHTML = '<i class="bi bi-floppy2-fill me-1"></i> <span class="txt-fr">Enregistrer</span>';
 }
-// ✅ Liste ARABE → libellé arabe exclusivement
-function optionsClassesAR() {
-  if (!listeClasses.length) return `<option value="">${m('aucuneClasse')}</option>`;
-  return listeClasses.map(c=>`<option value="${c.id_classe}">${c.libelle_classe_ar || c.libelle_classe}</option>`).join('');
-}
+
+// ================================
+// ✅ INITIALISATION
+// ================================
+document.addEventListener('DOMContentLoaded', () => {
+  appliquerTheme();
+  document.body.classList.add('lang-' + langueActuelle);
+  document.getElementById('btn-' + langueActuelle)?.classList.add('actif');
+
+  document.getElementById('formClasse')?.addEventListener('submit', soumettreClasse);
+  document.getElementById('formMatiere')?.addEventListener('submit', soumettreMatiere);
+
+  chargerListe();
+});
 </script>
-<!-- 🔧 BARRE HAUTE -->
-<div class="entete-page no-print">
+
+<!-- ===================================
+     AFFICHAGE
+     =================================== -->
+<div class="entete-page">
   <div class="container d-flex justify-content-between align-items-center">
-    <h4 class="text-white mb-0">
-      <i class="bi bi-building me-2"></i>
-      <span class="txt-fr">🏫 Emploi du Temps & Préinscription</span>
-      <span class="txt-ar">🏫 جدول الحصص والتسجيل المسبق</span>
-    </h4>
-    <div class="d-flex gap-2 barre-langue">
-      <button class="btn btn-anim-orange" id="btn-lang-fr" onclick="changerLangue('fr')">🇫🇷</button>
-      <button class="btn btn-anim-orange" id="btn-lang-ar" onclick="changerLangue('ar')">🇸🇦</button>
-      <button class="btn btn-anim-orange" id="btn-lang-en" onclick="changerLangue('en')">🇬🇧</button>
-      <button class="btn btn-anim-orange" id="btnThemeGlobal" onclick="basculerTheme()">☀️</button>
+    <div>
+      <h3 class="mb-1 text-white">
+        <i class="bi bi-building me-2"></i>
+        <span class="txt-fr">🏫 Classes & Matières</span>
+        <span class="txt-en">🏫 Classes & Subjects</span>
+        <span class="txt-ar">🏫 المستويات والمواد</span>
+      </h3>
+      <p class="mb-0 text-white-50">
+        <span class="txt-fr">Ajouter / Modifier / Supprimer / Consulter</span>
+        <span class="txt-en">Add / Edit / Delete / View</span>
+        <span class="txt-ar">إضافة / تعديل / حذف / عرض</span>
+      </p>
     </div>
+    <a href="dashboard.html" class="btn btn-anim-orange px-4 py-2">
+      <i class="bi bi-arrow-left"></i>
+      <span class="txt-fr"> Retour</span>
+      <span class="txt-en"> Back</span>
+      <span class="txt-ar"> عودة</span>
+    </a>
   </div>
 </div>
-<div class="container pb-5">
-  <!-- 📑 ONGLETS -->
-  <ul class="nav nav-tabs onglets mb-4 no-print" id="ongletsPrincipaux" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#onglet-emploi">
-        <i class="bi bi-table me-1"></i>
-        <span class="txt-fr">Emploi du Temps</span>
-        <span class="txt-ar">جدول الحصص</span>
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#onglet-preinscription">
-        <i class="bi bi-file-earmark-person me-1"></i>
-        <span class="txt-fr">Préinscription Élève</span>
-        <span class="txt-ar">التسجيل المسبق</span>
-      </button>
-    </li>
-  </ul>
-  <div class="tab-content">
-    <!-- 📅 ONGLET EMPLOI DU TEMPS -->
-    <div class="tab-pane fade show active" id="onglet-emploi">
-      <div class="carte">
-        <div class="row g-3 mb-4 no-print">
-          <div class="col-md-3">
-            <label class="form-label">🏫 <span class="txt-fr">Classe</span><span class="txt-ar">الشعبة</span></label>
-            <select id="filtreClasse" class="form-select" onchange="appliquerFiltresEdt()">
-              <option value="">🌐 <span class="txt-fr">Toutes classes</span><span class="txt-ar">جميع الشعب</span></option>
-              <option value="_MA_CLASSE_" id="optMaClasseEdt" class="d-none">👤 <span class="txt-fr">Ma classe</span><span class="txt-ar">فصلي</span></option>
+
+<div class="container py-4">
+  <div id="alerteApi" class="alerte-api d-none">
+    <i class="bi bi-wifi-off me-2"></i>
+    <span id="texteAlerteApi"></span>
+  </div>
+
+  <div class="barre-outils">
+    <button class="btn btn-anim-orange px-3 py-2" onclick="changerLangue('fr')" id="btn-fr">🇫🇷 FR</button>
+    <button class="btn btn-anim-orange px-3 py-2" onclick="changerLangue('ar')" id="btn-ar">🇸🇦 AR</button>
+    <button class="btn btn-anim-orange px-3 py-2" onclick="changerLangue('en')" id="btn-en">🇬🇧 EN</button>
+    <button class="btn btn-anim-orange px-3 py-2" id="btnJourNuit" title="Mode Jour/Nuit" onclick="basculerTheme()">☀️</button>
+  </div>
+
+  <div class="row g-4">
+    <!-- FORMULAIRE CLASSE -->
+    <div class="col-md-6">
+      <div class="carte-gestion">
+        <h5 class="mb-3">
+          <span class="txt-fr">📚 Ajouter une Classe</span>
+          <span class="txt-en">📚 Add New Class</span>
+          <span class="txt-ar">📚 إضافة مستوى دراسي</span>
+        </h5>
+        <form id="formClasse">
+          <input type="hidden" name="id_classe" id="edit-id-classe">
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Nom de la Classe * (Français)</span>
+              <span class="txt-en">Class Name * (French)</span>
+              <span class="txt-ar">اسم المستوى * (بالفرنسية)</span>
+            </label>
+            <input type="text" name="libelle_classe" id="edit-libelle" class="form-control" placeholder="Ex: CE2" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Nom de la Classe (Anglais)</span>
+              <span class="txt-en">Class Name (English)</span>
+              <span class="txt-ar">اسم المستوى (بالإنجليزية)</span>
+            </label>
+            <input type="text" name="libelle_classe_en" id="edit-libelle-en" class="form-control" placeholder="Ex: 2nd Year Primary">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Nom de la Classe (Arabe)</span>
+              <span class="txt-en">Class Name (Arabic)</span>
+              <span class="txt-ar">اسم المستوى (بالعربية)</span>
+            </label>
+            <input type="text" name="libelle_classe_ar" id="edit-libelle-ar" class="form-control" placeholder="مثال: السنة الثانية ابتدائي">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Cycle *</span>
+              <span class="txt-en">Cycle *</span>
+              <span class="txt-ar">المرحلة الدراسية *</span>
+            </label>
+            <select name="cycle" id="edit-cycle" class="form-select" required>
+              <option value="">-- Choisir --</option>
+              <option value="Préscolaire">Préscolaire / الحضانة</option>
+              <option value="Primaire">Primaire / الابتدائي</option>
+              <option value="Collège">Collège / الإعدادي</option>
+              <option value="Lycée">Lycée / الثانوي</option>
             </select>
           </div>
-          <div class="col-md-3">
-            <label class="form-label">📅 <span class="txt-fr">Jour</span><span class="txt-ar">اليوم</span></label>
-            <select id="filtreJour" class="form-select" onchange="appliquerFiltresEdt()">
-              <option value="">Tous</option>
-              <option>Lundi</option><option>Mardi</option><option>Mercredi</option><option>Jeudi</option><option>Vendredi</option><option>Samedi</option>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Niveau</span>
+              <span class="txt-en">Level</span>
+              <span class="txt-ar">المستوى</span>
+            </label>
+            <input type="text" name="niveau" id="edit-niveau" class="form-control" placeholder="Ex: CE2">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Capacité Maximum * (10 à 80)</span>
+              <span class="txt-en">Max Capacity * (10–80)</span>
+              <span class="txt-ar">السعة القصوى * (10–80)</span>
+            </label>
+            <input type="number" name="capacite_max" id="edit-capacite" class="form-control" value="30" min="10" max="80" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Salle</span>
+              <span class="txt-en">Room</span>
+              <span class="txt-ar">القاعة</span>
+            </label>
+            <input type="text" name="salle" id="edit-salle" class="form-control" placeholder="Ex: Salle 12">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Statut</span>
+              <span class="txt-en">Status</span>
+              <span class="txt-ar">الحالة</span>
+            </label>
+            <select name="statut" id="edit-statut" class="form-select">
+              <option value="ouverte" selected>✅ Ouverte</option>
+              <option value="complete">⚠️ Complète</option>
+              <option value="fermee">❌ Fermée</option>
             </select>
           </div>
-          <div class="col-md-3" id="zoneFiltreProfEdt">
-            <label class="form-label">🔍 Vue</label>
-            <select id="filtreVue" class="form-select" onchange="appliquerFiltresEdt()">
-              <option value="toutes">Toutes séances</option>
-              <option value="_MES_SEANCES_">👨‍🏫 Mes séances</option>
-            </select>
+          <button type="submit" class="btn btn-valide-lumineux w-100 py-2" id="btn-classe">
+            <i class="bi bi-floppy2-fill me-1"></i>
+            <span class="txt-fr">Enregistrer</span>
+            <span class="txt-en"> Save</span>
+            <span class="txt-ar"> حفظ</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- FORMULAIRE MATIÈRE -->
+    <div class="col-md-6">
+      <div class="carte-gestion">
+        <h5 class="mb-3">
+          <span class="txt-fr">📖 Ajouter une Matière</span>
+          <span class="txt-en">📖 Add Subject</span>
+          <span class="txt-ar">📖 إضافة مادة دراسية</span>
+        </h5>
+        <form id="formMatiere">
+          <input type="hidden" name="id_matiere" id="edit-id-mat">
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Nom de la Matière * (Français)</span>
+              <span class="txt-en">Subject Name * (French)</span>
+              <span class="txt-ar">اسم المادة * (بالفرنسية)</span>
+            </label>
+            <input type="text" name="libelle_matiere" id="edit-nom-mat" class="form-control" placeholder="Ex: Mathématiques" required>
           </div>
-          <div class="col-md-3 text-end">
-            <label class="form-label">&nbsp;</label>
-            <div class="d-flex gap-2">
-              <button class="btn btn-action btn-sm" onclick="ouvrirFormulaireEdt()" id="btnNvlSeanceEdt">➕</button>
-              <button class="btn btn-valide btn-sm" onclick="window.print()">🖨️</button>
+          <div class="mb-3">
+            <label class="form-label fw-bold">
+              <span class="txt-fr">Nom de la Matière (Arabe)</span>
+              <span class="txt-en">Subject Name (Arabic)</span>
+              <span class="txt-ar">اسم المادة (بالعربية)</span>
+            </label>
+            <input type="text" name="libelle_matiere_ar" id="edit-nom-mat-ar" class="form-control" placeholder="مثال: الرياضيات">
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-md-4">
+              <label class="form-label fw-bold">
+                <span class="txt-fr">Coefficient</span>
+                <span class="txt-en">Coeff.</span>
+                <span class="txt-ar">المعامل</span>
+              </label>
+              <input type="number" name="coefficient" id="edit-coef" class="form-control" value="1" min="1" step="0.5">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">
+                <span class="txt-fr">Volume Horaire</span>
+                <span class="txt-en">Hours/Week</span>
+                <span class="txt-ar">الحصة الأسبوعية</span>
+              </label>
+              <input type="number" name="volume_horaire" id="edit-vol" class="form-control" value="3" min="0">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">
+                <span class="txt-fr">Langue d'enseignement</span>
+                <span class="txt-en">Language</span>
+                <span class="txt-ar">لغة التدريس</span>
+              </label>
+              <select name="langue_ens" id="edit-langue" class="form-select">
+                <option value="fr" selected>🇫🇷 Français</option>
+                <option value="ar">🇸🇦 Arabe</option>
+                <option value="en">🇬🇧 Anglais</option>
+              </select>
             </div>
           </div>
-        </div>
-        <div class="table-responsive">
-          <table class="table table-hover align-middle">
-            <thead>
-              <tr class="no-print">
-                <th class="no-print">✅</th><th>📅</th><th>⏰</th>
-                <th>🏫 <span class="txt-fr">Classe</span><span class="txt-ar">الشعبة</span></th>
-                <th>📖 <span class="txt-fr">Matière</span><span class="txt-ar">المادة</span></th>
-                <th>👨‍🏫</th><th class="no-print text-center">⚙️</th>
-              </tr>
-            </thead>
-            <tbody id="corpsEdt">
-              <tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>
-            </tbody>
-          </table>
-        </div>
+          <button type="submit" class="btn btn-valide-lumineux w-100 py-2" id="btn-mat">
+            <i class="bi bi-floppy2-fill me-1"></i>
+            <span class="txt-fr">Enregistrer</span>
+            <span class="txt-en"> Save</span>
+            <span class="txt-ar"> حفظ</span>
+          </button>
+        </form>
       </div>
     </div>
-    <!-- 📝 ONGLET PRÉINSCRIPTION -->
-    <div class="tab-pane fade" id="onglet-preinscription">
-      <div class="carte">
-        <h5 class="mb-3 text-warning">
-          <i class="bi bi-building me-2"></i>
-          <span class="txt-fr">🏫 Choix des Niveaux Scolaires</span>
-          <span class="txt-ar">🏫 اختيار المستويات الدراسية</span>
-        </h5>
-        <p class="info-choix mb-3">
-          <i class="bi bi-info-circle"></i>
-          <span class="txt-fr">ℹ️ Vous pouvez choisir des niveaux DIFFÉRENTS entre Français et Arabe</span>
-          <span class="txt-ar">ℹ️ يمكنك اختيار مستويات مختلفة للفرنسية والعربية</span>
+  </div>
+
+  <!-- LISTE -->
+  <div class="zone-liste">
+    <h4 class="mb-3">
+      <i class="bi bi-list-ul me-2" style="color:var(--accent)"></i>
+      <span class="txt-fr">📋 Liste des Classes & Matières</span>
+      <span class="txt-en">📋 Classes & Subjects List</span>
+      <span class="txt-ar">📋 قائمة المستويات والمواد</span>
+    </h4>
+    <div id="liste-complete" class="row g-3">
+      <div class="col-12 text-center py-5">
+        <i class="bi bi-hourglass-split fs-1 mb-2 opacity-50"></i>
+        <p class="opacity-75">
+          <span class="txt-fr">Chargement en cours...</span>
+          <span class="txt-en">Loading...</span>
+          <span class="txt-ar">جار التحميل...</span>
         </p>
-        <div class="row g-4">
-          <!-- ✅ Liste FRANÇAIS -->
-          <div class="col-md-6">
-            <label class="form-label">🇫🇷 <span class="txt-fr">Classe suivie en Français *</span><span class="txt-ar">المستوى (فرنسي) *</span></label>
-            <select id="classe_fr" class="form-select form-select-lg" required>
-              <option value="">⏳ Chargement...</option>
-            </select>
-          </div>
-          <!-- ✅ Liste ARABE → indépendante, libellé arabe -->
-          <div class="col-md-6">
-            <label class="form-label">🇸🇦 <span class="txt-fr">Classe suivie en Arabe *</span><span class="txt-ar">المستوى (عربي) *</span></label>
-            <select id="classe_ar" class="form-select form-select-lg" required>
-              <option value="">⏳ جار التحميل...</option>
-            </select>
-          </div>
-        </div>
-        <input type="hidden" id="id_classe_fr">
-        <input type="hidden" id="id_classe_ar">
-        <div class="alert alert-info mt-3 mb-0">
-          <strong id="labelClassesChargees"></strong>
-          <span id="compteClasses">0 classe(s)</span>
-        </div>
-        <div class="row mt-4">
-          <div class="col-12 text-center">
-            <button class="btn btn-valide px-4 py-2" onclick="validerPreinscription()">
-              <i class="bi bi-check-circle-fill me-2"></i>
-              <span class="txt-fr">Valider la préinscription</span>
-              <span class="txt-ar">تأكيد التسجيل المسبق</span>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   </div>
 </div>
-<!-- MODALE -->
-<div class="modal fade" id="modalSeance" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content" style="background:var(--fond-carte);color:var(--texte)">
-      <div class="modal-header" style="background:linear-gradient(90deg,var(--primaire),var(--secondaire));color:white">
-        <h5 id="titreModalSeance">➕ <span class="txt-fr">Nouvelle séance</span><span class="txt-ar">حصة جديدة</span></h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="editIdSeance">
-        <div class="row g-3">
-          <div class="col-md-4">
-            <label class="form-label">📅 Jour *</label>
-            <select id="formJour" class="form-select" required>
-              <option value="">--</option>
-              <option>Lundi</option><option>Mardi</option><option>Mercredi</option><option>Jeudi</option><option>Vendredi</option><option>Samedi</option>
-            </select>
-          </div>
-          <div class="col-md-4"><label class="form-label">⏰ Début *</label><input type="time" id="formDebut" class="form-control" required></div>
-          <div class="col-md-4"><label class="form-label">⏰ Fin *</label><input type="time" id="formFin" class="form-control" required></div>
-          <div class="col-md-4">
-            <label class="form-label">🏫 Classe *</label>
-            <select id="formClasse" class="form-select" required><option value="">⏳...</option></select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">📖 Matière *</label>
-            <select id="formMatiere" class="form-select" required><option value="">⏳...</option></select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">👨‍🏫 Professeur</label>
-            <input type="text" id="formProf" class="form-control" value="">
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-        <button class="btn btn-valide" onclick="enregistrerSeanceEdt()">💾 Enregistrer</button>
-      </div>
-    </div>
-  </div>
+
+<div class="menu-fixed">
+  <a href="deconnexion.html" class="btn btn-suppr-lumineux px-4 py-2">
+    <i class="bi bi-box-arrow-right"></i>
+    <span class="txt-fr"> Déconnexion</span>
+    <span class="txt-en"> Logout</span>
+    <span class="txt-ar"> خروج</span>
+  </a>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-const modalSeance = new bootstrap.Modal(document.getElementById('modalSeance'));
-let listeSeancesEdt = [];
-document.addEventListener('DOMContentLoaded', async () => {
-  appliquerTheme();
-  changerLangue(langueActuelle);
-  document.getElementById('btn-lang-'+langueActuelle)?.classList.add('actif');
-  
-  // ✅ ÉTAPE CLÉ : CHARGER CLASSES ET MATIÈRES
-  await chargerReferentiels();
-  
-  // ✅ ALIMENTER TOUTES LES LISTES DÉROULANTES
-  document.getElementById('filtreClasse').innerHTML += optionsClasses();
-  document.getElementById('formClasse').innerHTML = `<option value="">--</option>` + optionsClasses();
-  document.getElementById('formMatiere').innerHTML = `<option value="">--</option>` + optionsMatieres();
-  
-  // ✅ PRÉINSCRIPTION : 2 LISTES INDÉPENDANTES
-  document.getElementById('classe_fr').innerHTML = `<option value="">-- ${m('classeFrancais').replace(' *','')} --</option>` + optionsClassesFR();
-  document.getElementById('classe_ar').innerHTML = `<option value="">-- ${m('classeArabe').replace(' *','')} --</option>` + optionsClassesAR();
-  
-  document.getElementById('compteClasses').textContent = `${listeClasses.length} classe(s)`;
-  document.getElementById('labelClassesChargees').textContent = m('classeChargees') + " : ";
-  
-  // Adapter selon profil
-  if (profil === 'eleve') {
-    document.getElementById('optMaClasseEdt').classList.remove('d-none');
-    document.getElementById('btnNvlSeanceEdt').classList.add('d-none');
-    document.getElementById('zoneFiltreProfEdt').classList.add('d-none');
-    if (classeUtilisateur) document.getElementById('filtreClasse').value = classeUtilisateur;
-  }
-  if (profil === 'prof' && nomProf) {
-    document.getElementById('optMaClasseEdt').classList.remove('d-none');
-    document.getElementById('formProf').value = nomProf;
-  }
-  
-  chargerEmploiDuTemps();
-  
-  // ✅ Mise à jour champs cachés au changement
-  document.getElementById('classe_fr').addEventListener('change', e=>document.getElementById('id_classe_fr').value=e.target.value);
-  document.getElementById('classe_ar').addEventListener('change', e=>document.getElementById('id_classe_ar').value=e.target.value);
-});
-// ========== EMPLOI DU TEMPS ==========
-async function chargerEmploiDuTemps() {
-  const data = await requeteAPI('/emploi/global');
-  listeSeancesEdt = data?.seances || data?.rows || data || [];
-  if (!Array.isArray(listeSeancesEdt)) listeSeancesEdt = [];
-  appliquerFiltresEdt();
-}
-function appliquerFiltresEdt() {
-  let cSel = document.getElementById('filtreClasse').value;
-  let jSel = document.getElementById('filtreJour').value;
-  let vSel = document.getElementById('filtreVue')?.value||'toutes';
-  let affiche = listeSeancesEdt.slice();
-  if (cSel === '_MA_CLASSE_') cSel = classeUtilisateur;
-  if (cSel) affiche = affiche.filter(s=>String(s.classe_id||s.id_classe||s.classe)===String(cSel));
-  if (jSel) affiche = affiche.filter(s=>s.jour===jSel);
-  if (vSel === '_MES_SEANCES_' && nomProf) affiche = affiche.filter(s=> (s.professeur||'').includes(nomProf));
-  afficherEdt(affiche);
-}
-function afficherEdt(liste) {
-  const corps = document.getElementById('corpsEdt');
-  if (!liste.length) {
-    corps.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted"><i class="bi bi-calendar-x fs-1 mb-2"></i><br>${m('aucuneSeance')}</td></tr>`;
-    return;
-  }
-  corps.innerHTML = liste.map((s,i)=>{
-    const jourClasse = {Lundi:'jour-lundi',Mardi:'jour-mardi',Mercredi:'jour-mercredi',Jeudi:'jour-jeudi',Vendredi:'jour-vendredi',Samedi:'jour-samedi'}[s.jour]||'';
-    return `<tr class="${jourClasse}" data-id="${s.id||'local-'+i}">
-      <td class="no-print"><input type="checkbox" class="form-check-input"></td>
-      <td class="fw-semibold">${s.jour||'—'}</td>
-      <td><strong>${(s.heure_debut||'').slice(0,5)}</strong> — ${(s.heure_fin||'').slice(0,5)}</td>
-      <td>${nomClasse(s.classe_id||s.id_classe||s.classe)}</td>
-      <td>${nomMatiere(s.matiere_id||s.id_matiere||s.matiere)}</td>
-      <td>${s.professeur||'—'}</td>
-      <td class="text-center text-nowrap no-print">
-        <button class="btn btn-sm btn-action" onclick="modifierSeanceEdt('${s.id||'local-'+i}')">✏️</button>
-        <button class="btn btn-sm btn-dangereux" onclick="supprimerSeanceEdt('${s.id||'local-'+i}')">🗑️</button>
-      </td>
-    </tr>`;
-  }).join('');
-}
-function ouvrirFormulaireEdt() {
-  document.getElementById('titreModalSeance').innerHTML = '➕ <span class="txt-fr">Nouvelle séance</span>';
-  document.getElementById('editIdSeance').value='';
-  document.getElementById('formJour').value='';
-  document.getElementById('formDebut').value='';
-  document.getElementById('formFin').value='';
-  document.getElementById('formClasse').value=classeUtilisateur||'';
-  document.getElementById('formMatiere').value='';
-  document.getElementById('formProf').value=nomProf||'';
-  modalSeance.show();
-}
-function modifierSeanceEdt(id) {
-  const idx = id.startsWith('local-') ? parseInt(id.replace('local-','')) : listeSeancesEdt.findIndex(s=>String(s.id_classe||s.id)===String(id));
-  if (idx<0) return;
-  const s = listeSeancesEdt[idx];
-  document.getElementById('titreModalSeance').innerHTML = '✏️ <span class="txt-fr">Modifier séance</span>';
-  document.getElementById('editIdSeance').value = id;
-  document.getElementById('formJour').value = s.jour;
-  document.getElementById('formDebut').value = s.heure_debut;
-  document.getElementById('formFin').value = s.heure_fin;
-  document.getElementById('formClasse').value = s.classe_id||s.id_classe||s.classe;
-  document.getElementById('formMatiere').value = s.matiere_id||s.id_matiere||s.matiere;
-  document.getElementById('formProf').value = s.professeur||'';
-  modalSeance.show();
-}
-async function enregistrerSeanceEdt() {
-  const id = document.getElementById('editIdSeance').value;
-  const donnees = {
-    jour: document.getElementById('formJour').value,
-    heure_debut: document.getElementById('formDebut').value,
-    heure_fin: document.getElementById('formFin').value,
-    classe_id: document.getElementById('formClasse').value,
-    matiere_id: document.getElementById('formMatiere').value,
-    professeur: document.getElementById('formProf').value
-  };
-  if (!donnees.jour||!donnees.heure_debut||!donnees.heure_fin||!donnees.classe_id||!donnees.matiere_id) return alert(m('erreurChamp'));
-  try {
-    if (id && !id.startsWith('local-')) await requeteAPI(`/emploi/${id}`,{method:'PUT',body:JSON.stringify(donnees)});
-    else await requeteAPI('/emploi',{method:'POST',body:JSON.stringify(donnees)});
-  } catch {
-    if (id && id.startsWith('local-')) listeSeancesEdt[parseInt(id.replace('local-',''))] = donnees;
-    else listeSeancesEdt.push(donnees);
-    localStorage.setItem('edt_seances', JSON.stringify(listeSeancesEdt));
-  }
-  modalSeance.hide();
-  chargerEmploiDuTemps();
-  alert(m('enregistrer'));
-}
-async function supprimerSeanceEdt(id) {
-  if (!confirm(m('confirmerSuppr'))) return;
-  const idx = id.startsWith('local-') ? parseInt(id.replace('local-','')) : listeSeancesEdt.findIndex(s=>String(s.id_classe||s.id)===String(id));
-  if (idx>=0) listeSeancesEdt.splice(idx,1);
-  try { if (!id.startsWith('local-')) await requeteAPI(`/emploi/${id}`,{method:'DELETE'}); } catch {}
-  localStorage.setItem('edt_seances', JSON.stringify(listeSeancesEdt));
-  appliquerFiltresEdt();
-  alert(m('supprOk'));
-}
-// ✅ PRÉINSCRIPTION : Enregistrer les DEUX choix indépendants
-function validerPreinscription() {
-  const fr = document.getElementById('classe_fr').value;
-  const ar = document.getElementById('classe_ar').value;
-  if (!fr || !ar) { alert(m('erreurChamp')); return; }
-  
-  // ✅ Les deux choix peuvent être différents
-  alert(`✅ Préinscription validée !\nClasse Français (ID ${fr}) : ${listeClasses.find(c=>c.id_classe==fr)?.libelle_classe}\nClasse Arabe (ID ${ar}) : ${listeClasses.find(c=>c.id_classe==ar)?.libelle_classe_ar || listeClasses.find(c=>c.id_classe==ar)?.libelle_classe}`);
-  
-  // TODO : Envoyer au serveur
-  // await requeteAPI('/preinscription', { method: 'POST', body: JSON.stringify({ id_classe_fr: fr, id_classe_ar: ar }) });
-}
-</script>
+
 </body>
 </html>
