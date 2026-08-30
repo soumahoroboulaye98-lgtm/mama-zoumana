@@ -4,625 +4,877 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>
-    <span class="txt-fr">Documents Officiels — Administration</span>
-    <span class="txt-en">Official Documents — Administration</span>
-    <span class="txt-ar">الوثائق الرسمية — الإدارة</span>
+    <span class="txt-fr">Actualités — Administration</span>
+    <span class="txt-en">News — Administration</span>
+    <span class="txt-ar">الأخبار — الإدارة</span>
   </title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    /* ===== 🎨 VARIABLES — CLAIR / SOMBRE ===== */
-    :root, :root[data-bs-theme="light"] {
-      --primaire: #0c4a6e; --succes: #10b981; --alerte: #f59e0b;
-      --danger: #ef4444; --info: #3b82f6; --sombre: #ffffff;
-      --sombre-clair: #f1f5f9; --texte-clair: #1e293b; --texte-dore: #b45309;
-      --bordure: #e2e8f0; --carte: #ffffff; --ombre: rgba(15,23,42,.08);
-      --input-fond: #f8fafc; --fond-dore: #b78628; --fond-dore-clair: #d4a03a;
+    :root {
+      --primaire: #0c4a6e;
+      --primaire-clair: #0ea5e9;
+      --accent: #f59e0b;
+      --accent-clair: #fbbf24;
+      --succes: #10b981;
+      --alerte: #ef4444;
+      --sombre: #0f172a;
+      --sombre-clair: #1e293b;
+      --texte-gris: #94a3b8;
+      --fond-page: #f8fafc;
+      --blanc: #ffffff;
+      --bord-radius: 20px;
+      --ombre: 0 8px 30px rgba(12,74,110,0.08);
+      --ombre-hover: 0 15px 40px rgba(12,74,110,0.15);
     }
-
-    :root[data-bs-theme="dark"] {
-      --primaire: #0369a1; --succes: #34d399; --alerte: #fbbf24;
-      --danger: #f87171; --info: #60a5fa; --sombre: #0f172a;
-      --sombre-clair: #1e293b; --texte-clair: #f8fafc; --texte-dore: #fcd34d;
-      --bordure: rgba(245,158,11,.25); --carte: rgba(30,41,59,.85); --ombre: rgba(0,0,0,.3);
-      --input-fond: rgba(15,23,42,.6); --fond-dore: #9a6f22; --fond-dore-clair: #b78628;
-    }
-
-    /* ===== 🗣️ TRILINGUE ===== */
-    .txt-en,.txt-ar{display:none}
-    body.lang-fr .txt-fr{display:inline}
-    body.lang-en .txt-en{display:inline}
-    body.lang-ar .txt-ar{display:inline}
-    body.lang-en .txt-fr,body.lang-en .txt-ar{display:none}
-    body.lang-fr .txt-en,body.lang-fr .txt-ar{display:none}
-    body.lang-ar .txt-fr,body.lang-ar .txt-en{display:none}
-    body.lang-ar { direction: rtl; }
-
-    /* ===== GÉNÉRAL ===== */
+    /* 🌍 Traduction & RTL */
+    .txt-en, .txt-ar { display: none; }
+    body.lang-fr .txt-fr { display: inline; }
+    body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
+    body.lang-en .txt-en { display: inline; }
+    body.lang-en .txt-fr, body.lang-en .txt-ar { display: none; }
+    body.lang-ar { direction: rtl; text-align: right; }
+    body.lang-ar .txt-ar { display: inline; }
+    body.lang-ar .txt-fr, body.lang-ar .txt-en { display: none; }
+    body.lang-ar .titre-section,
+    body.lang-ar .dropdown-menu,
+    body.lang-ar .bloc-langue h6 { text-align: right; }
+    /* 🎨 Reset & Base */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: linear-gradient(160deg, var(--fond-dore), var(--fond-dore-clair));
-      color: var(--texte-clair);
+      background: linear-gradient(135deg, #f0f4f8 0%, #f8fafc 100%);
+      font-family: 'Segoe UI', system-ui, sans-serif;
       min-height: 100vh;
-      transition: background .4s ease, color .3s ease;
     }
-
-    .entete {
-      background: rgba(15,23,42,0.85);
-      border-bottom: 2px solid var(--alerte);
-      padding: 1.5rem 0;
+    /* ✨ ANIMATIONS D'APPARITION */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes pulse-accent {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
+      50% { box-shadow: 0 0 0 12px rgba(245,158,11,0); }
+    }
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    .fade-in-up { animation: fadeInUp 0.7s ease-out forwards; opacity: 0; }
+    .fade-in { animation: fadeIn 0.6s ease-out forwards; opacity: 0; }
+    .slide-in-left { animation: slideInLeft 0.6s ease-out forwards; opacity: 0; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .float { animation: float 3s ease-in-out infinite; }
+    /* 🧭 Barre de navigation */
+    .navbar-principale {
+      background: linear-gradient(90deg, var(--sombre) 0%, var(--primaire) 100%);
+      padding: 1rem 2rem;
+      box-shadow: 0 4px 25px rgba(12,74,110,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 1030;
       backdrop-filter: blur(10px);
     }
-
-    .carte {
-      background: var(--carte);
-      border-radius: 12px;
-      padding: 1.25rem;
-      border-left: 3px solid var(--alerte);
-      margin-bottom: 1.5rem;
-      box-shadow: 0 4px 20px var(--ombre);
-      transition: all .3s ease;
+    .navbar-brand {
+      color: var(--accent-clair) !important;
+      font-weight: 800;
+      font-size: 1.45rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s ease;
     }
-    .carte:hover { transform: translateY(-2px); box-shadow: 0 8px 25px var(--ombre); }
-
+    .navbar-brand:hover { transform: scale(1.03); }
+    .navbar-brand i { font-size: 1.9rem; }
+    .nav-link {
+      color: #e2e8f0 !important;
+      font-weight: 500;
+      padding: 0.65rem 1rem !important;
+      border-radius: 12px;
+      transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+    .nav-link::before {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 50%; width: 0;
+      height: 3px;
+      background: var(--accent);
+      transition: all 0.35s ease;
+      transform: translateX(-50%);
+    }
+    .nav-link:hover, .nav-link.active {
+      background: rgba(245,158,11,0.12);
+      color: var(--accent-clair) !important;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(245,158,11,0.15);
+    }
+    .nav-link:hover::before, .nav-link.active::before { width: 80%; }
+    .dropdown-menu {
+      border: none; border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+      padding: 0.75rem;
+      border-top: 3px solid var(--accent);
+      animation: fadeInUp 0.25s ease-out;
+    }
+    .dropdown-item {
+      padding: 0.7rem 1.1rem; border-radius: 12px;
+      transition: all 0.25s ease;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .dropdown-item:hover {
+      background: linear-gradient(90deg, rgba(12,74,110,0.06), rgba(14,165,233,0.08));
+      color: var(--primaire);
+      transform: translateX(5px);
+    }
+    body.lang-ar .dropdown-item:hover { transform: translateX(-5px); }
+    .btn-langue {
+      border-radius: 50px; padding: 0.4rem 1rem;
+      font-weight: 600; font-size: 0.9rem;
+      background: rgba(255,255,255,0.1); color: #cbd5e1;
+      border: none; margin: 0 3px;
+      transition: all 0.3s ease;
+    }
+    .btn-langue.actif {
+      background: linear-gradient(135deg, var(--accent), var(--accent-clair));
+      color: var(--sombre); box-shadow: 0 4px 15px rgba(245,158,11,0.35);
+    }
+    .btn-langue:hover:not(.actif) {
+      background: rgba(255,255,255,0.18); color: white;
+      transform: translateY(-2px);
+    }
+    .btn-deconnexion {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: white !important; border-radius: 12px;
+      padding: 0.55rem 1.3rem !important; margin-left: 0.8rem;
+      border: none; transition: all 0.3s ease;
+    }
+    .btn-deconnexion:hover {
+      background: linear-gradient(135deg, #b91c1c, #991b1b);
+      transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,38,38,0.3);
+    }
+    /* 📦 Contenu */
+    .contenu { padding: 2.5rem; max-width: 1280px; margin: 0 auto; }
+    .alerte-api {
+      border-left: 3px solid var(--alerte);
+      background: rgba(239,68,68,0.08);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    body.lang-ar .alerte-api { border-left: none; border-right: 3px solid var(--alerte); }
+    .bienvenue {
+      background: linear-gradient(135deg, rgba(12,74,110,0.06), rgba(245,158,11,0.08));
+      padding: 2.2rem 2.8rem; border-radius: 24px;
+      margin-bottom: 2.5rem; border-left: 5px solid var(--accent);
+      box-shadow: var(--ombre);
+      transition: all 0.4s ease;
+    }
+    .bienvenue:hover { box-shadow: var(--ombre-hover); transform: translateY(-2px); }
+    body.lang-ar .bienvenue { border-left: none; border-right: 5px solid var(--accent); }
+    .bienvenue h2 {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--primaire);
+      margin-bottom: 0.5rem;
+      background: linear-gradient(90deg, var(--primaire), var(--primaire-clair));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nom-utilisateur-affiche {
+      font-weight: 600; color: var(--primaire); background: white;
+      padding: 0.5rem 1.2rem; border-radius: 50px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .titre-section {
+      font-size: 1.45rem; font-weight: 700; color: var(--primaire);
+      margin-bottom: 1.5rem; padding-bottom: 0.5rem;
+      border-bottom: 3px solid transparent;
+      background: linear-gradient(90deg, var(--primaire), var(--accent)) 0 100% / 100% 3px no-repeat;
+      display: flex; align-items: center; gap: 10px;
+    }
+    /* 📝 Formulaire */
+    .form-card {
+      background: white; border-radius: var(--bord-radius);
+      box-shadow: var(--ombre); padding: 2.2rem; margin-bottom: 2.2rem;
+      transition: all 0.4s ease;
+    }
+    .form-card:hover { box-shadow: var(--ombre-hover); }
+    .bloc-langue {
+      border: 2px solid #e2e8f0; border-radius: 16px;
+      padding: 1.5rem; margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #fafbfc, #f8fafc);
+      transition: all 0.35s ease;
+    }
+    .bloc-langue:hover { border-color: var(--primaire-clair); box-shadow: 0 5px 20px rgba(14,165,233,0.08); }
+    .bloc-langue h6 {
+      font-weight: 700; margin-bottom: 1.2rem; padding-bottom: 0.6rem;
+      border-bottom: 3px solid; display: flex; align-items: center; gap: 8px;
+    }
+    .bloc-fr h6 { color: #0c4a6e; border-bottom-color: #0c4a6e; }
+    .bloc-en h6 { color: #059669; border-bottom-color: #059669; }
+    .bloc-ar h6 { color: #d97706; border-bottom-color: #d97706; }
+    .form-label {
+      font-weight: 600; color: #334155; margin-bottom: 0.5rem;
+      display: flex; align-items: center; gap: 5px;
+    }
     .form-control, .form-select {
-      background: var(--input-fond);
-      border: 1px solid var(--bordure);
-      color: var(--texte-clair);
-      border-radius: 8px;
+      border-radius: 12px; border: 2px solid #e2e8f0;
+      padding: 0.75rem 1rem; font-size: 0.95rem;
+      transition: all 0.3s ease;
+      background: #fcfcfd;
     }
     .form-control:focus, .form-select:focus {
-      background: var(--input-fond);
-      border-color: var(--alerte);
-      color: var(--texte-clair);
-      box-shadow: 0 0 0 .25rem rgba(245,158,11,.15);
+      border-color: var(--primaire-clair); box-shadow: 0 0 0 4px rgba(14,165,233,0.12);
+      outline: none; background: white;
     }
-
-    .barre-langue { display: flex; gap: .75rem; justify-content: center; margin-bottom: 2rem; }
-    .lang-btn.active { background:var(--alerte); border-color:var(--alerte); color:#000; }
-
-    .carte-document {
-      background: #fff; color: #000;
-      border-radius: 10px; padding: 2rem;
-      max-width: 520px; margin: 1rem auto;
-      border: 3px solid var(--alerte);
-      box-shadow: 0 8px 30px rgba(0,0,0,.15);
+    .form-control::placeholder { color: #94a3b8; }
+    .etoile-rouge { color: #ef4444; font-weight: bold; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primaire), var(--primaire-clair));
+      border: none; border-radius: 12px; padding: 0.8rem 2rem;
+      font-weight: 600; font-size: 1rem;
+      transition: all 0.35s ease;
+      box-shadow: 0 4px 15px rgba(12,74,110,0.2);
     }
-    .logo-carte { font-size: 1.8rem; font-weight: bold; color: var(--fond-dore); }
-    .numero-ref { font-family:'Courier New',monospace; font-weight:bold; color:#666; }
-    .alerte-api { border-left:4px solid var(--danger); background:rgba(239,68,68,.1); border-radius:8px; padding:.75rem 1rem; margin-bottom:1rem; }
-
-    .theme-btn { width:38px; height:38px; border-radius:50%; border:2px solid; padding:0; display:flex; align-items:center; justify-content:center; }
-
-    /* ===== IMPRESSION — TOUT SAUF DOCUMENT MASQUÉ ===== */
-    @media print {
-      body { background: white !important; color: black !important; }
-      .entete, .barre-langue, .btn, .no-print, .alerte-api, .theme-btn { display: none !important; }
-      .carte { border: none !important; background: white !important; padding: 0 !important; box-shadow: none !important; }
-      .carte-document { box-shadow: none !important; margin: 0 !important; border-width: 2px; }
+    .btn-primary:hover {
+      transform: translateY(-3px); box-shadow: 0 8px 25px rgba(12,74,110,0.3);
+    }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-annuler {
+      background: #f1f5f9; color: #475569; border-radius: 10px;
+      padding: 0.5rem 1rem; margin-left: 0.8rem;
+      border: 1px solid #cbd5e1; transition: all 0.3s ease;
+    }
+    .btn-annuler:hover { background: #e2e8f0; color: #1e293b; }
+    /* 📰 Cartes Actualités */
+    .actu-card {
+      background: white; border-radius: 18px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06); padding: 1.6rem;
+      margin-bottom: 1.2rem; border-left: 5px solid var(--primaire);
+      transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+      opacity: 0; transform: translateY(25px);
+      animation: fadeInUp 0.6s ease-out forwards;
+    }
+    .actu-card:hover {
+      transform: translateY(-6px) scale(1.01);
+      box-shadow: 0 15px 40px rgba(12,74,110,0.15);
+      border-left-width: 8px;
+    }
+    body.lang-ar .actu-card { border-left: none; border-right: 5px solid var(--primaire); }
+    body.lang-ar .actu-card:hover { border-right-width: 8px; }
+    .actu-card.epingle {
+      border-left-color: var(--accent); background: linear-gradient(135deg, #fffbeb, #ffffff);
+    }
+    body.lang-ar .actu-card.epingle { border-right-color: var(--accent); }
+    .actu-card.epingle:hover { box-shadow: 0 15px 40px rgba(245,158,11,0.18); }
+    .actu-titre {
+      font-weight: 700; font-size: 1.15rem; color: var(--sombre);
+      margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;
+    }
+    .actu-meta {
+      font-size: 0.88rem; color: #64748b; margin-bottom: 0.8rem;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .actu-contenu { color: #475569; line-height: 1.7; }
+    .btn-sm { border-radius: 10px; padding: 0.35rem 0.55rem; transition: all 0.25s ease; }
+    .btn-sm:hover { transform: scale(1.1); }
+    .badge { border-radius: 50px; padding: 0.35rem 0.8rem; font-weight: 600; }
+    /* 📱 Responsive */
+    @media (max-width: 767px) {
+      .contenu { padding: 1.2rem; }
+      .bienvenue { padding: 1.5rem; }
+      .form-card { padding: 1.2rem; }
     }
   </style>
 </head>
 <body>
-
 <script>
-  // 🔗 URL adaptative
+  // ==================================================
+  // ✅ CONFIGURATION API — TOUT AU DÉBUT
+  // ==================================================
   const API_URL = "https://mama-zoumana-api.onrender.com/api";
-function getToken() { return localStorage.getItem('token'); }
-async function requeteAPI(chemin, options = {}) {
-  const reponse = await fetch(`${API_URL}${chemin}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
-      ...options.headers
-    }
-  });
-  const donnees = await reponse.json();
-  if (reponse.status === 401) {
-    alert("⛔ Session expirée — Reconnectez-vous");
-    localStorage.clear();
-    window.location.href = 'connexion.html';
+
+  // ✅ Récupération sécurisée du token
+  function getToken() {
+    return localStorage.getItem('token') || '';
   }
-  return donnees;
-}
-  const token = getItem('token');
-  const role = localStorage.getItem('role');
-  const langueActuelle = localStorage.getItem('langue') || 'fr';
-  const themeActuel = localStorage.getItem('theme') || 'light';
+  const role = (localStorage.getItem('role') || '').toLowerCase().trim();
+  const nomUtilisateur = localStorage.getItem('nom') || 'Utilisateur';
+  const prenomUtilisateur = localStorage.getItem('prenoms') || '';
+  const nomComplet = (nomUtilisateur + ' ' + prenomUtilisateur).trim();
 
-  // ✅ Appliquer thème et langue au chargement
-  document.documentElement.setAttribute('data-bs-theme', themeActuel);
-  document.body.classList.add('lang-' + langueActuel);
+  // ✅ Requête API centralisée avec gestion 401/403
+  async function requeteAPI(chemin, options = {}) {
+    const reponse = await fetch(`${API_URL}${chemin}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`,
+        ...(options.headers || {})
+      }
+    });
+    // Session expirée → déconnexion
+    if (reponse.status === 401 || reponse.status === 403) {
+      alert("⛔ Session expirée — Veuillez vous reconnecter");
+      localStorage.clear();
+      window.location.href = 'connexion.html';
+      throw new Error("Session expirée");
+    }
+    return await reponse.json();
+  }
 
-  // 💾 Stockage local
-  function obtenirElevesLocaux() { return JSON.parse(localStorage.getItem('liste_eleves') || '[]'); }
-  function sauvegarderElevesLocaux(liste) { localStorage.setItem('liste_eleves', JSON.stringify(liste)); }
-  function obtenirEmployesLocaux() { return JSON.parse(localStorage.getItem('liste_employes') || '[]'); }
-  function sauvegarderEmployesLocaux(liste) { localStorage.setItem('liste_employes', JSON.stringify(liste)); }
+  // ==================================================
+  // 🗣️ TRADUCTIONS & ÉTAT GLOBAL
+  // ==================================================
+  let langue = localStorage.getItem('langue') || 'fr';
+  let modeLocal = false;
+  let editionId = null;
 
-  // 🗣️ Messages multilingues
   const MSG = {
     fr: {
       accesReserve: "⛔ Accès réservé à l'Administrateur",
       serveurIndispo: "⚠️ Serveur indisponible — Mode local actif",
-      eleve: "Élève", employe: "Personnel", typeDoc: "Type de document", annee: "Année Scolaire",
-      generer: "💾 Générer & Enregistrer", imprimer: "🖨️ Imprimer en PDF",
-      erreurChargement: "Erreur de chargement", aucunResultat: "Aucune donnée trouvée",
-      genereOk: "✅ Document généré !", selectClasse: "Sélectionnez d'abord"
+      chargerErreur: "Erreur de chargement",
+      connexionErreur: "❌ Erreur de connexion au serveur",
+      aucunChampVide: "⚠️ Remplissez au moins le titre et le contenu en français",
+      ajouterSucces: "✅ Actualité publiée avec succès !",
+      modifierSucces: "✅ Actualité mise à jour !",
+      supprimerConfirmer: "Supprimer cette actualité ?",
+      supprimerSucces: "✅ Supprimé avec succès !",
+      annuler: "Annuler",
+      modifier: "Modifier",
+      supprimer: "Supprimer",
+      publier: "🚀 Publier l'Actualité",
+      miseAJour: "✅ Mettre à jour",
+      aucunEnregistrement: "Aucune actualité enregistrée",
+      brouillon: "📄 Brouillon",
+      date: "Date"
     },
     en: {
       accesReserve: "⛔ Access restricted to Administrator",
       serveurIndispo: "⚠️ Server offline — Local mode active",
-      eleve: "Student", employe: "Staff", typeDoc: "Document Type", annee: "School Year",
-      generer: "💾 Generate & Save", imprimer: "🖨️ Print as PDF",
-      erreurChargement: "Loading error", aucunResultat: "No data found",
-      genereOk: "✅ Document generated!", selectClasse: "Select first"
+      chargerErreur: "Loading error",
+      connexionErreur: "❌ Server connection error",
+      aucunChampVide: "⚠️ Fill at least French title and content",
+      ajouterSucces: "✅ News published successfully!",
+      modifierSucces: "✅ News updated!",
+      supprimerConfirmer: "Delete this news item?",
+      supprimerSucces: "✅ Deleted successfully!",
+      annuler: "Cancel",
+      modifier: "Edit",
+      supprimer: "Delete",
+      publier: "🚀 Publish News",
+      miseAJour: "✅ Update",
+      aucunEnregistrement: "No news recorded",
+      brouillon: "📄 Draft",
+      date: "Date"
     },
     ar: {
       accesReserve: "⛔ الوصول مقصور على المدير",
       serveurIndispo: "⚠️ الخادم غير متاح — العمل محلي",
-      eleve: "التلميذ", employe: "الموظف", typeDoc: "نوع الوثيقة", annee: "السنة الدراسية",
-      generer: "💾 إنشاء وحفظ", imprimer: "🖨️ طباعة PDF",
-      erreurChargement: "خطأ في التحميل", aucunResultat: "لم يتم العثور على بيانات",
-      genereOk: "✅ تم إنشاء الوثيقة!", selectClasse: "اختر أولاً"
+      chargerErreur: "خطأ في التحميل",
+      connexionErreur: "❌ خطأ في الاتصال بالخادم",
+      aucunChampVide: "⚠️ املأ العنوان والمحتوى بالفرنسية على الأقل",
+      ajouterSucces: "✅ تم نشر الخبر بنجاح!",
+      modifierSucces: "✅ تم تحديث الخبر!",
+      supprimerConfirmer: "حذف هذا الخبر؟",
+      supprimerSucces: "✅ تم الحذف بنجاح!",
+      annuler: "إلغاء",
+      modifier: "تعديل",
+      supprimer: "حذف",
+      publier: "🚀 نشر الخبر",
+      miseAJour: "✅ تحديث",
+      aucunEnregistrement: "لا أخبار مسجلة",
+      brouillon: "📄 مسودة",
+      date: "التاريخ"
     }
   };
-  function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
+  function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
 
-  // 🔒 SÉCURITÉ
-  if(!token || role !== 'admin'){
+  // ==================================================
+  // 💾 STOCKAGE LOCAL (Fallback)
+  // ==================================================
+  function obtenirActualitesLocales() { 
+    try { return JSON.parse(localStorage.getItem('actualites') || '[]'); } 
+    catch { return []; }
+  }
+  function sauvegarderActualitesLocales(liste) { 
+    localStorage.setItem('actualites', JSON.stringify(liste)); 
+  }
+  function basculerModeLocal(actif) {
+    modeLocal = actif;
+    const alerte = document.getElementById('alerteApi');
+    if (alerte) {
+      alerte.textContent = m('serveurIndispo');
+      alerte.classList.toggle('d-none', !actif);
+    }
+  }
+
+  // ==================================================
+  // 🔒 SÉCURITÉ — ACCÈS ADMIN SEUL
+  // ==================================================
+  if(!getToken() || !['admin','super_admin'].includes(role)){
     alert(m('accesReserve'));
     localStorage.clear();
-    location.href='dashboard.html';
+    location.href = '../connexion.html';
   }
+  document.body.classList.add('lang-' + langue);
 </script>
 
-<!-- 📌 EN-TÊTE -->
-<div class="entete no-print">
-  <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <div>
-      <h3 class="mb-1">🪪
-        <span class="txt-fr">Documents Officiels</span>
-        <span class="txt-en">Official Documents</span>
-        <span class="txt-ar">الوثائق الرسمية</span>
-      </h3>
-      <p class="mb-0 opacity-75 small">
-        <span class="txt-fr">Élèves : Carte, Attestation, Bulletin, Facture | Personnel : Attestation de travail</span>
-        <span class="txt-en">Students: Card, Attestation, Report, Invoice | Staff: Work Certificate</span>
-        <span class="txt-ar">التلاميذ: بطاقة، شهادة، كشف، فاتورة | الموظفين: شهادة عمل</span>
-      </p>
-    </div>
-    <div class="d-flex gap-2 align-items-center">
-      <button id="btnTheme" class="btn theme-btn btn-outline-light" title="Mode clair/sombre">
-        <i id="iconeTheme" class="bi"></i>
-      </button>
-      <a href="dashboard.html" class="btn btn-outline-light">
-        <i class="bi bi-arrow-left me-1"></i>
-        <span class="txt-fr">Retour</span>
-        <span class="txt-en">Back</span>
-        <span class="txt-ar">رجوع</span>
-      </a>
+<script>
+  // ==================================================
+  // 🗣️ CHANGEMENT DE LANGUE
+  // ==================================================
+  window.appliquerLangue = function(lang, e) {
+    localStorage.setItem('langue', lang);
+    langue = lang;
+    document.body.classList.remove('lang-fr','lang-en','lang-ar');
+    document.body.classList.add('lang-' + lang);
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.remove('actif'));
+    e.currentTarget.classList.add('actif');
+    chargerActualites();
+  };
+
+  // ==================================================
+  // 🚪 DÉCONNEXION
+  // ==================================================
+  window.deconnecter = function() {
+    if (confirm(m('supprimerConfirmer').slice(0,15) + '...')) {
+      localStorage.clear();
+      location.href = '../connexion.html';
+    }
+  };
+
+  // ==================================================
+  // 🎬 DÉMARRAGE
+  // ==================================================
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('actif', b.dataset.lang === langue));
+    document.getElementById('nom-affiche').textContent = nomComplet;
+    chargerActualites();
+  });
+</script>
+
+<!-- 🧭 BARRE DE NAVIGATION -->
+<nav class="navbar-principale navbar-expand-lg navbar-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="dashboard.html"><i class="bi bi-building float"></i> MAMA-ZOUMANA</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="menuPrincipal">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="dashboard.html">
+            <i class="bi bi-speedometer2"></i>
+            <span class="txt-fr">Tableau de Bord</span>
+            <span class="txt-en">Dashboard</span>
+            <span class="txt-ar">لوحة التحكم</span>
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            <i class="bi bi-people"></i>
+            <span class="txt-fr">Utilisateurs</span>
+            <span class="txt-en">Users</span>
+            <span class="txt-ar">المستخدمون</span>
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="utilisateurs.html">
+              <i class="bi bi-person-lines-fill"></i>
+              <span class="txt-fr">Gérer Utilisateurs</span>
+              <span class="txt-en">Manage Users</span>
+              <span class="txt-ar">إدارة المستخدمين</span>
+            </a></li>
+            <li><a class="dropdown-item" href="affectation-prof.html">
+              <i class="bi bi-person-check"></i>
+              <span class="txt-fr">Affectation Enseignants</span>
+              <span class="txt-en">Teacher Assignment</span>
+              <span class="txt-ar">تكليف المدرسين</span>
+            </a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+            <i class="bi bi-megaphone"></i>
+            <span class="txt-fr">Communication</span>
+            <span class="txt-en">Communication</span>
+            <span class="txt-ar">التواصل</span>
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="annonces.html">
+              <i class="bi bi-broadcast-pin"></i>
+              <span class="txt-fr">Annonces</span>
+              <span class="txt-en">Announcements</span>
+              <span class="txt-ar">الإعلانات</span>
+            </a></li>
+            <li><a class="dropdown-item active" href="actualites.html">
+              <i class="bi bi-newspaper"></i>
+              <span class="txt-fr">Actualités</span>
+              <span class="txt-en">News</span>
+              <span class="txt-ar">الأخبار</span>
+            </a></li>
+            <li><a class="dropdown-item" href="evenements.html">
+              <i class="bi bi-calendar-event"></i>
+              <span class="txt-fr">Événements</span>
+              <span class="txt-en">Events</span>
+              <span class="txt-ar">الفعاليات</span>
+            </a></li>
+          </ul>
+        </li>
+      </ul>
+      <div class="d-flex align-items-center">
+        <button class="btn-langue" data-lang="fr" onclick="appliquerLangue('fr', event)">🇫🇷 FR</button>
+        <button class="btn-langue" data-lang="en" onclick="appliquerLangue('en', event)">🇬🇧 EN</button>
+        <button class="btn-langue" data-lang="ar" onclick="appliquerLangue('ar', event)">🇸🇦 AR</button>
+        <span class="nom-utilisateur-affiche ms-3 d-none d-md-inline">
+          <i class="bi bi-person-circle text-primary"></i> <span id="nom-affiche">...</span>
+        </span>
+        <button class="btn-deconnexion nav-link" onclick="deconnecter()">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="d-none d-sm-inline txt-fr">Déconnexion</span>
+          <span class="d-none d-sm-inline txt-en">Log out</span>
+          <span class="d-none d-sm-inline txt-ar">تسجيل الخروج</span>
+        </button>
+      </div>
     </div>
   </div>
-</div>
+</nav>
 
-<div class="container py-4">
-  <!-- ⚠️ ALERTE API -->
-  <div id="alerteApi" class="alerte-api d-none no-print">
+<!-- 📄 CONTENU PRINCIPAL -->
+<div class="contenu">
+  <!-- ⚠️ ALERTE MODE LOCAL -->
+  <div id="alerteApi" class="alerte-api d-none fade-in-up">
     <i class="bi bi-wifi-off me-2"></i>
     <span id="texteAlerteApi"></span>
   </div>
 
-  <!-- 🌐 LANGUES -->
-  <div class="barre-langue no-print">
-    <button class="btn lang-btn btn-outline-warning" data-lang="fr">🇫🇷 FR</button>
-    <button class="btn lang-btn btn-outline-warning" data-lang="en">🇬🇧 EN</button>
-    <button class="btn lang-btn btn-outline-warning" data-lang="ar">🇸🇦 AR</button>
+  <div class="bienvenue fade-in-up">
+    <h2>📰
+      <span class="txt-fr">Gestion des Actualités</span>
+      <span class="txt-en">News Management</span>
+      <span class="txt-ar">إدارة الأخبار</span>
+    </h2>
+    <p class="text-muted mb-0">
+      <span class="txt-fr">Publiez et gérez vos actualités en trois langues : Français, Anglais et Arabe.</span>
+      <span class="txt-en">Publish and manage your news in three languages: French, English and Arabic.</span>
+      <span class="txt-ar">انشر وأدر أخبارك بثلاث لغات: الفرنسية والإنجليزية والعربية.</span>
+    </p>
   </div>
 
-  <div class="row g-4">
-    <!-- ➕ FORMULAIRE DE GÉNÉRATION -->
-    <div class="col-md-5">
-      <div class="carte no-print">
-        <h5 class="mb-4">📄
-          <span class="txt-fr">Délivrer un document</span>
-          <span class="txt-en">Issue a document</span>
-          <span class="txt-ar">إصدار وثيقة</span>
-        </h5>
-        <form id="formDoc">
-          <!-- CHOIX CATÉGORIE -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold">
-              <span class="txt-fr">Bénéficiaire</span>
-              <span class="txt-en">Recipient Type</span>
-              <span class="txt-ar">نوع المستفيد</span>
-            </label>
-            <select id="categorieBeneficiaire" class="form-select">
-              <option value="eleve" selected>🎓 <span class="txt-fr">Élève</span><span class="txt-en">Student</span><span class="txt-ar">تلميذ</span></option>
-              <option value="employe">👨‍🏫 <span class="txt-fr">Personnel</span><span class="txt-en">Staff</span><span class="txt-ar">موظف</span></option>
-            </select>
+  <!-- 📝 FORMULAIRE DE PUBLICATION -->
+  <div class="form-card fade-in-up delay-1">
+    <h5 class="titre-section mb-4">
+      <i class="bi bi-pencil-square text-primary"></i>
+      <span class="txt-fr">Publier une Nouvelle Actualité</span>
+      <span class="txt-en">Publish New News</span>
+      <span class="txt-ar">نشر خبر جديد</span>
+    </h5>
+    <form id="form-actualite">
+      <!-- 🇫🇷 FRANÇAIS -->
+      <div class="bloc-langue bloc-fr">
+        <h6><i class="bi bi-translate"></i> 🇫🇷 Français</h6>
+        <div class="row g-3">
+          <div class="col-md-12">
+            <label class="form-label">Titre <span class="etoile-rouge">*</span></label>
+            <input type="text" id="titre_fr" class="form-control" required placeholder="Titre de l'actualité">
           </div>
-
-          <!-- ÉLÈVE -->
-          <div id="blocEleve">
-            <div class="mb-3">
-              <label class="form-label fw-semibold">🎓 ${m('eleve')} *</label>
-              <select name="id_eleve" id="sel-eleve" class="form-select" required>
-                <option value="">--- <span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جار التحميل...</span> ---</option>
-              </select>
-            </div>
+          <div class="col-md-12">
+            <label class="form-label">Résumé court</label>
+            <textarea id="resume_fr" class="form-control" rows="2" placeholder="Brève description affichée dans la liste"></textarea>
           </div>
-
-          <!-- PERSONNEL -->
-          <div id="blocEmploye" class="d-none">
-            <div class="mb-3">
-              <label class="form-label fw-semibold">👨‍🏫 ${m('employe')} *</label>
-              <select name="id_employe" id="sel-employe" class="form-select">
-                <option value="">--- <span class="txt-fr">Chargement...</span><span class="txt-en">Loading...</span><span class="txt-ar">جار التحميل...</span> ---</option>
-              </select>
-            </div>
+          <div class="col-md-12">
+            <label class="form-label">Contenu complet <span class="etoile-rouge">*</span></label>
+            <textarea id="contenu_fr" class="form-control" rows="5" required placeholder="Contenu détaillé de l'actualité"></textarea>
           </div>
-
-          <!-- TYPE DE DOCUMENT -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold">${m('typeDoc')} *</label>
-            <select name="type_doc" id="sel-type" class="form-select" required>
-              <optgroup id="groupeEleve" label="🎓 Élèves">
-                <option value="carte_scolaire">🪪 Carte Scolaire</option>
-                <option value="attestation_scolarite">📄 Attestation de Scolarité</option>
-                <option value="certificat_scolarite">📃 Certificat de Scolarité</option>
-                <option value="bulletin_notes">📊 Bulletin de Notes</option>
-                <option value="facture_frais">💰 Facture / Quittance</option>
-              </optgroup>
-              <optgroup id="groupeEmploye" label="👨‍🏫 Personnel" class="d-none">
-                <option value="attestation_travail">📄 Attestation de Travail</option>
-                <option value="certificat_travail">📃 Certificat de Travail</option>
-              </optgroup>
-            </select>
-          </div>
-
-          <div class="mb-4">
-            <label class="form-label fw-semibold">${m('annee')} *</label>
-            <input type="text" name="annee_scolaire" class="form-control" value="2026-2027" required>
-          </div>
-
-          <button type="submit" class="btn btn-success w-100 py-2">
-            <i class="bi bi-save me-2"></i> ${m('generer')}
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <!-- 📄 PRÉVISUALISATION DU DOCUMENT -->
-    <div class="col-md-7">
-      <div id="affichage-carte">
-        <div class="text-center text-muted py-5">
-          <i class="bi bi-file-earmark-text fs-1"></i>
-          <p class="mt-3">
-            <span class="txt-fr">Le document apparaîtra ici après génération</span>
-            <span class="txt-en">The document will appear here after generation</span>
-            <span class="txt-ar">ستظهر الوثيقة هنا بعد الإنشاء</span>
-          </p>
         </div>
       </div>
-    </div>
+
+      <!-- 🇬🇧 ANGLAIS -->
+      <div class="bloc-langue bloc-en">
+        <h6><i class="bi bi-translate"></i> 🇬🇧 English</h6>
+        <div class="row g-3">
+          <div class="col-md-12">
+            <label class="form-label">Title</label>
+            <input type="text" id="titre_en" class="form-control" placeholder="News title">
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">Short summary</label>
+            <textarea id="resume_en" class="form-control" rows="2" placeholder="Brief description displayed in list"></textarea>
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">Full content</label>
+            <textarea id="contenu_en" class="form-control" rows="5" placeholder="Detailed news content"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🇸🇦 ARABE -->
+      <div class="bloc-langue bloc-ar">
+        <h6><i class="bi bi-translate"></i> 🇸🇦 العربية</h6>
+        <div class="row g-3">
+          <div class="col-md-12">
+            <label class="form-label">العنوان</label>
+            <input type="text" id="titre_ar" class="form-control" placeholder="عنوان الخبر">
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">ملخص مختصر</label>
+            <textarea id="resume_ar" class="form-control" rows="2" placeholder="وصف مختصر يظهر في القائمة"></textarea>
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">المحتوى الكامل</label>
+            <textarea id="contenu_ar" class="form-control" rows="5" placeholder="المحتوى التفصيلي للخبر"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⚙️ Options -->
+      <div class="bloc-langue" style="border-color: #e5e7eb; background: #fafafa;">
+        <h6 style="color: #4b5563; border-bottom-color: #e5e7eb;"><i class="bi bi-gear"></i> Options de publication</h6>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="est_publie" checked>
+              <label class="form-check-label" for="est_publie">
+                <span class="txt-fr">✅ Publié immédiatement</span>
+                <span class="txt-en">✅ Published immediately</span>
+                <span class="txt-ar">✅ منشور فوراً</span>
+              </label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="epingle">
+              <label class="form-check-label" for="epingle">
+                <span class="txt-fr">📌 Épingler en haut</span>
+                <span class="txt-en">📌 Pin to top</span>
+                <span class="txt-ar">📌 تثبيت في الأعلى</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ BOUTONS SOUMETTRE + ANNULER (CORRIGÉ) -->
+      <div class="d-flex align-items-center mt-4">
+        <button type="submit" id="btnSoumettre" class="btn btn-primary">
+          <i class="bi bi-send-check me-2"></i>
+          <span class="txt-fr">🚀 Publier l'Actualité</span>
+          <span class="txt-en">🚀 Publish News</span>
+          <span class="txt-ar">🚀 نشر الخبر</span>
+        </button>
+        <button type="button" id="btnAnnuler" class="btn-annuler" style="display:none;" onclick="reinitialiserFormulaire()">
+          <i class="bi bi-x-lg me-1"></i>
+          <span class="txt-fr">Annuler</span>
+          <span class="txt-en">Cancel</span>
+          <span class="txt-ar">إلغاء</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 📰 LISTE DES ACTUALITÉS -->
+  <div class="fade-in-up delay-3">
+    <h4 class="titre-section">
+      <i class="bi bi-list-ul text-primary"></i>
+      <span class="txt-fr">Liste des Actualités</span>
+      <span class="txt-en">List of News</span>
+      <span class="txt-ar">قائمة الأخبار</span>
+    </h4>
+    <div id="liste-actualites" class="mt-2"></div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  let listeEleves = [], listeEmployes = [];
-
-  // 🌙 BASCULEMENT CLAIR / SOMBRE
-  document.getElementById('btnTheme').addEventListener('click', () => {
-    const actuel = document.documentElement.getAttribute('data-bs-theme') || 'light';
-    const nouveau = actuel === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-bs-theme', nouveau);
-    localStorage.setItem('theme', nouveau);
-    mettreAJourIconeTheme(nouveau);
-  });
-  function mettreAJourIconeTheme(t){
-    document.getElementById('iconeTheme').className = t === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
-  }
-  mettreAJourIconeTheme(themeActuel);
-
-  // 🗣️ CHANGEMENT DE LANGUE
-  document.querySelectorAll('.lang-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const lang = btn.dataset.lang;
-      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.body.className = `lang-${lang}`;
-      localStorage.setItem('langue', lang);
-    });
-  });
-  document.querySelector(`.lang-btn[data-lang="${langueActuelle}"]`)?.classList.add('active');
-
-  // 🔄 BASCULEMENT ÉLÈVE / PERSONNEL
-  document.getElementById('categorieBeneficiaire').addEventListener('change', e => {
-    const cat = e.target.value;
-    document.getElementById('blocEleve').classList.toggle('d-none', cat !== 'eleve');
-    document.getElementById('blocEmploye').classList.toggle('d-none', cat !== 'employe');
-    document.getElementById('groupeEleve').classList.toggle('d-none', cat !== 'eleve');
-    document.getElementById('groupeEmploye').classList.toggle('d-none', cat !== 'employe');
-    // Mettre à jour l'attribut required
-    document.getElementById('sel-eleve').required = (cat === 'eleve');
-    document.getElementById('sel-employe').required = (cat === 'employe');
-  });
-
-  // 📄 Libellé type de document
-  function libelleTypeDoc(code){
-    const lib = {
-      fr: {
-        carte_scolaire:"CARTE SCOLAIRE", attestation_scolarite:"ATTESTATION DE SCOLARITÉ",
-        certificat_scolarite:"CERTIFICAT DE SCOLARITÉ", bulletin_notes:"BULLETIN DE NOTES",
-        facture_frais:"QUITTANCE / FACTURE DE FRAIS", attestation_travail:"ATTESTATION DE TRAVAIL",
-        certificat_travail:"CERTIFICAT DE TRAVAIL"
-      },
-      en: {
-        carte_scolaire:"SCHOOL CARD", attestation_scolarite:"SCHOOL ATTESTATION",
-        certificat_scolarite:"SCHOOL CERTIFICATE", bulletin_notes:"SCHOOL REPORT",
-        facture_frais:"TUITION FEE INVOICE", attestation_travail:"WORK CERTIFICATE",
-        certificat_travail:"EMPLOYMENT CERTIFICATE"
-      },
-      ar: {
-        carte_scolaire:"البطاقة المدرسية", attestation_scolarite:"شهادة دراسية",
-        certificat_scolarite:"إفادة دراسية", bulletin_notes:"كشف النقاط",
-        facture_frais:"فاتورة الرسوم الدراسية", attestation_travail:"شهادة عمل",
-        certificat_travail:"شهادة ممارسة عمل"
+// ==================================================
+// 📋 CHARGER LA LISTE DES ACTUALITÉS
+// ==================================================
+async function chargerActualites(forcerLocal = false) {
+  let liste = [];
+  if (!forcerLocal) {
+    try {
+      const donnees = await requeteAPI('/actualites/liste?tout=1');
+      liste = donnees.actualites || donnees.lignes || [];
+      if (Array.isArray(liste) && liste.length > 0) {
+        sauvegarderActualitesLocales(liste);
+        basculerModeLocal(false);
+      } else {
+        throw new Error("Liste vide");
       }
-    };
-    return lib[langueActuelle]?.[code] || lib.fr[code] || code.replace('_',' ').toUpperCase();
-  }
-
-  // ✅ CHARGER ÉLÈVES
-  async function chargerEleves(){
-    const sel = document.getElementById('sel-eleve');
-    const alerteApi = document.getElementById('alerteApi');
-    try {
-      const r = await fetch(`${API_URL}/eleves/tous`, {headers:{'Authorization':`Bearer ${token}`}});
-      const data = await r.json();
-      alerteApi.classList.add('d-none');
-      if(data.ok && data.lignes?.length > 0){
-        listeEleves = data.lignes;
-        sauvegarderElevesLocaux(data.lignes);
-      } else { listeEleves = []; }
     } catch {
-      listeEleves = obtenirElevesLocaux();
-      document.getElementById('texteAlerteApi').textContent = m('serveurIndispo');
-      alerteApi.classList.remove('d-none');
+      console.warn("🔌 Passage en mode local");
+      forcerLocal = true;
     }
-    sel.innerHTML = listeEleves.length
-      ? `<option value="">--- Sélectionner ---</option>` + listeEleves.map(e => `<option value="${e.id_utilisateur}">${e.matricule||''} ${e.nom} ${e.prenoms} — ${e.nom_classe||e.classe||''}</option>`).join('')
-      : `<option value="">--- ${m('aucunResultat')} ---</option>`;
+  }
+  if (forcerLocal) {
+    basculerModeLocal(true);
+    liste = obtenirActualitesLocales();
   }
 
-  // ✅ CHARGER PERSONNEL
-  async function chargerEmployes(){
-    const sel = document.getElementById('sel-employe');
-    try {
-      const r = await fetch(`${API_URL}/utilisateurs/personnel`, {headers:{'Authorization':`Bearer ${token}`}});
-      const data = await r.json();
-      if(data.ok && data.lignes?.length > 0){
-        listeEmployes = data.lignes;
-        sauvegarderEmployesLocaux(data.lignes);
-      } else { listeEmployes = []; }
-    } catch {
-      listeEmployes = obtenirEmployesLocaux();
-    }
-    sel.innerHTML = listeEmployes.length
-      ? `<option value="">--- Sélectionner ---</option>` + listeEmployes.map(p => `<option value="${p.id_utilisateur}">${p.nom} ${p.prenoms} — ${p.role}</option>`).join('')
-      : `<option value="">--- ${m('aucunResultat')} ---</option>`;
+  // 🖥️ AFFICHAGE
+  const cont = document.getElementById('liste-actualites');
+  if (Array.isArray(liste) && liste.length > 0) {
+    cont.innerHTML = '';
+    liste.forEach((a, index) => {
+      const titreAffiche = a[`titre_${langue}`] || a.titre_fr || a.titre_en || a.titre_ar || '';
+      const resumeAffiche = a[`resume_${langue}`] || a.resume_fr || '';
+      const dateAffiche = a.date_publication
+        ? new Date(a.date_publication).toLocaleDateString(langue === 'ar' ? 'ar-MA' : 'fr-FR', { day:'2-digit', month:'long', year:'numeric' })
+        : '';
+      
+      cont.innerHTML += `
+        <div class="actu-card ${a.epingle ? 'epingle' : ''}" style="animation-delay: ${0.1 + index * 0.08}s">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+              <div class="actu-titre">
+                ${a.epingle ? '<i class="bi bi-pin-angle-fill text-warning float"></i>' : ''}
+                ${titreAffiche}
+                ${!a.est_publie ? `<span class="badge bg-secondary ms-2">${m('brouillon')}</span>` : ''}
+              </div>
+              <div class="actu-meta"><i class="bi bi-calendar3 text-primary"></i> ${m('date')} : ${dateAffiche}</div>
+              ${resumeAffiche ? `<p class="actu-contenu">${resumeAffiche}</p>` : ''}
+            </div>
+            <div class="btn-group ms-2">
+              <button class="btn btn-sm btn-outline-primary" onclick="editerActualite(${a.id})" title="${m('modifier')}">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger" onclick="supprimerActualite(${a.id})" title="${m('supprimer')}">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+          </div>
+        </div>`;
+    });
+  } else {
+    cont.innerHTML = `<p class="text-muted text-center py-5 fade-in">
+      <i class="bi bi-newspaper display-4 d-block mb-3 text-opacity-25"></i>📰 ${m('aucunEnregistrement')}
+    </p>`;
+  }
+}
+
+// ==================================================
+// 🔄 RÉINITIALISER LE FORMULAIRE
+// ==================================================
+window.reinitialiserFormulaire = function() {
+  document.getElementById('form-actualite').reset();
+  document.getElementById('btnSoumettre').innerHTML = `
+    <i class="bi bi-send-check me-2"></i>
+    <span class="txt-fr">🚀 Publier l'Actualité</span>
+    <span class="txt-en">🚀 Publish News</span>
+    <span class="txt-ar">🚀 نشر الخبر</span>`;
+  document.getElementById('btnAnnuler').style.display = 'none';
+  editionId = null;
+};
+
+// ==================================================
+// ✏️ ÉDITER UNE ACTUALITÉ
+// ==================================================
+window.editerActualite = async function(id) {
+  let liste;
+  try {
+    const donnees = await requeteAPI('/actualites/liste?tout=1');
+    liste = donnees.actualites || donnees.lignes || [];
+  } catch {
+    liste = obtenirActualitesLocales();
   }
 
-  // 🖨️ GÉNÉRER LE CONTENU SELON LE TYPE
-  function genererContenuDoc(beneficiaire, typeDoc, annee, numero){
-    const etab = "Établissement Scolaire MAMA-ZOUMANA — Centre Islamique";
-    const lieuDate = `Abidjan, le ${new Date().toLocaleDateString('fr-FR')}`;
+  const actu = liste.find(a => Number(a.id) === Number(id));
+  if (!actu) return;
 
-    // === CARTE SCOLAIRE ===
-    if(typeDoc === 'carte_scolaire') return `
-      <div class="carte-document">
-        <div class="text-center mb-3">
-          <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
-          <div class="small opacity-75">${etab}</div>
-          <hr style="border-color:var(--alerte)">
-        </div>
-        <h4 class="text-center text-uppercase fw-bold mb-4" style="color:var(--fond-dore)">CARTE SCOLAIRE</h4>
-        <div class="row">
-          <div class="col-4 text-center">
-            <div style="border:1px solid #ccc; border-radius:6px; padding:1.5rem .5rem; font-size:2.5rem; color:#999;">📷</div>
-            <small class="text-muted d-block mt-1">Photo</small>
-          </div>
-          <div class="col-8">
-            <p class="mb-1"><strong>NOM :</strong> ${beneficiaire.nom}</p>
-            <p class="mb-1"><strong>PRÉNOMS :</strong> ${beneficiaire.prenoms}</p>
-            <p class="mb-1"><strongMATRICULE :</strong> ${beneficiaire.matricule||'—'}</p>
-            <p class="mb-1"><strong>CLASSE :</strong> ${beneficiaire.nom_classe||beneficiaire.classe||'—'}</p>
-            <p class="mb-1"><strong>ANNÉE :</strong> ${annee}</p>
-          </div>
-        </div>
-        <hr class="mt-3">
-        <p class="numero-ref text-end mb-0">N° ${numero}</p>
-      </div>`;
+  // Remplir le formulaire
+  document.getElementById('titre_fr').value = actu.titre_fr || '';
+  document.getElementById('titre_en').value = actu.titre_en || '';
+  document.getElementById('titre_ar').value = actu.titre_ar || '';
+  document.getElementById('resume_fr').value = actu.resume_fr || '';
+  document.getElementById('resume_en').value = actu.resume_en || '';
+  document.getElementById('resume_ar').value = actu.resume_ar || '';
+  document.getElementById('contenu_fr').value = actu.contenu_fr || '';
+  document.getElementById('contenu_en').value = actu.contenu_en || '';
+  document.getElementById('contenu_ar').value = actu.contenu_ar || '';
+  document.getElementById('est_publie').checked = actu.est_publie !== false;
+  document.getElementById('epingle').checked = actu.epingle === true;
 
-    // === ATTESTATION DE SCOLARITÉ ===
-    if(typeDoc === 'attestation_scolarite') return `
-      <div class="carte-document">
-        <div class="text-center mb-4">
-          <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
-          <div class="small">${etab}</div>
-          <hr style="border-color:var(--alerte)">
-          <h4 class="text-uppercase fw-bold mt-2" style="color:var(--fond-dore)">ATTESTATION DE SCOLARITÉ</h4>
-        </div>
-        <p class="lead">Nous soussignés, l'Établissement MAMA-ZOUMANA, certifions que :</p>
-        <p class="text-center text-uppercase fw-bold my-3" style="font-size:1.2rem">${beneficiaire.nom} ${beneficiaire.prenoms}</p>
-        <p>né(e) le ${beneficiaire.date_naissance||'____/__/__'} est régulièrement inscrit(e) dans notre établissement au titre de l'année scolaire <strong>${annee}</strong>, en classe de <strong>${beneficiaire.nom_classe||beneficiaire.classe||'—'}</strong>.</p>
-        <p class="mt-4">En foi de quoi, nous délivrons la présente attestation à l'intéressé(e) pour servir et valoir ce que de droit.</p>
-        <p class="mt-5">${lieuDate}</p>
-        <div class="d-flex justify-content-between mt-5 pt-3">
-          <span>Le Directeur</span>
-          <span class="numero-ref">N° ${numero}</span>
-        </div>
-      </div>`;
+  // Changer le bouton
+  document.getElementById('btnSoumettre').innerHTML = `
+    <i class="bi bi-check2-square me-2"></i>
+    <span class="txt-fr">✅ Mettre à jour</span>
+    <span class="txt-en">✅ Update</span>
+    <span class="txt-ar">✅ تحديث</span>`;
+  document.getElementById('btnAnnuler').style.display = 'inline-block';
+  editionId = id;
 
-    // === BULLETIN DE NOTES ===
-    if(typeDoc === 'bulletin_notes') return `
-      <div class="carte-document">
-        <div class="text-center mb-3">
-          <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
-          <div class="small">${etab}</div>
-          <hr style="border-color:var(--alerte)">
-          <h5 class="text-uppercase fw-bold" style="color:var(--fond-dore)">BULLETIN DE NOTES — ${annee}</h5>
-        </div>
-        <p><strong>Élève :</strong> ${beneficiaire.nom} ${beneficiaire.prenoms} — <strong>Classe :</strong> ${beneficiaire.nom_classe||beneficiaire.classe||'—'}</p>
-        <table class="table table-bordered table-sm mt-3">
-          <thead class="table-light"><tr><th>Matière</th><th>Note</th><th>Moyenne</th><th>Appréciation</th></tr></thead>
-          <tbody><tr><td colspan="4" class="text-center text-muted">Notes à compléter</td></tr></tbody>
-        </table>
-        <div class="row mt-4">
-          <div class="col-6 text-center border-end">
-            <h5 class="mb-1">Moyenne Générale</h5>
-            <div class="display-6 fw-bold text-success">— / 20</div>
-          </div>
-          <div class="col-6 text-center">
-            <h5 class="mb-1">Rang</h5>
-            <div class="display-6 fw-bold text-primary">—</div>
-          </div>
-        </div>
-        <p class="text-center mt-3"><strong>Mention :</strong> —</p>
-        <p class="numero-ref text-end mt-4 mb-0">N° ${numero}</p>
-      </div>`;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
 
-    // === FACTURE / QUITTANCE ===
-    if(typeDoc === 'facture_frais') return `
-      <div class="carte-document">
-        <div class="text-center mb-3">
-          <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
-          <div class="small">${etab}</div>
-          <hr style="border-color:var(--alerte)">
-          <h5 class="text-uppercase fw-bold" style="color:var(--fond-dore)">QUITTANCE DE FRAIS SCOLAIRES</h5>
-        </div>
-        <p><strong>Élève :</strong> ${beneficiaire.nom} ${beneficiaire.prenoms}</p>
-        <p><strong>Classe :</strong> ${beneficiaire.nom_classe||beneficiaire.classe||'—'} | <strong>Année :</strong> ${annee}</p>
-        <table class="table table-bordered mt-3">
-          <thead class="table-light"><tr><th>Désignation</th><th class="text-end">Montant</th></tr></thead>
-          <tbody>
-            <tr><td>Frais de scolarité</td><td class="text-end">— F CFA</td></tr>
-            <tr><td>Cantine</td><td class="text-end">— F CFA</td></tr>
-            <tr><td>Transport</td><td class="text-end">— F CFA</td></tr>
-            <tr class="table-dark fw-bold"><td>TOTAL PAYÉ</td><td class="text-end">— F CFA</td></tr>
-          </tbody>
-        </table>
-        <p class="mt-4 text-center">La présente quittance atteste que les frais ont été acquittés pour l'année scolaire ${annee}.</p>
-        <p class="mt-5">${lieuDate}</p>
-        <p class="numero-ref text-end mb-0">N° ${numero}</p>
-      </div>`;
-
-    // === ATTESTATION DE TRAVAIL ===
-    if(typeDoc === 'attestation_travail') return `
-      <div class="carte-document">
-        <div class="text-center mb-4">
-          <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
-          <div class="small">${etab}</div>
-          <hr style="border-color:var(--alerte)">
-          <h4 class="text-uppercase fw-bold" style="color:var(--fond-dore)">ATTESTATION DE TRAVAIL</h4>
-        </div>
-        <p>Nous soussignés, l'Établissement MAMA-ZOUMANA, certifions que :</p>
-        <p class="text-center text-uppercase fw-bold my-3">${beneficiaire.nom} ${beneficiaire.prenoms}</p>
-        <p>exerce au sein de notre établissement la fonction de <strong>${(beneficiaire.role||'').toUpperCase()}</strong> depuis le _______________.</p>
-        <p>La présente attestation est délivrée à l'intéressé(e) sur sa demande pour servir et valoir ce que de droit.</p>
-        <p class="mt-5">${lieuDate}</p>
-        <div class="d-flex justify-content-between mt-5 pt-3">
-          <span>Le Directeur</span>
-          <span class="numero-ref">N° ${numero}</span>
-        </div>
-      </div>`;
-
-    // === CERTIFICAT DE TRAVAIL ===
-    if(typeDoc === 'certificat_travail') return `
-      <div class="carte-document">
-        <div class="text-center mb-4">
-          <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
-          <div class="small">${etab}</div>
-          <hr style="border-color:var(--alerte)">
-          <h4 class="text-uppercase fw-bold" style="color:var(--fond-dore)">CERTIFICAT DE TRAVAIL</h4>
-        </div>
-        <p>Le Directeur de l'Établissement MAMA-ZOUMANA certifie que :</p>
-        <p class="text-center text-uppercase fw-bold my-3">${beneficiaire.nom} ${beneficiaire.prenoms}</p>
-        <p>demeurant à _______________, exerce les fonctions de <strong>${(beneficiaire.role||'').toUpperCase()}</strong> dans notre établissement depuis le _______________.</p>
-        <p>En foi de quoi, le présent certificat est délivré pour faire valoir ce que de droit.</p>
-        <p class="mt-5">${lieuDate}</p>
-        <div class="d-flex justify-content-between mt-5 pt-3">
-          <span>Le Directeur</span>
-          <span class="numero-ref">N° ${numero}</span>
-        </div>
-      </div>`;
-
-    // === MODÈLE PAR DÉFAUT ===
-    return `
-      <div class="carte-document">
-        <div class="text-center mb-3">
-          <div class="logo-carte">🕌 MAMA-ZOUMANA</div>
-          <div class="small">${etab}</div>
-          <hr style="border-color:var(--alerte)">
-          <h4 class="text-uppercase fw-bold" style="color:var(--fond-dore)">${libelleTypeDoc(typeDoc)}</h4>
-        </div>
-        <p><strong>Nom :</strong> ${beneficiaire.nom}</p>
-        <p><strong>Prénoms :</strong> ${beneficiaire.prenoms}</p>
-        <p><strong>Année :</strong> ${annee}</p>
-        <p class="numero-ref text-end mt-5">N° ${numero}</p>
-      </div>`;
-  }
-
-  // 💾 SOUMISSION DU FORMULAIRE
-  document.getElementById('formDoc').addEventListener('submit', async e => {
-    e.preventDefault();
-    const d = Object.fromEntries(new FormData(e.target));
-    const cat = document.getElementById('categorieBeneficiaire').value;
-
-    // Sélectionner le bénéficiaire
-    let beneficiaire;
-    if(cat === 'eleve'){
-      beneficiaire = listeEleves.find(x => String(x.id_utilisateur) === String(d.id_eleve));
+// ==================================================
+// 🗑️ SUPPRIMER UNE ACTUALITÉ
+// ==================================================
+window.supprimerActualite = async function(id) {
+  if (!confirm(m('supprimerConfirmer'))) return;
+  
+  try {
+    const donnees = await requeteAPI(`/actualites/${id}`, { method: 'DELETE' });
+    if (donnees.ok) {
+      alert(m('supprimerSucces'));
+      chargerActualites();
     } else {
-      beneficiaire = listeEmployes.find(x => String(x.id_utilisateur) === String(d.id_employe));
+      alert("❌ " + (donnees.erreur || "Erreur serveur"));
     }
-    if(!beneficiaire) return alert(m('aucunResultat'));
+  } catch {
+    // Mode local
+    let liste = obtenirActualitesLocales().filter(a => Number(a.id) !== Number(id));
+    sauvegarderActualitesLocales(liste);
+    basculerModeLocal(true);
+    alert(m('supprimerSucces') + " (mode local)");
+    chargerActualites(true);
+  }
+};
 
-    const numeroUnique = 'DOC-' + new Date().getFullYear() + '-' + Date.now().toString().slice(-6);
+// ==================================================
+// 💾 SOUMETTRE LE FORMULAIRE (CRÉER / MODIFIER)
+// ==================================================
+document.getElementById('form-actualite').addEventListener('submit', async e => {
+  e.preventDefault();
 
-    try {
-      const r = await fetch(`${API_URL}/documents/delivrer`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-        body:JSON.stringify({...d, numero_unique: numeroUnique})
-      });
-      const rep = await r.json();
-      if(!rep.ok) throw new Error(rep.erreur || "Erreur serveur");
-    } catch {
-      console.warn("📴 Mode local — document généré sans API");
-    }
+  // Récupérer les valeurs
+  const titre_fr = document.getElementById('titre_fr').value.trim();
+  const titre_en = document.getElementById('titre_en').value.trim();
+  const titre_ar = document.getElementById('titre_ar').value.trim();
+  const resume_fr = document.getElementById('resume_fr').value.trim();
+  const resume_en = document.getElementById('resume_en').value.trim();
+  const resume_ar = document.getElementById('resume_ar').value.trim();
+  const contenu_fr = document.getElementById('contenu_fr').value.trim();
+  const contenu_en = document.getElementById('contenu_en').value.trim();
+  const contenu_ar = document.getElementById('contenu_ar').value.trim();
+  const est_publie = document.getElementById('est_publie').checked;
+  const epingle = document.getElementById('epingle').checked;
 
-    // Afficher le document
-    document.getElementById('affichage-carte').innerHTML =
-      genererContenuDoc(beneficiaire, d.type_doc, d.annee_scolaire, numeroUnique) +
-      `<div class="text-center mt-4 no-print">
-        <button class="btn btn-warning px-4" onclick="window.print()">
-          <i class="bi bi-printer me-2"></i>
-          <span class="txt-fr">Imprimer en PDF</span>
-          <span class="txt-en">Print as PDF</span>
-          <span class="txt-ar">طباعة PDF</span>
-        </button>
-      </div>`;
+  // Validation minimum
+  if (!titre_fr || !contenu_fr) { 
+    alert(m('aucunChampVide')); 
+    return; 
+  }
 
-    alert(m('genereOk'));
-  });
-
-  // 🚀 CHARGEMENT AU DÉMARRAGE
-  chargerEleves();
-  chargerEmployes();
-</script>
-
-</body>
-</html>
+  // Préparer les données
+  const donnees = { 
+    titre_fr, titre_en, titre_ar, 
+    resume_fr, resume_en, resume_ar, 
+    contenu_fr, contenu

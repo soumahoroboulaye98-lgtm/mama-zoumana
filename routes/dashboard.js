@@ -8,6 +8,13 @@ const verifadmin = require('../middleware/verifadmin');
 const protegerAdmin = [veriftoken, verifadmin];
 
 // ==================================================
+// ✅ Fonction utilitaire sécurisée
+// ==================================================
+function parseIntSecure(valeur) {
+  return parseInt(valeur?.count || valeur) || 0;
+}
+
+// ==================================================
 // 1️⃣ /api/statistiques
 // ==================================================
 router.get('/statistiques', protegerAdmin, async (req, res) => {
@@ -22,10 +29,10 @@ router.get('/statistiques', protegerAdmin, async (req, res) => {
     res.json({
       ok: true,
       statistiques: {
-        classes: parseInt(classes.rows[0].count),
-        eleves: parseInt(eleves.rows[0].count),
-        professeurs: parseInt(profs.rows[0].count),
-        preinscriptions_attente: parseInt(preinscriptions.rows[0].count)
+        classes: parseIntSecure(classes.rows[0]),
+        eleves: parseIntSecure(eleves.rows[0]),
+        professeurs: parseIntSecure(profs.rows[0]),
+        preinscriptions_attente: parseIntSecure(preinscriptions.rows[0])
       }
     });
   } catch (e) {
@@ -40,9 +47,8 @@ router.get('/statistiques', protegerAdmin, async (req, res) => {
 router.get('/alertes', protegerAdmin, async (req, res) => {
   try {
     const alertes = [];
-
     const r = await pool.query("SELECT COUNT(*) FROM preinscriptions WHERE statut = 'en attente'");
-    const nbAttente = parseInt(r.rows[0].count);
+    const nbAttente = parseIntSecure(r.rows[0]);
 
     if (nbAttente > 0) {
       alertes.push({
@@ -68,13 +74,13 @@ router.get('/activite-recente', protegerAdmin, async (req, res) => {
     const r = await pool.query(`
       SELECT id_preinscription, nom, prenoms, date_preinscription
       FROM preinscriptions
-      ORDER BY date_preinscription DESC
+      ORDER BY date_preinscription DESC NULLS LAST
       LIMIT 5
     `);
 
     const activite = r.rows.map(p => ({
       titre: 'Nouvelle préinscription',
-      description: `${p.nom} ${p.prenoms}`,
+      description: `${p.nom || ''} ${p.prenoms || ''}`.trim(),
       date: p.date_preinscription
     }));
 
@@ -91,9 +97,11 @@ router.get('/activite-recente', protegerAdmin, async (req, res) => {
 router.get('/repartition-eleves', protegerAdmin, async (req, res) => {
   try {
     const r = await pool.query(`
-      SELECT c.libelle_classe, COUNT(u.id_utilisateur) AS nombre
+      SELECT c.libelle_classe, COUNT(u.id) AS nombre
       FROM classes c
-      LEFT JOIN utilisateurs u ON u.id_classe = c.id_classe AND u.role = 'eleve'
+      LEFT JOIN utilisateurs u 
+        ON u.id_classe = c.id_classe 
+        AND u.role = 'eleve'
       GROUP BY c.id_classe, c.libelle_classe
       ORDER BY c.libelle_classe
     `);
@@ -111,15 +119,20 @@ router.get('/repartition-eleves', protegerAdmin, async (req, res) => {
 router.get('/etat-bulletins', protegerAdmin, async (req, res) => {
   try {
     const rEleves = await pool.query("SELECT COUNT(*) FROM utilisateurs WHERE role = 'eleve'");
-    const total = parseInt(rEleves.rows[0].count);
+    const total = parseIntSecure(rEleves.rows[0]);
+
+    // Nombre de bulletins édités (depuis la table bulletins)
+    const rBulletins = await pool.query("SELECT COUNT(DISTINCT id_eleve) FROM bulletins");
+    const edites = parseIntSecure(rBulletins.rows[0]);
+    const progression = total > 0 ? Math.round((edites / total) * 100) : 0;
 
     res.json({
       ok: true,
       bulletins: {
         total_eleves: total,
-        edites: 0,
-        non_edites: total,
-        progression_pourcent: 0
+        edites: edites,
+        non_edites: total - edites,
+        progression_pourcent: progression
       }
     });
   } catch (e) {

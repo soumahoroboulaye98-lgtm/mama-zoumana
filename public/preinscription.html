@@ -229,20 +229,29 @@
   // ==================================================
   // ✅ REQUÊTE API SÉCURE
   // ==================================================
-  async function requeteAPI(url, options={}) {
-    const controleur = new AbortController();
-    const delai = setTimeout(() => controleur.abort(), 15000);
+ async function requeteAPI(url, options={}) {
+  const controleur = new AbortController();
+  const delai = setTimeout(() => controleur.abort(), 15000);
+  try {
+    const reponse = await fetch(url, { ...options, credentials:'omit', signal: controleur.signal });
+    clearTimeout(delai);
+
+    // ✅ Vérifier le statut HTTP
+    if (!reponse.ok) throw new Error(`Erreur ${reponse.status}`);
+
+    // ✅ Tenter de parser en JSON, sinon capturer l'erreur
+    const texte = await reponse.text(); // Lire d'abord en texte
     try {
-      const reponse = await fetch(url, { ...options, credentials:'omit', signal: controleur.signal });
-      clearTimeout(delai);
-      if (!reponse.ok) throw new Error(`Erreur ${reponse.status}`);
-      return await reponse.json();
-    } catch (err) {
-      clearTimeout(delai);
-      if (err.name === 'AbortError') throw new Error('Le serveur ne répond pas. Réessayez plus tard.');
-      throw err;
+      return JSON.parse(texte); // Parser manuellement
+    } catch {
+      throw new Error("L'API a renvoyé du HTML au lieu de JSON. Vérifiez l'URL et la route serveur.");
     }
+  } catch (err) {
+    clearTimeout(delai);
+    if (err.name === 'AbortError') throw new Error('Le serveur ne répond pas. Réessayez plus tard.');
+    throw err;
   }
+}
 
   // ==================================================
   // ✅ CHARGER TARIFS
@@ -470,44 +479,66 @@
   // ✅ SOUMISSION DU FORMULAIRE
   // ==================================================
   async function soumettreFormulaire(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btnSoumettre');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="chargement"><span class="spinner"></span> Envoi en cours…</span>';
-    try {
-      const corps = new FormData(e.target);
-      corps.set('profil', profilChoisi);
-      corps.set('date_soumission', new Date().toISOString());
-      if(profilChoisi === 'eleve'){
-        corps.set('classe_francais', classeFrancais);
-        corps.set('classe_arabe', classeArabe);
-        corps.set('pris_en_charge_etat', estPrisEnChargeEtat ? '1' : '0');
-        corps.set('montant_total', cacheTotalBrut.toString());
-      }
-      console.log("📤 Envoi profil :", profilChoisi);
-      const reponse = await fetch(`${API_BASE}/preinscription`, { method: 'POST', body: corps, credentials: 'omit' });
-      const resultat = await reponse.json();
-      if (!resultat.ok) throw new Error(resultat.erreur || resultat.message || "Erreur inconnue");
-      let msg = '';
-      if(profilChoisi === 'eleve') msg = "Votre préinscription a bien été enregistrée.";
-      else if(profilChoisi === 'enseignant') msg = "Votre candidature a été envoyée. Elle sera examinée par l'administration.";
-      else if(profilChoisi === 'parent') msg = "Votre demande a été enregistrée. Nous vérifions vos informations.";
-      else if(profilChoisi === 'visiteur') msg = "Votre demande de rendez-vous a été transmise. Vous serez informé de la confirmation.";
-      document.querySelector('.carte-formulaire').innerHTML = `
-        <div class="text-center py-4">
-          <div class="display-1 text-success mb-3">✅</div>
-          <h4 class="etape-titre">Demande enregistrée !</h4>
-          <p class="lead">${resultat.message || msg}</p>
-          ${profilChoisi==='enseignant'?'<p class="text-info">⏳ En attente de validation par l\'administration.</p>':''}
-          <a href="index.html" class="btn btn-valider-definitif mt-3">🏠 Retour à l'accueil</a>
-        </div>`;
-    } catch (err) {
-      alert(`❌ Erreur : ${err.message}`);
-      btn.disabled = false;
-      btn.innerHTML = '📤 Enregistrer la demande';
+  e.preventDefault();
+  const btn = document.getElementById('btnSoumettre');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="chargement"><span class="spinner"></span> Envoi en cours…</span>';
+  try {
+    const corps = new FormData(e.target);
+    corps.set('profil', profilChoisi);
+    corps.set('date_soumission', new Date().toISOString());
+    if(profilChoisi === 'eleve'){
+      corps.set('classe_francais', classeFrancais);
+      corps.set('classe_arabe', classeArabe);
+      corps.set('pris_en_charge_etat', estPrisEnChargeEtat ? '1' : '0');
+      corps.set('montant_total', cacheTotalBrut.toString());
     }
-  }
+    console.log("📤 Envoi profil :", profilChoisi);
+    console.log("📤 URL :", `${API_BASE}/preinscription`);
 
+    const reponse = await fetch(`${API_BASE}/preinscription`, { 
+      method: 'POST', 
+      body: corps, 
+      credentials: 'omit' 
+    });
+
+    // ✅ Lire d'abord en texte pour détecter HTML
+    const texte = await reponse.text();
+    let resultat;
+    try {
+      resultat = JSON.parse(texte);
+    } catch {
+      throw new Error(
+        reponse.status === 404 
+          ? "❌ Route INTROUVABLE : ajoutez /api/preinscription côté serveur"
+          : `❌ Erreur ${reponse.status} — L'API renvoie du HTML au lieu de JSON`
+      );
+    }
+
+    if (!resultat.ok) throw new Error(resultat.erreur || resultat.message || "Erreur inconnue");
+
+    let msg = '';
+    if(profilChoisi === 'eleve') msg = "✅ Votre préinscription a bien été enregistrée.";
+    else if(profilChoisi === 'enseignant') msg = "✅ Votre candidature a été envoyée. Elle sera examinée par l'administration.";
+    else if(profilChoisi === 'parent') msg = "✅ Votre demande a été enregistrée. Nous vérifions vos informations.";
+    else if(profilChoisi === 'visiteur') msg = "✅ Votre demande de rendez-vous a été transmise.";
+
+    document.querySelector('.carte-formulaire').innerHTML = `
+      <div class="text-center py-4">
+        <div class="display-1 text-success mb-3">✅</div>
+        <h4 class="etape-titre">Demande enregistrée !</h4>
+        <p class="lead">${resultat.message || msg}</p>
+        ${profilChoisi==='enseignant'?'<p class="text-info">⏳ En attente de validation par l\'administration.</p>':''}
+        <a href="index.html" class="btn btn-valider-definitif mt-3">🏠 Retour à l'accueil</a>
+      </div>`;
+
+  } catch (err) {
+    alert(`❌ ${err.message}`);
+    console.error("🔍 Erreur :", err);
+    btn.disabled = false;
+    btn.innerHTML = '📤 Enregistrer la demande';
+  }
+}
   // ==================================================
   // ✅ CHANGEMENT DE PROFIL
   // ==================================================

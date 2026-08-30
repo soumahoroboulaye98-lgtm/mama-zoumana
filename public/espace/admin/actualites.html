@@ -27,7 +27,6 @@
       --ombre: 0 8px 30px rgba(12,74,110,0.08);
       --ombre-hover: 0 15px 40px rgba(12,74,110,0.15);
     }
-
     /* 🌍 Traduction & RTL */
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
@@ -40,7 +39,6 @@
     body.lang-ar .titre-section,
     body.lang-ar .dropdown-menu,
     body.lang-ar .bloc-langue h6 { text-align: right; }
-
     /* 🎨 Reset & Base */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -48,7 +46,6 @@
       font-family: 'Segoe UI', system-ui, sans-serif;
       min-height: 100vh;
     }
-
     /* ✨ ANIMATIONS D'APPARITION */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(30px); }
@@ -70,7 +67,6 @@
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-5px); }
     }
-
     .fade-in-up { animation: fadeInUp 0.7s ease-out forwards; opacity: 0; }
     .fade-in { animation: fadeIn 0.6s ease-out forwards; opacity: 0; }
     .slide-in-left { animation: slideInLeft 0.6s ease-out forwards; opacity: 0; }
@@ -79,7 +75,6 @@
     .delay-3 { animation-delay: 0.3s; }
     .delay-4 { animation-delay: 0.4s; }
     .float { animation: float 3s ease-in-out infinite; }
-
     /* 🧭 Barre de navigation */
     .navbar-principale {
       background: linear-gradient(90deg, var(--sombre) 0%, var(--primaire) 100%);
@@ -101,7 +96,6 @@
     }
     .navbar-brand:hover { transform: scale(1.03); }
     .navbar-brand i { font-size: 1.9rem; }
-
     .nav-link {
       color: #e2e8f0 !important;
       font-weight: 500;
@@ -130,7 +124,6 @@
       box-shadow: 0 6px 20px rgba(245,158,11,0.15);
     }
     .nav-link:hover::before, .nav-link.active::before { width: 80%; }
-
     .dropdown-menu {
       border: none; border-radius: 16px;
       box-shadow: 0 10px 40px rgba(0,0,0,0.12);
@@ -149,7 +142,6 @@
       transform: translateX(5px);
     }
     body.lang-ar .dropdown-item:hover { transform: translateX(-5px); }
-
     .btn-langue {
       border-radius: 50px; padding: 0.4rem 1rem;
       font-weight: 600; font-size: 0.9rem;
@@ -160,13 +152,11 @@
     .btn-langue.actif {
       background: linear-gradient(135deg, var(--accent), var(--accent-clair));
       color: var(--sombre); box-shadow: 0 4px 15px rgba(245,158,11,0.35);
-      animation: pulse-accent 2s infinite;
     }
     .btn-langue:hover:not(.actif) {
       background: rgba(255,255,255,0.18); color: white;
       transform: translateY(-2px);
     }
-
     .btn-deconnexion {
       background: linear-gradient(135deg, #dc2626, #b91c1c);
       color: white !important; border-radius: 12px;
@@ -177,7 +167,6 @@
       background: linear-gradient(135deg, #b91c1c, #991b1b);
       transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,38,38,0.3);
     }
-
     /* 📦 Contenu */
     .contenu { padding: 2.5rem; max-width: 1280px; margin: 0 auto; }
     .alerte-api {
@@ -220,7 +209,6 @@
       background: linear-gradient(90deg, var(--primaire), var(--accent)) 0 100% / 100% 3px no-repeat;
       display: flex; align-items: center; gap: 10px;
     }
-
     /* 📝 Formulaire */
     .form-card {
       background: white; border-radius: var(--bord-radius);
@@ -242,7 +230,6 @@
     .bloc-fr h6 { color: #0c4a6e; border-bottom-color: #0c4a6e; }
     .bloc-en h6 { color: #059669; border-bottom-color: #059669; }
     .bloc-ar h6 { color: #d97706; border-bottom-color: #d97706; }
-
     .form-label {
       font-weight: 600; color: #334155; margin-bottom: 0.5rem;
       display: flex; align-items: center; gap: 5px;
@@ -258,9 +245,7 @@
       outline: none; background: white;
     }
     .form-control::placeholder { color: #94a3b8; }
-
     .etoile-rouge { color: #ef4444; font-weight: bold; }
-
     .btn-primary {
       background: linear-gradient(135deg, var(--primaire), var(--primaire-clair));
       border: none; border-radius: 12px; padding: 0.8rem 2rem;
@@ -272,7 +257,12 @@
       transform: translateY(-3px); box-shadow: 0 8px 25px rgba(12,74,110,0.3);
     }
     .btn-primary:active { transform: translateY(0); }
-
+    .btn-annuler {
+      background: #f1f5f9; color: #475569; border-radius: 10px;
+      padding: 0.5rem 1rem; margin-left: 0.8rem;
+      border: 1px solid #cbd5e1; transition: all 0.3s ease;
+    }
+    .btn-annuler:hover { background: #e2e8f0; color: #1e293b; }
     /* 📰 Cartes Actualités */
     .actu-card {
       background: white; border-radius: 18px;
@@ -294,7 +284,6 @@
     }
     body.lang-ar .actu-card.epingle { border-right-color: var(--accent); }
     .actu-card.epingle:hover { box-shadow: 0 15px 40px rgba(245,158,11,0.18); }
-
     .actu-titre {
       font-weight: 700; font-size: 1.15rem; color: var(--sombre);
       margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;
@@ -304,12 +293,9 @@
       display: flex; align-items: center; gap: 6px;
     }
     .actu-contenu { color: #475569; line-height: 1.7; }
-
     .btn-sm { border-radius: 10px; padding: 0.35rem 0.55rem; transition: all 0.25s ease; }
     .btn-sm:hover { transform: scale(1.1); }
-
     .badge { border-radius: 50px; padding: 0.35rem 0.8rem; font-weight: 600; }
-
     /* 📱 Responsive */
     @media (max-width: 767px) {
       .contenu { padding: 1.2rem; }
@@ -319,28 +305,48 @@
   </style>
 </head>
 <body>
-
 <script>
-  // 🔗 CONFIGURATION API & SÉCURITÉ
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
+  // ==================================================
+  // ✅ CONFIGURATION API — TOUT AU DÉBUT
+  // ==================================================
+  const API_URL = "https://mama-zoumana-api.onrender.com/api";
+
+  // ✅ Récupération sécurisée du token
+  function getToken() {
+    return localStorage.getItem('token') || '';
+  }
+  const role = (localStorage.getItem('role') || '').toLowerCase().trim();
   const nomUtilisateur = localStorage.getItem('nom') || 'Utilisateur';
   const prenomUtilisateur = localStorage.getItem('prenoms') || '';
   const nomComplet = (nomUtilisateur + ' ' + prenomUtilisateur).trim();
 
-  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/api/actualites'
-    : 'https://mama-zoumana-api.onrender.com/api/actualites';
+  // ✅ Requête API centralisée avec gestion 401/403
+  async function requeteAPI(chemin, options = {}) {
+    const reponse = await fetch(`${API_URL}${chemin}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`,
+        ...(options.headers || {})
+      }
+    });
+    // Session expirée → déconnexion
+    if (reponse.status === 401 || reponse.status === 403) {
+      alert("⛔ Session expirée — Veuillez vous reconnecter");
+      localStorage.clear();
+      window.location.href = 'connexion.html';
+      throw new Error("Session expirée");
+    }
+    return await reponse.json();
+  }
 
+  // ==================================================
+  // 🗣️ TRADUCTIONS & ÉTAT GLOBAL
+  // ==================================================
   let langue = localStorage.getItem('langue') || 'fr';
   let modeLocal = false;
   let editionId = null;
 
-  // 💾 STOCKAGE LOCAL
-  function obtenirActualitesLocales() { return JSON.parse(localStorage.getItem('actualites') || '[]'); }
-  function sauvegarderActualitesLocales(liste) { localStorage.setItem('actualites', JSON.stringify(liste)); }
-
-  // 🗣️ TRADUCTIONS
   const MSG = {
     fr: {
       accesReserve: "⛔ Accès réservé à l'Administrateur",
@@ -402,16 +408,16 @@
   };
   function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
 
-  // 🔒 SÉCURITÉ
-  if(!token || !['admin','super_admin'].includes(role)){
-    alert(m('accesReserve'));
-    localStorage.clear();
-    location.href = '../connexion.html';
+  // ==================================================
+  // 💾 STOCKAGE LOCAL (Fallback)
+  // ==================================================
+  function obtenirActualitesLocales() { 
+    try { return JSON.parse(localStorage.getItem('actualites') || '[]'); } 
+    catch { return []; }
   }
-
-  document.body.classList.add('lang-' + langue);
-
-  // 📡 ALERTE MODE LOCAL
+  function sauvegarderActualitesLocales(liste) { 
+    localStorage.setItem('actualites', JSON.stringify(liste)); 
+  }
   function basculerModeLocal(actif) {
     modeLocal = actif;
     const alerte = document.getElementById('alerteApi');
@@ -420,10 +426,22 @@
       alerte.classList.toggle('d-none', !actif);
     }
   }
+
+  // ==================================================
+  // 🔒 SÉCURITÉ — ACCÈS ADMIN SEUL
+  // ==================================================
+  if(!getToken() || !['admin','super_admin'].includes(role)){
+    alert(m('accesReserve'));
+    localStorage.clear();
+    location.href = '../connexion.html';
+  }
+  document.body.classList.add('lang-' + langue);
 </script>
 
 <script>
+  // ==================================================
   // 🗣️ CHANGEMENT DE LANGUE
+  // ==================================================
   window.appliquerLangue = function(lang, e) {
     localStorage.setItem('langue', lang);
     langue = lang;
@@ -434,6 +452,9 @@
     chargerActualites();
   };
 
+  // ==================================================
+  // 🚪 DÉCONNEXION
+  // ==================================================
   window.deconnecter = function() {
     if (confirm(m('supprimerConfirmer').slice(0,15) + '...')) {
       localStorage.clear();
@@ -441,6 +462,9 @@
     }
   };
 
+  // ==================================================
+  // 🎬 DÉMARRAGE
+  // ==================================================
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.btn-langue').forEach(b => b.classList.toggle('actif', b.dataset.lang === langue));
     document.getElementById('nom-affiche').textContent = nomComplet;
@@ -448,7 +472,7 @@
   });
 </script>
 
-
+<!-- 🧭 BARRE DE NAVIGATION -->
 <nav class="navbar-principale navbar-expand-lg navbar-dark">
   <div class="container-fluid">
     <a class="navbar-brand" href="dashboard.html"><i class="bi bi-building float"></i> MAMA-ZOUMANA</a>
@@ -534,8 +558,8 @@
   </div>
 </nav>
 
+<!-- 📄 CONTENU PRINCIPAL -->
 <div class="contenu">
-
   <!-- ⚠️ ALERTE MODE LOCAL -->
   <div id="alerteApi" class="alerte-api d-none fade-in-up">
     <i class="bi bi-wifi-off me-2"></i>
@@ -555,6 +579,7 @@
     </p>
   </div>
 
+  <!-- 📝 FORMULAIRE DE PUBLICATION -->
   <div class="form-card fade-in-up delay-1">
     <h5 class="titre-section mb-4">
       <i class="bi bi-pencil-square text-primary"></i>
@@ -562,7 +587,6 @@
       <span class="txt-en">Publish New News</span>
       <span class="txt-ar">نشر خبر جديد</span>
     </h5>
-
     <form id="form-actualite">
       <!-- 🇫🇷 FRANÇAIS -->
       <div class="bloc-langue bloc-fr">
@@ -648,15 +672,25 @@
         </div>
       </div>
 
-      <button type="submit" id="btnSoumettre" class="btn btn-primary w-100 mt-4">
-        <i class="bi bi-send-check me-2"></i>
-        <span class="txt-fr">🚀 Publier l'Actualité</span>
-        <span class="txt-en">🚀 Publish News</span>
-        <span class="txt-ar">🚀 نشر الخبر</span>
-      </button>
+      <!-- ✅ BOUTONS SOUMETTRE + ANNULER (CORRIGÉ) -->
+      <div class="d-flex align-items-center mt-4">
+        <button type="submit" id="btnSoumettre" class="btn btn-primary">
+          <i class="bi bi-send-check me-2"></i>
+          <span class="txt-fr">🚀 Publier l'Actualité</span>
+          <span class="txt-en">🚀 Publish News</span>
+          <span class="txt-ar">🚀 نشر الخبر</span>
+        </button>
+        <button type="button" id="btnAnnuler" class="btn-annuler" style="display:none;" onclick="reinitialiserFormulaire()">
+          <i class="bi bi-x-lg me-1"></i>
+          <span class="txt-fr">Annuler</span>
+          <span class="txt-en">Cancel</span>
+          <span class="txt-ar">إلغاء</span>
+        </button>
+      </div>
     </form>
   </div>
 
+  <!-- 📰 LISTE DES ACTUALITÉS -->
   <div class="fade-in-up delay-3">
     <h4 class="titre-section">
       <i class="bi bi-list-ul text-primary"></i>
@@ -670,21 +704,23 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// 📋 CHARGER LA LISTE
+// ==================================================
+// 📋 CHARGER LA LISTE DES ACTUALITÉS
+// ==================================================
 async function chargerActualites(forcerLocal = false) {
   let liste = [];
   if (!forcerLocal) {
     try {
-      const r = await fetch(`${API_URL}/liste?tout=1`, { headers: { 'Authorization': `Bearer ${token}` } });
-      if (!r.ok) throw new Error();
-      const texte = await r.text();
-      let res;
-      try { res = JSON.parse(texte); }
-      catch { throw new Error("Réponse invalide du serveur"); }
-      liste = res.actualites || [];
-      sauvegarderActualitesLocales(liste);
-      basculerModeLocal(false);
+      const donnees = await requeteAPI('/actualites/liste?tout=1');
+      liste = donnees.actualites || donnees.lignes || [];
+      if (Array.isArray(liste) && liste.length > 0) {
+        sauvegarderActualitesLocales(liste);
+        basculerModeLocal(false);
+      } else {
+        throw new Error("Liste vide");
+      }
     } catch {
+      console.warn("🔌 Passage en mode local");
       forcerLocal = true;
     }
   }
@@ -693,8 +729,9 @@ async function chargerActualites(forcerLocal = false) {
     liste = obtenirActualitesLocales();
   }
 
+  // 🖥️ AFFICHAGE
   const cont = document.getElementById('liste-actualites');
-  if (liste.length > 0) {
+  if (Array.isArray(liste) && liste.length > 0) {
     cont.innerHTML = '';
     liste.forEach((a, index) => {
       const titreAffiche = a[`titre_${langue}`] || a.titre_fr || a.titre_en || a.titre_ar || '';
@@ -702,7 +739,7 @@ async function chargerActualites(forcerLocal = false) {
       const dateAffiche = a.date_publication
         ? new Date(a.date_publication).toLocaleDateString(langue === 'ar' ? 'ar-MA' : 'fr-FR', { day:'2-digit', month:'long', year:'numeric' })
         : '';
-
+      
       cont.innerHTML += `
         <div class="actu-card ${a.epingle ? 'epingle' : ''}" style="animation-delay: ${0.1 + index * 0.08}s">
           <div class="d-flex justify-content-between align-items-start">
@@ -733,30 +770,36 @@ async function chargerActualites(forcerLocal = false) {
   }
 }
 
-// 🔄 Réinitialiser formulaire
-function reinitialiserFormulaire() {
+// ==================================================
+// 🔄 RÉINITIALISER LE FORMULAIRE
+// ==================================================
+window.reinitialiserFormulaire = function() {
   document.getElementById('form-actualite').reset();
   document.getElementById('btnSoumettre').innerHTML = `
     <i class="bi bi-send-check me-2"></i>
     <span class="txt-fr">🚀 Publier l'Actualité</span>
     <span class="txt-en">🚀 Publish News</span>
     <span class="txt-ar">🚀 نشر الخبر</span>`;
+  document.getElementById('btnAnnuler').style.display = 'none';
   editionId = null;
-}
+};
 
-// ✏️ Éditer une actualité
+// ==================================================
+// ✏️ ÉDITER UNE ACTUALITÉ
+// ==================================================
 window.editerActualite = async function(id) {
   let liste;
   try {
-    const r = await fetch(`${API_URL}/liste?tout=1`, { headers: { 'Authorization': `Bearer ${token}` } });
-    const res = await r.json();
-    liste = res.actualites || [];
+    const donnees = await requeteAPI('/actualites/liste?tout=1');
+    liste = donnees.actualites || donnees.lignes || [];
   } catch {
     liste = obtenirActualitesLocales();
   }
+
   const actu = liste.find(a => Number(a.id) === Number(id));
   if (!actu) return;
 
+  // Remplir le formulaire
   document.getElementById('titre_fr').value = actu.titre_fr || '';
   document.getElementById('titre_en').value = actu.titre_en || '';
   document.getElementById('titre_ar').value = actu.titre_ar || '';
@@ -769,40 +812,49 @@ window.editerActualite = async function(id) {
   document.getElementById('est_publie').checked = actu.est_publie !== false;
   document.getElementById('epingle').checked = actu.epingle === true;
 
+  // Changer le bouton
   document.getElementById('btnSoumettre').innerHTML = `
     <i class="bi bi-check2-square me-2"></i>
     <span class="txt-fr">✅ Mettre à jour</span>
     <span class="txt-en">✅ Update</span>
-    <span class="txt-ar">✅ تحديث</span>
-    <button type="button" class="btn btn-sm btn-outline-secondary ms-3" onclick="reinitialiserFormulaire()">
-      <span class="txt-fr">Annuler</span><span class="txt-en">Cancel</span><span class="txt-ar">إلغاء</span>
-    </button>`;
+    <span class="txt-ar">✅ تحديث</span>`;
+  document.getElementById('btnAnnuler').style.display = 'inline-block';
   editionId = id;
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-// 🗑️ Supprimer une actualité
+// ==================================================
+// 🗑️ SUPPRIMER UNE ACTUALITÉ
+// ==================================================
 window.supprimerActualite = async function(id) {
   if (!confirm(m('supprimerConfirmer'))) return;
+  
   try {
-    const r = await fetch(`${API_URL}/${id}`, {
-      method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const res = await r.json();
-    if (res.ok) { alert(m('supprimerSucces')); chargerActualites(); }
-    else alert("❌ " + (res.erreur || "Erreur"));
+    const donnees = await requeteAPI(`/actualites/${id}`, { method: 'DELETE' });
+    if (donnees.ok) {
+      alert(m('supprimerSucces'));
+      chargerActualites();
+    } else {
+      alert("❌ " + (donnees.erreur || "Erreur serveur"));
+    }
   } catch {
+    // Mode local
     let liste = obtenirActualitesLocales().filter(a => Number(a.id) !== Number(id));
     sauvegarderActualitesLocales(liste);
     basculerModeLocal(true);
-    alert(m('supprimerSucces') + " (local)");
+    alert(m('supprimerSucces') + " (mode local)");
     chargerActualites(true);
   }
 };
 
-// 💾 Soumettre le formulaire
+// ==================================================
+// 💾 SOUMETTRE LE FORMULAIRE (CRÉER / MODIFIER)
+// ==================================================
 document.getElementById('form-actualite').addEventListener('submit', async e => {
   e.preventDefault();
+
+  // Récupérer les valeurs
   const titre_fr = document.getElementById('titre_fr').value.trim();
   const titre_en = document.getElementById('titre_en').value.trim();
   const titre_ar = document.getElementById('titre_ar').value.trim();
@@ -815,48 +867,64 @@ document.getElementById('form-actualite').addEventListener('submit', async e => 
   const est_publie = document.getElementById('est_publie').checked;
   const epingle = document.getElementById('epingle').checked;
 
-  if (!titre_fr || !contenu_fr) { alert(m('aucunChampVide')); return; }
+  // Validation minimum
+  if (!titre_fr || !contenu_fr) { 
+    alert(m('aucunChampVide')); 
+    return; 
+  }
 
-  const donnees = { titre_fr, titre_en, titre_ar, resume_fr, resume_en, resume_ar, contenu_fr, contenu_en, contenu_ar, est_publie, epingle };
-  donnees.date_publication = new Date().toISOString();
+  // Préparer les données
+  const donnees = { 
+    titre_fr, titre_en, titre_ar, 
+    resume_fr, resume_en, resume_ar, 
+    contenu_fr, contenu, contenu_en, contenu_ar, 
+    est_publie, epingle,
+    date_publication: new Date().toISOString()
+  };
 
   try {
-    let r, res;
+    let resultat;
     if (editionId) {
-      r = await fetch(`${API_URL}/${editionId}`, {
-        method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      // ✏️ MODIFIER — Requête PUT
+      resultat = await requeteAPI(`/actualites/${editionId}`, {
+        method: 'PUT',
         body: JSON.stringify(donnees)
       });
-      res = await r.json();
-      if (res.ok) alert(m('modifierSucces'));
+      if (resultat.ok) alert(m('modifierSucces'));
     } else {
-      r = await fetch(`${API_URL}/enregistrer`, {
-        method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      // 🆕 CRÉER — Requête POST
+      resultat = await requeteAPI('/actualites/enregistrer', {
+        method: 'POST',
         body: JSON.stringify(donnees)
       });
-      res = await r.json();
-      if (res.ok) alert(m('ajouterSucces'));
+      if (resultat.ok) alert(m('ajouterSucces'));
     }
-    if (!res.ok) return alert("❌ " + (res.erreur || "Erreur serveur"));
+
+    if (!resultat.ok) return alert("❌ " + (resultat.erreur || "Erreur serveur"));
+    
+    // ✅ Réinitialiser et recharger
     reinitialiserFormulaire();
     chargerActualites();
+
   } catch {
-    // 📴 Mode local
+    // 📴 FALLBACK MODE LOCAL
     let liste = obtenirActualitesLocales();
     donnees.id = editionId ? Number(editionId) : Date.now();
+
     if (editionId) {
-      liste = liste.map(a => Number(a.id) === Number(editionId) ? {...a, ...donnees} : a);
+      liste = liste.map(a => Number(a.id) === Number(editionId) ? { ...a, ...donnees } : a);
     } else {
       liste.unshift(donnees);
     }
+
     sauvegarderActualitesLocales(liste);
     basculerModeLocal(true);
-    alert((editionId ? m('modifierSucces') : m('ajouterSucces')) + " (local)");
+    alert((editionId ? m('modifierSucces') : m('ajouterSucces')) + " (mode local)");
+    
     reinitialiserFormulaire();
     chargerActualites(true);
   }
 });
 </script>
-
 </body>
 </html>

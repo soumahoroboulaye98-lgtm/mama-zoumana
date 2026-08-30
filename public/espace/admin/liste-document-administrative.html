@@ -25,7 +25,6 @@
       --bordure: rgba(245,158,11,.25); --carte: rgba(30,41,59,.85); --ombre: rgba(0,0,0,.3);
       --input-fond: rgba(15,23,42,.6); --dore: #9a6f22; --dore-clair: #b78628;
     }
-
     /* Trilingue */
     .txt-en,.txt-ar{display:none}
     body.lang-fr .txt-fr{display:inline}
@@ -35,7 +34,6 @@
     body.lang-fr .txt-en,body.lang-fr .txt-ar{display:none}
     body.lang-ar .txt-fr,body.lang-ar .txt-en{display:none}
     body.lang-ar { direction: rtl; }
-
     * { transition: background .3s ease, color .3s ease, border-color .3s ease; }
     body {
       background: linear-gradient(160deg, var(--dore), var(--dore-clair));
@@ -98,7 +96,6 @@
     .modal-header, .modal-footer { border-color: var(--bordure); }
     .btn-close { filter: invert(0); }
     [data-bs-theme="dark"] .btn-close { filter: invert(1); }
-
     @media print {
       body { background: white !important; color: black !important; }
       .entete, .barre-langue, .no-print, .theme-btn, .alerte-api, .modal-header, .modal-footer, .pagination { display: none !important; }
@@ -118,31 +115,10 @@ const API_URL = "https://mama-zoumana-api.onrender.com/api";
 function getToken() { return localStorage.getItem('token') || ''; }
 const token = getToken();
 const role = (localStorage.getItem('role') || '').toLowerCase().trim();
-const langueActuelle = localStorage.getItem('langue') || 'fr';
-const themeActuel = localStorage.getItem('theme') || 'light';
 
-// ✅ Requête API centralisée avec gestion 401
-async function requeteAPI(chemin, options = {}) {
-  const reponse = await fetch(`${API_URL}${chemin}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
-      ...(options.headers || {})
-    }
-  });
-
-  // Session expirée
-  if (reponse.status === 401 || reponse.status === 403) {
-    alert("⛔ Session expirée — Veuillez vous reconnecter");
-    localStorage.clear();
-    window.location.href = 'connexion.html';
-    throw new Error("Session expirée");
-  }
-
-  const donnees = await reponse.json();
-  return donnees;
-}
+// ✅ CORRIGÉ : variables déclarées une seule fois avec `let`
+let langueActuelle = localStorage.getItem('langue') || 'fr';
+let themeActuel = localStorage.getItem('theme') || 'light';
 
 // ===== ✅ TRADUCTIONS =====
 const MSG = {
@@ -206,6 +182,25 @@ function couleurBadge(code) {
     certificat_travail:'bg-secondary' 
   };
   return c[code] || 'bg-dark';
+}
+
+// ===== ✅ REQUÊTE API CENTRALISÉE =====
+async function requeteAPI(chemin, options = {}) {
+  const reponse = await fetch(`${API_URL}${chemin}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+      ...(options.headers || {})
+    }
+  });
+  if (reponse.status === 401 || reponse.status === 403) {
+    alert("⛔ Session expirée — Veuillez vous reconnecter");
+    localStorage.clear();
+    window.location.href = 'connexion.html';
+    throw new Error("Session expirée");
+  }
+  return await reponse.json();
 }
 
 // ===== 🔒 SÉCURITÉ IMMÉDIATE =====
@@ -395,18 +390,18 @@ const modaleDocument = new bootstrap.Modal(document.getElementById('modaleDocume
 const modaleConfirmation = new bootstrap.Modal(document.getElementById('modaleConfirmation'));
 
 // ===== ✅ MODE JOUR / NUIT =====
-document.getElementById('btnTheme').addEventListener('click', () => {
-  const actuel = document.documentElement.getAttribute('data-bs-theme') || 'light';
-  const nouveau = actuel === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-bs-theme', nouveau);
-  localStorage.setItem('theme', nouveau);
-  majIcone(nouveau);
-});
-
 function majIcone(t) {
   document.getElementById('iconeTheme').className = t === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
 }
-majIcone(themeActuel); // Icône appliquée immédiatement
+// Appliquer thème au chargement
+majIcone(themeActuel);
+
+document.getElementById('btnTheme').addEventListener('click', () => {
+  themeActuel = themeActuel === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-bs-theme', themeActuel);
+  localStorage.setItem('theme', themeActuel);
+  majIcone(themeActuel);
+});
 
 // ===== ✅ GESTION LANGUE =====
 document.querySelectorAll('.lang-btn').forEach(bouton => {
@@ -416,11 +411,12 @@ document.querySelectorAll('.lang-btn').forEach(bouton => {
     bouton.classList.add('active');
     document.body.className = `lang-${lang}`;
     localStorage.setItem('langue', lang);
-    // Mise à jour globale
+    // ✅ CORRIGÉ : mise à jour de la variable globale
     langueActuelle = lang;
     afficherTableau();
   });
 });
+
 // Mise en évidence langue active
 document.querySelector(`[data-lang="${langueActuelle}"]`)?.classList.add('active');
 document.getElementById('txtChargement').textContent = m('charger');
@@ -431,7 +427,6 @@ function genererModeleDoc(doc) {
   const etab = "Établissement Scolaire MAMA-ZOUMANA — Centre Islamique";
   const date = doc.date_delivrance ? new Date(doc.date_delivrance).toLocaleDateString('fr-FR', {dateStyle:'long'}) : '';
   const type = doc.type_document || doc.type_doc || '';
-
   const modeles = {
     carte_scolaire: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(type)}</div></div><div class="doc-corps row"><div class="col-4 text-center"><div style="border:1px solid #ccc; border-radius:6px; padding:2rem .5rem; font-size:3rem; color:#999;">📷</div></div><div class="col-8"><p><strong>NOM :</strong> ${benef.nom}</p><p><strong>PRÉNOMS :</strong> ${benef.prenoms}</p><p><strong>MATRICULE :</strong> ${benef.matricule||'—'}</p><p><strong>CLASSE :</strong> ${benef.classe||benef.nom_classe||'—'}</p><p><strong>ANNÉE :</strong> ${doc.annee_scolaire||'—'}</p></div></div><p class="doc-num">N° ${doc.numero_unique || '—'}</p></div>`,
     attestation_scolarite: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(type)}</div></div><div class="doc-corps"><p>Nous soussignés, certifions que :</p><p class="text-center text-uppercase fw-bold my-3">${benef.nom} ${benef.prenoms}</p><p>est inscrit(e) en classe de <strong>${benef.classe||'—'}</strong> — <strong>${doc.annee_scolaire||'—'}</strong>.</p><p class="mt-4">En foi de quoi, délivrons la présente attestation.</p><p class="mt-5">Abidjan, le ${date}</p><div class="d-flex justify-content-between mt-5 pt-3"><span>Le Directeur</span><span class="doc-num">N° ${doc.numero_unique || '—'}</span></div></div></div>`,
@@ -453,18 +448,15 @@ async function chargerDocuments() {
     
     if (r.status === 401 || r.status === 403) throw new Error("Non autorisé");
     if (!r.ok) throw new Error(`Erreur ${r.status}`);
-
     const d = await r.json();
     tousDocuments = d.lignes || d.documents || [];
     document.getElementById('alerteApi').classList.add('d-none');
-
   } catch (erreur) {
     console.warn("🔌 Passage en mode local :", erreur.message);
     tousDocuments = obtenirDocumentsLocaux();
     document.getElementById('texteAlerteApi').textContent = m('serveurIndispo');
     document.getElementById('alerteApi').classList.remove('d-none');
   }
-
   pageActuelle = 1;
   afficherTableau();
 }
@@ -474,14 +466,12 @@ function filtrerDocuments() {
   const recherche = (document.getElementById('recherche').value || '').toLowerCase().trim();
   const typeFiltre = document.getElementById('filtreType').value;
   const anneeFiltre = document.getElementById('filtreAnnee').value;
-
   return tousDocuments.filter(doc => {
     const benef = doc.beneficiaire || {};
     const nomComplet = `${(benef.nom||'')} ${(benef.prenoms||'')}`.toLowerCase();
     const type = doc.type_document || doc.type_doc || '';
     const annee = doc.annee_scolaire || '';
     const num = (doc.numero_unique || '').toLowerCase();
-
     return (!recherche || nomComplet.includes(recherche) || num.includes(recherche))
         && (!typeFiltre || type === typeFiltre)
         && (!anneeFiltre || annee === anneeFiltre);
@@ -492,15 +482,12 @@ function filtrerDocuments() {
 function genererPagination(total, page, taille) {
   const nbPages = Math.ceil(total / taille);
   const conteneur = document.querySelector('#pagination ul');
-
   if (nbPages <= 1) { 
     conteneur.innerHTML = ''; 
     return; 
   }
-
   let html = '';
   html += `<li class="page-item ${page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page - 1}">&laquo;</a></li>`;
-
   for (let i = 1; i <= nbPages; i++) {
     if (i === 1 || i === nbPages || (i >= page - 2 && i <= page + 2)) {
       html += `<li class="page-item ${i === page ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
@@ -508,10 +495,8 @@ function genererPagination(total, page, taille) {
       html += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
     }
   }
-
   html += `<li class="page-item ${page === nbPages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page + 1}">&raquo;</a></li>`;
   conteneur.innerHTML = html;
-
   // Liaison clics
   conteneur.querySelectorAll('a.page-link').forEach(lien => {
     lien.addEventListener('click', e => {
@@ -530,21 +515,17 @@ function genererPagination(total, page, taille) {
 function afficherTableau() {
   taillePageActuelle = parseInt(document.getElementById('taillePage').value);
   documentsFiltres = filtrerDocuments();
-
   // Compteur
   document.getElementById('compteur').textContent = `${m('total')} : ${documentsFiltres.length}`;
-
   // Tranche paginée
   const debut = (pageActuelle - 1) * taillePageActuelle;
   const fin = debut + taillePageActuelle;
   const pageDonnees = documentsFiltres.slice(debut, fin);
   const nbPages = Math.ceil(documentsFiltres.length / taillePageActuelle);
-
   // Info page
   document.getElementById('infoPage').textContent = nbPages > 0 
     ? `${m('page')} ${pageActuelle} ${m('sur')} ${nbPages}` 
     : '';
-
   // Corps du tableau
   if (pageDonnees.length === 0) {
     document.getElementById('corpsTableau').innerHTML = 
@@ -552,7 +533,6 @@ function afficherTableau() {
     genererPagination(0, 1, taillePageActuelle);
     return;
   }
-
   document.getElementById('corpsTableau').innerHTML = pageDonnees.map(doc => {
     const benef = doc.beneficiaire || { nom:'—', prenoms:'—' };
     const nomAff = `${benef.nom||''} ${benef.prenoms||''}`.trim() || '—';
@@ -560,7 +540,6 @@ function afficherTableau() {
     const date = doc.date_delivrance 
       ? new Date(doc.date_delivrance).toLocaleDateString('fr-FR') 
       : '—';
-
     return `<tr>
       <td><code class="text-primary">${doc.numero_unique || '—'}</code></td>
       <td><strong>${nomAff}</strong></td>
@@ -573,7 +552,6 @@ function afficherTableau() {
       </td>
     </tr>`;
   }).join('');
-
   genererPagination(documentsFiltres.length, pageActuelle, taillePageActuelle);
 }
 
@@ -582,12 +560,10 @@ window.voirDocument = function(doc) {
   document.getElementById('contenuDocument').innerHTML = genererModeleDoc(doc);
   modaleDocument.show();
 };
-
 window.imprimerDocument = function(doc) {
   document.getElementById('contenuDocument').innerHTML = genererModeleDoc(doc);
   setTimeout(() => window.print(), 300);
 };
-
 window.demanderSuppression = function(doc) {
   documentASupprimer = doc;
   document.getElementById('texteConfirmation').textContent = 
@@ -605,10 +581,8 @@ document.getElementById('confirmerSuppr').addEventListener('change', e => {
 // Confirmation suppression
 document.getElementById('btnSupprConfirme').addEventListener('click', async () => {
   if (!documentASupprimer) return;
-
   const numCible = documentASupprimer.numero_unique;
   let supprReussi = false;
-
   try {
     const r = await fetch(`${API_URL}/documents/supprimer`, {
       method: 'POST',
@@ -618,23 +592,19 @@ document.getElementById('btnSupprConfirme').addEventListener('click', async () =
       },
       body: JSON.stringify({ numero_unique: numCible })
     });
-
     const d = await r.json();
     if (d.ok) supprReussi = true;
     else throw new Error(d.erreur || "Erreur serveur");
-
   } catch {
     // Fallback mode local
     tousDocuments = tousDocuments.filter(x => (x.numero_unique || '') !== numCible);
     sauvegarderDocumentsLocaux(tousDocuments);
     supprReussi = true;
   }
-
   if (supprReussi) {
     alert(m('supprimeOk'));
     modaleConfirmation.hide();
     documentASupprimer = null;
-
     // Ajuster page si besoin
     const nbApres = Math.ceil(Math.max(1, documentsFiltres.length - 1) / taillePageActuelle) || 1;
     if (pageActuelle > nbApres) pageActuelle = nbApres;
@@ -650,7 +620,6 @@ document.getElementById('btnReset').addEventListener('click', () => {
   pageActuelle = 1;
   afficherTableau();
 });
-
 document.getElementById('recherche').addEventListener('input', () => { pageActuelle = 1; afficherTableau(); });
 document.getElementById('filtreType').addEventListener('change', () => { pageActuelle = 1; afficherTableau(); });
 document.getElementById('filtreAnnee').addEventListener('change', () => { pageActuelle = 1; afficherTableau(); });
