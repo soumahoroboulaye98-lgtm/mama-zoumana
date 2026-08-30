@@ -71,29 +71,32 @@ router.get('/alertes', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// 🕐 3. ACTIVITÉ RÉCENTE
+// 🕐 3. ACTIVITÉ RÉCENTE — ✅ ADAPTÉ À VOS COLONNES
 // ==================================================
 router.get('/activite-recente', protegerAdmin, async (req, res) => {
   try {
     const activite = [];
-    // Dernières préinscriptions
+
+    // ✅ VOTRE COLONNE : date_preinscription au lieu de date_soumission
     const { rows: dernieresInscrits } = await pool.query(`
-      SELECT prenoms, nom, date_soumission
+      SELECT prenoms, nom, date_preinscription
       FROM preinscriptions
-      ORDER BY date_soumission DESC
+      ORDER BY date_preinscription DESC
       LIMIT 5
     `);
     dernieresInscrits.forEach(p => {
       activite.push({
         icone: 'bi-person-plus',
         texte: `Préinscription : ${(p.prenoms || '')} ${(p.nom || '')}`.trim(),
-        date: p.date_soumission
+        date: p.date_preinscription
       });
     });
-    // Dernières actualités
+
+    // ✅ VOS COLONNES : titre_fr + date_publication (correspondent parfaitement)
     const { rows: actualites } = await pool.query(`
       SELECT titre_fr, date_publication
       FROM actualites
+      WHERE est_publie = true
       ORDER BY date_publication DESC
       LIMIT 3
     `);
@@ -104,6 +107,7 @@ router.get('/activite-recente', protegerAdmin, async (req, res) => {
         date: a.date_publication
       });
     });
+
     if (activite.length === 0) {
       activite.push({
         icone: 'bi-info-circle',
@@ -111,6 +115,7 @@ router.get('/activite-recente', protegerAdmin, async (req, res) => {
         date: null
       });
     }
+
     res.json({ ok: true, activite });
   } catch (erreur) {
     console.error("❌ Erreur activité récente :", erreur.message);
@@ -140,11 +145,11 @@ router.get('/repartition-eleves', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// 📄 5. ÉTAT NOTES & BULLETINS — ADAPTÉ À VOS COLONNES
+// 📄 5. ÉTAT NOTES & BULLETINS — ✅ ADAPTÉ À VOS COLONNES
 // ==================================================
 router.get('/etat-bulletins', protegerAdmin, async (req, res) => {
   try {
-    // ✅ VOS NOMS DE COLONNES : note_numerique / id
+    // ✅ VOTRE COLONNE : note_numerique au lieu de note
     const notes = await pool.query("SELECT COUNT(*) FROM notes WHERE note_numerique IS NOT NULL");
     const bulletins = await pool.query("SELECT COUNT(*) FROM bulletins");
 

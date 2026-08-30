@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" class="lang-fr">
+<html lang="fr" class="lang-fr" data-theme="clair">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,7 +35,7 @@
       --danger: #f87171;
       --ombre: 0 2px 12px rgba(0,0,0,0.35);
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.25s ease; }
+    * { margin: 0; padding: 0; box-sizing: border-box; transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease; }
     body { background: var(--fond); color: var(--texte); min-height: 100vh; font-family: 'Segoe UI', sans-serif; }
     .entete-page { background: var(--surface); border-bottom: 3px solid var(--accent); padding: 1.2rem 0; box-shadow: var(--ombre); }
     .carte { background: var(--surface); border-radius: 12px; border-left: 4px solid var(--accent); padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--bord); box-shadow: var(--ombre); }
@@ -72,12 +72,14 @@
 </head>
 <body class="lang-fr" data-theme="clair">
 
-<!-- 🔗 CONFIGURATION API — PLUS DE LOCALHOST -->
+<!-- 🔗 CONFIGURATION API -->
 <script>
 const API_URL = "https://mama-zoumana-api.onrender.com/api";
+
 function getToken() {
   return localStorage.getItem('token');
 }
+
 async function requeteAPI(chemin, options = {}) {
   const reponse = await fetch(`${API_URL}${chemin}`, {
     ...options,
@@ -123,13 +125,12 @@ const MSG = {
     aucunProf: "⚠️ Aucun professeur trouvé",
     aucuneClasse: "⚠️ Aucune classe trouvée",
     aucuneMatiere: "⚠️ Aucune matière trouvée",
-    erreurChamps: "⚠️ Sélectionne Professeur, Classe et Matière !",
+    erreurChamps: "⚠️ Sélectionnez Professeur, Classe et Matière !",
     ajouterOk: "✅ Affectation enregistrée !",
     supprConfirm: "⚠️ Confirmer la suppression ?",
     supprOk: "✅ Supprimé !",
     aucune: "Aucune affectation enregistrée",
-    erreurReseau: "❌ Erreur Réseau",
-    modeLocalProf: "⚠️ Liste professeurs indisponible — saisissez manuellement"
+    erreurReseau: "❌ Erreur Réseau"
   },
   en: {
     accesReserve: "⛔ Access restricted to Administrator",
@@ -144,8 +145,7 @@ const MSG = {
     supprConfirm: "⚠️ Confirm deletion?",
     supprOk: "✅ Deleted!",
     aucune: "No assignment registered",
-    erreurReseau: "❌ Network Error",
-    modeLocalProf: "⚠️ Teachers list unavailable — type manually"
+    erreurReseau: "❌ Network Error"
   },
   ar: {
     accesReserve: "⛔ الوصول مقصور على المدير",
@@ -160,20 +160,26 @@ const MSG = {
     supprConfirm: "⚠️ تأكيد الحذف؟",
     supprOk: "✅ تم الحذف!",
     aucune: "لا يوجد تكليفات مسجلة",
-    erreurReseau: "❌ خطأ في الشبكة",
-    modeLocalProf: "⚠️ قائمة المعلمين غير متاحة — اكتب يدوياً"
+    erreurReseau: "❌ خطأ في الشبكة"
   }
 };
+
 function m(cle) { return MSG[langue]?.[cle] || MSG.fr[cle]; }
 
-// 🌙 THÈME
+// 🌙 THÈME — Mode Jour/Nuit
 function appliquerTheme(t) {
   theme = t;
   document.documentElement.setAttribute('data-theme', t);
   localStorage.setItem('theme', t);
-  document.getElementById('btn-theme').innerHTML = t === 'clair' ? '<i class="bi bi-moon"></i>' : '<i class="bi bi-sun"></i>';
+  document.getElementById('btn-theme').innerHTML = 
+    t === 'clair' 
+      ? '<i class="bi bi-moon-stars"></i>' 
+      : '<i class="bi bi-sun"></i>';
 }
-function basculerTheme() { appliquerTheme(theme === 'clair' ? 'sombre' : 'clair'); }
+
+function basculerTheme() { 
+  appliquerTheme(theme === 'clair' ? 'sombre' : 'clair'); 
+}
 
 // 🗣️ LANGUE
 function appliquerLangue(lg) {
@@ -211,7 +217,7 @@ if(!token || !['admin','super_admin','directeur'].includes(role)){
     </div>
     <div class="d-flex align-items-center gap-2">
       <button class="btn-mode" id="btn-theme" onclick="basculerTheme()" title="Mode jour/nuit">
-        <i class="bi bi-moon"></i>
+        <i class="bi bi-moon-stars"></i>
       </button>
       <button class="btn btn-sm btn-outline-light btn-langue" onclick="appliquerLangue('fr')" id="btn-fr">FR</button>
       <button class="btn btn-sm btn-outline-light btn-langue" onclick="appliquerLangue('en')" id="btn-en">EN</button>
@@ -246,8 +252,9 @@ if(!token || !['admin','super_admin','directeur'].includes(role)){
           <span class="lang-en">👨‍🏫 Teacher</span>
           <span class="lang-ar">👨‍🏫 المدرس</span>
         </label>
-        <input type="text" id="professeur_nom" class="form-control" placeholder="Nom du professeur">
-        <small class="text-warning d-none" id="avertissementProf">⚠️ Liste indisponible — saisissez le nom</small>
+        <select id="professeur" class="form-select">
+          <option value="">--- Chargement ---</option>
+        </select>
       </div>
       <div class="col-md-3">
         <label class="form-label fw-bold">
@@ -310,18 +317,48 @@ function basculerModeLocal(actif) {
   }
 }
 
-// 🏫 CHARGER CLASSES — ✅ BONNE ROUTE
+// 👨‍🏫 CHARGER PROFESSEURS — depuis table utilisateurs (role = professeur)
+async function chargerProfesseurs() {
+  const sel = document.getElementById('professeur');
+  sel.innerHTML = `<option value="">${m('charger')}</option>`;
+  try {
+    const res = await requeteAPI('/utilisateurs/professeurs');
+    const liste = res.lignes || res.utilisateurs || res || [];
+    sel.innerHTML = `<option value="">${m('selectionner')}</option>`;
+    if (Array.isArray(liste) && liste.length > 0) {
+      liste.forEach(p => {
+        const nomComplet = `${p.prenoms || ''} ${p.nom || ''}`.trim();
+        sel.innerHTML += `<option value="${p.id}">${nomComplet || p.email || p.id}</option>`;
+      });
+    } else {
+      sel.innerHTML += `<option value="" disabled>${m('aucunProf')}</option>`;
+    }
+    sauvegarderProfesseursLocaux(liste);
+    basculerModeLocal(false);
+  } catch {
+    console.warn("🔌 Mode local professeurs");
+    basculerModeLocal(true);
+    const liste = obtenirProfesseursLocaux();
+    sel.innerHTML = `<option value="">${m('selectionner')}</option>`;
+    liste.forEach(p => {
+      const nomComplet = `${p.prenoms || ''} ${p.nom || ''}`.trim();
+      sel.innerHTML += `<option value="${p.id}">${nomComplet}</option>`;
+    });
+  }
+}
+
+// 🏫 CHARGER CLASSES — route /classes
 async function chargerClasses() {
   const sel = document.getElementById('classe');
   sel.innerHTML = `<option value="">${m('charger')}</option>`;
   try {
-    const res = await requeteAPI('/classes/toutes');
-    const liste = res.classes || res.lignes || res || [];
+    const res = await requeteAPI('/classes');
+    const liste = res.lignes || res.classes || res || [];
     sel.innerHTML = `<option value="">${m('selectionner')}</option>`;
     if (Array.isArray(liste) && liste.length > 0) {
       liste.forEach(c => {
-        const nom = c.libelle_classe || c.nom_fr || c.code || '';
-        sel.innerHTML += `<option value="${c.id_classe || c.id || c._id}">${nom}</option>`;
+        const nom = c.libelle_classe || '';
+        sel.innerHTML += `<option value="${c.id_classe || c.id}">${nom}</option>`;
       });
     } else {
       sel.innerHTML += `<option value="" disabled>${m('aucuneClasse')}</option>`;
@@ -334,23 +371,23 @@ async function chargerClasses() {
     const liste = obtenirClassesLocales();
     sel.innerHTML = `<option value="">${m('selectionner')}</option>`;
     liste.forEach(c => {
-      sel.innerHTML += `<option value="${c.id_classe || c.id}">${c.libelle_classe || c.nom_fr || ''}</option>`;
+      sel.innerHTML += `<option value="${c.id_classe || c.id}">${c.libelle_classe || ''}</option>`;
     });
   }
 }
 
-// 📚 CHARGER MATIÈRES — ✅ BONNE ROUTE
+// 📚 CHARGER MATIÈRES — route /matieres
 async function chargerMatieres() {
   const sel = document.getElementById('matiere');
   sel.innerHTML = `<option value="">${m('charger')}</option>`;
   try {
     const res = await requeteAPI('/matieres');
-    const liste = res.matieres || res.lignes || res || [];
+    const liste = res.lignes || res.matieres || res || [];
     sel.innerHTML = `<option value="">${m('selectionner')}</option>`;
     if (Array.isArray(liste) && liste.length > 0) {
       liste.forEach(m => {
-        const nom = m.libelle_matiere || m.nom_fr || '';
-        sel.innerHTML += `<option value="${m.id_matiere || m.id || m._id}">${nom}</option>`;
+        const nom = m.libelle_matiere || '';
+        sel.innerHTML += `<option value="${m.id_matiere || m.id}">${nom}</option>`;
       });
     } else {
       sel.innerHTML += `<option value="" disabled>${m('aucuneMatiere')}</option>`;
@@ -363,33 +400,35 @@ async function chargerMatieres() {
     const liste = obtenirMatieresLocales();
     sel.innerHTML = `<option value="">${m('selectionner')}</option>`;
     liste.forEach(m => {
-      sel.innerHTML += `<option value="${m.id_matiere || m.id}">${m.libelle_matiere || m.nom_fr || ''}</option>`;
+      sel.innerHTML += `<option value="${m.id_matiere || m.id}">${m.libelle_matiere || ''}</option>`;
     });
   }
 }
 
-// 💾 ENREGISTRER AFFECTATION — ✅ BONNE ROUTE
+// 💾 ENREGISTRER AFFECTATION
 async function enregistrerAffectation() {
-  const professeur_nom = document.getElementById('professeur_nom').value.trim();
+  const id_professeur = document.getElementById('professeur').value;
   const id_classe = document.getElementById('classe').value;
   const id_matiere = document.getElementById('matiere').value;
 
-  if (!professeur_nom || !id_classe || !id_matiere) {
+  if (!id_professeur || !id_classe || !id_matiere) {
     alert(m('erreurChamps'));
     return;
   }
 
+  const optionProf = document.querySelector(`#professeur option[value="${id_professeur}"]`);
   const optionClasse = document.querySelector(`#classe option[value="${id_classe}"]`);
   const optionMatiere = document.querySelector(`#matiere option[value="${id_matiere}"]`);
 
   const nouvelle = {
     id: Date.now(),
-    professeur_id: Date.now(),
-    classe_id: id_classe,
-    matiere_id: id_matiere,
-    professeur_nom: professeur_nom,
+    id_professeur: id_professeur,
+    id_classe: id_classe,
+    id_matiere: id_matiere,
+    professeur_nom: optionProf?.textContent?.trim() || '',
     classe_nom: optionClasse?.textContent?.trim() || '',
-    matiere_nom: optionMatiere?.textContent?.trim() || ''
+    matiere_nom: optionMatiere?.textContent?.trim() || '',
+    annee_scolaire: '2026-2027'
   };
 
   let liste = obtenirAffectationsLocales();
@@ -397,17 +436,15 @@ async function enregistrerAffectation() {
     const res = await requeteAPI('/affectations', {
       method: 'POST',
       body: JSON.stringify({
-        professeur_nom,
-        classe_id: id_classe,
-        matiere_id: id_matiere
+        id_professeur, id_classe, id_matiere, annee_scolaire: '2026-2027'
       })
     });
     if (res && !res.erreur) {
-      nouvelle.id = res.id || nouvelle.id;
+      nouvelle.id = res.id_affectation || res.id || nouvelle.id;
       liste.unshift(nouvelle);
       sauvegarderAffectationsLocales(liste);
       alert(m('ajouterOk'));
-      document.getElementById('professeur_nom').value = '';
+      document.getElementById('professeur').value = '';
       document.getElementById('classe').value = '';
       document.getElementById('matiere').value = '';
       await chargerListeAffectations();
@@ -418,21 +455,21 @@ async function enregistrerAffectation() {
     liste.unshift(nouvelle);
     sauvegarderAffectationsLocales(liste);
     alert(m('ajouterOk') + " (mode local)");
-    document.getElementById('professeur_nom').value = '';
+    document.getElementById('professeur').value = '';
     document.getElementById('classe').value = '';
     document.getElementById('matiere').value = '';
     chargerListeAffectations(true);
   }
 }
 
-// 📋 CHARGER LISTE AFFECTATIONS — ✅ BONNE ROUTE
+// 📋 CHARGER LISTE AFFECTATIONS
 async function chargerListeAffectations(forcerLocal = false) {
   const zone = document.getElementById('listeAffectations');
   let liste = [];
   if (!forcerLocal) {
     try {
       const res = await requeteAPI('/affectations');
-      liste = res.affectations || res.lignes || res || [];
+      liste = res.lignes || res.affectations || res || [];
       if (!Array.isArray(liste)) liste = [];
       sauvegarderAffectationsLocales(liste);
       basculerModeLocal(false);
@@ -455,13 +492,13 @@ async function chargerListeAffectations(forcerLocal = false) {
         <div class="fw-bold">👨‍🏫 ${a.professeur_nom || a.professeur || ''}</div>
       </div>
       <div class="col-md-3 text-center">
-        <div>🏫 ${a.classe_nom || a.classe || ''}</div>
+        <div>🏫 ${a.classe_nom || a.libelle_classe || ''}</div>
       </div>
       <div class="col-md-3 text-center">
-        <div>📚 ${a.matiere_nom || a.matiere || ''}</div>
+        <div>📚 ${a.matiere_nom || a.libelle_matiere || ''}</div>
       </div>
       <div class="col-md-2 text-center">
-        <button class="btn btn-suppr btn-sm" onclick="supprimerAffectation(${a.id})">
+        <button class="btn btn-suppr btn-sm" onclick="supprimerAffectation(${a.id_affectation || a.id})">
           <i class="bi bi-trash3"></i>
           <span class="lang-fr"> Supprimer</span>
           <span class="lang-en"> Delete</span>
@@ -471,10 +508,10 @@ async function chargerListeAffectations(forcerLocal = false) {
     </div>`).join('');
 }
 
-// 🗑️ SUPPRIMER AFFECTATION — ✅ BONNE ROUTE
+// 🗑️ SUPPRIMER AFFECTATION
 async function supprimerAffectation(id) {
   if (!confirm(m('supprConfirm'))) return;
-  let liste = obtenirAffectationsLocales().filter(a => String(a.id) !== String(id));
+  let liste = obtenirAffectationsLocales().filter(a => String(a.id_affectation || a.id) !== String(id));
   try {
     await requeteAPI(`/affectations/${id}`, { method: 'DELETE' });
     sauvegarderAffectationsLocales(liste);
@@ -494,9 +531,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.querySelectorAll('.btn-langue').forEach(b => {
     b.classList.toggle('active', b.id === `btn-${langue}`);
   });
-  // ⚠️ Avertissement professeurs (route à créer côté API)
-  document.getElementById('avertissementProf').classList.remove('d-none');
-  
+
+  await chargerProfesseurs();
   await chargerClasses();
   await chargerMatieres();
   await chargerListeAffectations();

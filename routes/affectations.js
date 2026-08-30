@@ -10,32 +10,32 @@ try {
   veriftoken = require('../middleware/veriftoken');
   verifadmin = require('../middleware/verifadmin');
   verifprof  = require('../middleware/verifprof');
-  protegerAdmin = [veriftoken, verifadmin]; // Admin uniquement
-  protegerProf  = [veriftoken, verifprof];  // Enseignant connecté
+  protegerAdmin = [veriftoken, verifadmin];
+  protegerProf  = [veriftoken, verifprof];
 } catch {
   protegerAdmin = [];
   protegerProf  = [];
   console.warn("⚠️ Middlewares introuvables — Mode développement");
 }
 
-// ✅ Année scolaire par défaut (ex: août → année en cours, sept → année+1)
-const MOIS_RENTRÉE = 8;
+// ✅ Année scolaire par défaut
+const MOIS_RENTREE = 8;
 const annee = new Date().getFullYear();
 const mois = new Date().getMonth() + 1;
-const ANNEE_SCOLAIRE_DEFAUT = mois >= MOIS_RENTRÉE
+const ANNEE_SCOLAIRE_DEFAUT = mois >= MOIS_RENTREE
   ? `${annee}-${annee + 1}`
   : `${annee - 1}-${annee}`;
 
 // ==================================================
 // 📋 LISTE TOUTES AFFECTATIONS — Admin
-// → GET /api/affectations
+// GET /api/affectations
 // ==================================================
 router.get('/', protegerAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT 
         a.id_affectation,
-        a.id_prof,
+        a.id_professeur,
         u.nom,
         u.prenoms,
         a.id_classe,
@@ -45,9 +45,12 @@ router.get('/', protegerAdmin, async (req, res) => {
         m.libelle_matiere,
         m.libelle_matiere_ar,
         m.coefficient,
-        a.annee_scolaire
-      FROM affectations_ens a
-      JOIN utilisateurs u ON a.id_prof  = u.id_utilisateur
+        a.annee_scolaire,
+        a.est_actif,
+        a.date_creation,
+        a.date_mise_a_jour
+      FROM affectation a
+      JOIN utilisateurs u ON a.id_professeur = u.id
       JOIN classes c     ON a.id_classe = c.id_classe
       JOIN matieres m    ON a.id_matiere = m.id_matiere
       ORDER BY 
@@ -66,12 +69,12 @@ router.get('/', protegerAdmin, async (req, res) => {
 
 // ==================================================
 // 👨‍🏫 MES AFFECTATIONS — Enseignant connecté
-// → GET /api/affectations/prof/miennes
+// GET /api/affectations/prof/miennes
 // ==================================================
 router.get('/prof/miennes', protegerProf, async (req, res) => {
   try {
-    const id_prof = req.user?.id_utilisateur || req.user?.id;
-    if (!id_prof)
+    const id_professeur = req.user?.id || req.user?.id_utilisateur;
+    if (!id_professeur)
       return res.json({ ok: false, erreur: "⚠️ Identifiant enseignant introuvable" });
 
     const { rows } = await pool.query(`
@@ -85,13 +88,14 @@ router.get('/prof/miennes', protegerProf, async (req, res) => {
         m.libelle_matiere,
         m.libelle_matiere_ar,
         m.coefficient,
-        a.annee_scolaire
-      FROM affectations_ens a
+        a.annee_scolaire,
+        a.est_actif
+      FROM affectation a
       JOIN classes c  ON a.id_classe  = c.id_classe
       JOIN matieres m ON a.id_matiere = m.id_matiere
-      WHERE a.id_prof = $1
+      WHERE a.id_professeur = $1 AND a.est_actif = true
       ORDER BY c.libelle_classe ASC, m.libelle_matiere ASC
-    `, [id_prof]);
+    `, [id_professeur]);
 
     console.log(`✅ Mes affectations — ${rows.length} enregistrement(s)`);
     return res.json({ ok: true, lignes: rows });
@@ -103,7 +107,7 @@ router.get('/prof/miennes', protegerProf, async (req, res) => {
 
 // ==================================================
 // 🔍 DÉTAIL UNE AFFECTATION — Admin
-// → GET /api/affectations/:id
+// GET /api/affectations/:id
 // ==================================================
 router.get('/:id', protegerAdmin, async (req, res) => {
   try {
@@ -113,10 +117,11 @@ router.get('/:id', protegerAdmin, async (req, res) => {
 
     const { rows: [affectation] } = await pool.query(`
       SELECT 
-        a.id_affectation, a.id_prof, a.id_classe, a.id_matiere, a.annee_scolaire,
+        a.id_affectation, a.id_professeur, a.id_classe, a.id_matiere, 
+        a.annee_scolaire, a.est_actif, a.date_creation, a.date_mise_a_jour,
         u.nom, u.prenoms, c.libelle_classe, m.libelle_matiere
-      FROM affectations_ens a
-      JOIN utilisateurs u ON a.id_prof  = u.id_utilisateur
+      FROM affectation a
+      JOIN utilisateurs u ON a.id_professeur = u.id
       JOIN classes c     ON a.id_classe = c.id_classe
       JOIN matieres m    ON a.id_matiere = m.id_matiere
       WHERE a.id_affectation = $1
@@ -135,39 +140,38 @@ router.get('/:id', protegerAdmin, async (req, res) => {
 
 // ==================================================
 // ➕ CRÉER UNE AFFECTATION — Admin
-// → POST /api/affectations
+// POST /api/affectations
 // ==================================================
 router.post('/', protegerAdmin, async (req, res) => {
   try {
-    const { id_prof, id_classe, id_matiere, annee_scolaire } = req.body;
+    const { id_professeur, id_classe, id_matiere, annee_scolaire, est_actif } = req.body;
 
-    // ✅ Validation champs obligatoires
-    if (!id_prof || !id_classe || !id_matiere)
+    if (!id_professeur || !id_classe || !id_matiere)
       return res.json({ ok: false, erreur: "⚠️ Enseignant, Classe et Matière OBLIGATOIRES" });
 
-    const profId   = parseInt(id_prof);
-    const classeId = parseInt(id_classe);
+    const profId    = parseInt(id_professeur);
+    const classeId  = parseInt(id_classe);
     const matiereId = parseInt(id_matiere);
 
     if ([profId, classeId, matiereId].some(isNaN))
       return res.json({ ok: false, erreur: "⚠️ Un ou plusieurs identifiants sont invalides" });
 
     const annee = annee_scolaire?.trim() || ANNEE_SCOLAIRE_DEFAUT;
+    const actif = est_actif !== false;
 
-    // ✅ Création
     const { rows: [nouvelle] } = await pool.query(`
-      INSERT INTO affectations_ens (id_prof, id_classe, id_matiere, annee_scolaire)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO affectation (id_professeur, id_classe, id_matiere, annee_scolaire, est_actif, date_creation)
+      VALUES ($1, $2, $3, $4, $5, NOW())
       RETURNING *
-    `, [profId, classeId, matiereId, annee]);
+    `, [profId, classeId, matiereId, annee, actif]);
 
     console.log(`✅ Affectation créée — Prof ${profId} → Classe ${classeId}, Matière ${matiereId} (${annee})`);
     return res.json({ ok: true, message: "✅ Affectation ENREGISTRÉE avec succès", affectation: nouvelle });
   } catch (e) {
     console.error("❌ ERREUR création affectation :", e.code, e.message);
-    if (e.code === '23505') // Violation contrainte unique
+    if (e.code === '23505')
       return res.json({ ok: false, erreur: "⚠️ Cette affectation existe DÉJÀ pour cette année scolaire" });
-    if (e.code === '23503') // Clé étrangère introuvable
+    if (e.code === '23503')
       return res.json({ ok: false, erreur: "⚠️ Enseignant, Classe ou Matière INTROUVABLE" });
     return res.json({ ok: false, erreur: "⚠️ Impossible de créer l'affectation" });
   }
@@ -175,7 +179,7 @@ router.post('/', protegerAdmin, async (req, res) => {
 
 // ==================================================
 // ✏️ MODIFIER UNE AFFECTATION — Admin
-// → PUT /api/affectations/:id
+// PUT /api/affectations/:id
 // ==================================================
 router.put('/:id', protegerAdmin, async (req, res) => {
   try {
@@ -183,26 +187,27 @@ router.put('/:id', protegerAdmin, async (req, res) => {
     if (isNaN(id_affectation))
       return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
 
-    const { id_prof, id_classe, id_matiere, annee_scolaire } = req.body;
+    const { id_professeur, id_classe, id_matiere, annee_scolaire, est_actif } = req.body;
 
-    if (!id_prof || !id_classe || !id_matiere)
+    if (!id_professeur || !id_classe || !id_matiere)
       return res.json({ ok: false, erreur: "⚠️ Enseignant, Classe et Matière OBLIGATOIRES" });
 
-    const profId    = parseInt(id_prof);
-    const classeId   = parseInt(id_classe);
+    const profId    = parseInt(id_professeur);
+    const classeId  = parseInt(id_classe);
     const matiereId = parseInt(id_matiere);
 
     if ([profId, classeId, matiereId].some(isNaN))
       return res.json({ ok: false, erreur: "⚠️ Un ou plusieurs identifiants sont invalides" });
 
     const annee = annee_scolaire?.trim() || ANNEE_SCOLAIRE_DEFAUT;
+    const actif = est_actif !== false;
 
-    // ✅ Mise à jour
     const { rowCount } = await pool.query(`
-      UPDATE affectations_ens
-      SET id_prof = $1, id_classe = $2, id_matiere = $3, annee_scolaire = $4
-      WHERE id_affectation = $5
-    `, [profId, classeId, matiereId, annee, id_affectation]);
+      UPDATE affectation
+      SET id_professeur = $1, id_classe = $2, id_matiere = $3, 
+          annee_scolaire = $4, est_actif = $5, date_mise_a_jour = NOW()
+      WHERE id_affectation = $6
+    `, [profId, classeId, matiereId, annee, actif, id_affectation]);
 
     if (rowCount === 0)
       return res.json({ ok: false, erreur: "⚠️ Affectation INTROUVABLE" });
@@ -221,7 +226,7 @@ router.put('/:id', protegerAdmin, async (req, res) => {
 
 // ==================================================
 // 🗑️ SUPPRIMER UNE AFFECTATION — Admin
-// → DELETE /api/affectations/:id
+// DELETE /api/affectations/:id
 // ==================================================
 router.delete('/:id', protegerAdmin, async (req, res) => {
   try {
@@ -230,7 +235,7 @@ router.delete('/:id', protegerAdmin, async (req, res) => {
       return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
 
     const { rowCount } = await pool.query(
-      'DELETE FROM affectations_ens WHERE id_affectation = $1',
+      'DELETE FROM affectation WHERE id_affectation = $1',
       [id_affectation]
     );
 
