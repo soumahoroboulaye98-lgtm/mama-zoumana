@@ -22,7 +22,9 @@
       couleur_fond: '#0f172a',
       couleur_texte: '#f8fafc',
       couleur_accent: '#f59e0b',
-      image_fond: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1920&q=80',
+      image_fond: 'image1.jpg',
+      image_fond2: 'image2.jpg',
+      image_fond3: 'image3.png',
       image_entete: '',
       image_pied: '',
       police_titres: '"Segoe UI", sans-serif',
@@ -59,7 +61,9 @@
       lien_google_maps: 'MOSQUEE MEITE MOUHAMAD, Abidjan',
       lien_video_accueil: ''
     };
+
     let LANG = localStorage.getItem('langue_site') || 'fr';
+    let estModeJour = localStorage.getItem('theme_site') === 'jour';
 
     // ==================================================
     // 🎨 APPLIQUER LES COULEURS DEPUIS LA CONFIG
@@ -75,13 +79,20 @@
     }
 
     // ==================================================
-    // 🖼️ APPLIQUER LES IMAGES
+    // 🖼️ APPLIQUER LES IMAGES DE FOND
     // ==================================================
     function appliquerFond(cfg) {
       const imageFond = document.getElementById('image-fond-affichee');
-      if (cfg.image_fond && imageFond) {
-        imageFond.style.display = 'block';
-        imageFond.src = cfg.image_fond;
+      if (imageFond) {
+        const imagesFond = [cfg.image_fond, cfg.image_fond2, cfg.image_fond3].filter(Boolean);
+        if (imagesFond.length > 0) {
+          imageFond.src = imagesFond[0];
+          let index = 0;
+          setInterval(() => {
+            index = (index + 1) % imagesFond.length;
+            imageFond.src = imagesFond[index];
+          }, 6000);
+        }
       }
       const logoEntete = document.getElementById('logo-entete-image');
       if (cfg.image_entete && logoEntete) {
@@ -94,6 +105,20 @@
         logoPied.src = cfg.image_pied;
       }
     }
+
+    // ==================================================
+    // ☀️🌙 MODE JOUR / NUIT
+    // ==================================================
+    function appliquerTheme() {
+      document.body.classList.toggle('mode-jour', estModeJour);
+      const btn = document.getElementById('btn-theme');
+      if (btn) btn.textContent = estModeJour ? '🌙' : '☀️';
+    }
+    window.basculerTheme = function() {
+      estModeJour = !estModeJour;
+      localStorage.setItem('theme_site', estModeJour ? 'jour' : 'nuit');
+      appliquerTheme();
+    };
 
     // ==================================================
     // ✏️ APPLIQUER TOUS LES TEXTES ET LIENS
@@ -358,6 +383,7 @@
     document.addEventListener('DOMContentLoaded', async () => {
       LANG = localStorage.getItem('langue_site') || 'fr';
       appliquerLangue(LANG);
+      appliquerTheme();
 
       // Charger config locale puis depuis API
       const cfgLocale = JSON.parse(localStorage.getItem('config_site') || '{}');
@@ -367,7 +393,6 @@
         appliquerFond(configSite);
         appliquerTextesEtLiens(configSite);
       }
-
       try {
         const resConfig = await fetch('/api/config');
         const dataConfig = await resConfig.json();
@@ -439,6 +464,7 @@
       document.getElementById('menu-mobile-deroulant')?.classList.toggle('ouvert');
     }
   </script>
+
   <style>
     :root {
       --primaire: #0c4a6e;
@@ -453,10 +479,21 @@
       --police-titres: 'Segoe UI', sans-serif;
       --police-texte: 'Segoe UI', sans-serif;
     }
+
+    body.mode-jour {
+      --sombre: #e0f2fe;
+      --sombre-clair: #f0f9ff;
+      --texte: #1e293b;
+      --texte-clair: #1e293b;
+      --fond-carte: #ffffff;
+      --bordure: #cbd5e1;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 12px !important; }
-    body { font-family: var(--police-texte); background: var(--clair); color: var(--sombre); }
+    body { font-family: var(--police-texte); background: var(--clair); color: var(--sombre); transition: background 0.35s ease, color 0.35s ease; }
     body.lang-ar { font-family: 'Segoe UI', Tahoma, sans-serif; direction: rtl; text-align: right; }
     h1, h2, h3, h4, h5, h6 { font-family: var(--police-titres); }
+
     .txt-en, .txt-ar { display: none; }
     body.lang-fr .txt-fr { display: inline; }
     body.lang-fr .txt-en, body.lang-fr .txt-ar { display: none; }
@@ -479,6 +516,7 @@
     .logo-entete:hover { transform: scale(1.03); }
     .logo-entete-img { height: 45px; width: auto; display: none; border-radius: 8px !important; }
     .logo-icone { font-size: 1.8rem; }
+
     .nav-menu { display: flex; gap: 4px; }
     .menu-item { position: relative; }
     .menu-bouton {
@@ -487,6 +525,7 @@
       transition: all 0.3s ease; font-size: 0.95rem;
     }
     .menu-bouton:hover { color: var(--accent); }
+
     .sous-menu {
       position: absolute; top: 100%; left: 0; min-width: 240px;
       background: rgba(15,23,42,0.98); box-shadow: 0 10px 25px rgba(0,0,0,0.3);
@@ -501,11 +540,13 @@
       text-decoration: none; transition: all 0.2s; font-size: 0.95rem;
     }
     .sous-menu a:hover { background: rgba(245,158,11,0.18); color: var(--accent); }
+
     .btn-menu-mobile {
       display: none; background: rgba(255,255,255,0.15);
       border: 1px solid rgba(255,255,255,0.25); color: white;
       padding: 8px 14px; font-size: 1.4rem; border-radius: 8px; cursor: pointer;
     }
+
     .menu-mobile-deroulant {
       position: absolute; top: 100%; left: 0; right: 0;
       background: rgba(15,23,42,0.98); box-shadow: 0 10px 25px rgba(0,0,0,0.3);
@@ -524,12 +565,19 @@
     body.lang-ar .menu-mobile-deroulant button { text-align: right; }
     .menu-mobile-deroulant a:hover,
     .menu-mobile-deroulant button:hover { background: rgba(245,158,11,0.18); color: var(--accent); }
+
     .btn-langue {
       background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25);
       border-radius: 20px; padding: 5px 10px; font-size: 0.85rem; cursor: pointer;
       transition: all 0.2s; margin: 0 2px;
     }
     .btn-langue.active { background: var(--accent); color: var(--sombre); border-color: var(--accent); }
+    .btn-theme {
+      background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s; margin: 0 4px;
+    }
+    .btn-theme:hover { background: var(--accent); color: var(--sombre); }
 
     .btn-connexion {
       background: var(--accent); color: var(--sombre); font-weight: 600;
@@ -538,32 +586,37 @@
       text-decoration: none; display: inline-block;
     }
     .btn-connexion:hover { transform: translateY(-2px); }
-    .btn-connexion.clair { background: rgba(255,255,255,0.2); color: white; }
 
     /* ===== BANNIÈRE ===== */
     .banniere {
       position: relative; min-height: 85vh; display: flex; align-items: center; justify-content: center;
       text-align: center; color: white; background-size: cover; background-position: center;
+      overflow: hidden;
     }
     .image-fond {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      min-width: 100%; min-height: 100%; object-fit: cover; z-index: -2; display: none;
+      min-width: 100%; min-height: 100%; object-fit: cover; z-index: -2;
+      opacity: 0; transition: opacity 1.5s ease-in-out;
     }
+    .image-fond:first-child { opacity: 1; }
     .masque-fond {
       position: absolute; inset: 0;
       background: linear-gradient(to bottom, rgba(12,74,110,0.75), rgba(15,23,42,0.9));
       z-index: -1;
     }
-    .contenu-banniere { padding: 0 20px; }
-    .contenu-banniere h1 { font-size: clamp(2.2rem, 6vw, 3.8rem); font-weight: 800; margin-bottom: 20px; line-height: 1.2; }
+    .contenu-banniere { padding: 0 20px; position: relative; z-index: 1; }
+    .contenu-banniere h1 { font-size: clamp(2.2rem, 6vw, 3.8rem); font-weight: 800; margin-bottom: 20px; line-height: 1.2; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
     .contenu-banniere p { font-size: clamp(1.1rem, 2.8vw, 1.5rem); margin-bottom: 30px; opacity: 0.95; max-width: 900px; margin-left: auto; margin-right: auto; }
+
     .btn-action {
       background: var(--accent); color: var(--sombre); font-weight: 700;
       padding: 12px 28px; border-radius: 12px; border: none;
       font-size: 1rem; transition: all 0.3s; text-decoration: none; display: inline-block;
+      box-shadow: 0 4px 15px rgba(245,158,11,0.3);
     }
-    .btn-action:hover { transform: translateY(-3px); box-shadow: 0 6px 25px rgba(245,158,11,0.5); color: var(--sombre); }
-    .btn-action.clair { background: white; color: var(--primaire); }
+    .btn-action:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(245,158,11,0.5); color: var(--sombre); }
+    .btn-action.clair { background: white; color: var(--primaire); box-shadow: 0 4px 15px rgba(255,255,255,0.2); }
+    .btn-action.clair:hover { background: #f0f4f8; }
 
     /* ===== BANDEAU DÉFILANT ===== */
     .bande-info {
@@ -574,24 +627,29 @@
     @keyframes defile { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
     /* ===== SECTIONS ===== */
-    .section { padding: 60px 20px; }
+    .section { padding: 60px 20px; transition: background 0.35s ease; }
     .titre-section {
       text-align: center; margin-bottom: 45px; color: var(--primaire);
       font-weight: 700; font-size: 1.8rem;
     }
     .titre-section.text-start { text-align: left; }
     body.lang-ar .titre-section.text-start { text-align: right; }
-    .bg-dark { background-color: var(--sombre) !important; }
+    .bg-dark { background-color: var(--sombre) !important; color: var(--texte) !important; }
     .bg-claire { background-color: #f0f4f8; }
+    body.mode-jour .bg-claire { background-color: #e0f2fe; }
+
     .carte {
       background: white; border-radius: 16px; padding: 25px;
       box-shadow: 0 3px 15px rgba(0,0,0,0.06); transition: transform 0.25s, box-shadow 0.25s; height: 100%;
     }
+    body.mode-jour .carte { background: #ffffff; }
+    .bg-dark .carte { background: var(--sombre-clair); color: var(--texte); }
     .carte:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
     .carte h5 { color: var(--secondaire); font-weight: 600; font-size: 1.2rem; }
+    .bg-dark .carte h5 { color: #93c5fd; }
 
     /* ===== PIED DE PAGE ===== */
-    .pied-page { background: var(--sombre); color: #cbd5e1; padding: 50px 20px 25px; font-size: 0.95rem; }
+    .pied-page { background: var(--sombre); color: #cbd5e1; padding: 50px 20px 25px; font-size: 0.95rem; transition: background 0.35s ease; }
     .pied-page h6 { color: var(--accent); font-weight: 700; margin-bottom: 15px; font-size: 1rem; }
     .pied-page a { color: #94a3b8; text-decoration: none; display: block; margin-bottom: 8px; transition: color 0.2s; }
     .pied-page a:hover { color: var(--accent); }
@@ -611,6 +669,7 @@
     }
     .pied-page p { margin-bottom: 6px; }
     .tel1, .tel2 { font-weight: 600; color: #f8fafc; }
+
     .btn-retour-haut {
       position: fixed; bottom: 25px; right: 25px; width: 50px; height: 50px;
       background: var(--accent); color: var(--sombre); border-radius: 50%;
@@ -622,6 +681,7 @@
     body.lang-ar .btn-retour-haut { right: auto; left: 25px; }
     .btn-retour-haut.visible { opacity: 1; visibility: visible; }
     .btn-retour-haut:hover { transform: translateY(-4px); color: var(--sombre); }
+
     form label { font-weight: 500; }
     form input, form textarea { border-radius: 8px !important; box-shadow: none !important; }
     form input:focus, form textarea:focus { border-color: var(--primaire); }
@@ -637,7 +697,7 @@
     }
     @media (max-width: 768px) {
       .logo-entete { font-size: 1.15rem; }
-      .btn-langue { padding: 4px 8px; font-size: 0.8rem; }
+      .btn-langue, .btn-theme { padding: 4px 8px; font-size: 0.8rem; }
       .btn-connexion { padding: 6px 10px; font-size: 0.85rem; }
       .section { padding: 40px 15px; }
       .contenu-banniere h1 { font-size: clamp(1.8rem, 5vw, 2.5rem); }
@@ -670,375 +730,361 @@
         <div class="sous-menu">
           <a href="#accueil"><span class="txt-fr">Présentation</span><span class="txt-en">Presentation</span><span class="txt-ar">نبذة عنا</span></a>
           <a href="boutique.html"><span class="txt-fr">🛍️ Boutique Scolaire</span><span class="txt-en">🛍️ School Store</span><span class="txt-ar">🛍️ المتجر المدرسي</span></a>
-          <a href="#apropos"><span class="txt-fr">À Propos</span><span class="txt-en">About Us</span><span class="txt-ar">من نحن</span></a>
+          <a href="apropos.html"><span class="txt-fr">ℹ️ À Propos</span><span class="txt-en">ℹ️ About Us</span><span class="txt-ar">ℹ️ من نحن</span></a>
         </div>
       </div>
+
       <div class="menu-item">
         <button class="menu-bouton">
-          <span class="txt-fr">📝 Admission</span>
-          <span class="txt-en">📝 Admission</span>
-          <span class="txt-ar">📝 القبول</span>
+          <span class="txt-fr">📋 Pages</span>
+          <span class="txt-en">📋 Pages</span>
+          <span class="txt-ar">📋 الصفحات</span>
         </button>
         <div class="sous-menu">
-          <a href="#admission"><span class="txt-fr">Conditions</span><span class="txt-en">Requirements</span><span class="txt-ar">الشروط</span></a>
-          <a href="preinscription.html"><span class="txt-fr">S'inscrire</span><span class="txt-en">Register</span><span class="txt-ar">التسجيل</span></a>
+          <a href="admission.html"><i class="bi bi-pencil-square me-2"></i><span class="txt-fr">📋 Admission</span><span class="txt-en">📋 Admission</span><span class="txt-ar">📋 القبول</span></a>
+          <a href="programme.html"><i class="bi bi-book me-2"></i><span class="txt-fr">📚 Programme Scolaire</span><span class="txt-en">📚 School Program</span><span class="txt-ar">📚 البرنامج الدراسي</span></a>
+          <a href="mot-directeur.html"><i class="bi bi-chat-quote me-2"></i><span class="txt-fr">💬 Mot du Directeur</span><span class="txt-en">💬 Director's Message</span><span class="txt-ar">💬 كلمة المدير</span></a>
+          <a href="equipe.html"><i class="bi bi-people me-2"></i><span class="txt-fr">👥 Notre Équipe</span><span class="txt-en">👥 Our Team</span><span class="txt-ar">👥 فريقنا</span></a>
+          <a href="reglement.html"><i class="bi bi-file-text me-2"></i><span class="txt-fr">📜 Règlement Intérieur</span><span class="txt-en">📜 Internal Rules</span><span class="txt-ar">📜 النظام الداخلي</span></a>
+          <a href="apropos.html"><i class="bi bi-info-circle me-2"></i><span class="txt-fr">ℹ️ À Propos de nous</span><span class="txt<span class="txt-en">ℹ️ About Us</span><span class="txt-ar">ℹ️ من نحن</span></a>
+          <a href="contact.html"><i class="bi bi-envelope me-2"></i><span class="txt-fr">📧 Contact</span><span class="txt-en">📧 Contact</span><span class="txt-ar">📧 اتصل بنا</span></a>
         </div>
       </div>
+
       <div class="menu-item">
         <button class="menu-bouton">
-          <span class="txt-fr">📊 Scolarité</span>
-          <span class="txt-en">📊 School Life</span>
-          <span class="txt-ar">📊 الدراسة</span>
+          <span class="txt-fr">📊 Espace</span>
+          <span class="txt-en">📊 Portal</span>
+          <span class="txt-ar">📊 المساحة</span>
         </button>
         <div class="sous-menu">
-          <a href="classe-emploi.html"><span class="txt-fr">📚 Emploi du Temps & Classe</span><span class="txt-en">📚 Timetable & Classes</span><span class="txt-ar">📚 الجداول والفصول</span></a>
-          <a href="calendrier-scolaire.html"><span class="txt-fr">📅 Calendrier Scolaire</span><span class="txt-en">📅 School Calendar</span><span class="txt-ar">📅 التقويم المدرسي</span></a>
-          <a href="classement-general.html"><span class="txt-fr">📋 Classement Général</span><span class="txt-en">📋 General Ranking</span><span class="txt-ar">📋 الترتيب العام</span></a>
-          <a href="classement-notes.html"><span class="txt-fr">🏅 Classement par Notes</span><span class="txt-en">🏅 Grades Ranking</span><span class="txt-ar">🏅 ترتيب الدرجات</span></a>
-          <a href="liens-resources.html"><span class="txt-fr">🔗 Ressources & Recherche</span><span class="txt-en">🔗 Resources & Search</span><span class="txt-ar">🔗 مصادر وبحث</span></a>
+          <a href="preinscription.html"><i class="bi bi-pencil me-2"></i><span class="txt-fr">📝 Préinscription</span><span class="txt-en">📝 Pre-Registration</span><span class="txt-ar">📝 التسجيل المسبق</span></a>
+          <a href="suivi-scolaire.html"><i class="bi bi-journal-check me-2"></i><span class="txt-fr">📈 Suivi Scolaire</span><span class="txt-en">📈 Academic Progress</span><span class="txt-ar">📈 المتابعة الدراسية</span></a>
+          <a href="paiement.html"><i class="bi bi-credit-card me-2"></i><span class="txt-fr">💳 Paiement en Ligne</span><span class="txt-en">💳 Online Payment</span><span class="txt-ar">💳 الدفع الإلكتروني</span></a>
+          <a href="documents.html"><i class="bi bi-file-earmark-text me-2"></i><span class="txt-fr">📄 Documents</span><span class="txt-en">📄 Documents</span><span class="txt-ar">📄 الوثائق</span></a>
         </div>
       </div>
+
       <div class="menu-item">
         <button class="menu-bouton">
-          <span class="txt-fr">📸 Galerie</span>
-          <span class="txt-en">📸 Gallery</span>
-          <span class="txt-ar">📸 معرض الصور</span>
+          <span class="txt-fr">📰 Actualités</span>
+          <span class="txt-en">📰 News</span>
+          <span class="txt-ar">📰 الأخبار</span>
         </button>
         <div class="sous-menu">
-          <a href="#galerie"><span class="txt-fr">Photos</span><span class="txt-en">Photos</span><span class="txt-ar">صور</span></a>
-          <a href="#videos"><span class="txt-fr">Vidéos</span><span class="txt-en">Videos</span><span class="txt-ar">فيديوهات</span></a>
-        </div>
-      </div>
-      <div class="menu-item">
-        <button class="menu-bouton">
-          <span class="txt-fr">📞 Contact</span>
-          <span class="txt-en">📞 Contact</span>
-          <span class="txt-ar">📞 اتصل بنا</span>
-        </button>
-        <div class="sous-menu">
-          <a href="#contact"><span class="txt-fr">Nous écrire</span><span class="txt-en">Write to us</span><span class="txt-ar">راسلنا</span></a>
-          <a href="#contact"><span class="txt-fr">Localisation</span><span class="txt-en">Location</span><span class="txt-ar">الموقع</span></a>
+          <a href="#zone-actualites"><span class="txt-fr">📰 Actualités</span><span class="txt-en">📰 News</span><span class="txt-ar">📰 الأخبار</span></a>
+          <a href="#zone-evenements"><span class="txt-fr">📅 Événements</span><span class="txt-en">📅 Events</span><span class="txt-ar">📅 الفعاليات</span></a>
+          <a href="#zone-annonces"><span class="txt-fr">🔔 Annonces</span><span class="txt-en">🔔 Announcements</span><span class="txt-ar">🔔 الإعلانات</span></a>
+          <a href="#zone-calendrier"><span class="txt-fr">📅 Calendrier Scolaire</span><span class="txt-en">📅 School Calendar</span><span class="txt-ar">📅 التقويم المدرسي</span></a>
         </div>
       </div>
     </nav>
 
-    <!-- 📋 BOUTONS LANGUE & CONNEXION -->
-    <div class="d-flex align-items-center gap-2 ms-auto">
+    <!-- 🌐 LANGUE + THÈME + CONNEXION -->
+    <div class="d-flex align-items-center gap-2">
       <button class="btn-langue" data-lang="fr">FR</button>
       <button class="btn-langue" data-lang="en">EN</button>
       <button class="btn-langue" data-lang="ar">ع</button>
-
-      <!-- ✅ LIEN CORRIGÉ VERS LA PAGE DE CONNEXION -->
-      <a href="connexion.html" class="btn-connexion ms-3">
-        <span class="txt-fr">🔑 Connexion</span>
-        <span class="txt-en">🔑 Login</span>
-        <span class="txt-ar">🔑 تسجيل الدخول</span>
+      <button id="btn-theme" class="btn-theme" onclick="basculerTheme()">🌙</button>
+      <a href="connexion.html" class="btn-connexion ms-2 d-none d-sm-inline-flex align-items-center">
+        <i class="bi bi-person-lock me-1"></i>
+        <span class="txt-fr">Connexion</span>
+        <span class="txt-en">Sign In</span>
+        <span class="txt-ar">تسجيل الدخول</span>
       </a>
+      <button class="btn-menu-mobile" onclick="basculerMenuMobile()">☰</button>
     </div>
+  </div>
 
-    <!-- 📱 BOUTON MENU MOBILE -->
-    <button class="btn-menu-mobile ms-2" onclick="basculerMenuMobile()">
-      <i class="bi bi-list"></i>
-    </button>
-
-    <!-- 📱 MENU DÉROULANT <!-- 📱 MENU DÉROULANT MOBILE -->
-    <div id="menu-mobile-deroulant" class="menu-mobile-deroulant">
-      <a href="#accueil"><span class="txt-fr">🏠 Accueil — Présentation</span><span class="txt-en">🏠 Home — Presentation</span><span class="txt-ar">🏠 الرئيسية — نبذة عنا</span></a>
-      <a href="boutique.html"><span class="txt-fr">🛍️ Boutique Scolaire</span><span class="txt-en">🛍️ School Store</span><span class="txt-ar">🛍️ المتجر المدرسي</span></a>
-      <a href="qui-sommes-nous.html"><span class="txt-fr">À Propos</span><span class="txt-en">About Us</span><span class="txt-ar">من نحن</span></a>
-      <hr class="mx-3 my-2 border-light opacity-25">
-      <a href="#admission"><span class="txt-fr">📝 Conditions d'Admission</span><span class="txt-en">📝 Admission Requirements</span><span class="txt-ar">📝 شروط القبول</span></a>
-      <a href="preinscription.html"><span class="txt-fr">✍️ S'inscrire en ligne</span><span class="txt-en">✍️ Register Online</span><span class="txt-ar">✍️ التسجيل الإلكتروني</span></a>
-      <hr class="mx-3 my-2 border-light opacity-25">
-      <a href="classe-emploi.html"><span class="txt-fr">📚 Emploi du Temps & Classes</span><span class="txt-en">📚 Timetable & Classes</span><span class="txt-ar">📚 الجداول والفصول</span></a>
-      <a href="calendrier-scolaire.html"><span class="txt-fr">📅 Calendrier Scolaire</span><span class="txt-en">📅 School Calendar</span><span class="txt-ar">📅 التقويم المدرسي</span></a>
-      <a href="classement-general.html"><span class="txt-fr">📋 Classement Général</span><span class="txt-en">📋 General Ranking</span><span class="txt-ar">📋 الترتيب العام</span></a>
-      <a href="classement-notes.html"><span class="txt-fr">🏅 Classement par Notes</span><span class="txt-en">🏅 Grades Ranking</span><span class="txt-ar">🏅 ترتيب الدرجات</span></a>
-      <a href="liens-resources.html"><span class="txt-fr">🔗 Ressources & Recherche</span><span class="txt-en">🔗 Resources & Search</span><span class="txt-ar">🔗 مصادر وبحث</span></a>
-      <hr class="mx-3 my-2 border-light opacity-25">
-      <a href="#galerie"><span class="txt-fr">📸 Galerie Photos</span><span class="txt-en">📸 Photo Gallery</span><span class="txt-ar">📸 معرض الصور</span></a>
-      <a href="#videos"><span class="txt-fr">🎬 Vidéos</span><span class="txt-en">🎬 Videos</span><span class="txt-ar">🎬 فيديوهات</span></a>
-      <hr class="mx-3 my-2 border-light opacity-25">
-      <a href="#contact"><span class="txt-fr">✉️ Nous écrire</span><span class="txt-en">✉️ Write to Us</span><span class="txt-ar">✉️ راسلنا</span></a>
-      <a href="#contact"><span class="txt-fr">📍 Localisation</span><span class="txt-en">📍 Location</span><span class="txt-ar">📍 الموقع</span></a>
-      <hr class="mx-3 my-2 border-light opacity-25">
-      <a href="connexion.html"><span class="txt-fr">🔑 Espace Connexion</span><span class="txt-en">🔑 Login Area</span><span class="txt-ar">🔑 منطقة تسجيل الدخول</span></a>
-    </div>
+  <!-- 📱 MENU MOBILE -->
+  <div id="menu-mobile-deroulant" class="menu-mobile-deroulant">
+    <a href="#accueil"><i class="bi bi-house me-2"></i><span class="txt-fr">Accueil</span><span class="txt-en">Home</span><span class="txt-ar">الرئيسية</span></a>
+    <a href="preinscription.html"><i class="bi bi-pencil me-2"></i><span class="txt-fr">Préinscription</span><span class="txt-en">Pre-Registration</span><span class="txt-ar">التسجيل المسبق</span></a>
+    <a href="admission.html"><i class="bi bi-pencil-square me-2"></i><span class="txt-fr">Admission</span><span class="txt-en">Admission</span><span class="txt-ar">القبول</span></a>
+    <a href="programme.html"><i class="bi bi-book me-2"></i><span class="txt-fr">Programme Scolaire</span><span class="txt-en">School Program</span><span class="txt-ar">البرنامج الدراسي</span></a>
+    <a href="suivi-scolaire.html"><i class="bi bi-journal-check me-2"></i><span class="txt-fr">Suivi Scolaire</span><span class="txt-en">Academic Progress</span><span class="txt-ar">المتابعة الدراسية</span></a>
+    <a href="paiement.html"><i class="bi bi-credit-card me-2"></i><span class="txt-fr">Paiement en Ligne</span><span class="txt-en">Online Payment</span><span class="txt-ar">الدفع الإلكتروني</span></a>
+    <a href="documents.html"><i class="bi bi-file-earmark-text me-2"></i><span class="txt-fr">Documents</span><span class="txt-en">Documents</span><span class="txt-ar">الوثائق</span></a>
+    <a href="boutique.html"><i class="bi bi-bag me-2"></i><span class="txt-fr">Boutique Scolaire</span><span class="txt-en">School Store</span><span class="txt-ar">المتجر المدرسي</span></a>
+    <a href="equipe.html"><i class="bi bi-people me-2"></i><span class="txt-fr">Notre Équipe</span><span class="txt-en">Our Team</span><span class="txt-ar">فريقنا</span></a>
+    <a href="reglement.html"><i class="bi bi-file-text me-2"></i><span class="txt-fr">Règlement Intérieur</span><span class="txt-en">Internal Rules</span><span class="txt-ar">النظام الداخلي</span></a>
+    <a href="apropos.html"><i class="bi bi-info-circle me-2"></i><span class="txt-fr">À Propos</span><span class="txt-en">About Us</span><span class="txt-ar">من نحن</span></a>
+    <a href="contact.html"><i class="bi bi-envelope me-2"></i><span class="txt-fr">Contact</span><span class="txt-en">Contact</span><span class="txt-ar">اتصل بنا</span></a>
+    <a href="connexion.html" class="mt-2"><i class="bi bi-person-lock me-2"></i><span class="txt-fr">Connexion</span><span class="txt-en">Sign In</span><span class="txt-ar">تسجيل الدخول</span></a>
   </div>
 </header>
 
 <!-- 📢 BANDEAU DÉFILANT -->
-<div class="bande-info">
+<section class="bande-info">
   <div id="texte-bandeau-defilant" class="defilement">
     <span class="txt-fr">📢 Bienvenue à l'École & Centre Islamique MAMA-ZOUMANA — Année scolaire 2026-2027 — Enseignement moderne et valeurs islamiques</span>
     <span class="txt-en">📢 Welcome to MAMA-ZOUMANA School & Islamic Center — School Year 2026-2027 — Modern education with Islamic values</span>
     <span class="txt-ar">📢 مرحباً بكم في مدرسة ومركز ماما زومانا — العام الدراسي 2026-2027 — تعليم حديث بقيم إسلامية</span>
   </div>
-</div>
+</section>
 
-<!-- 🏠 SECTION PRÉSENTATION / BANNIÈRE -->
-<section id="accueil" class="banniere">
-  <img id="image-fond-affichee" class="image-fond" alt="Fond d'écran">
+<!-- 🖼️ BANNIÈRE PRINCIPALE -->
+<section class="banniere" id="accueil">
+  <img id="image-fond-affichee" class="image-fond" src="image1.jpg" alt="">
   <div class="masque-fond"></div>
   <div class="contenu-banniere">
     <h1 class="titre-banniere">
-      <span class="txt-fr">ÉCOLE & CENTRE ISLAMIQUE<br>MAMA-ZOUMANA</span>
-      <span class="txt-en">MAMA-ZOUMANA<br>SCHOOL & ISLAMIC CENTER</span>
-      <span class="txt-ar">مدرسة ومركز ماما زومانا<br>الإسلامي</span>
+      <span class="txt-fr">ÉCOLE & CENTRE ISLAMIQUE<br><strong>MAMA-ZOUMANA</strong></span>
+      <span class="txt-en">MAMA-ZOUMANA<br><strong>SCHOOL & ISLAMIC CENTER</strong></span>
+      <span class="txt-ar">مدرسة ومركز<br><strong>ماما زومانا الإسلامي</strong></span>
     </h1>
     <p class="desc-banniere">
       <span class="txt-fr">Un établissement d'excellence alliant enseignement moderne et éducation aux valeurs islamiques. Situé à Abidjan, Côte d'Ivoire.</span>
       <span class="txt-en">An institution of excellence combining modern education and Islamic values. Located in Abidjan, Côte d'Ivoire.</span>
       <span class="txt-ar">مؤسسة تميز تجمع بين التعليم الحديث والتربية على القيم الإسلامية — أبيدجان، كوت ديفوار</span>
     </p>
-    <div class="d-flex flex-wrap gap-3 justify-content-center mt-4">
+    <div class="d-flex flex-wrap justify-content-center gap-3 mt-4">
       <a href="preinscription.html" class="btn-action">
-        <span class="txt-fr">✍️ Préinscription en ligne</span>
-        <span class="txt-en">✍️ Pre-register Online</span>
-        <span class="txt-ar">✍️ التسجيل المسبق</span>
+        <i class="bi bi-pencil-square me-2"></i>
+        <span class="txt-fr">📝 Préinscription</span>
+        <span class="txt-en">📝 Pre-Registration</span>
+        <span class="txt-ar">📝 التسجيل المسبق</span>
       </a>
-      <a href="#admission" class="btn-action clair">
-        <span class="txt-fr">📋 Conditions d'admission</span>
-        <span class="txt-en">📋 Admission Requirements</span>
-        <span class="txt-ar">📋 شروط القبول</span>
+      <a href="admission.html" class="btn-action clair">
+        <i class="bi bi-info-circle me-2"></i>
+        <span class="txt-fr">ℹ️ Conditions d'Admission</span>
+        <span class="txt-en">ℹ️ Admission Requirements</span>
+        <span class="txt-ar">ℹ️ شروط القبول</span>
       </a>
     </div>
   </div>
 </section>
 
-<!-- 🔔 SECTION ANNONCES -->
-<section class="section bg-claire">
-  <h2 class="titre-section">
-    <span class="txt-fr">🔔 Dernières Annonces</span>
-    <span class="txt-en">🔔 Latest Announcements</span>
-    <span class="txt-ar">🔔 أحدث الإعلانات</span>
-  </h2>
-  <div id="zone-annonces" class="row"></div>
-</section>
-
-<!-- ℹ️ SECTION À PROPOS -->
-<section id="apropos" class="section">
+<!-- 🔔 ANNONCES -->
+<section class="section bg-claire" id="annonces">
   <div class="container">
     <h2 class="titre-section">
-      <span class="txt-fr">🏫 À Propos de MAMA-ZOUMANA</span>
-      <span class="txt-en">🏫 About MAMA-ZOUMANA</span>
-      <span class="txt-ar">🏫 حول ماما زومانا</span>
+      <span class="txt-fr">🔔 Annonces Importantes</span>
+      <span class="txt-en">🔔 Important Announcements</span>
+      <span class="txt-ar">🔔 إعلانات هامة</span>
     </h2>
-    <div class="row justify-content-center">
-      <div class="col-lg-8 carte texte-apropos">
-        <p class="fs-5">
-          <span class="txt-fr">MAMA-ZOUMANA forme les générations depuis l'année scolaire 2026-2027 dans un cadre alliant excellence académique et valeurs morales et religieuses.</span>
-          <span class="txt-en">MAMA-ZOUMANA has been educating generations since the 2026-2027 school year, combining academic excellence with moral and religious values.</span>
-          <span class="txt-ar">تكوّن مؤسسة ماما زومانا الأجيال منذ العام الدراسي 2026-2027 بتميز دراسي وقيم أخلاقية ودينية.</span>
-        </p>
-      </div>
+    <div id="zone-annonces" class="row g-4">
+      <!-- Chargé dynamiquement -->
     </div>
   </div>
 </section>
 
-<!-- 📋 SECTION ADMISSION -->
-<section id="admission" class="section bg-dark text-white">
+<!-- 📰 ACTUALITÉS -->
+<section class="section">
+  <div class="container">
+    <h2 class="titre-section">
+      <span class="txt-fr">📰 Actualités</span>
+      <span class="txt-en">📰 News</span>
+      <span class="txt-ar">📰 الأخبار</span>
+    </h2>
+    <div id="zone-actualites" class="row g-4">
+      <!-- Chargé dynamiquement -->
+    </div>
+  </div>
+</section>
+
+<!-- 📅 ÉVÉNEMENTS -->
+<section class="section bg-dark text-white">
   <div class="container">
     <h2 class="titre-section text-white">
-      <span class="txt-fr">📝 Admission & Préinscription</span>
-      <span class="txt-en">📝 Admission & Pre-Registration</span>
-      <span class="txt-ar">📝 القبول والتسجيل المسبق</span>
+      <span class="txt-fr">📅 À Venir</span>
+      <span class="txt-en">📅 Upcoming Events</span>
+      <span class="txt-ar">📅 قادم قريباً</span>
     </h2>
-    <div class="row justify-content-center">
-      <div class="col-lg-8 carte texte-admission bg-light text-dark">
-        <p class="fs-5 mb-4">
-          <span class="txt-fr">Préinscriptions ouvertes pour l'année 2026-2027. Étude du dossier + entretien. Utilisez notre formulaire en ligne.</span>
-          <span class="txt-en">Pre-registration open for the 2026-2027 school year. File review + interview. Use our online form.</span>
-          <span class="txt-ar">التسجيلات الأولية مفتوحة للعام الدراسي 2026-2027 — دراسة الملف والمقابلة — استخدموا نموذجنا الإلكتروني.</span>
-        </p>
-        <div class="text-center mt-3">
-          <a href="preinscription.html" class="btn-action">
-            <span class="txt-fr">👉 Accéder au formulaire</span>
-            <span class="txt-en">👉 Go to Form</span>
-            <span class="txt-ar">👉 اذهب إلى النموذج</span>
-          </a>
-        </div>
-      </div>
+    <div id="zone-evenements" class="row g-4">
+      <!-- Chargé dynamiquement -->
     </div>
   </div>
 </section>
 
-<!-- 📰 SECTION ACTUALITÉS -->
+<!-- 📅 CALENDRIER SCOLAIRE -->
 <section class="section bg-claire">
-  <h2 class="titre-section">
-    <span class="txt-fr">📰 Actualités</span>
-    <span class="txt-en">📰 News</span>
-    <span class="txt-ar">📰 الأخبار</span>
-  </h2>
-  <div id="zone-actualites" class="row"></div>
-</section>
-
-<!-- 📅 SECTION ÉVÉNEMENTS -->
-<section class="section">
-  <h2 class="titre-section">
-    <span class="txt-fr">📅 À Venir</span>
-    <span class="txt-en">📅 Upcoming Events</span>
-    <span class="txt-ar">📅 قادم</span>
-  </h2>
-  <div id="zone-evenements" class="row"></div>
-</section>
-
-<!-- 📸 SECTION GALERIE -->
-<section id="galerie" class="section bg-dark text-white">
-  <h2 class="titre-section text-white">
-    <span class="txt-fr">📸 Galerie</span>
-    <span class="txt-en">📸 Gallery</span>
-    <span class="txt-ar">📸 معرض الصور</span>
-  </h2>
-  <div id="zone-galerie" class="row"></div>
-</section>
-
-<!-- 📅 SECTION CALENDRIER -->
-<section class="section bg-claire">
-  <h2 class="titre-section">
-    <span class="txt-fr">📅 Calendrier Scolaire</span>
-    <span class="txt-en">📅 School Calendar</span>
-    <span class="txt-ar">📅 التقويم المدرسي</span>
-  </h2>
-  <div id="zone-calendrier" class="row"></div>
-  <div class="text-center mt-4">
-    <a href="calendrier-scolaire.html" class="btn-action clair">
-      <span class="txt-fr">📅 Voir tout le calendrier</span>
-      <span class="txt-en">📅 View Full Calendar</span>
-      <span class="txt-ar">📅 عرض التقويم الكامل</span>
-    </a>
+  <div class="container">
+    <h2 class="titre-section">
+      <span class="txt-fr">📅 Calendrier Scolaire</span>
+      <span class="txt-en">📅 School Calendar</span>
+      <span class="txt-ar">📅 التقويم المدرسي</span>
+    </h2>
+    <div id="zone-calendrier" class="row g-3">
+      <!-- Chargé dynamiquement -->
+    </div>
+    <div class="text-center mt-4">
+      <a href="calendrier.html" class="btn-action clair">
+        <span class="txt-fr">📅 Voir le Calendrier Complet</span>
+        <span class="txt-en">📅 View Full Calendar</span>
+        <span class="txt-ar">📅 عرض التقويم الكامل</span>
+      </a>
+    </div>
   </div>
 </section>
 
-<!-- ✉️ SECTION CONTACT -->
-<section id="contact" class="section">
+<!-- 📸 GALERIE MÉDIAS -->
+<section class="section">
   <div class="container">
     <h2 class="titre-section">
-      <span class="txt-fr">📞 Contact & Localisation</span>
-      <span class="txt-en">📞 Contact & Location</span>
-      <span class="txt-ar">📞 الاتصال والموقع</span>
+      <span class="txt-fr">📸 Galerie</span>
+      <span class="txt-en">📸 Gallery</span>
+      <span class="txt-ar">📸 معرض الصور</span>
+    </h2>
+    <div id="zone-galerie" class="row g-3">
+      <!-- Chargé dynamiquement -->
+    </div>
+  </div>
+</section>
+
+<!-- 📧 NOUS CONTACTER -->
+<section class="section bg-dark text-white">
+  <div class="container">
+    <h2 class="titre-section text-white">
+      <span class="txt-fr">📧 Nous Contacter</span>
+      <span class="txt-en">📧 Contact Us</span>
+      <span class="txt-ar">📧 اتصل بنا</span>
     </h2>
     <div class="row g-4">
       <div class="col-md-5">
-        <div class="carte h-100">
+        <div class="carte bg-white text-dark p-4">
           <h5 class="mb-3">
             <span class="txt-fr">Coordonnées</span>
             <span class="txt-en">Contact Info</span>
             <span class="txt-ar">معلومات الاتصال</span>
           </h5>
-          <p><i class="bi bi-geo-alt text-primary"></i> Abidjan, Côte d'Ivoire — MOSQUÉE MEITÉ MOUHAMAD</p>
-          <p><i class="bi bi-telephone text-primary"></i> <span class="tel1">01 73 49 49 64</span></p>
-          <p><i class="bi bi-telephone text-primary"></i> <span class="tel2">05 46 38 98 98</span></p>
-          <p><i class="bi bi-envelope text-primary"></i> <a href="mailto:soumahoroboulaye98@gmail.com" class="lien-email text-decoration-none">soumahoroboulaye98@gmail.com</a></p>
-          <div class="reseaux mt-3">
+          <p class="mb-2"><i class="bi bi-geo-alt me-2 text-primary"></i> Abidjan, Côte d'Ivoire — Mosquée Méité Mouhamad</p>
+          <p class="mb-2"><i class="bi bi-telephone me-2 text-primary"></i> <span class="tel1">01 73 49 49 64</span></p>
+          <p class="mb-2"><i class="bi bi-telephone me-2 text-primary"></i> <span class="tel2">05 46 38 98 98</span></p>
+          <p class="mb-3"><i class="bi bi-envelope me-2 text-primary"></i> soumahoroboulaye98@gmail.com</p>
+          <div class="reseaux">
             <a href="#" class="lien-facebook" target="_blank" title="Facebook"><i class="bi bi-facebook"></i></a>
             <a href="#" class="lien-whatsapp" target="_blank" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
-            <a href="#" class="lien-youtube" target="_blank" title="YouTube"><i class="bi bi-youtube"></i></a>
             <a href="#" class="lien-instagram" target="_blank" title="Instagram"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="lien-youtube" target="_blank" title="YouTube"><i class="bi bi-youtube"></i></a>
             <a href="#" class="lien-tiktok" target="_blank" title="TikTok"><i class="bi bi-tiktok"></i></a>
           </div>
         </div>
       </div>
       <div class="col-md-7">
-        <div class="carte">
+        <form class="carte p-4 bg-white text-dark">
           <h5 class="mb-3">
-            <span class="txt-fr">Nous écrire</span>
-            <span class="txt-en">Send us a Message</span>
-            <span class="txt-ar">راسلنا</span>
+            <span class="txt-fr">Envoyez-nous un message</span>
+            <span class="txt-en">Send us a message</span>
+            <span class="txt-ar">أرسل لنا رسالة</span>
           </h5>
-          <form id="form-contact">
-            <div class="mb-3">
-              <label class="form-label">
-                <span class="txt-fr">Nom complet</span>
-                <span class="txt-en">Full Name</span>
-                <span class="txt-ar">الاسم الكامل</span>
-              </label>
-              <input type="text" name="nom" class="form-control" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">
-                <span class="txt-fr">E-mail / Téléphone</span>
-                <span class="txt-en">Email / Phone</span>
-                <span class="txt-ar">البريد الإلكتروني / الهاتف</span>
-              </label>
-              <input type="text" name="coordonnees" class="form-control" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">
-                <span class="txt-fr">Message</span>
-                <span class="txt-en">Message</span>
-                <span class="txt-ar">الرسالة</span>
-              </label>
-              <textarea name="message" rows="4" class="form-control" required></textarea>
-            </div>
-            <button type="submit" class="btn-action w-100">
-              <span class="txt-fr">📤 Envoyer le message</span>
-              <span class="txt-en">📤 Send Message</span>
-              <span class="txt-ar">📤 إرسال الرسالة</span>
-            </button>
-          </form>
-        </div>
+          <div class="mb-3">
+            <label class="form-label">
+              <span class="txt-fr">Nom & Prénom</span>
+              <span class="txt-en">Full Name</span>
+              <span class="txt-ar">الاسم الكامل</span>
+            </label>
+            <input type="text" name="nom" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">
+              <span class="txt-fr">Adresse Email</span>
+              <span class="txt-en">Email Address</span>
+              <span class="txt-ar">البريد الإلكتروني</span>
+            </label>
+            <input type="email" name="email" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">
+              <span class="txt-fr">Téléphone</span>
+              <span class="txt-en">Phone</span>
+              <span class="txt-ar">الهاتف</span>
+            </label>
+            <input type="tel" name="telephone" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">
+              <span class="txt-fr">Votre Message</span>
+              <span class="txt-en">Your Message</span>
+              <span class="txt-ar">رسالتك</span>
+            </label>
+            <textarea name="message" rows="4" class="form-control" required></textarea>
+          </div>
+          <button type="submit" class="btn-action w-100">
+            <i class="bi bi-send me-2"></i>
+            <span class="txt-fr">Envoyer le Message</span>
+            <span class="txt-en">Send Message</span>
+            <span class="txt-ar">إرسال الرسالة</span>
+          </button>
+        </form>
       </div>
     </div>
-    <div class="row mt-4">
-      <div class="col-12">
-        <div class="carte p-0 overflow-hidden">
-          <iframe class="iframe-maps w-100" height="350" style="border:0;" allowfullscreen loading="lazy"></iframe>
-        </div>
-      </div>
+
+    <!-- 🗺️ CARTE GOOGLE MAPS -->
+    <div class="mt-5">
+      <h5 class="mb-3 text-center">
+        <span class="txt-fr">📍 Nous Situer</span>
+        <span class="txt-en">📍 Find Us</span>
+        <span class="txt-ar">📍 موقعنا</span>
+      </h5>
+      <iframe class="iframe-maps w-100 rounded-4" style="height:350px; border:0;" allowfullscreen loading="lazy"></iframe>
     </div>
   </div>
 </section>
 
-<!-- 🦶 PIED DE PAGE -->
+<!-- 🔽 PIED DE PAGE -->
 <footer class="pied-page">
   <div class="container">
     <div class="pied-logo">
       <img id="logo-pied-image" class="pied-logo-img" alt="Logo">
-      <h4 class="texte-entete text-white">
+      <h5 class="texte-entete">
         <span class="txt-fr">MAMA-ZOUMANA</span>
         <span class="txt-en">MAMA-ZOUMANA</span>
         <span class="txt-ar">ماما زومانا</span>
-      </h4>
+      </h5>
+      <p class="texte-pied">
+        <span class="txt-fr">École & Centre Islamique — Abidjan, Côte d'Ivoire — Année scolaire 2026-2027</span>
+        <span class="txt-en">School & Islamic Center — Abidjan, Côte d'Ivoire — School Year 2026-2027</span>
+        <span class="txt-ar">مدرسة ومركز إسلامي — أبيدجان، كوت ديفوار — العام الدراسي 2026-2027</span>
+      </p>
     </div>
-    <div class="row">
+    <div class="row g-4">
       <div class="col-md-4">
         <h6>
-          <span class="txt-fr">Liens rapides</span>
-          <span class="txt-en">Quick Links</span>
-          <span class="txt-ar">روابط سريعة</span>
+          <span class="txt-fr">Liens Utiles</span>
+          <span class="txt-en">Useful Links</span>
+          <span class="txt-ar">روابط مفيدة</span>
         </h6>
-        <a href="#accueil"><span class="txt-fr">Accueil</span><span class="txt-en">Home</span><span class="txt-ar">الرئيسية</span></a>
-        <a href="preinscription.html"><span class="txt-fr">Préinscription</span><span class="txt-en">Pre-Registration</span><span class="txt-ar">التسجيل المسبق</span></a>
-        <a href="calendrier-scolaire.html"><span class="txt-fr">Calendrier</span><span class="txt-en">Calendar</span><span class="txt-ar">التقويم</span></a>
-        <a href="connexion.html"><span class="txt-fr">Connexion</span><span class="txt-en">Login</span><span class="txt-ar">تسجيل الدخول</span></a>
+        <a href="preinscription.html"><span class="txt-fr">📝 Préinscription</span><span class="txt-en">📝 Pre-Registration</span><span class="txt-ar">📝 التسجيل المسبق</span></a>
+        <a href="admission.html"><span class="txt-fr">📋 Admission</span><span class="txt-en">📋 Admission</span><span class="txt-ar">📋 القبول</span></a>
+        <a href="programme.html"><span class="txt-fr">📚 Programme Scolaire</span><span class="txt-en">📚 School Program</span><span class="txt-ar">📚 البرنامج الدراسي</span></a>
+        <a href="paiement.html"><span class="txt-fr">💳 Paiement en Ligne</span><span class="txt-en">💳 Online Payment</span><span class="txt-ar">💳 الدفع الإلكتروني</span></a>
       </div>
       <div class="col-md-4">
         <h6>
-          <span class="txt-fr">Ressources</span>
-          <span class="txt-en">Resources</span>
-          <span class="txt-ar">مصادر</span>
+          <span class="txt-fr">À Découvrir</span>
+          <span class="txt-en">Discover</span>
+          <span class="txt-ar">استكشف</span>
         </h6>
-        <a href="classe-emploi.html"><span class="txt-fr">Emploi du temps</span><span class="txt-en">Timetable</span><span class="txt-ar">الجدول الزمني</span></a>
-        <a href="classement-general.html"><span class="txt-fr">Classements</span><span class="txt-en">Rankings</span><span class="txt-ar">الترتيب</span></a>
-        <a href="boutique.html"><span class="txt-fr">Boutique</span><span class="txt-en">Store</span><span class="txt-ar">المتجر</span></a>
+        <a href="equipe.html"><span class="txt-fr">👥 Notre Équipe</span><span class="txt-en">👥 Our Team</span><span class="txt-ar">👥 فريقنا</span></a>
+        <a href="reglement.html"><span class="txt-fr">📜 Règlement Intérieur</span><span class="txt-en">📜 Internal Rules</span><span class="txt-ar">📜 النظام الداخلي</span></a>
+        <a href="documents.html"><span class="txt-fr">📄 Documents</span><span class="txt-en">📄 Documents</span><span class="txt-ar">📄 الوثائق</span></a>
+        <a href="boutique.html"><span class="txt-fr">🛍️ Boutique Scolaire</span><span class="txt-en">🛍️ School Store</span><span class="txt-ar">🛍️ المتجر المدرسي</span></a>
       </div>
       <div class="col-md-4">
         <h6>
-          <span class="txt-fr">Contact</span>
-          <span class="txt-en">Contact</span>
-          <span class="txt-ar">اتصل بنا</span>
+          <span class="txt-fr">Contact & Infos</span>
+          <span class="txt-en">Contact & Info</span>
+          <span class="txt-ar">الاتصال والمعلومات</span>
         </h6>
-        <p>📍 Abidjan, Côte d'Ivoire</p>
-        <p>📞 <span class="tel1">01 73 49 49 64</span></p>
-        <p>📞 <span class="tel2">05 46 38 98 98</span></p>
-        <p>✉️ <a href="mailto:soumahoroboulaye98@gmail.com" class="lien-email text-decoration-none">soumahoroboulaye98@gmail.com</a></p>
+        <p><i class="bi bi-telephone me-2"></i> <span class="tel1">01 73 49 49 64</span></p>
+        <p><i class="bi bi-telephone me-2"></i> <span class="tel2">05 46 38 98 98</span></p>
+        <p><i class="bi bi-envelope me-2"></i> soumahoroboulaye98@gmail.com</p>
+        <p><i class="bi bi-geo-alt me-2"></i> Abidjan, Côte d'Ivoire</p>
       </div>
     </div>
-    <div class="copyright texte-pied">
-      <span class="txt-fr">© 2026 MAMA-ZOUMANA — Tous droits réservés — Année scolaire 2026-2027</span>
-      <span class="txt-en">© 2026 MAMA-ZOUMANA — All rights reserved — School Year 2026-2027</span>
-      <span class="txt-ar">© 2026 ماما زومانا — جميع الحقوق محفوظة — العام الدراسي 2026-2027</span>
+    <div class="reseaux justify-content-center mt-4">
+      <a href="#" class="lien-facebook" target="_blank"><i class="bi bi-facebook"></i></a>
+      <a href="#" class="lien-whatsapp" target="_blank"><i class="bi bi-whatsapp"></i></a>
+      <a href="#" class="lien-instagram" target="_blank"><i class="bi bi-instagram"></i></a>
+      <a href="#" class="lien-youtube" target="_blank"><i class="bi bi-youtube"></i></a>
+      <a href="#" class="lien-tiktok" target="_blank"><i class="bi bi-tiktok"></i></a>
+    </div>
+    <div class="copyright">
+      © 2026 MAMA-ZOUMANA — 
+      <span class="txt-fr">Tous droits réservés.</span>
+      <span class="txt-en">All rights reserved.</span>
+      <span class="txt-ar">جميع الحقوق محفوظة.</span>
     </div>
   </div>
 </footer>
