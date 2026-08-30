@@ -5,6 +5,7 @@ require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+
 // ==============================================
 // 📁 CONFIGURATION — Téléversement de fichiers
 // ==============================================
@@ -13,11 +14,13 @@ const stockage = multer.diskStorage({
   filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
 const upload = multer({ storage: stockage });
+
 // ==============================================
 // ✅ CRÉATION DE L'APPLICATION
 // ==============================================
 const app = express();
 const PORT = process.env.PORT || 10000;
+
 // ==============================================
 // 📦 MIDDLEWARES GLOBAUX
 // ==============================================
@@ -31,6 +34,7 @@ app.use(cors({
 app.options('*', cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
 // ==============================================
 // 📁 DOSSIER PUBLIC
 // ==============================================
@@ -42,6 +46,7 @@ app.use(express.static(dossierPublic, {
     res.setHeader('Cache-Control', 'public, max-age=86400');
   }
 }));
+
 // ==============================================
 // ⚙️ CHARGEMENT CONFIGURATION
 // ==============================================
@@ -61,6 +66,7 @@ app.use((req, res, next) => {
   res.locals.configSite = configSite;
   next();
 });
+
 // ==============================================
 // 🔐 MIDDLEWARES D'AUTHENTIFICATION
 // ==============================================
@@ -74,6 +80,7 @@ try {
   console.log("⚠️ Erreur chargement middlewares auth :", e.message);
   protegerAdmin = [];
 }
+
 // ==================================================
 // 🤖 CRÉER AUTOMATIQUEMENT L'ACTUALITÉ DE RENTRÉE
 // ==================================================
@@ -83,7 +90,6 @@ async function creerActualiteRentreeAutomatique() {
     const mois = new Date().getMonth() + 1;
     const annee_scolaire = mois >= 9 ? `${annee}-${annee + 1}` : `${annee - 1}-${annee}`;
 
-    // Vérifier si déjà créée cette année
     const existe = await pool.query(`
       SELECT id FROM actualites 
       WHERE rentree = true AND annee_scolaire = $1
@@ -91,7 +97,7 @@ async function creerActualiteRentreeAutomatique() {
     `, [annee_scolaire]);
 
     if (existe.rows.length === 0) {
-      // Création automatique
+      const dateRentree = `${annee}-09-01`;
       await pool.query(`
         INSERT INTO actualites(
           titre_fr, titre_en, titre_ar,
@@ -99,21 +105,20 @@ async function creerActualiteRentreeAutomatique() {
           contenu_fr, contenu_en, contenu_ar,
           categorie, rentree, est_publie, epingle,
           date_publication, annee_scolaire, date_creation
-        ) VALUES (
-          '📚 Rentrée Scolaire ${annee_scolaire}',
-          '📚 School Start ${annee_scolaire}',
-          '📚 بداية العام الدراسي ${annee_scolaire}',
-          'La rentrée scolaire aura lieu le 1er octobre ${annee}. Bienvenue à tous les élèves !',
-          'School starts October 1st ${annee}. Welcome to all students!',
-          'تبدأ الدراسة في 1 أكتوبر ${annee}. أهلاً بجميع التلاميذ !',
-          '<p>Chers parents, chers élèves,</p><p>La rentrée scolaire pour l\\'année <strong>${annee_scolaire}</strong> est fixée au <strong>1er octobre ${annee}</strong>.</p><p>Nous vous attendons nombreux pour cette nouvelle année scolaire ! 🎉</p>',
-          '<p>Dear parents and students,</p><p>School start for <strong>${annee_scolaire}</strong> is set to <strong>October 1st ${annee}</strong>.</p><p>We look forward to welcoming you! 🎉</p>',
-          '<p>أولياء الأمور الأعزاء، تلاميذي الأعزاء،</p><p>تبدأ العام الدراسي <strong>${annee_scolaire}</strong> في <strong>1 أكتوبر ${annee}</strong>.</p><p>نتطلع لاستقبالكم في العام الجديد ! 🎉</p>',
-          'rentree', true, true, true,
-          '${annee}-09-01', $1, NOW()
-        )
-      `, [annee_scolaire]);
-
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
+      `, [
+        `📚 Rentrée Scolaire ${annee_scolaire}`,
+        `📚 School Start ${annee_scolaire}`,
+        `📚 بداية العام الدراسي ${annee_scolaire}`,
+        `La rentrée scolaire aura lieu le 1er octobre ${annee}. Bienvenue à tous les élèves !`,
+        `School starts October 1st ${annee}. Welcome to all students!`,
+        `تبدأ الدراسة في 1 أكتوبر ${annee}. أهلاً بجميع التلاميذ !`,
+        `<p>Chers parents, chers élèves,</p><p>La rentrée scolaire pour l'année <strong>${annee_scolaire}</strong> est fixée au <strong>1er octobre ${annee}</strong>.</p><p>Nous vous attendons nombreux pour cette nouvelle année scolaire ! 🎉</p>`,
+        `<p>Dear parents and students,</p><p>School start for <strong>${annee_scolaire}</strong> is set to <strong>October 1st ${annee}</strong>.</p><p>We look forward to welcoming you! 🎉</p>`,
+        `<p>أولياء الأمور الأعزاء، تلاميذي الأعزاء،</p><p>تبدأ العام الدراسي <strong>${annee_scolaire}</strong> في <strong>1 أكتوبر ${annee}</strong>.</p><p>نتطلع لاستقبالكم في العام الجديد ! 🎉</p>`,
+        'rentree', true, true, true,
+        dateRentree, annee_scolaire
+      ]);
       console.log(`✅ 🤖 Actualité de rentrée ${annee_scolaire} CRÉÉE AUTOMATIQUEMENT`);
     } else {
       console.log(`✅ Actualité de rentrée ${annee_scolaire} déjà existante`);
@@ -127,49 +132,40 @@ async function creerActualiteRentreeAutomatique() {
 creerActualiteRentreeAutomatique();
 
 // ==============================================
-// 📡 ROUTE : /api/frais-scolaires/tarifs  ✅ NOUVELLE ROUTE AJOUTÉE
-// Retourne les tarifs agrégés par classe pour la préinscription
+// 📡 ROUTE : /api/frais-scolaires/tarifs
 // ==============================================
 app.get('/api/frais-scolaires/tarifs', async (req, res) => {
   const annee = req.query.annee || '2026-2027';
   const format = req.query.format || 'agregat';
-
   try {
-    // 🔍 Étape 1 : Récupérer toutes les classes
+    // ✅ CORRIGÉ : id_classe au lieu de id
     const classesResult = await pool.query(
-      "SELECT id, libelle_classe FROM classes ORDER BY id"
+      "SELECT id_classe AS id, libelle_classe FROM classes ORDER BY id_classe"
     );
     const classes = classesResult.rows;
 
-    // 🔍 Étape 2 : Récupérer TOUS les tarifs de l'année
     const tarifsResult = await pool.query(
       "SELECT * FROM tarifs WHERE annee = $1 ORDER BY classe_id, type",
       [annee]
     );
     const tarifs = tarifsResult.rows;
 
-    // 📊 Étape 3 : Construire la grille tarifaire complète
     const grille = {};
     const tarifsParClasse = {};
-
     tarifs.forEach(t => {
       if (!tarifsParClasse[t.classe_id]) tarifsParClasse[t.classe_id] = [];
       tarifsParClasse[t.classe_id].push(t);
     });
 
-    // 📋 Format Agrégat (optimisé pour la préinscription)
     if (format === 'agregat') {
       classes.forEach(classe => {
         const cid = classe.id;
         const liste = tarifsParClasse[cid] || [];
-
         const fraisScolarite = liste.find(t => t.type === 'scolarite')?.montant || 0;
         const fraisInscription = liste.find(t => t.type === 'inscription')?.montant || 0;
         const fraisCantine = liste.find(t => t.type === 'cantine')?.montant || 0;
         const fraisTransport = liste.find(t => t.type === 'transport')?.montant || 0;
-
         const totalClasse = liste.reduce((sum, t) => sum + Number(t.montant), 0);
-
         grille[cid] = {
           libelle: classe.libelle_classe,
           frais_fr: Number(fraisScolarite),
@@ -200,7 +196,6 @@ app.get('/api/frais-scolaires/tarifs', async (req, res) => {
       nombre_classes: classes.length,
       grille: grille
     });
-
   } catch (erreur) {
     console.error("❌ Erreur route /frais-scolaires/tarifs :", erreur.message);
     return res.status(500).json({
@@ -210,20 +205,22 @@ app.get('/api/frais-scolaires/tarifs', async (req, res) => {
     });
   }
 });
+
 // ==============================================
-// 📄 ROUTES DOCUMENTS (intégrées directement)
+// 📄 ROUTES DOCUMENTS
 // ==============================================
 const routerDocuments = express.Router();
 if (protegerAdmin.length > 0) {
   routerDocuments.get('/tous', protegerAdmin, async (req, res) => {
     try {
+      // ✅ CORRIGÉ : id_utilisateur au lieu de id
       const r = await pool.query(`
         SELECT d.*,
-          json_build_object('id', e.id, 'nom', e.nom, 'prenom', e.prenom, 'classe', e.id_classe, 'matricule', e.matricule) AS eleve,
-          json_build_object('id', p.id, 'nom', p.nom, 'prenom', p.prenom, 'role', p.role) AS personnel
+          json_build_object('id', e.id_utilisateur, 'nom', e.nom, 'prenom', e.prenoms, 'classe', e.id_classe, 'matricule', e.matricule) AS eleve,
+          json_build_object('id', p.id_utilisateur, 'nom', p.nom, 'prenom', p.prenoms, 'role', p.role) AS personnel
         FROM documents_delivres d
-        LEFT JOIN utilisateurs e ON d.id_eleve = e.id
-        LEFT JOIN utilisateurs p ON d.id_personnel = p.id
+        LEFT JOIN utilisateurs e ON d.id_eleve = e.id_utilisateur
+        LEFT JOIN utilisateurs p ON d.id_personnel = p.id_utilisateur
         ORDER BY d.date_delivrance DESC
       `);
       res.json({ ok: true, documents: r.rows });
@@ -232,6 +229,7 @@ if (protegerAdmin.length > 0) {
       res.json({ ok: false, erreur: e.message });
     }
   });
+
   routerDocuments.post('/delivrer', protegerAdmin, async (req, res) => {
     try {
       const { id_eleve, id_personnel, type_doc, annee_scolaire, numero_unique } = req.body;
@@ -247,6 +245,7 @@ if (protegerAdmin.length > 0) {
       res.json({ ok: false, erreur: e.message });
     }
   });
+
   routerDocuments.post('/supprimer', protegerAdmin, async (req, res) => {
     try {
       const { numero_unique } = req.body;
@@ -261,6 +260,7 @@ if (protegerAdmin.length > 0) {
       res.json({ ok: false, erreur: e.message });
     }
   });
+
   routerDocuments.get('/statistiques', protegerAdmin, async (req, res) => {
     try {
       const r = await pool.query(`
@@ -269,7 +269,7 @@ if (protegerAdmin.length > 0) {
           COUNT(CASE WHEN id_eleve IS NOT NULL THEN 1 END) AS eleves,
           COUNT(CASE WHEN id_personnel IS NOT NULL THEN 1 END) AS professeurs,
           COUNT(CASE WHEN EXTRACT(MONTH FROM date_delivrance) = EXTRACT(MONTH FROM CURRENT_DATE)
-              AND EXTRACT(YEAR FROM date_delivrance) = EXTRACT(YEAR FROM CURRENT_DATE) THEN 1 END) AS ce_mois
+            AND EXTRACT(YEAR FROM date_delivrance) = EXTRACT(YEAR FROM CURRENT_DATE) THEN 1 END) AS ce_mois
         FROM documents_delivres
       `);
       res.json({ ok: true, stats: r.rows[0] });
@@ -279,6 +279,7 @@ if (protegerAdmin.length > 0) {
     }
   });
 }
+
 // ==============================================
 // 📊 ROUTES COMPLÉMENTAIRES
 // ==============================================
@@ -286,9 +287,13 @@ const routerEleves = express.Router();
 if (protegerAdmin.length > 0) {
   routerEleves.get('/liste', protegerAdmin, async (req, res) => {
     try {
-      const { rows } = await pool.query(
-        "SELECT id, nom, prenom, email, matricule, id_classe, photo_profil FROM utilisateurs WHERE role='eleve' ORDER BY nom, prenom"
-      );
+      // ✅ CORRIGÉ : id_utilisateur au lieu de id / prenoms au lieu de prenom
+      const { rows } = await pool.query(`
+        SELECT id_utilisateur AS id, nom, prenoms, email, matricule, id_classe, photo_profil 
+        FROM utilisateurs 
+        WHERE role='eleve' 
+        ORDER BY nom, prenoms
+      `);
       res.json({ ok: true, eleves: rows });
     } catch (e) {
       console.error("❌ Erreur liste élèves :", e.code, e.message);
@@ -296,13 +301,18 @@ if (protegerAdmin.length > 0) {
     }
   });
 }
+
 const routerPersonnel = express.Router();
 if (protegerAdmin.length > 0) {
   routerPersonnel.get('/liste', protegerAdmin, async (req, res) => {
     try {
-      const { rows } = await pool.query(
-        "SELECT id, nom, prenom, email, role, matricule, photo_profil FROM utilisateurs WHERE role!='eleve' ORDER BY nom, prenom"
-      );
+      // ✅ CORRIGÉ : id_utilisateur au lieu de id / prenoms au lieu de prenom
+      const { rows } = await pool.query(`
+        SELECT id_utilisateur AS id, nom, prenoms, email, role, matricule, photo_profil 
+        FROM utilisateurs 
+        WHERE role!='eleve' 
+        ORDER BY nom, prenoms
+      `);
       res.json({ ok: true, personnel: rows });
     } catch (e) {
       console.error("❌ Erreur liste personnel :", e.code, e.message);
@@ -310,6 +320,7 @@ if (protegerAdmin.length > 0) {
     }
   });
 }
+
 const routerPaiements = express.Router();
 if (protegerAdmin.length > 0) {
   routerPaiements.get('/tous', protegerAdmin, async (req, res) => {
@@ -322,6 +333,7 @@ if (protegerAdmin.length > 0) {
     }
   });
 }
+
 // ==============================================
 // 🔗 CHARGEMENT SÉCURISÉ DES ROUTES
 // ==============================================
@@ -335,6 +347,7 @@ function chargerRoute(chemin) {
     return null;
   }
 }
+
 const rAuth = chargerRoute('./routes/auth');
 const rAdmin = chargerRoute('./routes/admin');
 const rUtilisateurs = chargerRoute('./routes/utilisateurs');
@@ -361,8 +374,8 @@ const rParent = chargerRoute('./routes/parent');
 const rCalendrier = chargerRoute('./routes/calendrier');
 const rReglement = chargerRoute('./routes/reglement');
 const rEquipe = chargerRoute('./routes/equipe');
- 
-const dashboardRoutes =chargerRoute ('./routes/dashboard');
+const dashboardRoutes = chargerRoute('./routes/dashboard');
+
 // ==============================================
 // 🔗 DÉCLARATION DES ROUTES
 // ==============================================
@@ -396,20 +409,19 @@ if (rCalendrier) app.use('/api/calendrier', rCalendrier);
 if (rReglement) app.use('/api/reglement', rReglement);
 if (rEquipe) app.use('/api/equipe', rEquipe);
 app.use('/api/personnel', routerPersonnel);
+
 // ==============================================
 // 🔄 ROUTE DE TEST API — LISTE COMPLÈTE
 // ==============================================
 app.get('/api', (req, res) => {
   const liste = [];
-  liste.push("/api/frais-scolaires/tarifs"); // ✅ Nouvelle route ajoutée dans la liste
+  liste.push("/api/frais-scolaires/tarifs");
   if (rAuth) liste.push("/api/auth");
-  if (rStatistiques) liste.push("/api/statistiques");
   if (rAdmin) liste.push("/api/admin");
   if (rUtilisateurs) liste.push("/api/utilisateurs");
   if (rPreinscription) liste.push("/api/preinscription");
   if (rReferences) liste.push("/api/references");
- 
-if (dashboardRoutes)liste.push('/api', dashboardRoutes);
+  if (dashboardRoutes) liste.push("/api/dashboard");
   if (rClasses) liste.push("/api/classes");
   if (rMatieres) liste.push("/api/matieres");
   if (rAffectations) liste.push("/api/affectations");
@@ -436,6 +448,7 @@ if (dashboardRoutes)liste.push('/api', dashboardRoutes);
   if (rEquipe) liste.push("/api/equipe");
   liste.push("/api/personnel");
   liste.push("/api/test");
+
   res.json({
     ok: true,
     message: "✅ API MAMA-ZOUMANA opérationnelle",
@@ -443,10 +456,12 @@ if (dashboardRoutes)liste.push('/api', dashboardRoutes);
     routes_disponibles: liste
   });
 });
+
 app.get('/inscription.html', (req, res) => res.redirect('/preinscription.html'));
 app.use('/api/inscription', (req, res) =>
   res.json({ ok: false, message: "⚠️ Utilisez /api/preinscription à la place" })
 );
+
 // ==============================================
 // 🏠 PAGE D'ACCUEIL
 // ==============================================
@@ -466,6 +481,7 @@ app.get('/', (req, res) => {
     `);
   }
 });
+
 // ==============================================
 // 🧪 TEST DE CONNEXION BASE
 // ==============================================
@@ -483,6 +499,7 @@ app.get('/api/test', async (req, res) => {
     res.json({ ok: false, erreur: e.message, message: "❌ Connexion base échouée" });
   }
 });
+
 // ==============================================
 // 🚀 DÉMARRAGE SÉCURE
 // ==============================================
