@@ -24,9 +24,8 @@ router.get('/statistiques', protegerAdmin, async (req, res) => {
       pool.query('SELECT COUNT(*) FROM classes'),
       pool.query("SELECT COUNT(*) FROM utilisateurs WHERE role = 'eleve'"),
       pool.query("SELECT COUNT(*) FROM utilisateurs WHERE role = 'professeur'"),
-      pool.query("SELECT COUNT(*) FROM preinscriptions WHERE statut = 'en_attente' OR statut IS NULL")
+      pool.query("SELECT COUNT(*) FROM preinscriptions WHERE statut = 'en attente' OR statut IS NULL")
     ]);
-
     res.json({
       ok: true,
       stats: {
@@ -48,7 +47,7 @@ router.get('/statistiques', protegerAdmin, async (req, res) => {
 router.get('/alertes', protegerAdmin, async (req, res) => {
   try {
     const alertes = [];
-    const attente = await pool.query("SELECT COUNT(*) FROM preinscriptions WHERE statut = 'en_attente' OR statut IS NULL");
+    const attente = await pool.query("SELECT COUNT(*) FROM preinscriptions WHERE statut = 'en attente' OR statut IS NULL");
     const nbAttente = parseInt(attente.rows[0].count);
     if (nbAttente > 0) {
       alertes.push({
@@ -71,13 +70,11 @@ router.get('/alertes', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// 🕐 3. ACTIVITÉ RÉCENTE — ✅ ADAPTÉ À VOS COLONNES
+// 🕐 3. ACTIVITÉ RÉCENTE
 // ==================================================
 router.get('/activite-recente', protegerAdmin, async (req, res) => {
   try {
     const activite = [];
-
-    // ✅ VOTRE COLONNE : date_preinscription au lieu de date_soumission
     const { rows: dernieresInscrits } = await pool.query(`
       SELECT prenoms, nom, date_preinscription
       FROM preinscriptions
@@ -91,8 +88,6 @@ router.get('/activite-recente', protegerAdmin, async (req, res) => {
         date: p.date_preinscription
       });
     });
-
-    // ✅ VOS COLONNES : titre_fr + date_publication (correspondent parfaitement)
     const { rows: actualites } = await pool.query(`
       SELECT titre_fr, date_publication
       FROM actualites
@@ -107,7 +102,6 @@ router.get('/activite-recente', protegerAdmin, async (req, res) => {
         date: a.date_publication
       });
     });
-
     if (activite.length === 0) {
       activite.push({
         icone: 'bi-info-circle',
@@ -115,7 +109,6 @@ router.get('/activite-recente', protegerAdmin, async (req, res) => {
         date: null
       });
     }
-
     res.json({ ok: true, activite });
   } catch (erreur) {
     console.error("❌ Erreur activité récente :", erreur.message);
@@ -131,7 +124,7 @@ router.get('/activite-recente', protegerAdmin, async (req, res) => {
 router.get('/repartition-eleves', protegerAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query(`
-      SELECT c.libelle_classe, COUNT(u.id) as nombre
+      SELECT c.libelle_classe, COUNT(u.id_utilisateur) as nombre
       FROM classes c
       LEFT JOIN utilisateurs u ON u.id_classe = c.id_classe AND u.role = 'eleve'
       GROUP BY c.id_classe, c.libelle_classe
@@ -145,21 +138,22 @@ router.get('/repartition-eleves', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// 📄 5. ÉTAT NOTES & BULLETINS — ✅ ADAPTÉ À VOS COLONNES
+// 📄 5. ÉTAT NOTES & BULLETINS
+// ✅ 100% ALIGNÉ SUR TES COLONNES : note_numerique / id
 // ==================================================
 router.get('/etat-bulletins', protegerAdmin, async (req, res) => {
   try {
-    // ✅ VOTRE COLONNE : note_numerique au lieu de note
+    // ✅ Ta colonne : note_numerique
     const notes = await pool.query("SELECT COUNT(*) FROM notes WHERE note_numerique IS NOT NULL");
+    // ✅ Ta table bulletins : clé = id
     const bulletins = await pool.query("SELECT COUNT(*) FROM bulletins");
-
     res.json({
       ok: true,
       notesSaisies: parseInt(notes.rows[0].count),
       bulletinsGeneres: parseInt(bulletins.rows[0].count)
     });
   } catch (erreur) {
-    console.error("❌ Erreur état bulletins :", erreur.message);
+    console.error("⚠️ Erreur état bulletins :", erreur.message);
     res.json({ ok: true, notesSaisies: 0, bulletinsGeneres: 0 });
   }
 });
