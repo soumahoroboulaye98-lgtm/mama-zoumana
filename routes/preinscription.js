@@ -146,11 +146,12 @@ function genererMotDePasse(longueur = 10) {
 }
 
 function normaliserCase(v) {
-  return v === 'on' || v === true || v === 'true' ? true : false;
+  return v === 'on' || v === true || v === 'true' || v === '1' ? true : false;
 }
 
 // ==================================================
 // 📋 SOUMETTRE UNE PRÉINSCRIPTION — PUBLIC
+// ✅ COLONNES EXACTES DE LA TABLE preinscriptions
 // ==================================================
 router.post('/', upload.none(), async (req, res) => {
   try {
@@ -163,12 +164,13 @@ router.post('/', upload.none(), async (req, res) => {
       moyenne_annee_precedente, rang_annee_precedente, mention_annee_precedente, conduite, matricule_precedent,
       classe_francais, classe_arabe, libelle_classe_fr, libelle_classe_ar, id_classe,
       cantine, transport, circuit_transport, cours_renforcement, informatique, club_langues,
-      pris_en_charge_etat, mode_paiement,
+      pris_en_charge_etat, mode_paiement, frais_base, frais_services, frais_documents, montant_total, nombre_versements,
       specialite, specialites, matieres_enseignees, experience, annees_experience, niveau_etudes,
       motivations, disponibilites, organisme, objet,
       matricule_enfant, nom_enfant, classe_enfant, matricules_enfants, lien_parente,
-      motif_visite, date_rdv, heure_rdv, personne_a_rencontrer,
-      annee_scolaire, observations
+      motif_visite, date_rdv, heure_rdv, personne_a_rencontrer, statut_rdv, notes_visiteur,
+      photo_identite, documents, extrait_naissance, bulletin, bulletin_precedent, certificat_residence, cv,
+      services, fournitures, annee_scolaire, observations
     } = req.body;
 
     // ✅ VALIDATION
@@ -176,17 +178,14 @@ router.post('/', upload.none(), async (req, res) => {
     const nomComplet = nom?.trim() || prenoms?.trim() || prenom?.trim();
     if (!nomComplet) erreurs.push("• Nom et Prénoms sont OBLIGATOIRES");
     if (!profil?.trim()) erreurs.push("• Profil est OBLIGATOIRE");
-
     const telNettoye = telephone?.replace(/\s/g, '') || '';
     const emailNettoye = email?.trim() || '';
-
     if (!telNettoye && !emailNettoye) {
       erreurs.push("• Au moins un moyen de contact : Téléphone OU Email (OBLIGATOIRE)");
     }
     if (emailNettoye && !validerEmail(emailNettoye)) {
       erreurs.push("• Format email invalide");
     }
-
     const profilNettoye = profil?.trim();
 
     // ✅ Règles par profil
@@ -247,13 +246,13 @@ router.post('/', upload.none(), async (req, res) => {
     }
 
     // ✅ Détermination mode paiement selon prise en charge État
-    const prisEnCharge = String(pris_en_charge_etat).trim() === 'true' || String(pris_en_charge_etat).trim() === '1';
+    const prisEnCharge = normaliserCase(pris_en_charge_etat);
     let modePaiementFinal = mode_paiement?.trim() || null;
     if (profilNettoye === 'eleve' && prisEnCharge) {
       modePaiementFinal = 'subvention_etat';
     }
 
-    // ✅ Génération matricule (si élève)
+    // ✅ Génération matricule (si élève) — NE JAMAIS MODIFIABLE
     let matriculeGenere = null;
     if (profilNettoye === 'eleve' && date_naissance) {
       matriculeGenere = await genererMatricule(date_naissance, anneeScolaire);
@@ -267,7 +266,15 @@ router.post('/', upload.none(), async (req, res) => {
     const vInfo = normaliserCase(informatique);
     const vClub = normaliserCase(club_langues);
 
-    // ✅ INSERTION — COLONNES EXACTES DE LA TABLE
+    // ✅ MONTANT
+    const montantTotal = montant_total || null;
+    const fraisBase = frais_base || null;
+    const fraisServices = frais_services || null;
+    const fraisDocuments = frais_documents || null;
+
+    // ==================================================
+    // 📥 INSERTION — COLONNES EXACTES DE LA TABLE
+    // ==================================================
     const { rows: [nouvellePreinscription] } = await pool.query(`
       INSERT INTO preinscriptions (
         profil, nom, prenoms, prenom, sexe, date_naissance, lieu_naissance, nationalite, adresse,
@@ -278,18 +285,31 @@ router.post('/', upload.none(), async (req, res) => {
         moyenne_annee_precedente, rang_annee_precedente, mention_annee_precedente, conduite, matricule_precedent,
         classe_francais, classe_arabe, libelle_classe_fr, libelle_classe_ar, id_classe,
         cantine, transport, circuit_transport, cours_renforcement, informatique, club_langues,
-        pris_en_charge_etat, mode_paiement,
+        pris_en_charge_etat, mode_paiement, frais_base, frais_services, frais_documents, montant_total, nombre_versements,
         specialite, specialites, matieres_enseignees, experience, annees_experience, niveau_etudes,
         motivations, disponibilites, organisme, objet,
         matricule_enfant, nom_enfant, classe_enfant, matricules_enfants, lien_parente,
-        motif_visite, date_rdv, heure_rdv, personne_a_rencontrer,
-        annee_scolaire, observations, matricule, statut, date_preinscription, date_creation
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42,$43,$44,$45,$46,$47,$48,$49,$50,$51,$52,$53,$54,$55,$56,$57,$58,$59,$60,$61,$62,$63,NOW(),NOW())
+        motif_visite, date_rdv, heure_rdv, personne_a_rencontrer, statut_rdv, notes_visiteur,
+        photo_identite, documents, extrait_naissance, bulletin, bulletin_precedent, certificat_residence, cv,
+        services, fournitures, annee_scolaire, observations,
+        matricule, statut, date_preinscription, date_creation
+      ) VALUES (
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,
+        $12,$13,$14,$15,$16,$17,
+        $18,$19,$20,$21,$22,$23,
+        $24,$25,$26,$27,
+        $28,$29,$30,$31,$32,
+        $33,$34,$35,$36,$37,$38,$39,$40,$41,$42,$43,$44,
+        $45,$46,$47,$48,$49,$50,$51,
+        $52,$53,$54,$55,$56,$57,
+        $58,$59,$60,$61,$62,$63,$64,$65,$66,$67,$68,$69,$70,$71,$72,$73,$74,$75,$76,$77,
+        $78,$79,$80,NOW(),NOW()
+      )
       RETURNING id_preinscription
     `, [
       profilNettoye,
       nom?.trim() || null, prenoms?.trim() || null, prenom?.trim() || null, sexe || null,
-      date_naissance || null, lieu_naissance || null, nationalite || null, adresse || null,
+      date_naissance || null, lieu_naissance?.trim() || null, nationalite?.trim() || null, adresse?.trim() || null,
       telNettoye || null, emailNettoye || null,
       nom_pere?.trim() || null, profession_pere?.trim() || null, activite_pere?.trim() || null,
       telephone_pere?.replace(/\s/g, '') || null, email_pere?.trim() || null, date_naissance_pere || null,
@@ -302,14 +322,18 @@ router.post('/', upload.none(), async (req, res) => {
       classe_francais?.trim() || null, classe_arabe?.trim() || null,
       libelle_classe_fr?.trim() || null, libelle_classe_ar?.trim() || null, idClasseReel,
       vCantine, vTransport, vCircuit, vRenforcement, vInfo, vClub,
-      prisEnCharge, modePaiementFinal,
+      prisEnCharge, modePaiementFinal, fraisBase, fraisServices, fraisDocuments, montantTotal, nombre_versements || 1,
       specialite?.trim() || null, specialites?.trim() || null, matieres_enseignees?.trim() || null,
       experience?.trim() || null, annees_experience || null, niveau_etudes?.trim() || null,
       motivations?.trim() || null, disponibilites?.trim() || null, organisme?.trim() || null, objet?.trim() || null,
       matricule_enfant?.trim() || null, nom_enfant?.trim() || null, classe_enfant?.trim() || null,
       matricules_enfants?.trim() || null, lien_parente?.trim() || null,
       motif_visite?.trim() || null, date_rdv || null, heure_rdv?.trim() || null, personne_a_rencontrer?.trim() || null,
-      anneeScolaire, observations?.trim() || null, matriculeGenere, 'en attente'
+      statut_rdv || 'en attente', notes_visiteur?.trim() || null,
+      photo_identite?.trim() || null, documents?.trim() || null, extrait_naissance?.trim() || null,
+      bulletin?.trim() || null, bulletin_precedent?.trim() || null, certificat_residence?.trim() || null, cv?.trim() || null,
+      services?.trim() || null, fournitures?.trim() || null, anneeScolaire, observations?.trim() || null,
+      matriculeGenere, 'en attente'
     ]);
 
     // ✅ Email de confirmation
@@ -320,13 +344,13 @@ router.post('/', upload.none(), async (req, res) => {
         <p>Bonjour <strong>${prenoms || ''} ${nom || ''}</strong>,</p>
         <p>Nous accusons réception de votre demande de préinscription.</p>
         ${libelleClasse ? `<p>🏫 Classe : ${libelleClasse}</p>` : ''}
-        ${matriculeGenere ? `<p>📋 Matricule provisoire : <strong>${matriculeGenere}</strong></p>` : ''}
+        ${matriculeGenere ? `<p>📋 Matricule (NE JAMAIS MODIFIER) : <strong>${matriculeGenere}</strong></p>` : ''}
         ${prisEnCharge ? '<p>🏛️ Demande de prise en charge par l\'État enregistrée.</p>' : ''}
         <p>⏳ En attente de validation (~24h).</p>
       `);
     }
 
-    console.log(`✅ Préinscription ID: ${nouvellePreinscription.id_preinscription} | Profil: ${profilNettoye}`);
+    console.log(`✅ Préinscription ID: ${nouvellePreinscription.id_preinscription} | Profil: ${profilNettoye} | Matricule: ${matriculeGenere}`);
     res.json({
       ok: true,
       message: `✅ Demande enregistrée !${libelleClasse ? ` Classe: ${libelleClasse}` : ''}`,
@@ -349,34 +373,27 @@ router.post('/parent-matricule', async (req, res) => {
     const { matricule, email_parent, telephone_parent } = req.body;
     if (!matricule?.trim())
       return res.json({ ok: false, erreur: "⚠️ Indiquez le matricule de l'élève" });
-
     const telNettoye = (telephone_parent || '').replace(/\s/g, '');
     const { rows: [eleve] } = await pool.query(`
       SELECT id_utilisateur, nom, prenoms, matricule, id_classe, email_parent, telephone_parent, statut_compte AS statut
       FROM utilisateurs WHERE TRIM(matricule) = $1 AND role = 'eleve' LIMIT 1
     `, [matricule.trim()]);
-
     if (!eleve)
       return res.json({ ok: false, erreur: "❌ Élève introuvable" });
-
     const okEmail = email_parent && eleve.email_parent?.toLowerCase().trim() === email_parent.toLowerCase().trim();
     const okTel = telNettoye && eleve.telephone_parent?.replace(/\s/g, '') === telNettoye;
-
     if (!okEmail && !okTel)
       return res.json({ ok: false, erreur: "⚠️ Email ou téléphone non concordant" });
-
     const { rows: enfants } = await pool.query(`
       SELECT id_utilisateur AS id, nom, prenoms, matricule, id_classe, statut_compte AS statut
       FROM utilisateurs WHERE role = 'eleve'
         AND ((LOWER(email_parent)=LOWER($1) AND $1<>'') OR (REPLACE(telephone_parent,' ','')=$2 AND $2<>''))
       ORDER BY nom, prenoms
     `, [eleve.email_parent || '', telNettoye || eleve.telephone_parent?.replace(/\s/g, '')]);
-
     const token = jwt.sign({
       id: `parent-${Date.now()}`, role: 'parent',
       email_parent: eleve.email_parent || '', telephone_parent: eleve.telephone_parent || ''
     }, CLE_JWT, { expiresIn: '30d' });
-
     res.json({ ok: true, token, enfants, message: `✅ ${enfants.length} enfant(s) trouvé(s)` });
   } catch (e) {
     console.error("❌ ERREUR connexion parent :", e.message);
@@ -423,7 +440,6 @@ if (protegerAdmin.length) {
       const id_preinscription = parseInt(req.params.id);
       if (isNaN(id_preinscription))
         return res.json({ ok: false, erreur: "⚠️ ID invalide" });
-
       const { rows: [demande] } = await client.query(
         `SELECT * FROM preinscriptions WHERE id_preinscription = $1`, [id_preinscription]
       );
@@ -442,7 +458,7 @@ if (protegerAdmin.length) {
         if (c) id_classe_final = c.id_classe;
       }
 
-      // ✅ Générer matricule si manquant
+      // ✅ Générer matricule si manquant — NE JAMAIS MODIFIABLE
       let matricule = demande.matricule;
       if (!matricule && profil === 'eleve' && demande.date_naissance) {
         matricule = await genererMatricule(demande.date_naissance, demande.annee_scolaire);
@@ -532,12 +548,10 @@ if (protegerAdmin.length) {
       const { statut } = req.body;
       if (!['en attente', 'validée', 'refusée', 'annulée'].includes(statut))
         return res.json({ ok: false, erreur: "⚠️ Statut invalide" });
-
       const { rowCount } = await pool.query(`
         UPDATE preinscriptions SET statut = $1, statut_validation = $1, date_traitement = NOW(), id_utilisateur_valideur = $2, date_mise_a_jour = NOW()
         WHERE id_preinscription = $3
       `, [statut, req.user.id, req.params.id]);
-
       res.json(rowCount ? { ok: true, message: `✅ Statut : ${statut}` } : { ok: false, erreur: "❌ Introuvable" });
     } catch (e) {
       res.json({ ok: false, erreur: e.message });
@@ -574,7 +588,6 @@ router.get('/eleves/:matricule/resultats', async (req, res) => {
     const { matricule } = req.params;
     if (!matricule?.trim())
       return res.json({ ok: false, erreur: "⚠️ Matricule requis" });
-
     const { rows: [eleve] } = await pool.query(`
       SELECT u.id_utilisateur, u.nom, u.prenoms, u.matricule, u.date_naissance,
              u.moyenne_annee_precedente AS moyenne, u.rang_annee_precedente AS rang,
@@ -583,10 +596,8 @@ router.get('/eleves/:matricule/resultats', async (req, res) => {
       FROM utilisateurs u LEFT JOIN classes c ON u.id_classe = c.id_classe
       WHERE UPPER(TRIM(u.matricule)) = UPPER(TRIM($1)) AND u.role = 'eleve' LIMIT 1
     `, [matricule.trim()]);
-
     if (!eleve)
       return res.json({ ok: false, erreur: "❌ Élève introuvable" });
-
     res.json({
       ok: true, ...eleve,
       moyenne: eleve.moyenne || '—',

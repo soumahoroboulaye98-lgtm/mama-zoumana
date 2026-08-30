@@ -19,9 +19,13 @@ try {
 }
 
 // ==================================================
+// ✅ LISTE DES CYCLES AUTORISÉS — RÉFÉRENCE UNIQUE
+// ==================================================
+const CYCLES_VALIDES = ['maternelle', 'primaire', 'college', 'lycee', 'superieur'];
+
+// ==================================================
 // 📚 LISTE Classes — Accès PUBLIC (sans token)
 // ✅ FORMAT COMPATIBLE AVEC LE HTML : { classes: [...] }
-// ✅ Ne renvoie que les classes 'ouvertes'
 // ==================================================
 router.get('/', async (req, res) => {
   try {
@@ -38,7 +42,6 @@ router.get('/', async (req, res) => {
       ORDER BY libelle_classe ASC
     `);
     console.log(`✅ Classes publiques — ${rows.length} enregistrement(s)`);
-    // ✅ FORMAT ATTENDU PAR LE HTML = { classes: [...] }
     return res.json({ ok: true, classes: rows });
   } catch (e) {
     console.error("❌ ERREUR /classes :", e.code, e.message);
@@ -60,7 +63,9 @@ router.get('/toutes', protegerAdmin, async (req, res) => {
         cycle,
         niveau,
         capacite_max, 
-        salle
+        salle,
+        places_occupees,
+        statut
       FROM classes 
       ORDER BY libelle_classe ASC
     `);
@@ -99,6 +104,7 @@ router.get('/liste', protegerAdmin, async (req, res) => {
 
 // ==================================================
 // 📚 INITIALISER CLASSES PAR DÉFAUT — Admin
+// ✅ CYCLES HARMONISÉS : maternelle / primaire / college / lycee
 // ==================================================
 router.post('/init', protegerAdmin, async (req, res) => {
   try {
@@ -112,7 +118,7 @@ router.post('/init', protegerAdmin, async (req, res) => {
       ['6ème','السنة الأولى إعدادي','Sixième','college','6ème',40],
       ['5ème','السنة الثانية إعدادي','Cinquième','college','5ème',40],
       ['4ème','السنة الثالثة إعدادي','Quatrième','college','4ème',40],
-      ['3ème','السنة الرابعة','Troisième','college','3ème',40],
+      ['3ème','السنة الرابعة إعدادي','Troisième','college','3ème',40],
       ['2nde','السنة الأولى ثانوي','Seconde','lycee','2nde',45],
       ['1ère','السنة الثانية ثانوي','Première','lycee','1ère',45],
       ['Terminale','السنة الثالثة ثانوي','Terminale','lycee','Terminale',45]
@@ -143,6 +149,7 @@ router.post('/init', protegerAdmin, async (req, res) => {
 
 // ==================================================
 // ➕ CRÉER UNE CLASSE — Admin
+// ✅ VALIDATION UNIFIÉE des cycles
 // ==================================================
 router.post('/', protegerAdmin, async (req, res) => {
   try {
@@ -150,14 +157,22 @@ router.post('/', protegerAdmin, async (req, res) => {
       libelle_classe, libelle_classe_ar, libelle_classe_en, 
       cycle, niveau, capacite_max, salle
     } = req.body;
+
     // ✅ Validations renforcées
     if (!libelle_classe?.trim())
       return res.json({ ok: false, erreur: "⚠️ Nom de classe OBLIGATOIRE" });
-    if (!['maternelle','primaire','college','lycee','superieur'].includes(cycle))
-      return res.json({ ok: false, erreur: "⚠️ Cycle invalide" });
+
+    // ✅ CYCLE VALIDÉ avec la liste de référence
+    if (!CYCLES_VALIDES.includes(cycle))
+      return res.json({ 
+        ok: false, 
+        erreur: "⚠️ Cycle invalide. Valeurs autorisées : maternelle, primaire, college, lycee, superieur" 
+      });
+
     const cap = Number(capacite_max);
     if (isNaN(cap) || cap < 10 || cap > 80)
       return res.json({ ok: false, erreur: "⚠️ Capacité entre 10 et 80 places" });
+
     // ✅ Vérifier doublon
     const { rows: [existe] } = await pool.query(
       'SELECT id_classe FROM classes WHERE UPPER(TRIM(libelle_classe)) = UPPER(TRIM($1))',
@@ -165,7 +180,8 @@ router.post('/', protegerAdmin, async (req, res) => {
     );
     if (existe)
       return res.json({ ok: false, erreur: "⚠️ Cette classe existe DÉJÀ" });
-    // ✅ Création (sans id_classe — utilise la séquence auto)
+
+    // ✅ Création
     await pool.query(`
       INSERT INTO classes(
         libelle_classe, libelle_classe_ar, libelle_classe_en,
@@ -180,6 +196,7 @@ router.post('/', protegerAdmin, async (req, res) => {
       cap,
       salle?.trim() || null
     ]);
+
     // ✅ Récupérer l'ID créé
     const { rows: [nv] } = await pool.query(
       'SELECT id_classe FROM classes WHERE UPPER(TRIM(libelle_classe)) = UPPER(TRIM($1))',
@@ -195,23 +212,33 @@ router.post('/', protegerAdmin, async (req, res) => {
 
 // ==================================================
 // ✏️ MODIFIER UNE CLASSE — Admin
+// ✅ MÊME VALIDATION des cycles
 // ==================================================
 router.put('/:id', protegerAdmin, async (req, res) => {
   try {
     const id_classe = parseInt(req.params.id);
     if (isNaN(id_classe))
       return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
+
     const { 
       libelle_classe, libelle_classe_ar, libelle_classe_en, 
-      cycle, niveau, capacite_max, salle
+      cycle, niveau, capacite_max, salle, statut
     } = req.body;
+
     if (!libelle_classe?.trim())
       return res.json({ ok: false, erreur: "⚠️ Nom de classe OBLIGATOIRE" });
-    if (!['maternelle','primaire','college','lycee','superieur'].includes(cycle))
-      return res.json({ ok: false, erreur: "⚠️ Cycle invalide" });
+
+    // ✅ CYCLE VALIDÉ
+    if (!CYCLES_VALIDES.includes(cycle))
+      return res.json({ 
+        ok: false, 
+        erreur: "⚠️ Cycle invalide. Valeurs : maternelle, primaire, college, lycee, superieur" 
+      });
+
     const cap = Number(capacite_max);
     if (isNaN(cap) || cap < 10 || cap > 80)
       return res.json({ ok: false, erreur: "⚠️ Capacité entre 10 et 80 places" });
+
     // ✅ Vérifier doublon (hors elle-même)
     const { rows: [existe] } = await pool.query(`
       SELECT id_classe FROM classes 
@@ -219,6 +246,7 @@ router.put('/:id', protegerAdmin, async (req, res) => {
     `, [libelle_classe.trim(), id_classe]);
     if (existe)
       return res.json({ ok: false, erreur: "⚠️ Une autre classe porte ce nom" });
+
     // ✅ Mise à jour
     const { rowCount } = await pool.query(`
       UPDATE classes SET
@@ -228,8 +256,9 @@ router.put('/:id', protegerAdmin, async (req, res) => {
         cycle = $4,
         niveau = $5,
         capacite_max = $6,
-        salle = $7
-      WHERE id_classe = $8
+        salle = $7,
+        statut = COALESCE($8, statut)
+      WHERE id_classe = $9
     `, [
       libelle_classe.trim(),
       libelle_classe_ar?.trim() || null,
@@ -238,10 +267,13 @@ router.put('/:id', protegerAdmin, async (req, res) => {
       niveau?.trim() || null,
       cap,
       salle?.trim() || null,
+      statut || null,
       id_classe
     ]);
+
     if (rowCount === 0)
       return res.json({ ok: false, erreur: "⚠️ Classe INTROUVABLE" });
+
     console.log(`✅ Classe modifiée — ID: ${id_classe}`);
     return res.json({ ok: true, message: "✅ Classe MODIFIÉE avec succès" });
   } catch (e) {
@@ -258,11 +290,13 @@ router.delete('/:id', protegerAdmin, async (req, res) => {
     const id_classe = parseInt(req.params.id);
     if (isNaN(id_classe))
       return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
+
     const { rowCount } = await pool.query(
       'DELETE FROM classes WHERE id_classe = $1', [id_classe]
     );
     if (rowCount === 0)
       return res.json({ ok: false, erreur: "⚠️ Classe INTROUVABLE" });
+
     console.log(`🗑️ Classe supprimée — ID: ${id_classe}`);
     return res.json({ ok: true, message: "✅ Classe SUPPRIMÉE avec succès" });
   } catch (e) {
@@ -284,6 +318,7 @@ router.get('/prof', protegerProf, async (req, res) => {
     const id_prof = req.user?.id_utilisateur || req.user?.id;
     if (!id_prof)
       return res.json({ ok: false, erreur: "⚠️ Identifiant enseignant introuvable" });
+
     const { rows } = await pool.query(`
       SELECT DISTINCT
         c.id_classe AS id,
@@ -298,6 +333,7 @@ router.get('/prof', protegerProf, async (req, res) => {
       WHERE a.id_prof = $1
       ORDER BY c.libelle_classe ASC
     `, [id_prof]);
+
     console.log(`✅ Mes classes — ${rows.length} enregistrement(s)`);
     return res.json({ ok: true, lignes: rows });
   } catch (e) {

@@ -253,15 +253,15 @@ async function soumettreClasse(e) {
 
   const estModif = !!d.id_classe;
   const donnees = {
-    libelle_classe: d.libelle_classe.trim(),
-    libelle_classe_en: (d.libelle_classe_en || '').trim(),
-    libelle_classe_ar: (d.libelle_classe_ar || '').trim(),
-    cycle: d.cycle,
-    niveau: d.niveau || null,
-    capacite_max: d.capacite_max,
-    salle: (d.salle || '').trim() || null,
-    statut: d.statut || 'ouverte'
-  };
+  libelle_classe: d.libelle_classe.trim(),
+  libelle_classe_en: (d.libelle_classe_en || '').trim(),
+  libelle_classe_ar: (d.libelle_classe_ar || '').trim(),
+  cycle: (d.cycle || '').trim().toLowerCase(), // ✅ Minuscule + sans espace
+  niveau: d.niveau || null,
+  capacite_max: d.capacite_max,
+  salle: (d.salle || '').trim() || null,
+  statut: d.statut || 'ouverte'
+};
 
   try {
     const url = estModif ? `/classes/${d.id_classe}` : '/classes';
@@ -600,20 +600,23 @@ document.addEventListener('DOMContentLoaded', () => {
             </label>
             <input type="text" name="libelle_classe_ar" id="edit-libelle-ar" class="form-control" placeholder="مثال: السنة الثانية ابتدائي">
           </div>
-          <div class="mb-3">
-            <label class="form-label fw-bold">
-              <span class="txt-fr">Cycle *</span>
-              <span class="txt-en">Cycle *</span>
-              <span class="txt-ar">المرحلة الدراسية *</span>
-            </label>
-            <select name="cycle" id="edit-cycle" class="form-select" required>
-              <option value="">-- Choisir --</option>
-              <option value="Préscolaire">Préscolaire / الحضانة</option>
-              <option value="Primaire">Primaire / الابتدائي</option>
-              <option value="Collège">Collège / الإعدادي</option>
-              <option value="Lycée">Lycée / الثانوي</option>
-            </select>
-          </div>
+
+<div class="mb-3">
+  <label class="form-label fw-bold">
+    <span class="txt-fr">Cycle *</span>
+    <span class="txt-en">Cycle *</span>
+    <span class="txt-ar">المرحلة الدراسية *</span>
+  </label>
+  <select name="cycle" id="edit-cycle" class="form-select" required>
+    <option value="">-- Choisir --</option>
+    <option value="prescolaire">Préscolaire / الحضانة</option>
+    <option value="primaire">Primaire / الابتدائي</option>
+    <option value="college">Collège / الإعدادي</option>
+    <option value="lycee">Lycée / الثانوي</option>
+  </select>
+</div>
+
+
           <div class="mb-3">
             <label class="form-label fw-bold">
               <span class="txt-fr">Niveau</span>

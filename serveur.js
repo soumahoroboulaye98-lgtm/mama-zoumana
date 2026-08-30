@@ -375,6 +375,9 @@ const rCalendrier = chargerRoute('./routes/calendrier');
 const rReglement = chargerRoute('./routes/reglement');
 const rEquipe = chargerRoute('./routes/equipe');
 const dashboardRoutes = chargerRoute('./routes/dashboard');
+const rPages = chargerRoute('./routes/pages');
+
+
 
 // ==============================================
 // 🔗 DÉCLARATION DES ROUTES
@@ -384,6 +387,7 @@ if (rAdmin) app.use('/api/admin', rAdmin);
 if (rUtilisateurs) app.use('/api/utilisateurs', rUtilisateurs);
 if (rPreinscription) app.use('/api/preinscription', rPreinscription);
 if (rReferences) app.use('/api/references', rReferences);
+if (rPages) app.use('/api/pages', rPages);
 if (rClasses) app.use('/api/classes', rClasses);
 if (rMatieres) app.use('/api/matieres', rMatieres);
 if (rAffectations) app.use('/api/affectations', rAffectations);
@@ -409,7 +413,118 @@ if (rCalendrier) app.use('/api/calendrier', rCalendrier);
 if (rReglement) app.use('/api/reglement', rReglement);
 if (rEquipe) app.use('/api/equipe', rEquipe);
 app.use('/api/personnel', routerPersonnel);
+// ==============================================
+// 📊 TABLEAU DE BORD — Routes Manquantes
+// ==============================================
 
+// 1️⃣ /api/statistiques
+app.get('/api/statistiques', protegerAdmin, async (req, res) => {
+  try {
+    const [classes, eleves, profs, preinscriptions, annonces, actualites] = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM classes'),
+      pool.query("SELECT COUNT(*) FROM utilisateurs WHERE role = 'eleve'"),
+      pool.query("SELECT COUNT(*) FROM utilisateurs WHERE role = 'professeur'"),
+      pool.query("SELECT COUNT(*) FROM preinscriptions"),
+      pool.query("SELECT COUNT(*) FROM annonces WHERE est_active = true"),
+      pool.query("SELECT COUNT(*) FROM actualites WHERE est_publie = true")
+    ]);
+    res.json({
+      ok: true,
+      statistiques: {
+        total_classes: parseInt(classes.rows[0].count),
+        total_eleves: parseInt(eleves.rows[0].count),
+        total_professeurs: parseInt(profs.rows[0].count),
+        total_preinscriptions: parseInt(preinscriptions.rows[0].count),
+        annonces_actives: parseInt(annonces.rows[0].count),
+        actualites_publiees: parseInt(actualites.rows[0].count)
+      }
+    });
+  } catch (e) {
+    console.error("❌ Erreur /statistiques :", e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
+});
+
+// 2️⃣ /api/alertes
+app.get('/api/alertes', protegerAdmin, async (req, res) => {
+  try {
+    const alertes = [];
+    // Élèves sans classe
+    const sansClasse = await pool.query("SELECT COUNT(*) FROM utilisateurs WHERE role='eleve' AND id_classe IS NULL");
+    if (parseInt(sansClasse.rows[0].count) > 0) {
+      alertes.push({ niveau: 'attention', message: `${sansClasse.rows[0].count} élève(s) sans classe` });
+    }
+    // Comptes non vérifiés
+    const nonVerifies = await pool.query("SELECT COUNT(*) FROM utilisateurs WHERE statut_compte!='verifie'");
+    if (parseInt(nonVerifies.rows[0].count) > 0) {
+      alertes.push({ niveau: 'info', message: `${nonVerifies.rows[0].count} compte(s) en attente de vérification` });
+    }
+    res.json({ ok: true, alertes });
+  } catch (e) {
+    console.error("❌ Erreur /alertes :", e.message);
+    res.json({ ok: true, alertes: [] });
+  }
+});
+
+// 3️⃣ /api/activite-recente
+app.get('/api/activite-recente', protegerAdmin, async (req, res) => {
+  try {
+    const limite = 10;
+    const [inscriptions, connexions] = await Promise.all([
+      pool.query("SELECT nom, prenoms, date_creation FROM utilisateurs WHERE role='eleve' ORDER BY date_creation DESC LIMIT $1", [limited]),
+      pool.query("SELECT nom, prenoms, derniere_connexion FROM utilisateurs WHERE derniere_connexion IS NOT NULL ORDER BY derniere_connexion DESC LIMIT $1", [limited])
+    ]);
+    res.json({
+      ok: true,
+      activite: {
+        nouvelles_inscriptions: inscriptions.rows,
+        dernieres_connexions: connexions.rows
+      }
+    });
+  } catch (e) {
+    console.error("❌ Erreur /activite-recente :", e.message);
+    res.json({ ok: true, activite: { nouvelles_inscriptions: [], dernieres_connexions: [] } });
+  }
+});
+
+// 4️⃣ /api/repartition-eleves
+app.get('/api/repartition-eleves', protegerAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT c.id_classe, c.libelle_classe, COUNT(u.id_utilisateur) AS effectif
+      FROM classes c
+      LEFT JOIN utilisateurs u ON c.id_classe = u.id_classe AND u.role = 'eleve'
+      GROUP BY c.id_classe, c.libelle_classe
+      ORDER BY c.id_classe
+    `);
+    res.json({ ok: true, repartition: rows });
+  } catch (e) {
+    console.error("❌ Erreur /repartition-eleves :", e.message);
+    res.json({ ok: false, erreur: e.message });
+  }
+});
+
+// 5️⃣ /api/etat-bulletins
+app.get('/api/etat-bulletins', protegerAdmin, async (req, res) => {
+  try {
+    const [total, publies, enAttente] = await Promise.all([
+      pool.query("SELECT COUNT(*) FROM utilisateurs WHERE role='eleve'"),
+      pool.query("SELECT COUNT(DISTINCT id_eleve) FROM bulletins WHERE statut = 'publie'"),
+      pool.query("SELECT COUNT(DISTINCT id_eleve) FROM bulletins WHERE statut = 'brouillon' OR statut = 'en_cours'")
+    ]);
+    res.json({
+      ok: true,
+      etat: {
+        total_eleves: parseInt(total.rows[0].count),
+        bulletins_publies: parseInt(publies.rows[0].count),
+        en_attente: parseInt(enAttente.rows[0].count)
+      }
+    });
+  } catch (e) {
+    console.error("❌ Erreur /etat-bulletins :", e.message);
+    res.json({ ok: true, etat: { total_eleves: 0, bulletins_publies: 0, en_attente: 0 } });
+  }
+});
 // ==============================================
 // 🔄 ROUTE DE TEST API — LISTE COMPLÈTE
 // ==============================================

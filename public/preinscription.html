@@ -465,59 +465,100 @@
   // ✅ SOUMISSION DU FORMULAIRE
   // ==================================================
   async function soumettreFormulaire(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btnSoumettre');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="chargement"><span class="spinner"></span> Envoi en cours…</span>';
-    try {
-      const corps = new FormData(e.target);
-      corps.set('profil', profilChoisi);
-      corps.set('date_soumission', new Date().toISOString());
-      if(profilChoisi === 'eleve'){
-        corps.set('classe_francais', classeFrancais);
-        corps.set('classe_arabe', classeArabe);
-        corps.set('pris_en_charge_etat', estPrisEnChargeEtat ? '1' : '0');
-        corps.set('montant_total', cacheTotalBrut.toString());
-      }
-      console.log("📤 Envoi profil :", profilChoisi);
-      console.log("📤 URL :", `${API_BASE}/preinscription`);
-      const reponse = await fetch(`${API_BASE}/preinscription`, {
-        method: 'POST',
-        body: corps,
-        credentials: 'omit'
-      });
-      const texte = await reponse.text();
-      let resultat;
-      try {
-        resultat = JSON.parse(texte);
-      } catch {
-        throw new Error(
-          reponse.status === 404
-            ? "❌ Route INTROUVABLE : ajoutez /api/preinscription côté serveur"
-            : `❌ Erreur ${reponse.status} — L'API renvoie du HTML au lieu de JSON`
-        );
-      }
-      if (!resultat.ok) throw new Error(resultat.erreur || resultat.message || "Erreur inconnue");
-      let msg = '';
-      if(profilChoisi === 'eleve') msg = "✅ Votre préinscription a bien été enregistrée.";
-      else if(profilChoisi === 'enseignant') msg = "✅ Votre candidature a été envoyée. Elle sera examinée par l'administration.";
-      else if(profilChoisi === 'parent') msg = "✅ Votre demande a été enregistrée. Nous vérifions vos informations.";
-      else if(profilChoisi === 'visiteur') msg = "✅ Votre demande de rendez-vous a été transmise.";
-      document.querySelector('.carte-formulaire').innerHTML = `
-        <div class="text-center py-4">
-          <div class="display-1 text-success mb-3">✅</div>
-          <h4 class="etape-titre">Demande enregistrée !</h4>
-          <p class="lead">${resultat.message || msg}</p>
-          ${profilChoisi==='enseignant'?'<p class="text-info">⏳ En attente de validation par l\'administration.</p>':''}
-          <a href="index.html" class="btn btn-valider-definitif mt-3">🏠 Retour à l'accueil</a>
-        </div>`;
-    } catch (err) {
-      alert(`❌ ${err.message}`);
-      console.error("🔍 Erreur :", err);
-      btn.disabled = false;
-      btn.innerHTML = '📤 Enregistrer la demande';
+  e.preventDefault();
+  const btn = document.getElementById('btnSoumettre');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="chargement"><span class="spinner"></span> Envoi en cours…</span>';
+  try {
+    const formulaire = new FormData(e.target);
+    const corps = {};
+
+    // ✅ MAPPAGE EXACT DES CHAMPS AVEC LA BASE
+    corps.profil = profilChoisi;
+    corps.annee_scolaire = formulaire.get('annee_scolaire') || '2026-2027';
+    corps.date_demande = new Date().toISOString();
+
+    // Identité élève
+    corps.nom = formulaire.get('nom');
+    corps.prenoms = formulaire.get('prenoms'); // ⚠️ CORRECTION : prenom → prenoms
+    corps.date_naissance = formulaire.get('date_naissance');
+    corps.lieu_naissance = formulaire.get('lieu_naissance');
+    corps.nationalite = formulaire.get('nationalite');
+    corps.adresse = formulaire.get('adresse');
+
+    // Classes
+    if (profilChoisi === 'eleve') {
+      corps.classe_francais = classeFrancais;
+      corps.classe_arabe = classeArabe;
+      corps.libelle_classe_fr = classeFrancais;
+      corps.libelle_classe_ar = classeArabe;
+      corps.pris_en_charge_etat = estPrisEnChargeEtat;
+      corps.montant_total = cacheTotalBrut;
+      corps.frais_base = estPrisEnChargeEtat 
+        ? Math.round((cacheTotalBrut || 0) / (estPrisEnChargeEtat ? 1 : 2)) 
+        : cacheTotalBrut;
+      corps.mode_paiement = formulaire.get('mode_paiement');
+      corps.nombre_versements = formulaire.get('echelonnement') || 1;
+      corps.matricule_precedent = formulaire.get('matricule_precedent');
+      
+      // Responsable légal = Père
+      corps.nom_pere = formulaire.get('resp1_nom');
+      corps.telephone_pere = formulaire.get('resp1_tel');
+      corps.email_pere = formulaire.get('resp1_email');
+      corps.profession_pere = formulaire.get('resp1_profession');
+      corps.activite_pere = formulaire.get('resp1_profession');
+      
+      // Mère
+      corps.nom_mere = formulaire.get('resp2_nom');
+      corps.telephone_mere = formulaire.get('resp2_tel');
+      corps.email_mere = formulaire.get('resp2_email');
+      corps.profession_mere = formulaire.get('resp2_profession');
+      corps.activite_mere = formulaire.get('resp2_profession');
     }
+
+    console.log("📤 Données envoyées :", corps);
+
+    const reponse = await fetch(`${API_BASE}/preinscription`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(corps),
+      credentials: 'omit'
+    });
+
+    const texte = await reponse.text();
+    let resultat;
+    try {
+      resultat = JSON.parse(texte);
+    } catch {
+      throw new Error(
+        reponse.status === 404
+          ? "❌ Route INTROUVABLE : vérifiez l'URL de l'API"
+          : `❌ Erreur ${reponse.status} — L'API renvoie du HTML au lieu de JSON`
+      );
+    }
+    if (!resultat.ok) throw new Error(resultat.erreur || resultat.message || "Erreur inconnue");
+
+    // ✅ Message de succès...
+    let msg = '';
+    if(profilChoisi === 'eleve') msg = "✅ Préinscription enregistrée.";
+    else if(profilChoisi === 'enseignant') msg = "✅ Candidature envoyée.";
+    else if(profilChoisi === 'parent') msg = "✅ Demande enregistrée.";
+    else if(profilChoisi === 'visiteur') msg = "✅ Demande transmise.";
+
+    document.querySelector('.carte-formulaire').innerHTML = `
+      <div class="text-center py-4">
+        <div class="display-1 text-success mb-3">✅</div>
+        <h4 class="etape-titre">Demande enregistrée !</h4>
+        <p class="lead">${resultat.message || msg}</p>
+        <a href="index.html" class="btn btn-valider-definitif mt-3">🏠 Retour à l'accueil</a>
+      </div>`;
+  } catch (err) {
+    alert(`❌ ${err.message}`);
+    console.error("🔍 Erreur :", err);
+    btn.disabled = false;
+    btn.innerHTML = '📤 Enregistrer la demande';
   }
+}
 
   // ==================================================
   // ✅ CHANGEMENT DE PROFIL
@@ -634,7 +675,7 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Prénoms <span class="obligatoire">*</span></label>
-            <input type="text" name="prenom" id="el_prenom" class="form-control" required>
+            <input type="text" name="prenoms" id="el_prenom" class="form-control" required>
           </div>
           <div class="col-md-4">
             <label class="form-label">Date de naissance <span class="obligatoire">*</span></label>
