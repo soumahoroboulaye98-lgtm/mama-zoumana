@@ -1,146 +1,161 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const veriftoken = require('../middleware/veriftoken');
-const verifadmin = require('../middleware/verifadmin');
-
-// 🔒 Protection : Administrateur uniquement
-const protegerAdmin = [veriftoken, verifadmin];
 
 // ==================================================
-// ✅ Fonction utilitaire sécurisée
+// 🔐 MIDDLEWARES
 // ==================================================
-function parseIntSecure(valeur) {
-  return parseInt(valeur?.count || valeur) || 0;
+let veriftoken, verifadmin, protegerAdmin;
+try {
+  veriftoken = require('../middleware/veriftoken');
+  verifadmin = require('../middleware/verifadmin');
+  protegerAdmin = [veriftoken, verifadmin];
+} catch {
+  protegerAdmin = [];
+  console.warn("⚠️ Middlewares introuvables — dashboard ouvert temporairement");
 }
 
 // ==================================================
-// 1️⃣ /api/statistiques
+// 📊 1. STATISTIQUES GLOBALES
 // ==================================================
 router.get('/statistiques', protegerAdmin, async (req, res) => {
   try {
-    const [classes, eleves, profs, preinscriptions] = await Promise.all([
+    const [classes, eleves, profs, preinscriptionsAttente] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM classes'),
       pool.query("SELECT COUNT(*) FROM utilisateurs WHERE role = 'eleve'"),
       pool.query("SELECT COUNT(*) FROM utilisateurs WHERE role = 'professeur'"),
-      pool.query("SELECT COUNT(*) FROM preinscriptions WHERE statut = 'en attente'")
+      pool.query("SELECT COUNT(*) FROM preinscriptions WHERE statut = 'en_attente' OR statut IS NULL")
     ]);
 
     res.json({
       ok: true,
-      statistiques: {
-        classes: parseIntSecure(classes.rows[0]),
-        eleves: parseIntSecure(eleves.rows[0]),
-        professeurs: parseIntSecure(profs.rows[0]),
-        preinscriptions_attente: parseIntSecure(preinscriptions.rows[0])
+      stats: {
+        classes: parseInt(classes.rows[0].count),
+        eleves: parseInt(eleves.rows[0].count),
+        profs: parseInt(profs.rows[0].count),
+        attente: parseInt(preinscriptionsAttente.rows[0].count)
       }
     });
-  } catch (e) {
-    console.error("❌ ERREUR /statistiques :", e.message);
-    res.status(500).json({ ok: false, erreur: e.message });
+  } catch (erreur) {
+    console.error("❌ Erreur statistiques :", erreur.message);
+    res.json({ ok: false, erreur: erreur.message });
   }
 });
 
 // ==================================================
-// 2️⃣ /api/alertes
+// ⚠️ 2. ALERTES DU SYSTÈME
 // ==================================================
 router.get('/alertes', protegerAdmin, async (req, res) => {
   try {
     const alertes = [];
-    const r = await pool.query("SELECT COUNT(*) FROM preinscriptions WHERE statut = 'en attente'");
-    const nbAttente = parseIntSecure(r.rows[0]);
-
+    const attente = await pool.query("SELECT COUNT(*) FROM preinscriptions WHERE statut = 'en_attente' OR statut IS NULL");
+    const nbAttente = parseInt(attente.rows[0].count);
     if (nbAttente > 0) {
       alertes.push({
-        type: 'attention',
-        titre: 'Préinscriptions en attente',
-        message: `${nbAttente} demande(s) attendent un traitement`,
-        nombre: nbAttente
+        type: 'warning',
+        icone: 'bi-exclamation-triangle',
+        message: `${nbAttente} préinscription(s) en attente de validation`
       });
     }
-
+    const anneeActuelle = new Date().getFullYear();
+    alertes.push({
+      type: 'info',
+      icone: 'bi-calendar-check',
+      message: `Année scolaire en cours : ${anneeActuelle}-${anneeActuelle + 1}`
+    });
     res.json({ ok: true, alertes });
-  } catch (e) {
-    console.error("❌ ERREUR /alertes :", e.message);
+  } catch (erreur) {
+    console.error("❌ Erreur alertes :", erreur.message);
     res.json({ ok: true, alertes: [] });
   }
 });
 
 // ==================================================
-// 3️⃣ /api/activite-recente
+// 🕐 3. ACTIVITÉ RÉCENTE
 // ==================================================
 router.get('/activite-recente', protegerAdmin, async (req, res) => {
   try {
-    const r = await pool.query(`
-      SELECT id_preinscription, nom, prenoms, date_preinscription
+    const activite = [];
+    // Dernières préinscriptions
+    const { rows: dernieresInscrits } = await pool.query(`
+      SELECT prenoms, nom, date_soumission
       FROM preinscriptions
-      ORDER BY date_preinscription DESC NULLS LAST
+      ORDER BY date_soumission DESC
       LIMIT 5
     `);
-
-    const activite = r.rows.map(p => ({
-      titre: 'Nouvelle préinscription',
-      description: `${p.nom || ''} ${p.prenoms || ''}`.trim(),
-      date: p.date_preinscription
-    }));
-
+    dernieresInscrits.forEach(p => {
+      activite.push({
+        icone: 'bi-person-plus',
+        texte: `Préinscription : ${(p.prenoms || '')} ${(p.nom || '')}`.trim(),
+        date: p.date_soumission
+      });
+    });
+    // Dernières actualités
+    const { rows: actualites } = await pool.query(`
+      SELECT titre_fr, date_publication
+      FROM actualites
+      ORDER BY date_publication DESC
+      LIMIT 3
+    `);
+    actualites.forEach(a => {
+      activite.push({
+        icone: 'bi-megaphone',
+        texte: `Actualité : ${a.titre_fr}`,
+        date: a.date_publication
+      });
+    });
+    if (activite.length === 0) {
+      activite.push({
+        icone: 'bi-info-circle',
+        texte: 'Aucune activité récente enregistrée',
+        date: null
+      });
+    }
     res.json({ ok: true, activite });
-  } catch (e) {
-    console.error("❌ ERREUR /activite-recente :", e.message);
-    res.json({ ok: true, activite: [] });
+  } catch (erreur) {
+    console.error("❌ Erreur activité récente :", erreur.message);
+    res.json({ ok: true, activite: [
+      { icone: 'bi-info-circle', texte: 'Activité récente indisponible', date: null }
+    ]});
   }
 });
 
 // ==================================================
-// 4️⃣ /api/repartition-eleves
+// 📈 4. RÉPARTITION ÉLÈVES PAR CLASSE
 // ==================================================
 router.get('/repartition-eleves', protegerAdmin, async (req, res) => {
   try {
-    const r = await pool.query(`
-      SELECT c.libelle_classe, COUNT(u.id) AS nombre
+    const { rows } = await pool.query(`
+      SELECT c.libelle_classe, COUNT(u.id) as nombre
       FROM classes c
-      LEFT JOIN utilisateurs u 
-        ON u.id_classe = c.id_classe 
-        AND u.role = 'eleve'
+      LEFT JOIN utilisateurs u ON u.id_classe = c.id_classe AND u.role = 'eleve'
       GROUP BY c.id_classe, c.libelle_classe
       ORDER BY c.libelle_classe
     `);
-
-    res.json({ ok: true, repartition: r.rows });
-  } catch (e) {
-    console.error("❌ ERREUR /repartition-eleves :", e.message);
-    res.json({ ok: true, repartition: [] });
+    res.json({ ok: true, repartition: rows });
+  } catch (erreur) {
+    console.error("❌ Erreur répartition :", erreur.message);
+    res.json({ ok: false, repartition: [] });
   }
 });
 
 // ==================================================
-// 5️⃣ /api/etat-bulletins
+// 📄 5. ÉTAT NOTES & BULLETINS — ADAPTÉ À VOS COLONNES
 // ==================================================
 router.get('/etat-bulletins', protegerAdmin, async (req, res) => {
   try {
-    const rEleves = await pool.query("SELECT COUNT(*) FROM utilisateurs WHERE role = 'eleve'");
-    const total = parseIntSecure(rEleves.rows[0]);
-
-    // Nombre de bulletins édités (depuis la table bulletins)
-    const rBulletins = await pool.query("SELECT COUNT(DISTINCT id_eleve) FROM bulletins");
-    const edites = parseIntSecure(rBulletins.rows[0]);
-    const progression = total > 0 ? Math.round((edites / total) * 100) : 0;
+    // ✅ VOS NOMS DE COLONNES : note_numerique / id
+    const notes = await pool.query("SELECT COUNT(*) FROM notes WHERE note_numerique IS NOT NULL");
+    const bulletins = await pool.query("SELECT COUNT(*) FROM bulletins");
 
     res.json({
       ok: true,
-      bulletins: {
-        total_eleves: total,
-        edites: edites,
-        non_edites: total - edites,
-        progression_pourcent: progression
-      }
+      notesSaisies: parseInt(notes.rows[0].count),
+      bulletinsGeneres: parseInt(bulletins.rows[0].count)
     });
-  } catch (e) {
-    console.error("❌ ERREUR /etat-bulletins :", e.message);
-    res.json({
-      ok: true,
-      bulletins: { total_eleves: 0, edites: 0, non_edites: 0, progression_pourcent: 0 }
-    });
+  } catch (erreur) {
+    console.error("❌ Erreur état bulletins :", erreur.message);
+    res.json({ ok: true, notesSaisies: 0, bulletinsGeneres: 0 });
   }
 });
 

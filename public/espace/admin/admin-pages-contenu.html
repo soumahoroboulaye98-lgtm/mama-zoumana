@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des Pages — Administration</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Éditeur visuel -->
+  <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+  <style>
+    .onglet-langue .nav-link { font-size: 0.95rem; padding: 0.4rem 1rem; }
+    .onglet-langue .nav-link.active { font-weight: bold; background: #e9ecef; }
+    .badge-id { font-family: monospace; font-size: 0.85rem; }
+    textarea { min-height: 260px; }
+    [dir="rtl"] { text-align: right; font-family: Tahoma, sans-serif; }
+  </style>
+</head>
+<body>
+
+<div class="container-fluid py-4">
+  <!-- En-tête -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">📝 Gestion des Pages de Contenu</h2>
+    <a href="/dashboard.html" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Retour au Tableau de Bord
+    </a>
+  </div>
+
+  <!-- Sélection de la page -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body">
+      <label class="form-label fw-bold">Choisir une page à modifier</label>
+      <select id="choixPage" class="form-select form-select-lg">
+        <option value="">— Sélectionnez une page —</option>
+        <option value="admission">📋 Admission</option>
+        <option value="programme">📚 Programme Scolaire</option>
+        <option value="mot-directeur">💬 Mot du Directeur</option>
+        <option value="equipe">👥 Notre Équipe</option>
+        <option value="reglement">📜 Règlement Intérieur</option>
+        <option value="apropos">ℹ️ À Propos de nous</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Formulaire d'Édition -->
+  <div id="blocEdition" class="card shadow-sm d-none">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span id="nomPageEnTete" class="fw-bold">—</span>
+      <span class="badge bg-light text-dark border badge-id" id="identifiantPage"></span>
+    </div>
+
+    <div class="card-body">
+      <!-- Onglets Langues -->
+      <ul class="nav nav-tabs onglet-langue mb-3" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" data-bs-toggle="tab" data-target="#fr">🇫🇷 Français</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" data-bs-toggle="tab" data-target="#en">🇬🇧 English</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" data-bs-toggle="tab" data-target="#ar">🇸🇦 العربية</button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+        <!-- FRANÇAIS -->
+        <div class="tab-pane fade show active" id="fr">
+          <div class="mb-3">
+            <label class="form-label">Titre (Français) <span class="text-danger">*</span></label>
+            <input type="text" id="titre_fr" class="form-control" required placeholder="Ex: Admission">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Contenu (Français) <span class="text-danger">*</span></label>
+            <textarea id="contenu_fr" class="form-control editeur-riche"></textarea>
+          </div>
+        </div>
+
+        <!-- ANGLAIS -->
+        <div class="tab-pane fade" id="en">
+          <div class="mb-3">
+            <label class="form-label">Title (English)</label>
+            <input type="text" id="titre_en" class="form-control" placeholder="Ex: Admission">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Content (English)</label>
+            <textarea id="contenu_en" class="form-control editeur-riche"></textarea>
+          </div>
+        </div>
+
+        <!-- ARABE -->
+        <div class="tab-pane fade" id="ar">
+          <div class="mb-3">
+            <label class="form-label" dir="rtl">العنوان</label>
+            <input type="text" id="titre_ar" class="form-control" dir="rtl" placeholder="مثال: القبول">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" dir="rtl">المحتوى</label>
+            <textarea id="contenu_ar" class="form-control editeur-riche" dir="rtl"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Options complémentaires -->
+      <div class="row mt-4">
+        <div class="col-md-7 mb-3">
+          <label class="form-label">URL de l'image d'illustration</label>
+          <input type="text" id="image_principale" class="form-control" placeholder="/uploads/photo.jpg">
+        </div>
+        <div class="col-md-5 mb-3 d-flex align-items-end">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="est_publie" checked>
+            <label class="form-check-label">✅ Page publiée en ligne</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Boutons d'action -->
+      <div class="d-flex gap-2 mt-2">
+        <button id="btnRecharger" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-clockwise"></i> Recharger depuis la base
+        </button>
+        <button id="btnVider" class="btn btn-outline-danger">
+          <i class="bi bi-eraser"></i> Vider le formulaire
+        </button>
+        <button id="btnSauvegarder" class="btn btn-primary ms-auto">
+          <i class="bi bi-save"></i> 💾 Sauvegarder les modifications
+        </button>
+      </div>
+
+      <!-- Zone de message -->
+      <div id="zoneMessage" class="mt-3 alert d-none"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ===================== CONFIGURATION =====================
+const API_BASE = 'https://mama-zoumana-api.onrender.com/api';
+const token = localStorage.getItem('token') || '';
+let pageActuelle = '';
+
+// Initialisation de l'éditeur visuel TinyMCE
+tinymce.init({
+  selector: '.editeur-riche',
+  height: 320,
+  plugins: 'lists link image table code',
+  toolbar: 'undo redo | bold italic underline | bullist numlist | link image | table | alignleft aligncenter alignright | code',
+  language: 'fr_FR',
+  branding: false,
+  menubar: false,
+  license_key: 'gpl'
+});
+
+// Éléments du DOM
+const choixPage = document.getElementById('choixPage');
+const blocEdition = document.getElementById('blocEdition');
+const zoneMessage = document.getElementById('zoneMessage');
+
+// ===================== CHARGER UNE PAGE =====================
+choixPage.addEventListener('change', async () => {
+  pageActuelle = choixPage.value;
+  if (!pageActuelle) {
+    blocEdition.classList.add('d-none');
+    return;
+  }
+
+  // Afficher le bloc d'édition
+  blocEdition.classList.remove('d-none');
+  const option = choixPage.options[choixPage.selectedIndex].text;
+  document.getElementById('nomPageEnTete').textContent = option;
+  document.getElementById('identifiantPage').textContent = pageActuelle;
+
+  await chargerContenuPage();
+});
+
+// ===================== CHARGER CONTENU =====================
+async function chargerContenuPage() {
+  try {
+    afficherMessage("Chargement...", "info");
+    const res = await fetch(`${API_BASE}/pages/${pageActuelle}`);
+    const data = await res.json();
+
+    if (!data.ok) {
+      afficherMessage("⚠️ Page nouvelle — vous pouvez créer son contenu ci-dessous.", "warning");
+      viderFormulaire();
+      return;
+    }
+
+    remplirFormulaire(data.page);
+    cacherMessage();
+  } catch (e) {
+    afficherMessage("❌ Erreur réseau : " + e.message, "danger");
+  }
+}
+
+// ===================== SAUVEGARDER =====================
+document.getElementById('btnSauvegarder').addEventListener('click', async () => {
+  if (!pageActuelle) return;
+
+  // Récupérer le contenu depuis l'éditeur visuel
+  const contenu_fr = tinymce.get('contenu_fr')?.getContent() || '';
+  const contenu_en = tinymce.get('contenu_en')?.getContent() || '';
+  const contenu_ar = tinymce.get('contenu_ar')?.getContent() || '';
+
+  // Vérifications
+  const titre_fr = document.getElementById('titre_fr').value.trim();
+  if (!titre_fr || !contenu_fr) {
+    afficherMessage("⚠️ Titre et Contenu en Français sont OBLIGATOIRES", "danger");
+    return;
+  }
+
+  // Préparer les données
+  const payload = {
+    identifiant: pageActuelle,
+    titre_fr,
+    titre_en: document.getElementById('titre_en').value.trim() || null,
+    titre_ar: document.getElementById('titre_ar').value.trim() || null,
+    contenu_fr, contenu_en, contenu_ar,
+    image_principale: document.getElementById('image_principale').value.trim() || null,
+    est_publie: document.getElementById('est_publie').checked
+  };
+
+  try {
+    afficherMessage("Sauvegarde en cours...", "info");
+    const res = await fetch(`${API_BASE}/pages/sauvegarder`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const resultat = await res.json();
+    if (resultat.ok) {
+      afficherMessage("✅ Page sauvegardée avec succès ! Les visiteurs voient la mise à jour immédiatement.", "success");
+    } else {
+      afficherMessage("❌ Erreur : " + (resultat.erreur || "Erreur inconnue"), "danger");
+    }
+  } catch (e) {
+    afficherMessage("❌ Erreur réseau : " + e.message, "danger");
+  }
+});
+
+// ===================== BOUTONS UTILITAIRES =====================
+document.getElementById('btnRecharger').addEventListener('click', chargerContenuPage);
+document.getElementById('btnVider').addEventListener('click', viderFormulaire);
+
+// ===================== FONCTIONS UTILITAIRES =====================
+function remplirFormulaire(page) {
+  document.getElementById('titre_fr').value = page.titre_fr || '';
+  document.getElementById('titre_en').value = page.titre_en || '';
+  document.getElementById('titre_ar').value = page.titre_ar || '';
+  document.getElementById('image_principale').value = page.image_principale || '';
+  document.getElementById('est_publie').checked = page.est_publie !== false;
+
+  // Remplir les éditeurs avec petit délai d'initialisation
+  setTimeout(() => {
+    tinymce.get('contenu_fr')?.setContent(page.contenu_fr || '');
+    tinymce.get('contenu_en')?.setContent(page.contenu_en || '');
+    tinymce.get('contenu_ar')?.setContent(page.contenu_ar || '');
+  }, 150);
+}
+
+function viderFormulaire() {
+  document.getElementById('titre_fr').value = '';
+  document.getElementById('titre_en').value = '';
+  document.getElementById('titre_ar').value = '';
+  document.getElementById('image_principale').value = '';
+  document.getElementById('est_publie').checked = true;
+  setTimeout(() => {
+    tinymce.get('contenu_fr')?.setContent('');
+    tinymce.get('contenu_en')?.setContent('');
+    tinymce.get('contenu_ar')?.setContent('');
+  }, 150);
+}
+
+function afficherMessage(texte, type) {
+  zoneMessage.textContent = texte;
+  zoneMessage.className = `mt-3 alert alert-${type}`;
+  zoneMessage.classList.remove('d-none');
+}
+
+function cacherMessage() {
+  zoneMessage.classList.add('d-none');
+}
+</script>
+</body>
+</html>

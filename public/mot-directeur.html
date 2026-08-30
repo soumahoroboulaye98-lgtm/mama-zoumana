@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mot du Directeur — École MAMA-ZOUMANA</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root { --couleur-principale: #0b4b7d; }
+    h1, h2, h3 { color: var(--couleur-principale); margin: 1.2rem 0 0.6rem; }
+    .contenu-page { font-size: 1.05rem; line-height: 1.7; }
+    .contenu-page p { margin-bottom: 1rem; }
+    .contenu-page ul, .contenu-page ol { margin-bottom: 1rem; padding-left: 1.8rem; }
+    .image-illustration { max-width: 100%; border-radius: 8px; margin-bottom: 2rem; }
+    [dir="rtl"] { text-align: right; font-family: Tahoma, sans-serif; }
+  </style>
+</head>
+<body>
+<div class="container py-5">
+  <div class="row">
+    <div class="col-lg-10 mx-auto">
+      <h1 id="titrePage" class="mb-4 border-bottom pb-2"></h1>
+      <div id="imageZone" class="mb-4 d-none">
+        <img id="imagePage" src="" alt="" class="image-illustration shadow">
+      </div>
+      <div id="contenuPage" class="contenu-page"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API_BASE = 'https://mama-zoumana-api.onrender.com/api';
+const ID_PAGE = 'mot-directeur';
+
+function getLangue() {
+  const classe = document.documentElement.className;
+  if (classe.includes('lang-en')) return 'en';
+  if (classe.includes('lang-ar')) return 'ar';
+  return 'fr';
+}
+
+async function chargerPage() {
+  const langue = getLangue();
+  try {
+    const res = await fetch(`${API_BASE}/pages/${ID_PAGE}`);
+    const data = await res.json();
+    if (!data.ok) {
+      document.body.innerHTML = '<div class="container py-5 text-center"><h2>⚠️ Contenu en cours de création</h2></div>';
+      return;
+    }
+    const p = data.page;
+    const titre = p[`titre_${langue}`] || p.titre_fr;
+    const contenu = p[`contenu_${langue}`] || p.contenu_fr;
+    document.title = titre + " — École MAMA-ZOUMANA";
+    document.getElementById('titrePage').textContent = titre;
+    document.getElementById('contenuPage').innerHTML = contenu;
+    if (p.image_principale) {
+      document.getElementById('imagePage').src = p.image_principale;
+      document.getElementById('imageZone').classList.remove('d-none');
+    }
+    if (langue === 'ar') document.documentElement.dir = 'rtl';
+  } catch (e) {
+    document.body.innerHTML = '<div class="container py-5 text-center"><h2>Erreur de chargement</h2></div>';
+  }
+}
+chargerPage();
+</script>
+</body>
+</html>
