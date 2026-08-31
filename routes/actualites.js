@@ -11,7 +11,7 @@ try {
   verifadmin = require('../middleware/verifadmin');
   protegerAdmin = [veriftoken, verifadmin];
 } catch {
-  protegerAdmin = []; // Mode développement sans middleware
+  protegerAdmin = [];
 }
 
 // ==================================================
@@ -23,19 +23,16 @@ function getAnneeScolaire() {
   const mois = aujourdHui.getMonth() + 1;
   return mois >= 9 ? `${annee}-${annee + 1}` : `${annee - 1}-${annee}`;
 }
-
-// ✅ Récupère l'année simple (ex: "2026")
 function getAnneeSimple() {
   return new Date().getFullYear().toString();
 }
 
 // ==================================================
-// 🏠 ACCUEIL — ACTUALITÉS ÉPINGLÉES + DERNIÈRES PUBLICATIONS
+// 🏠 ACCUEIL
 // ==================================================
 router.get('/accueil', async (req, res) => {
   try {
     const annee_scolaire = getAnneeScolaire();
-    // 📌 Actualités épinglées
     const { rows: epinglees } = await pool.query(`
       SELECT id, titre_fr, titre_en, titre_ar,
              resume_fr, resume_en, resume_ar,
@@ -43,10 +40,8 @@ router.get('/accueil', async (req, res) => {
              rentree, annee_scolaire
       FROM actualites
       WHERE est_publie = true AND epingle = true
-      ORDER BY date_publication DESC
-      LIMIT 5
+      ORDER BY date_publication DESC LIMIT 5
     `);
-    // 📄 Dernières actualités (hors épinglées)
     const { rows: dernieres } = await pool.query(`
       SELECT id, titre_fr, titre_en, titre_ar,
              resume_fr, resume_en, resume_ar,
@@ -54,16 +49,12 @@ router.get('/accueil', async (req, res) => {
              rentree, annee_scolaire
       FROM actualites
       WHERE est_publie = true AND epingle = false
-      ORDER BY date_publication DESC
-      LIMIT 8
+      ORDER BY date_publication DESC LIMIT 8
     `);
-    // 🏷️ Catégories disponibles
     const { rows: categories } = await pool.query(`
       SELECT DISTINCT categorie FROM actualites
-      WHERE est_publie = true
-      ORDER BY categorie
+      WHERE est_publie = true ORDER BY categorie
     `);
-    console.log(`✅ Accueil actualités — ${epinglees.length} épinglées, ${dernieres.length} récentes`);
     return res.json({
       ok: true,
       annee_scolaire,
@@ -72,34 +63,33 @@ router.get('/accueil', async (req, res) => {
       categories: categories.map(c => c.categorie)
     });
   } catch (e) {
-    console.error("❌ ERREUR ACCUEIL ACTUALITÉS :", e.code, e.message);
+    console.error("❌ ERREUR ACCUEIL :", e.code, e.message);
     return res.json({ ok: false, erreur: "⚠️ Impossible de charger les actualités" });
   }
 });
 
 // ==================================================
-// 📋 LISTER LES ACTUALITÉS — Publiques ou complètes (Admin)
+// 📋 LISTE — /api/actualites/liste
 // ==================================================
 router.get('/liste', async (req, res) => {
   try {
     const { tout, categorie, rentree, annee_scolaire } = req.query;
     const conditions = [];
     const valeurs = [];
-    // Si tout=1 → renvoie toutes, sinon seulement celles publiées
+
     if (tout !== '1') conditions.push('est_publie = true');
-    // Filtre par catégorie
     if (categorie?.trim()) {
       valeurs.push(categorie.trim());
       conditions.push(`categorie = $${valeurs.length}`);
     }
-    // Filtre rentrée
     if (rentree === '1' || rentree === 'true') conditions.push('rentree = true');
-    // Filtre année scolaire
+
     const annee_defaut = annee_scolaire?.trim() || getAnneeScolaire();
     if (annee_scolaire) {
       valeurs.push(annee_defaut);
       conditions.push(`annee_scolaire = $${valeurs.length}`);
     }
+
     const clauseWhere = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const { rows } = await pool.query(`
       SELECT id, titre_fr, titre_en, titre_ar,
@@ -110,39 +100,36 @@ router.get('/liste', async (req, res) => {
       ${clauseWhere}
       ORDER BY epingle DESC, date_publication DESC
     `, valeurs);
-    console.log(`✅ Liste actualités — ${rows.length} enregistrement(s)`);
-    return res.json({ ok: true, actualites: rows, annee_scolaire: annee_defaut });
+
+    return res.json({ ok: true, actualites: rows, lignes: rows, annee_scolaire: annee_defaut });
   } catch (e) {
-    console.error("❌ ERREUR LISTE ACTUALITÉS :", e.code, e.message);
+    console.error("❌ ERREUR LISTE :", e.code, e.message);
     return res.json({ ok: false, erreur: "⚠️ Impossible de charger les actualités" });
   }
 });
 
 // ==================================================
-// 🔍 DÉTAIL D'UNE ACTUALITÉ — Publique
+// 🔍 DÉTAIL PAR ID
 // ==================================================
 router.get('/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    if (isNaN(id))
-      return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
+    if (isNaN(id)) return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
     const { rows: [actualite] } = await pool.query(`
       SELECT * FROM actualites WHERE id = $1 AND est_publie = true
     `, [id]);
-    if (!actualite)
-      return res.json({ ok: false, erreur: "⚠️ Actualité introuvable" });
+    if (!actualite) return res.json({ ok: false, erreur: "⚠️ Actualité introuvable" });
     return res.json({ ok: true, actualite });
   } catch (e) {
-    console.error("❌ ERREUR DÉTAIL ACTUALITÉ :", e.code, e.message);
+    console.error("❌ ERREUR DÉTAIL :", e.code, e.message);
     return res.json({ ok: false, erreur: "⚠️ Erreur serveur" });
   }
 });
 
 // ==================================================
-// ➕ AJOUTER UNE ACTUALITÉ — Admin seul
-// ✅ TOUTES les colonnes incluses + ordre respecté
+// ➕ ENREGISTRER — /api/actualites/enregistrer
 // ==================================================
-router.post('/ajouter', protegerAdmin, async (req, res) => {
+router.post('/enregistrer', protegerAdmin, async (req, res) => {
   try {
     const id_utilisateur = req.user?.id_utilisateur || req.user?.id;
     const annee_scolaire_auto = getAnneeScolaire();
@@ -157,13 +144,11 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
       rentree, annee_scolaire, annee
     } = req.body;
 
-    // ✅ Validation obligatoire
     if (!titre_fr?.trim())
       return res.json({ ok: false, erreur: "⚠️ Le titre en français est obligatoire" });
     if (!contenu_fr?.trim())
       return res.json({ ok: false, erreur: "⚠️ Le contenu en français est obligatoire" });
 
-    // ✅ Valeurs par défaut
     const donnees = {
       titre_fr: titre_fr.trim(),
       titre_en: titre_en?.trim() || null,
@@ -184,7 +169,6 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
       annee: annee?.trim() || annee_auto
     };
 
-    // ✅ REQUÊTE 100% CORRIGÉE — Colonnes dans le bon ordre + inclut "annee"
     const { rows: [nouvelle] } = await pool.query(`
       INSERT INTO actualites(
         titre_fr, titre_en, titre_ar,
@@ -204,22 +188,22 @@ router.post('/ajouter', protegerAdmin, async (req, res) => {
       id_utilisateur
     ]);
 
-    console.log(`✅ Actualité créée — "${donnees.titre_fr}" (${donnees.annee_scolaire})`);
+    console.log(`✅ Actualité créée — "${donnees.titre_fr}"`);
     return res.json({ ok: true, actualite: nouvelle, message: "✅ Actualité ajoutée avec succès" });
   } catch (e) {
-    console.error("❌ ERREUR CRÉATION ACTUALITÉ :", e.code, e.message);
+    console.error("❌ ERREUR CRÉATION :", e.code, e.message);
     return res.json({ ok: false, erreur: "⚠️ Impossible de créer l'actualité : " + e.message });
   }
 });
 
 // ==================================================
-// ✏️ MODIFIER UNE ACTUALITÉ — Admin seul
+// ✏️ MODIFIER — /api/actualites/:id
 // ==================================================
 router.put('/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    if (isNaN(id))
-      return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
+    if (isNaN(id)) return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
+    const id_utilisateur = req.user?.id_utilisateur || req.user?.id;
 
     const {
       titre_fr, titre_en, titre_ar,
@@ -258,7 +242,6 @@ router.put('/:id', protegerAdmin, async (req, res) => {
       annee: annee?.trim() || annee_auto
     };
 
-    // ✅ UPDATE corrigé — inclut "annee"
     const { rows: [modifiee] } = await pool.query(`
       UPDATE actualites SET
         titre_fr = $2, titre_en = $3, titre_ar = $4,
@@ -268,6 +251,7 @@ router.put('/:id', protegerAdmin, async (req, res) => {
         est_publie = $13, epingle = $14,
         date_publication = $15, rentree = $16,
         annee_scolaire = $17, annee = $18,
+        id_utilisateur = COALESCE($19, id_utilisateur),
         date_modification = NOW()
       WHERE id = $1
       RETURNING *
@@ -277,65 +261,52 @@ router.put('/:id', protegerAdmin, async (req, res) => {
       donnees.resume_fr, donnees.resume_en, donnees.resume_ar,
       donnees.contenu_fr, donnees.contenu_en, donnees.contenu_ar,
       donnees.image_principale, donnees.categorie, donnees.est_publie, donnees.epingle,
-      donnees.date_publication, donnees.rentree, donnees.annee_scolaire, donnees.annee
+      donnees.date_publication, donnees.rentree, donnees.annee_scolaire, donnees.annee,
+      id_utilisateur
     ]);
 
-    if (!modifiee)
-      return res.json({ ok: false, erreur: "⚠️ Actualité introuvable" });
-
-    console.log(`✅ Actualité mise à jour — ID: ${id}, "${donnees.titre_fr}"`);
-    return res.json({ ok: true, actualite: modifiee, message: "✅ Actualité mise à jour avec succès" });
+    if (!modifiee) return res.json({ ok: false, erreur: "⚠️ Actualité introuvable" });
+    console.log(`✅ Actualité mise à jour — ID: ${id}`);
+    return res.json({ ok: true, actualite: modifiee, message: "✅ Actualité mise à jour" });
   } catch (e) {
-    console.error("❌ ERREUR MODIFICATION ACTUALITÉ :", e.code, e.message);
-    return res.json({ ok: false, erreur: "⚠️ Impossible de modifier l'actualité : " + e.message });
+    console.error("❌ ERREUR MODIFICATION :", e.code, e.message);
+    return res.json({ ok: false, erreur: "⚠️ Impossible de modifier : " + e.message });
   }
 });
 
 // ==================================================
-// 🗑️ SUPPRIMER UNE ACTUALITÉ — Admin seul
+// 🗑️ SUPPRIMER — /api/actualites/:id
 // ==================================================
 router.delete('/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    if (isNaN(id))
-      return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
-
+    if (isNaN(id)) return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
     const { rows: [supprimee] } = await pool.query(
       'DELETE FROM actualites WHERE id = $1 RETURNING titre_fr',
       [id]
     );
-
-    if (!supprimee)
-      return res.json({ ok: false, erreur: "⚠️ Actualité introuvable" });
-
-    console.log(`🗑️ Actualité supprimée — ID: ${id}, "${supprimee.titre_fr}"`);
+    if (!supprimee) return res.json({ ok: false, erreur: "⚠️ Actualité introuvable" });
+    console.log(`🗑️ Actualité supprimée — ID: ${id}`);
     return res.json({ ok: true, message: "✅ Actualité supprimée définitivement" });
   } catch (e) {
-    console.error("❌ ERREUR SUPPRESSION ACTUALITÉ :", e.code, e.message);
-    return res.json({ ok: false, erreur: "⚠️ Impossible de supprimer l'actualité" });
+    console.error("❌ ERREUR SUPPRESSION :", e.code, e.message);
+    return res.json({ ok: false, erreur: "⚠️ Impossible de supprimer" });
   }
 });
 
 // ==================================================
-// 📅 RENTRÉE SCOLAIRE EN COURS — Pour le menu
+// 📅 RENTRÉE ACTUELLE
 // ==================================================
 router.get('/rentree/actuelle', async (req, res) => {
   try {
-    const aujourdHui = new Date();
-    const annee = aujourdHui.getFullYear();
-    const mois = aujourdHui.getMonth() + 1;
-    const annee_scolaire = mois >= 9 ? `${annee}-${annee + 1}` : `${annee - 1}-${annee}`;
-
+    const annee_scolaire = getAnneeScolaire();
     const { rows: [rentree] } = await pool.query(`
       SELECT id, titre_fr, titre_en, titre_ar,
              resume_fr, date_publication, annee_scolaire
       FROM actualites
       WHERE rentree = true AND annee_scolaire = $1 AND est_publie = true
-      ORDER BY date_publication DESC
-      LIMIT 1
+      ORDER BY date_publication DESC LIMIT 1
     `, [annee_scolaire]);
-
-    console.log(`✅ Rentrée consultée : ${rentree?.titre_fr || 'Aucune'}`);
     return res.json({ ok: true, rentree: rentree || null, annee_scolaire });
   } catch (e) {
     console.error("❌ ERREUR RENTRÉE :", e.code, e.message);

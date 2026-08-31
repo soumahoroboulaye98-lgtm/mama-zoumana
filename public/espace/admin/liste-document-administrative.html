@@ -111,12 +111,12 @@
 // ===== ✅ CONFIGURATION CENTRALISÉE =====
 const API_URL = "https://mama-zoumana-api.onrender.com/api";
 
-// ✅ Récupération sécurisée
+// ✅ Récupération sécurisée — CORRIGÉ
 function getToken() { return localStorage.getItem('token') || ''; }
 const token = getToken();
 const role = (localStorage.getItem('role') || '').toLowerCase().trim();
 
-// ✅ CORRIGÉ : variables déclarées une seule fois avec `let`
+// ✅ DÉCLARÉES EN PREMIER — avant toute utilisation
 let langueActuelle = localStorage.getItem('langue') || 'fr';
 let themeActuel = localStorage.getItem('theme') || 'light';
 
@@ -130,7 +130,8 @@ const MSG = {
     supprimeOk: "✅ Document supprimé avec succès",
     annuler: "Annuler", confirmer: "Confirmer la suppression",
     voir: "Voir", reimprimer: "Réimprimer", supprimer: "Supprimer",
-    total: "Total des documents", page: "Page", sur: "sur"
+    total: "Total des documents", page: "Page", sur: "sur",
+    eleve: "Élève", typeDoc: "Type de document", annee: "Année", generer: "Générer"
   },
   en: {
     accesReserve: "⛔ Access restricted to Administrator",
@@ -140,7 +141,8 @@ const MSG = {
     supprimeOk: "✅ Document deleted successfully",
     annuler: "Cancel", confirmer: "Confirm deletion",
     voir: "View", reimprimer: "Reprint", supprimer: "Delete",
-    total: "Total documents", page: "Page", sur: "of"
+    total: "Total documents", page: "Page", sur: "of",
+    eleve: "Student", typeDoc: "Document type", annee: "Year", generer: "Generate"
   },
   ar: {
     accesReserve: "⛔ الوصول مقصور على المدير",
@@ -150,11 +152,13 @@ const MSG = {
     supprimeOk: "✅ تم حذف الوثيقة بنجاح",
     annuler: "إلغاء", confirmer: "تأكيد الحذف",
     voir: "عرض", reimprimer: "إعادة طباعة", supprimer: "حذف",
-    total: "إجمالي الوثائق", page: "صفحة", sur: "من"
+    total: "إجمالي الوثائق", page: "صفحة", sur: "من",
+    eleve: "تلميذ", typeDoc: "نوع الوثيقة", annee: "السنة", generer: "إنشاء"
   }
 };
 
-function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle]; }
+// ✅ Fonction m() DÉFINIE avant utilisation
+function m(cle) { return MSG[langueActuelle]?.[cle] || MSG.fr[cle] || cle; }
 
 // ===== STOCKAGE LOCAL FALLBACK =====
 function obtenirDocumentsLocaux() { 
@@ -393,9 +397,9 @@ const modaleConfirmation = new bootstrap.Modal(document.getElementById('modaleCo
 function majIcone(t) {
   document.getElementById('iconeTheme').className = t === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
 }
+
 // Appliquer thème au chargement
 majIcone(themeActuel);
-
 document.getElementById('btnTheme').addEventListener('click', () => {
   themeActuel = themeActuel === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-bs-theme', themeActuel);
@@ -411,7 +415,6 @@ document.querySelectorAll('.lang-btn').forEach(bouton => {
     bouton.classList.add('active');
     document.body.className = `lang-${lang}`;
     localStorage.setItem('langue', lang);
-    // ✅ CORRIGÉ : mise à jour de la variable globale
     langueActuelle = lang;
     afficherTableau();
   });
@@ -427,6 +430,7 @@ function genererModeleDoc(doc) {
   const etab = "Établissement Scolaire MAMA-ZOUMANA — Centre Islamique";
   const date = doc.date_delivrance ? new Date(doc.date_delivrance).toLocaleDateString('fr-FR', {dateStyle:'long'}) : '';
   const type = doc.type_document || doc.type_doc || '';
+
   const modeles = {
     carte_scolaire: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(type)}</div></div><div class="doc-corps row"><div class="col-4 text-center"><div style="border:1px solid #ccc; border-radius:6px; padding:2rem .5rem; font-size:3rem; color:#999;">📷</div></div><div class="col-8"><p><strong>NOM :</strong> ${benef.nom}</p><p><strong>PRÉNOMS :</strong> ${benef.prenoms}</p><p><strong>MATRICULE :</strong> ${benef.matricule||'—'}</p><p><strong>CLASSE :</strong> ${benef.classe||benef.nom_classe||'—'}</p><p><strong>ANNÉE :</strong> ${doc.annee_scolaire||'—'}</p></div></div><p class="doc-num">N° ${doc.numero_unique || '—'}</p></div>`,
     attestation_scolarite: `<div class="document"><div class="doc-entete"><div class="doc-nom-etab">🕌 ${etab}</div><div class="doc-titre">${libelleDoc(type)}</div></div><div class="doc-corps"><p>Nous soussignés, certifions que :</p><p class="text-center text-uppercase fw-bold my-3">${benef.nom} ${benef.prenoms}</p><p>est inscrit(e) en classe de <strong>${benef.classe||'—'}</strong> — <strong>${doc.annee_scolaire||'—'}</strong>.</p><p class="mt-4">En foi de quoi, délivrons la présente attestation.</p><p class="mt-5">Abidjan, le ${date}</p><div class="d-flex justify-content-between mt-5 pt-3"><span>Le Directeur</span><span class="doc-num">N° ${doc.numero_unique || '—'}</span></div></div></div>`,

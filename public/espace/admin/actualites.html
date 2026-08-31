@@ -717,10 +717,10 @@ async function chargerActualites(forcerLocal = false) {
         sauvegarderActualitesLocales(liste);
         basculerModeLocal(false);
       } else {
-        throw new Error("Liste vide");
+        console.warn("Liste vide depuis l'API");
       }
-    } catch {
-      console.warn("🔌 Passage en mode local");
+    } catch (err) {
+      console.warn("🔌 Erreur API — Passage en mode local", err);
       forcerLocal = true;
     }
   }
@@ -728,7 +728,6 @@ async function chargerActualites(forcerLocal = false) {
     basculerModeLocal(true);
     liste = obtenirActualitesLocales();
   }
-
   // 🖥️ AFFICHAGE
   const cont = document.getElementById('liste-actualites');
   if (Array.isArray(liste) && liste.length > 0) {
@@ -771,20 +770,6 @@ async function chargerActualites(forcerLocal = false) {
 }
 
 // ==================================================
-// 🔄 RÉINITIALISER LE FORMULAIRE
-// ==================================================
-window.reinitialiserFormulaire = function() {
-  document.getElementById('form-actualite').reset();
-  document.getElementById('btnSoumettre').innerHTML = `
-    <i class="bi bi-send-check me-2"></i>
-    <span class="txt-fr">🚀 Publier l'Actualité</span>
-    <span class="txt-en">🚀 Publish News</span>
-    <span class="txt-ar">🚀 نشر الخبر</span>`;
-  document.getElementById('btnAnnuler').style.display = 'none';
-  editionId = null;
-};
-
-// ==================================================
 // ✏️ ÉDITER UNE ACTUALITÉ
 // ==================================================
 window.editerActualite = async function(id) {
@@ -795,11 +780,9 @@ window.editerActualite = async function(id) {
   } catch {
     liste = obtenirActualitesLocales();
   }
-
   const actu = liste.find(a => Number(a.id) === Number(id));
   if (!actu) return;
 
-  // Remplir le formulaire
   document.getElementById('titre_fr').value = actu.titre_fr || '';
   document.getElementById('titre_en').value = actu.titre_en || '';
   document.getElementById('titre_ar').value = actu.titre_ar || '';
@@ -812,7 +795,6 @@ window.editerActualite = async function(id) {
   document.getElementById('est_publie').checked = actu.est_publie !== false;
   document.getElementById('epingle').checked = actu.epingle === true;
 
-  // Changer le bouton
   document.getElementById('btnSoumettre').innerHTML = `
     <i class="bi bi-check2-square me-2"></i>
     <span class="txt-fr">✅ Mettre à jour</span>
@@ -820,7 +802,6 @@ window.editerActualite = async function(id) {
     <span class="txt-ar">✅ تحديث</span>`;
   document.getElementById('btnAnnuler').style.display = 'inline-block';
   editionId = id;
-
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
@@ -839,7 +820,6 @@ window.supprimerActualite = async function(id) {
       alert("❌ " + (donnees.erreur || "Erreur serveur"));
     }
   } catch {
-    // Mode local
     let liste = obtenirActualitesLocales().filter(a => Number(a.id) !== Number(id));
     sauvegarderActualitesLocales(liste);
     basculerModeLocal(true);
@@ -849,12 +829,11 @@ window.supprimerActualite = async function(id) {
 };
 
 // ==================================================
-// 💾 SOUMETTRE LE FORMULAIRE (CRÉER / MODIFIER)
+// 💾 SOUMETTRE LE FORMULAIRE — CORRIGÉ ✅
 // ==================================================
 document.getElementById('form-actualite').addEventListener('submit', async e => {
   e.preventDefault();
 
-  // Récupérer les valeurs
   const titre_fr = document.getElementById('titre_fr').value.trim();
   const titre_en = document.getElementById('titre_en').value.trim();
   const titre_ar = document.getElementById('titre_ar').value.trim();
@@ -867,17 +846,16 @@ document.getElementById('form-actualite').addEventListener('submit', async e => 
   const est_publie = document.getElementById('est_publie').checked;
   const epingle = document.getElementById('epingle').checked;
 
-  // Validation minimum
   if (!titre_fr || !contenu_fr) { 
     alert(m('aucunChampVide')); 
     return; 
   }
 
-  // Préparer les données
+  // ✅ ERREUR CORRIGÉE : "contenu" → "contenu_fr"
   const donnees = { 
     titre_fr, titre_en, titre_ar, 
     resume_fr, resume_en, resume_ar, 
-    contenu_fr, contenu, contenu_en, contenu_ar, 
+    contenu_fr, contenu_en, contenu_ar, 
     est_publie, epingle,
     date_publication: new Date().toISOString()
   };
@@ -885,38 +863,30 @@ document.getElementById('form-actualite').addEventListener('submit', async e => 
   try {
     let resultat;
     if (editionId) {
-      // ✏️ MODIFIER — Requête PUT
       resultat = await requeteAPI(`/actualites/${editionId}`, {
         method: 'PUT',
         body: JSON.stringify(donnees)
       });
       if (resultat.ok) alert(m('modifierSucces'));
     } else {
-      // 🆕 CRÉER — Requête POST
       resultat = await requeteAPI('/actualites/enregistrer', {
         method: 'POST',
         body: JSON.stringify(donnees)
       });
       if (resultat.ok) alert(m('ajouterSucces'));
     }
-
     if (!resultat.ok) return alert("❌ " + (resultat.erreur || "Erreur serveur"));
     
-    // ✅ Réinitialiser et recharger
     reinitialiserFormulaire();
     chargerActualites();
-
   } catch {
-    // 📴 FALLBACK MODE LOCAL
     let liste = obtenirActualitesLocales();
     donnees.id = editionId ? Number(editionId) : Date.now();
-
     if (editionId) {
       liste = liste.map(a => Number(a.id) === Number(editionId) ? { ...a, ...donnees } : a);
     } else {
       liste.unshift(donnees);
     }
-
     sauvegarderActualitesLocales(liste);
     basculerModeLocal(true);
     alert((editionId ? m('modifierSucces') : m('ajouterSucces')) + " (mode local)");

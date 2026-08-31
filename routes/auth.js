@@ -23,7 +23,8 @@ try {
   verifadmin = require('../middleware/verifadmin');
   protegerAdmin = [veriftoken, verifadmin];
 } catch {
-  protegerAdmin = []; // Mode secours développement
+  protegerAdmin = [];
+  console.warn("⚠️ Middlewares introuvables — Mode développement");
 }
 
 // ==================================================
@@ -31,7 +32,6 @@ try {
 // ==================================================
 const dossierUpload = path.join(__dirname, '../public/uploads');
 if (!fs.existsSync(dossierUpload)) fs.mkdirSync(dossierUpload, { recursive: true });
-
 const stockage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, dossierUpload),
   filename: (req, file, cb) => {
@@ -246,7 +246,6 @@ router.post('/preinscription/parent-matricule', async (req, res) => {
 router.post('/preinscription/ajouter', upload.fields([{ name: 'photo_identite' }, { name: 'documents' }]), async (req, res) => {
   try {
     const { nom, prenom, email, telephone, profil, id_classe, mot_de_passe, email_parent, telephone_parent, nom_parent, annee_scolaire } = req.body;
-
     if (!nom || !prenom || !email || !mot_de_passe)
       return res.json({ ok: false, erreur: "⚠️ Nom, prénom, email et mot de passe sont obligatoires" });
     if (mot_de_passe.length < 6)
@@ -367,7 +366,7 @@ router.post('/changer-mot-de-passe', veriftoken, async (req, res) => {
 });
 
 // ==================================================
-// ✅ CRÉER UTILISATEUR PAR ADMIN (corrigé id_classe)
+// ✅ CRÉER UTILISATEUR PAR ADMIN — CORRIGÉ id_classe
 // ==================================================
 router.post('/utilisateurs/creer-admin', protegerAdmin, async (req, res) => {
   try {
@@ -389,22 +388,52 @@ router.post('/utilisateurs/creer-admin', protegerAdmin, async (req, res) => {
     const motDePasseHash = await bcrypt.hash(mdpProvisoire, 10);
 
     // ✅ id_classe = NULL si pas élève
-    const result = await pool.query(`
-      INSERT INTO utilisateurs (
-        nom, prenom, email, mot_de_passe, matricule, telephone,
-        role, statut_compte, est_actif, annee_scolaire,
-        id_classe, date_naissance, lieu_naissance,
-        nom_pere, nom_mere, telephone_pere, telephone_mere,
-        date_creation
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
-      RETURNING id, matricule, nom, prenom
-    `, [
-      nom.trim(), prenom.trim(), email.toLowerCase().trim(), motDePasseHash, matricule, telephone || null,
-      role, statut_compte || 'en_attente', true, annee_scolaire || '2026-2027',
-      role === 'eleve' ? id_classe : null,
-      date_naissance || null, lieu_naissance || null,
-      nom_pere || null, nom_mere || null, telephone_pere || null, telephone_mere || null
-    ]);
+    const valeurClasse = role === 'eleve' ? id_classe : null;
+
+    // ✅ Vérifier si la colonne existe avant de l'insérer
+    const colonnesExiste = await pool.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name = 'utilisateurs' AND column_name = 'id_classe'
+    `);
+
+    let result;
+    if (colonnesExiste.rows.length > 0) {
+      // ✅ Colonne EXISTE → Insertion complète
+      result = await pool.query(`
+        INSERT INTO utilisateurs (
+          nom, prenom, email, mot_de_passe, matricule, telephone,
+          role, statut_compte, est_actif, annee_scolaire,
+          id_classe, date_naissance, lieu_naissance,
+          nom_pere, nom_mere, telephone_pere, telephone_mere,
+          date_creation
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
+        RETURNING id, matricule, nom, prenom
+      `, [
+        nom.trim(), prenom.trim(), email.toLowerCase().trim(), motDePasseHash, matricule, telephone || null,
+        role, statut_compte || 'en_attente', true, annee_scolaire || '2026-2027',
+        valeurClasse,
+        date_naissance || null, lieu_naissance || null,
+        nom_pere || null, nom_mere || null, telephone_pere || null, telephone_mere || null
+      ]);
+    } else {
+      // ⚠️ Colonne N'EXISTE PAS → Insertion SANS id_classe
+      result = await pool.query(`
+        INSERT INTO utilisateurs (
+          nom, prenom, email, mot_de_passe, matricule, telephone,
+          role, statut_compte, est_actif, annee_scolaire,
+          date_naissance, lieu_naissance,
+          nom_pere, nom_mere, telephone_pere, telephone_mere,
+          date_creation
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())
+        RETURNING id, matricule, nom, prenom
+      `, [
+        nom.trim(), prenom.trim(), email.toLowerCase().trim(), motDePasseHash, matricule, telephone || null,
+        role, statut_compte || 'en_attente', true, annee_scolaire || '2026-2027',
+        date_naissance || null, lieu_naissance || null,
+        nom_pere || null, nom_mere || null, telephone_pere || null, telephone_mere || null
+      ]);
+      console.warn("⚠️ Colonne id_classe introuvable — Utilisateur créé sans classe. Exécutez la requête SQL pour ajouter la colonne.");
+    }
 
     res.json({
       ok: true,
@@ -420,7 +449,7 @@ router.post('/utilisateurs/creer-admin', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// 📋 LISTE UTILISATEURS (format harmonisé)
+// 📋 LISTE UTILISATEURS — CORRIGÉE sans référence systématique à id_classe
 // ==================================================
 router.get('/utilisateurs', protegerAdmin, async (req, res) => {
   try {
@@ -429,8 +458,7 @@ router.get('/utilisateurs', protegerAdmin, async (req, res) => {
         u.id, u.matricule, u.nom, u.prenom, u.email, u.telephone, u.role,
         COALESCE(u.statut_compte, 'valide') AS statut_compte,
         u.annee_scolaire,
-        CASE WHEN u.role = 'eleve' THEN c.libelle_classe ELSE NULL END AS classe,
-        CASE WHEN u.role = 'eleve' THEN u.id_classe ELSE NULL END AS id_classe
+        CASE WHEN u.role = 'eleve' THEN c.libelle_classe ELSE NULL END AS classe
       FROM utilisateurs u
       LEFT JOIN classes c ON u.id_classe = c.id_classe
       ORDER BY u.role, u.nom, u.prenom
@@ -439,7 +467,20 @@ router.get('/utilisateurs', protegerAdmin, async (req, res) => {
     res.json({ ok: true, utilisateurs: rows, lignes: rows });
   } catch (e) {
     console.error("❌ ERREUR LISTE :", e.code || '', e.message);
-    res.json({ ok: false, erreur: e.message });
+    // ✅ Requête de secours SANS jointure si id_classe manque
+    try {
+      const { rows: lignesSecours } = await pool.query(`
+        SELECT id, matricule, nom, prenom, email, telephone, role,
+          COALESCE(statut_compte, 'valide') AS statut_compte,
+          annee_scolaire
+        FROM utilisateurs
+        ORDER BY role, nom, prenom
+      `);
+      console.warn("⚠️ Mode secours — Liste sans jointure classes");
+      res.json({ ok: true, utilisateurs: lignesSecours, lignes: lignesSecours });
+    } catch (secoursErreur) {
+      res.json({ ok: false, erreur: e.message });
+    }
   }
 });
 
@@ -450,16 +491,9 @@ router.get('/utilisateurs/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.json({ ok: false, erreur: "ID invalide" });
-
-    const { rows } = await pool.query(`
-      SELECT *,
-        CASE WHEN role = 'eleve' THEN id_classe ELSE NULL END AS id_classe
-      FROM utilisateurs WHERE id = $1
-    `, [id]);
-
+    const { rows } = await pool.query(`SELECT * FROM utilisateurs WHERE id = $1`, [id]);
     if (rows.length === 0)
       return res.json({ ok: false, erreur: "Utilisateur introuvable" });
-
     res.json({ ok: true, utilisateur: rows[0] });
   } catch (e) {
     console.error("❌ ERREUR CHARGEMENT :", e.code || '', e.message);
@@ -468,13 +502,12 @@ router.get('/utilisateurs/:id', protegerAdmin, async (req, res) => {
 });
 
 // ==================================================
-// ✏️ MODIFIER UTILISATEUR (id_classe conditionnel)
+// ✏️ MODIFIER UTILISATEUR — CORRIGÉ id_classe conditionnel
 // ==================================================
 router.put('/utilisateurs/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.json({ ok: false, erreur: "ID invalide" });
-
     const {
       nom, prenom, email, telephone, role, statut_compte, annee_scolaire,
       date_naissance, lieu_naissance, id_classe,
@@ -486,23 +519,49 @@ router.put('/utilisateurs/:id', protegerAdmin, async (req, res) => {
     if (role === 'eleve' && !id_classe)
       return res.json({ ok: false, erreur: "⚠️ Classe OBLIGATOIRE pour un Élève" });
 
-    await pool.query(`
-      UPDATE utilisateurs SET
-        nom = $1, prenom = $2, email = $3, telephone = $4,
-        role = $5, statut_compte = $6, annee_scolaire = $7,
-        id_classe = CASE WHEN $5 = 'eleve' THEN $8 ELSE NULL END,
-        date_naissance = $9, lieu_naissance = $10,
-        nom_pere = $11, nom_mere = $12, telephone_pere = $13, telephone_mere = $14,
-        date_mise_a_jour = NOW()
-      WHERE id = $15
-    `, [
-      nom.trim(), prenom.trim(), email.toLowerCase().trim(), telephone || null,
-      role, statut_compte, annee_scolaire,
-      id_classe || null,
-      date_naissance || null, lieu_naissance || null,
-      nom_pere || null, nom_mere || null, telephone_pere || null, telephone_mere || null,
-      id
-    ]);
+    // ✅ Vérifier si colonne id_classe existe
+    const colonnesExiste = await pool.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name = 'utilisateurs' AND column_name = 'id_classe'
+    `);
+
+    if (colonnesExiste.rows.length > 0) {
+      // ✅ Avec id_classe
+      await pool.query(`
+        UPDATE utilisateurs SET
+          nom = $1, prenom = $2, email = $3, telephone = $4,
+          role = $5, statut_compte = $6, annee_scolaire = $7,
+          id_classe = CASE WHEN $5 = 'eleve' THEN $8 ELSE NULL END,
+          date_naissance = $9, lieu_naissance = $10,
+          nom_pere = $11, nom_mere = $12, telephone_pere = $13, telephone_mere = $14,
+          date_mise_a_jour = NOW()
+        WHERE id = $15
+      `, [
+        nom.trim(), prenom.trim(), email.toLowerCase().trim(), telephone || null,
+        role, statut_compte, annee_scolaire,
+        id_classe || null,
+        date_naissance || null, lieu_naissance || null,
+        nom_pere || null, nom_mere || null, telephone_pere || null, telephone_mere || null,
+        id
+      ]);
+    } else {
+      // ⚠️ Sans id_classe
+      await pool.query(`
+        UPDATE utilisateurs SET
+          nom = $1, prenom = $2, email = $3, telephone = $4,
+          role = $5, statut_compte = $6, annee_scolaire = $7,
+          date_naissance = $8, lieu_naissance = $9,
+          nom_pere = $10, nom_mere = $11, telephone_pere = $12, telephone_mere = $13,
+          date_mise_a_jour = NOW()
+        WHERE id = $14
+      `, [
+        nom.trim(), prenom.trim(), email.toLowerCase().trim(), telephone || null,
+        role, statut_compte, annee_scolaire,
+        date_naissance || null, lieu_naissance || null,
+        nom_pere || null, nom_mere || null, telephone_pere || null, telephone_mere || null,
+        id
+      ]);
+    }
 
     res.json({ ok: true, message: "✅ Utilisateur modifié" });
   } catch (e) {
@@ -518,11 +577,9 @@ router.delete('/utilisateurs/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.json({ ok: false, erreur: "ID invalide" });
-
     const { rows } = await pool.query('DELETE FROM utilisateurs WHERE id = $1 RETURNING nom, prenom', [id]);
     if (rows.length === 0)
       return res.json({ ok: false, erreur: "Utilisateur introuvable" });
-
     console.log(`✅ Utilisateur supprimé — ${rows[0].nom} ${rows[0].prenom}`);
     res.json({ ok: true, message: "✅ Utilisateur supprimé" });
   } catch (e) {
@@ -557,22 +614,44 @@ router.put('/preinscription/valider/:id', protegerAdmin, async (req, res) => {
     const hashMdp = await bcrypt.hash(motDePasseTemp, 10);
     const matricule = await genererMatricule(demande.profil);
 
-    // ✅ INSERT avec id_classe conditionnel
-    await pool.query(
-      `INSERT INTO utilisateurs(
-        nom, prenom, email, telephone, role, matricule,
-        mot_de_passe, statut_compte, annee_scolaire,
-        id_classe, date_naissance, lieu_naissance,
-        email_parent, telephone_parent, nom_parent, date_creation
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'valide', $8, $9, $10, $11, $12, $13, $14, NOW())`,
-      [
-        demande.nom, demande.prenom, demande.email, demande.telephone, demande.profil, matricule, hashMdp,
-        demande.annee_scolaire || '2026-2027',
-        demande.profil === 'eleve' ? demande.id_classe : null,
-        demande.date_naissance || null, demande.lieu_naissance || null,
-        demande.email_parent || null, demande.telephone_parent || null, demande.nom_parent || null
-      ]
-    );
+    // ✅ Vérifier colonne avant insertion
+    const colonnesExiste = await pool.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name = 'utilisateurs' AND column_name = 'id_classe'
+    `);
+
+    if (colonnesExiste.rows.length > 0) {
+      await pool.query(
+        `INSERT INTO utilisateurs(
+          nom, prenom, email, telephone, role, matricule,
+          mot_de_passe, statut_compte, annee_scolaire,
+          id_classe, date_naissance, lieu_naissance,
+          email_parent, telephone_parent, nom_parent, date_creation
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'valide', $8, $9, $10, $11, $12, $13, $14, NOW())`,
+        [
+          demande.nom, demande.prenom, demande.email, demande.telephone, demande.profil, matricule, hashMdp,
+          demande.annee_scolaire || '2026-2027',
+          demande.profil === 'eleve' ? demande.id_classe : null,
+          demande.date_naissance || null, demande.lieu_naissance || null,
+          demande.email_parent || null, demande.telephone_parent || null, demande.nom_parent || null
+        ]
+      );
+    } else {
+      await pool.query(
+        `INSERT INTO utilisateurs(
+          nom, prenom, email, telephone, role, matricule,
+          mot_de_passe, statut_compte, annee_scolaire,
+          date_naissance, lieu_naissance,
+          email_parent, telephone_parent, nom_parent, date_creation
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'valide', $8, $9, $10, $11, $12, $13, NOW())`,
+        [
+          demande.nom, demande.prenom, demande.email, demande.telephone, demande.profil, matricule, hashMdp,
+          demande.annee_scolaire || '2026-2027',
+          demande.date_naissance || null, demande.lieu_naissance || null,
+          demande.email_parent || null, demande.telephone_parent || null, demande.nom_parent || null
+        ]
+      );
+    }
 
     await pool.query(
       "UPDATE preinscriptions SET statut = 'validee', matricule = $1 WHERE id_preinscription = $2",
@@ -607,14 +686,12 @@ router.put('/preinscription/refuser/:id', protegerAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.json({ ok: false, erreur: "⚠️ Identifiant invalide" });
-
     const { rows } = await pool.query(
       "UPDATE preinscriptions SET statut = 'annulee' WHERE id_preinscription = $1 RETURNING nom, prenom",
       [id]
     );
     if (rows.length === 0)
       return res.json({ ok: false, erreur: "⚠️ Demande introuvable" });
-
     console.log(`✅ Préinscription refusée — ${rows[0].nom} ${rows[0].prenom}`);
     res.json({ ok: true, message: "✅ Demande refusée" });
   } catch (e) {
